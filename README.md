@@ -50,6 +50,16 @@ The returned object, <code>soundio</code>, can be thought of as a GOM – a Grap
 Object Model for audio objects and connections. In turn, the GOM controls the
 Web Audio API.
 
+## Dependencies
+
+Soundio is in development. It currently has several dependencies that are
+separate repos:
+
+- Collection
+- observe
+- audio-object
+- MIDI (optional)
+
 ## soundio
 
 ### soundio.create(data)
