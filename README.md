@@ -56,7 +56,6 @@ Soundio is in development. It currently has several dependencies that are
 separate repos:
 
 - Collection
-- observe
 - audio-object
 - MIDI (optional)
 
