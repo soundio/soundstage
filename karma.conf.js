@@ -12,15 +12,15 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      
+      '../collection/js/object.assign.js',
       '../collection/js/observe.js',
       '../collection/js/mixin.array.js',
       '../collection/js/mixin.events.js',
       '../collection/js/collection.js',
       '../audio-object/js/audio-object.js',
-      '../midi/js/midi.js',
-      '../midi/js/midi.utils.js',
-      '../midi/js/midi.events.js',
+      '../midi/src/midi.js',
+      '../midi/src/midi.utils.js',
+      '../midi/src/midi.events.js',
       'test/module.js',
       'test/test-midi.js'
     ],

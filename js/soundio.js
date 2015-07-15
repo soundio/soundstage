@@ -4,7 +4,7 @@
 	console.log('Soundio');
 	console.log('http://github.com/soundio/soundio');
 	console.log('Graph Object Model for the Web Audio API');
-	console.log('————––––—————————————–––————————————————');
+	console.log('––––––––––––––––––––––––––––––––––––––––');
 })(this);
 
 
@@ -12,18 +12,19 @@
 //
 // Soundio(data, settings)
 
-(function(Sparky, Collection) {
+(function(window) {
 	"use strict";
 
-	var assign = Object.assign;
-
-	// TODO: We're only using Sparky for helper functions
-	// here, we should probably modularise them.
-	var observe = Sparky.observe;
-	var unobserve = Sparky.unobserve;
-	var splice = Function.prototype.call.bind(Array.prototype.splice);
+	// Imports
+	// TODO: At some point in future use Web Modules
+	var observe    = window.observe;
+	var unobserve  = window.unobserve;
+	var Collection = window.Collection;
+	var assign     = Object.assign;
+	var splice     = Function.prototype.call.bind(Array.prototype.splice);
 
 	// Set up audio
+	// TODO: delay audio context creation until we know we need it
 	var audio = new window.AudioContext();
 	var output = audio.createChannelMerger(2);
 
@@ -627,7 +628,7 @@
 	});
 
 	window.Soundio = Soundio;
-})(window.Sparky, window.Collection);
+})(window);
 
 
 // Timing functions for Soundio

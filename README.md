@@ -1,5 +1,8 @@
 # Soundio
 
+Soundio provides a fast, declarative way to set up an audio graph, an API for
+manipulating it and a JSONify-able structure that can be used to store patches.
+
 A Soundio document is a <code>JSON</code>ify-able object that looks like this:
 
 	var data = {
@@ -38,26 +41,24 @@ Call Soundio with this data to get a live audio graph:
 Turn your volume down a bit, enable the mic when prompted by the browser, and
 you will hear your voice being flanged.
 
-Soundio can also take an options object. There is currently one option:
+Soundio can also take an options object. There is currently one option. If there
+is already an audio context on the page, pass it in to avoid creating anew one:
 
 	var soundio = Soundio(data, {
-			// If you already have an audio context, pass it in
-			// and Soundio will use it.
 			audio: AudioContext
 		});
 
 The returned object, <code>soundio</code>, can be thought of as a GOM – a Graph
-Object Model for audio objects and connections. In turn, the GOM controls the
-Web Audio API.
+Object Model for audio objects and connections. The GOM controls the Web Audio
+API.
 
 ## Dependencies
 
-Soundio is in development. It currently has several dependencies that are
-separate repos:
+Soundio is in development. It has three dependencies that are in separate repos:
 
-- Collection
-- audio-object
-- MIDI (optional)
+- <a href="https://github.com/cruncher/collection">github.com/cruncher/collection</a>
+- <a href="https://github.com/soundio/audio-object">github.com/soundio/audio-object</a>
+- <a href="https://github.com/soundio/midi (optional)">github.com/soundio/midi</a> (optional)
 
 ## soundio
 

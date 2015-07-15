@@ -1,5 +1,10 @@
-(function(Soundio) {
+(function(window) {
 	"use strict";
+
+	var Soundio    = window.Soundio;
+	var Collection = window.Collection;
+	var observe    = window.observe;
+	var unobserve  = window.unobserve;
 
 	var automation = {
 	    	wet: { min: 0, max: 1, transform: 'cubic', default: 1 },
@@ -15,7 +20,7 @@
 	    	maxDuration: 30
 	    };
 
-	var masterStack = Sparky.Collection();
+	var masterStack = Collection();
 
 	function noop() {}
 
@@ -112,7 +117,7 @@
 
 		var worker = new Worker(workerPath);
 		var recording = 0;
-		var stack = Sparky.Collection();
+		var stack = Collection();
 
 		// Audio nodes
 
@@ -289,7 +294,7 @@
 	}
 
 	// Reset master values when master stack becomes empty
-	Sparky.observe(masterStack, 'length', function() {
+	observe(masterStack, 'length', function() {
 		if (masterStack.length === 0) {
 			console.log('soundio: loop reset');
 			delete master.duration;
@@ -299,4 +304,4 @@
 
 	Soundio.register('file', File);
 	Soundio.register('loop', Loop, automation);
-})(window.Soundio);
+})(window);
