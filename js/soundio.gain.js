@@ -21,11 +21,7 @@
 		    		},
 
 		    		set: function(value, time, duration, curve) {
-		    			if (value) {
-		    				gain = node.gain.value;
-		    				console.log(gain);
-		    			}
-
+		    			if (value) { gain = node.gain.value; }
 		    			AudioObject.automate(node.gain, value ? 0 : gain, time, duration, 'exponential');
 		    		},
 

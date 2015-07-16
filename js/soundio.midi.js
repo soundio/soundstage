@@ -91,13 +91,9 @@
 				object[property] = transform(data[2] / 127, binding.min, binding.max, object[property]);
 			};
 	}
-var bindings = [];
+
 	function add(midimap, binding) {
 		var message = [];
-
-bindings.push(binding);
-
-console.log(bindings[1] === bindings[0]);
 
 		function update(binding) {
 			var n = binding.message.length;

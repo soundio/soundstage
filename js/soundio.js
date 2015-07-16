@@ -265,7 +265,7 @@
 				object.name = settings.name;
 			}
 
-			console.log('Soundio: create', object.id, '"' + object.type + '"');
+			Soundio.debug && console.log('Soundio: create', object.id, '"' + object.type + '"');
 
 			this.add(object);
 			return object;
