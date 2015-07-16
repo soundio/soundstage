@@ -28,7 +28,7 @@ Tests use Karma. To run tests:
 
 ## Soundio(data, options)
 
-Soundio data is an object that looks something like this:
+Soundio <code>data</code> is an object that looks something like this:
 
 	var data = {
 		objects: [
