@@ -65,11 +65,12 @@
 	function createMidiBinding(data, object) {
 		var defaults = Soundio.retrieveDefaults(object.type)[data.property] || {};
 
-		return Object.defineProperties(assign({
-			min:       isDefined(defaults.min) ? defaults.min : 0,
-			max:       isDefined(defaults.max) ? defaults.max : 1,
-			transform: isDefined(defaults.transform) ? defaults.transform : 'linear'
-		}, data), {
+		return Object.defineProperties({
+			message:   data.message,
+			min:       isDefined(data.min) ? data.min : isDefined(defaults.min) ? defaults.min : 0,
+			max:       isDefined(data.max) ? data.max : isDefined(defaults.max) ? defaults.max : 1,
+			transform: isDefined(data.transform) ? data.transform : isDefined(defaults.transform) ? defaults.transform : 'linear'
+		}, {
 			object:   { value: object, enumerable: true },
 			property: { value: data.property, enumerable: true },
 			fn:       { writable: true },
