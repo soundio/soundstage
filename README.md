@@ -6,17 +6,23 @@ a data store. Soundio is a model. It powers <a href="http://sound.io">sound.io</
 
 ## Dependencies
 
-Soundio is in development. It has three dependencies that are in separate repos:
+Soundio is in development. It is currently dependent on three repos that can be
+installed as git submodules:
 
 - <a href="https://github.com/cruncher/collection">github.com/cruncher/collection</a>
 - <a href="https://github.com/soundio/audio-object">github.com/soundio/audio-object</a>
-- <a href="https://github.com/soundio/midi (optional)">github.com/soundio/midi</a> (optional)
-
-To install Soundio with dependencies:
+- <a href="https://github.com/soundio/midi">github.com/soundio/midi</a> (optional)
 
 	git clone https://github.com/soundio/soundio.git
 	cd soundio
 	git submodule update --init
+
+## Tests
+
+Tests use Karma. To run tests:
+
+	npm install
+	karma start
 
 ## Soundio(data, options)
 
