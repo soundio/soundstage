@@ -100,17 +100,17 @@ destination.
 ### soundio.objects
 
 A collecton of <a href="http://github.com/soundio/audio-object">audio objects</a>.
-An audio object controls a graph of audio nodes. In soundio, audio objects have
+An audio object controls one or more audio nodes. In soundio, audio objects have
 an <code>id</code> and a <code>type</code>. <code>name</code> is optional. Other
 properties depend on the type.
 
 	var flanger = soundio.objects.find(1);
 	
-	// {
-	//     id: 7,
-	//     type: "flange",
-	//     frequency: 256
-	// }
+	{
+	    id: 7,
+	    type: "flange",
+	    frequency: 256
+	}
 
 Changes to <code>flanger.frequency</code> are reflected immediately in the
 Web Audio graph.
