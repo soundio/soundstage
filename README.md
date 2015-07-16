@@ -15,6 +15,7 @@ installed as git submodules:
 - <a href="https://github.com/soundio/audio-object">github.com/soundio/audio-object</a>
 - <a href="https://github.com/soundio/midi">github.com/soundio/midi</a> (optional)
 
+Install with submodules:
 
 	git clone https://github.com/soundio/soundio.git
 	cd soundio
