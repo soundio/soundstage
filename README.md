@@ -4,39 +4,6 @@ Soundio provides a fast, declarative way to set up a Web Audio graph, an API for
 manipulating and observing it, and a JSONify-able structure that can be used as
 a data store. Soundio is the model used by <a href="http://sound.io">sound.io</a>.
 
-A Soundio document is an object that looks something like this:
-
-	var data = {
-		objects: [
-			{ id: 0, type: "input" },
-			{ id: 1, type: "flange", frequency: 0.33, feedback: 0.9, delay: 0.16 },
-			{ id: 2, type: "output" }
-		],
-		
-		connections: [
-			{ source: 0, destination: 1 },
-			{ source: 1, destination: 2 }
-		],
-
-		midi: [
-			{ message: [176, 8], object: 1, property: "frequency" }
-		]
-	};
-
-It contains three arrays, <code>objects</code>, <code>connections</code> and
-<code>midi</code>. <code>objects</code> is a collection of
-<a href="http://github.com/soundio/audio-object">audio objects</a>.
-Audio objects must have an <code>id</code> and <code>type</code>, while other
-properties depend on the type. <code>connections</code> is a collection of
-objects defining connections between the audio objects, and <code>midi</code>
-defines routes for incoming MIDI messages.
-
-Call Soundio with this data to set it up as an audio graph:
-
-	var soundio = Soundio(data);
-
-Turn your volume down a bit, enable the mic when prompted by the browser, and
-you will hear your voice being flanged.
 
 ## Dependencies and tests
 
@@ -60,11 +27,41 @@ Tests use Karma. To run tests:
 
 ## Soundio(data, options)
 
-Call Soundio with a data object to get a live audio graph:
+Soundio data is an object that looks something like this:
+
+	var data = {
+		objects: [
+			{ id: 0, type: "input" },
+			{ id: 1, type: "flange", frequency: 0.33, feedback: 0.9, delay: 0.16 },
+			{ id: 2, type: "output" }
+		],
+		
+		connections: [
+			{ source: 0, destination: 1 },
+			{ source: 1, destination: 2 }
+		],
+
+		midi: [
+			{ message: [176, 8], object: 1, property: "frequency" }
+		]
+	};
+
+It contains three arrays, <code>objects</code>, <code>connections</code> and
+<code>midi</code>. <code>objects</code> is a collection of
+<a href="http://github.com/soundio/audio-object">audio objects</a> (an audio
+object is a wrapper for one or more Web Audio nodes). Audio objects must have an
+<code>id</code> and <code>type</code>, while other properties depend on the
+type. <code>connections</code> is a collection of objects defining connections
+between the audio objects, and <code>midi</code> defines routes for incoming
+MIDI messages.
+
+Call Soundio with this data to set it up as an audio graph:
 
 	var soundio = Soundio(data);
 
-Changes to object properties are reflected in the Web Audio graph.
+Turn your volume down a bit, enable the mic when prompted by the browser, and
+you will hear your voice being flanged. Changes to object properties are
+reflected 'live' in the Web Audio graph.
 
 The resulting object, <code>soundio</code>, has the same structure as
 <code>data</code>, so the graph can be converted back to data with:
