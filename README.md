@@ -127,16 +127,31 @@ For more about audio objects see
 
 Create an audio object.
 
-<code>type</code> is a string:
+<code>type</code> is a string.
+
+These audio objects connect to the sound card input and output respectively:
 
 - "input"
 - "output"
+
+These audio objects wrap sub-graphs of audio nodes and are kind of equivalent to
+plugins in a DAW:
+
 - "compress"
 - "filter"
 - "flange"
 - "loop"
 - "saturate"
 - "send"
+
+These audio objects wrap single Web Audio nodes and can be useful for testing:
+
+- "biquad filter"
+- "compressor"
+- "convolver"
+- "delay"
+- "oscillator"
+- "waveshaper"
 
 <code>settings</code> depend on the type of audio object being created.
 
