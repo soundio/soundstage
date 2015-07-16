@@ -1,56 +1,8 @@
 # Soundio
 
-Soundio provides a fast, declarative way to set up an audio graph, an API for
-manipulating it and a JSONify-able structure that can be used to store patches.
-
-A Soundio document is a <code>JSON</code>ify-able object that looks like this:
-
-	var data = {
-		objects: [{
-			id: 0,
-			type: "input"
-		}, {
-			id: 1,
-			type: "flanger",
-			frequency: 0.33,
-			feedback: 0.9,
-			delay: 0.16
-		}, {
-			id: 2,
-			type: "output"
-		}],
-		
-		connections: [{
-			source: 0,
-			destination: 1
-		}, {
-			source: 1,
-			destination: 2
-		}]
-	};
-
-It contains two arrays, <code>objects</code> and <code>connections</code>.
-<code>objects</code> defines the
-<a href="http://github.com/soundio/audio-object">audio objects</a> in the graph.
-<code>connections</code> defines the connections between them.
-
-Call Soundio with this data to get a live audio graph:
-
-	var soundio = Soundio(data);
-
-Turn your volume down a bit, enable the mic when prompted by the browser, and
-you will hear your voice being flanged.
-
-Soundio can also take an options object. There is currently one option. If there
-is already an audio context on the page, pass it in to avoid creating anew one:
-
-	var soundio = Soundio(data, {
-			audio: AudioContext
-		});
-
-The returned object, <code>soundio</code>, can be thought of as a GOM – a Graph
-Object Model for audio objects and connections. The GOM controls the Web Audio
-API.
+Soundio provides a fast, declarative way to set up a Web Audio graph, an API for
+manipulating and observing it, and a JSONify-able structure that can be used as
+a data store. Soundio is a model. It powers <a href="http://sound.io">sound.io</a>.
 
 ## Dependencies
 
@@ -60,13 +12,72 @@ Soundio is in development. It has three dependencies that are in separate repos:
 - <a href="https://github.com/soundio/audio-object">github.com/soundio/audio-object</a>
 - <a href="https://github.com/soundio/midi (optional)">github.com/soundio/midi</a> (optional)
 
+To install Soundio with dependencies:
+
+	git clone https://github.com/soundio/soundio.git
+	cd soundio
+	git submodule update --init
+
+## Soundio(data, options)
+
+A Soundio document is an object that looks like this:
+
+	var data = {
+		objects: [
+			{ id: 0, type: "input" },
+			{ id: 1, type: "flange", frequency: 0.33, feedback: 0.9, delay: 0.16 },
+			{ id: 2, type: "output" }
+		],
+		
+		connections: [
+			{ source: 0, destination: 1 },
+			{ source: 1, destination: 2 }
+		],
+
+		midi: [
+			{ message: [176, 8], destination: 1, property: "frequency" }
+		]
+	};
+
+It contains three arrays, <code>objects</code>, <code>connections</code> and
+<code>midi</code>. <code>objects</code> is a collection of
+<a href="http://github.com/soundio/audio-object">audio objects</a>.
+Audio objects must have an <code>id</code> and <code>type</code>, while other
+properties depend on the type. <code>connections</code> is a collection of
+objects defining connections between the audio objects, and <code>midi</code>
+defines routes for incoming MIDI messages.
+
+Call Soundio with this data to get a live audio graph:
+
+	var soundio = Soundio(data);
+
+Turn your volume down a bit, enable the mic when prompted by the browser, and
+you will hear your voice being flanged.
+
+Changes to object properties are heard in the Web Audio API.
+
+The resulting object, <code>soundio</code>, has the same structure as
+<code>data</code>, so the graph can be converted back to data with:
+
+	JSON.stringify(soundio);
+
+<i>Note that you can run this command in the console at <a href="http://sound.io">sound.io</a>
+to export a Soundio document that you may then use in your own web page.</i>
+
+Soundio takes an <code>options</code> object with one option. Where you have
+an existing AudioContext, pass it in to avoid creating a new one:
+
+	var soundio = Soundio(data, {
+			audio: AudioContext
+		});
+
 ## soundio
 
 ### soundio.create(data)
 
-Create objects from data. This function is called by the Soundio constructor
-when initially setting up the object graph, and can be used to add objects and
-connections.
+Create objects from data. As with <code>Soundio(data)</code>, but
+<code>soundio.create(data)</code> adds objects, connections and midi routes to
+the existing graph.
 
 ### soundio.clear()
 
