@@ -21,6 +21,25 @@ module.exports = function(config) {
       '../midi/src/midi.js',
       '../midi/src/midi.utils.js',
       '../midi/src/midi.events.js',
+
+      'js/window.audiocontext.js',
+      'js/navigator.getusermedia.js',
+      'js/soundio.js',
+      'js/soundio.midi.js',
+      'js/soundio.objects.js',
+      'js/soundio.input.js',
+      'js/soundio.output.js',
+      'js/soundio.track.js',
+      'js/soundio.send.js',
+      'js/soundio.filter.js',
+      'js/soundio.flange.js',
+      'js/soundio.gain.js',
+      'js/soundio.loop.js',
+      'js/soundio.sample.js',
+      'js/soundio.saturate.js',
+      'js/soundio.compress.js',
+      'js/soundio.envelope.js',
+
       'test/module.js',
       'test/test-midi.js'
     ],
@@ -78,7 +97,7 @@ module.exports = function(config) {
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['Firefox', 'Chrome'],
+    browsers: ['Chrome'],
     //browsers: ['Firefox'],
 
     // Continuous Integration mode

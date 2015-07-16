@@ -6,16 +6,11 @@
 	var Soundio   = window.Soundio;
 	var MIDI      = window.MIDI;
 
-	var assign         = Object.assign;
+	var assign    = Object.assign;
+	var isDefined = Soundio.isDefined;
 	var distributeArgs = Soundio.distributeArgs;
-	var timeOffset = 0;
 
-	var defaults = {
-		min:       0,
-		max:       1,
-		transform: 'linear',
-		messages:  []
-	};
+	var timeOffset = 0;
 
 	var transforms = {
 		'linear': function linear(n, min, max) {
@@ -68,12 +63,12 @@
 	}
 
 	function createMidiBinding(data, object) {
-		var objectDefaults = Soundio.retrieveDefaults(object.type)[data.property] || {};
+		var defaults = Soundio.retrieveDefaults(object.type)[data.property] || {};
 
-		return Object.defineProperties(assign(defaults, {
-			min:       objectDefaults.min,
-			max:       objectDefaults.max,
-			transform: objectDefaults.transform
+		return Object.defineProperties(assign({
+			min:       isDefined(defaults.min) ? defaults.min : 0,
+			max:       isDefined(defaults.max) ? defaults.max : 1,
+			transform: isDefined(defaults.transform) ? defaults.transform : 'linear'
 		}, data), {
 			object:   { value: object, enumerable: true },
 			property: { value: data.property, enumerable: true },
@@ -96,9 +91,13 @@
 				object[property] = transform(data[2] / 127, binding.min, binding.max, object[property]);
 			};
 	}
-
+var bindings = [];
 	function add(midimap, binding) {
 		var message = [];
+
+bindings.push(binding);
+
+console.log(bindings[1] === bindings[0]);
 
 		function update(binding) {
 			var n = binding.message.length;

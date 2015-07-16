@@ -519,7 +519,7 @@
 		},
 
 		find: function() {
-			Collection.prototype.find.apply(this.objects, arguments);
+			return Collection.prototype.find.apply(this.objects, arguments);
 		},
 
 		clear: function() {

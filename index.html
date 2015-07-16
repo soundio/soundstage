@@ -8,6 +8,8 @@
 <script src="../midi/src/midi.utils.js"></script>
 <script src="../midi/src/midi.events.js"></script>
 
+<script src="js/window.audiocontext.js"></script>
+<script src="js/navigator.getusermedia.js"></script>
 <script src="js/soundio.js"></script>
 <script src="js/soundio.midi.js"></script>
 <script src="js/soundio.objects.js"></script>
@@ -23,3 +25,35 @@
 <script src="js/soundio.saturate.js"></script>
 <script src="js/soundio.compress.js"></script>
 <script src="js/soundio.envelope.js"></script>
+
+<script>
+	var soundio = Soundio({
+		objects: [
+			{ id: 1,  type: 'input', channels: [0] },
+			{ id: 2,  type: 'output' },
+
+			// Sampler
+			{ id: 3,  type: 'gain' },
+			{ id: 4,  type: 'send', gain: 0 },
+
+			// Mic Track
+			{ id: 5,  type: 'gain' },
+			{ id: 6,  type: 'send', gain: 0.03125 },
+		],
+
+		connections: [
+			{ source: 1,  destination: 3 },
+			{ source: 3,  destination: 4 },
+			{ source: 4,  destination: 2,  output: 'send' },
+
+			{ source: 1,  destination: 5 },
+			{ source: 5,  destination: 6 },
+			{ source: 6,  destination: 2,  output: 'send' }
+		],
+
+		midi: [
+			{ object: 4,  property: 'gain',      message: [176, 8] },
+//			{ object: 6,  property: 'gain',      message: [191, 7] }
+		]
+	});
+</script>
