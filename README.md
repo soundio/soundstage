@@ -282,7 +282,7 @@ example, get all connections from object with id <code>6</code>:
 Register an audio object factory function for creating audio objects of type
 <code>type</code>.
 
-	Soundio.register('gain', function(audio, settings) {
+	Soundio.register('gain', function(audio, data) {
 		var gainNode = audio.createGain();
 
 		gainNode.gain.value = settings.gain;
@@ -292,10 +292,11 @@ Register an audio object factory function for creating audio objects of type
 		});
 	});
 
-<code>settings</code> is an object that comes directly from data passed to
+<code>data</code> is an object that comes directly from data passed to
 <code>soundio.objects.create(type, data)</code> or <code>Soundio(data)</code>.
 You should make sure the registered audio object correctly initialises itself
-from settings, and <code>JSON.stringify</code>s back to settings.
+from <code>data</code>, and <code>JSON.stringify</code>s back to
+<code>data</code>.
 
 Soundio comes with the following audio object factories registered:
 
