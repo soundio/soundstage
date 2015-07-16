@@ -181,8 +181,8 @@ has a <code>source</code> and a <code>destination</code> that point to
 		destination: 12
 	}
 
-In addition a connection can define a named output node on the source object and
-a named input node on the destination object:
+In addition a connection can define a named output node on the source object
+and/or a named input node on the destination object:
 
 	{
 		source: 7,
