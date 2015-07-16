@@ -4,7 +4,7 @@ Soundio provides a fast, declarative way to set up a Web Audio graph, an API for
 manipulating and observing it, and a JSONify-able structure that can be used as
 a data store. Soundio is a model. It powers <a href="http://sound.io">sound.io</a>.
 
-## Dependencies
+## Dependencies and tests
 
 Soundio is in development. It is currently dependent on three repos that can be
 installed as git submodules:
@@ -16,8 +16,6 @@ installed as git submodules:
 	git clone https://github.com/soundio/soundio.git
 	cd soundio
 	git submodule update --init
-
-## Tests
 
 Tests use Karma. To run tests:
 
@@ -41,7 +39,7 @@ A Soundio document is an object that looks like this:
 		],
 
 		midi: [
-			{ message: [176, 8], destination: 1, property: "frequency" }
+			{ message: [176, 8], object: 1, property: "frequency" }
 		]
 	};
 
@@ -67,8 +65,8 @@ The resulting object, <code>soundio</code>, has the same structure as
 
 	JSON.stringify(soundio);
 
-<i>Note that you can run this command in the console at <a href="http://sound.io">sound.io</a>
-to export a Soundio document that you may then use in your own web page.</i>
+<i>Note that at <a href="http://sound.io">sound.io</a> running this in the
+console will export a Soundio document that you may then use in your own web page.</i>
 
 Soundio takes an <code>options</code> object with one option. Where you have
 an existing AudioContext, pass it in to avoid creating a new one:
