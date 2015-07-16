@@ -2,7 +2,9 @@
 
 Soundio provides a fast, declarative way to set up a Web Audio graph, an API for
 manipulating and observing it, and a JSONify-able structure that can be used as
-a data store. Soundio is a model. It powers <a href="http://sound.io">sound.io</a>.
+a data store.
+
+Soundio serves as a model for <a href="http://sound.io">sound.io</a>.
 
 ## Dependencies and tests
 
@@ -12,6 +14,7 @@ installed as git submodules:
 - <a href="https://github.com/cruncher/collection">github.com/cruncher/collection</a>
 - <a href="https://github.com/soundio/audio-object">github.com/soundio/audio-object</a>
 - <a href="https://github.com/soundio/midi">github.com/soundio/midi</a> (optional)
+
 
 	git clone https://github.com/soundio/soundio.git
 	cd soundio
