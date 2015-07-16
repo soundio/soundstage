@@ -70,7 +70,7 @@ The resulting object, <code>soundio</code>, has the same structure as
 
 This means you can <b>export an audio graph</b> you have made at, say,
 <a href="http://sound.io">sound.io</a> (open the console and run this line),
-and <b>import it into your own web page</b> (with <code>Soundio(data)</code>).
+and <b>import it into your own web page</b> (call <code>Soundio(data)</code>).
 
 Soundio takes an <code>options</code> object with one option. Where you have
 an existing AudioContext, pass it in to avoid creating a new one:
