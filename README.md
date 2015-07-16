@@ -68,8 +68,8 @@ The resulting object, <code>soundio</code>, has the same structure as
 
 	JSON.stringify(soundio);
 
-<i>Note that at <a href="http://sound.io">sound.io</a> running this in the
-console will export a Soundio document that you may then use in your own web page.</i>
+This means you can *export an audio graph* you have made at, say,
+<a href="http://sound.io">sound.io</a>, and *import it into your own web page*.
 
 Soundio takes an <code>options</code> object with one option. Where you have
 an existing AudioContext, pass it in to avoid creating a new one:
