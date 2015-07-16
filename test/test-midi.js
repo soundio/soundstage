@@ -55,9 +55,9 @@ module('Soundio MIDI', function(fixture) {
 		ok(MIDI.listeners[176][8].all.length === 1, 'MIDI CC 176 still has fn');
 
 		MIDI.in([176, 8, 127]);
-		ok(id4.gain === 1, 'Send gain has not been set to 1');
+		ok(id4.gain === 1, 'Send 4 gain has not been set to 1');
 
 		MIDI.in([191, 7, 0]);
-		ok(id6.gain === 0, 'Send gain has not been set to 0');
+		ok(id6.gain === 0, 'Send 6 gain has not been set to 0');
 	});
 });
