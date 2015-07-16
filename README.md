@@ -2,33 +2,9 @@
 
 Soundio provides a fast, declarative way to set up a Web Audio graph, an API for
 manipulating and observing it, and a JSONify-able structure that can be used as
-a data store.
+a data store. Soundio is the model used by <a href="http://sound.io">sound.io</a>.
 
-Soundio serves as a model for <a href="http://sound.io">sound.io</a>.
-
-## Dependencies and tests
-
-Soundio is in development. It is currently dependent on three repos that can be
-installed as git submodules:
-
-- <a href="https://github.com/cruncher/collection">github.com/cruncher/collection</a>
-- <a href="https://github.com/soundio/audio-object">github.com/soundio/audio-object</a>
-- <a href="https://github.com/soundio/midi">github.com/soundio/midi</a> (optional)
-
-Install with submodules:
-
-	git clone https://github.com/soundio/soundio.git
-	cd soundio
-	git submodule update --init
-
-Tests use Karma. To run tests:
-
-	npm install
-	karma start
-
-## Soundio(data, options)
-
-A Soundio document is an object that looks like this:
+A Soundio document is an object that looks something like this:
 
 	var data = {
 		objects: [
@@ -55,14 +31,40 @@ properties depend on the type. <code>connections</code> is a collection of
 objects defining connections between the audio objects, and <code>midi</code>
 defines routes for incoming MIDI messages.
 
-Call Soundio with this data to get a live audio graph:
+Call Soundio with this data to set it up as an audio graph:
 
 	var soundio = Soundio(data);
 
 Turn your volume down a bit, enable the mic when prompted by the browser, and
 you will hear your voice being flanged.
 
-Changes to object properties are heard in the Web Audio API.
+## Dependencies and tests
+
+Soundio is in development. It is currently dependent on three repos that can be
+installed as git submodules:
+
+- <a href="https://github.com/cruncher/collection">github.com/cruncher/collection</a>
+- <a href="https://github.com/soundio/audio-object">github.com/soundio/audio-object</a>
+- <a href="https://github.com/soundio/midi">github.com/soundio/midi</a> (optional)
+
+Install with submodules:
+
+	git clone https://github.com/soundio/soundio.git
+	cd soundio
+	git submodule update --init
+
+Tests use Karma. To run tests:
+
+	npm install
+	karma start
+
+## Soundio(data, options)
+
+Call Soundio with a data object to get a live audio graph:
+
+	var soundio = Soundio(data);
+
+Changes to object properties are reflected in the Web Audio graph.
 
 The resulting object, <code>soundio</code>, has the same structure as
 <code>data</code>, so the graph can be converted back to data with:
