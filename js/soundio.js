@@ -643,12 +643,8 @@
 	var cueTime = 50; // ms
 	var cues = [];
 
-	function cue(audio, time, fn) {
-		// Cues up a function to fire cueTime ms ahead of time, storing the
-		// timer in cues in case we should need to cancel it.
-		var diff = time - audio.currentTime;
-		var ms = Math.floor(diff * 1000) - cueTime;
-		var data = [time, fn, setTimeout(function() {
+	function createCue(time, fn, ms) {
+		return [time, fn, setTimeout(function() {
 			// Call the cued fn
 			fn(time);
 
@@ -656,6 +652,14 @@
 			var i = cues.indexOf(data);
 			cues.splice(i, 1);
 		}, ms)];
+	}
+
+	function cue(currentTime, time, fn) {
+		// Cues up a function to fire cueTime ms ahead of time, storing the
+		// timer in cues in case we should need to cancel it.
+		var diff = time - currentTime;
+		var ms = Math.floor(diff * 1000) - cueTime;
+		var data = createCue(time, fn, ms);
 
 		cues.push(data);
 	}
@@ -700,6 +704,23 @@
 				}
 			}
 		}
+	}
+
+	function recueAfterTime(clock, time) {
+		var n = clock.length;
+		var data;
+
+		while (--n) {
+			data = cues[n];
+			if (time < data[0]) {
+				clearTimeout(data[2]);
+				clock[n] = createCue(data[0], data[1]);
+			}
+		}
+	}
+
+	function recueAfterBeat(clock, beat) {
+		recueAfterTime(clock.timeAtBeat(time), fn);
 	}
 
 	assign(Soundio.prototype, {
@@ -764,7 +785,27 @@
 
 		this
 		.on('add', deleteTimesAfterEntry)
-		.on('add', setTimeOnEntry);
+		.on('add', setTimeOnEntry)
+		.on('add', function(clock, entry) {
+			clock.cueBeat(entry.beat, function(time) {
+				gain.gain.setValueAtTime(1, time);
+			});
+
+			recueAfterBeat(clock, entry.beat);
+		});
+
+		assign(this, {
+			cueTime: function(time, fn) {
+				// Make the cue timer 
+				cue(audio.currentTime, time, fn);
+				return this;
+			},
+
+			cueBeat: function(beat, fn) {
+				cue(audio.currentTime, this.timeAtBeat(time), fn);
+				return this;
+			}
+		});
 	}
 
 	assign(Clock.prototype, Collection.prototype, AudioObject.prototype, {
@@ -827,16 +868,6 @@
 			}
 
 			return time;
-		},
-
-		cueTime: function(time, fn) {
-			cue(audio, time, fn);
-			return this;
-		},
-
-		cueBeat: function(beat, fn) {
-			cue(audio, this.timeAtBeat(time), fn);
-			return this;
 		}
 	});
 })(window.Soundio);
