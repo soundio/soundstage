@@ -616,7 +616,7 @@
 			this.requestMedia = function() { return promise; }
 			return promise;
 		},
-		roundTripLatency: 0.012,
+		roundTripLatency: 0.020,
 		create: create,
 		register: register,
 
@@ -642,45 +642,201 @@
 	var assign = Object.assign;
 	var cueTime = 50; // ms
 	var cues = [];
-	var fnMap = new WeakMap();
 
 	function cue(audio, time, fn) {
 		// Cues up a function to fire cueTime ms ahead of time, storing the
 		// timer in cues in case we should need to cancel it.
 		var diff = time - audio.currentTime;
 		var ms = Math.floor(diff * 1000) - cueTime;
-		var timer = setTimeout(function() {
+		var data = [time, fn, setTimeout(function() {
 			// Call the cued fn
-			fn(audio, time);
+			fn(time);
 
 			// Remove timer from cues
-			fnMap.delete(fn);
-		}, ms);
+			var i = cues.indexOf(data);
+			cues.splice(i, 1);
+		}, ms)];
 
-		fnMap.set(fn, timer);
-		//timeMap.set(fn, timer);
-
-		cues.push(timer);
+		cues.push(data);
 	}
 
-	function uncue(fn) {
-		clearTimeout(fnMap.get(fn));
-		fnMap.delete(fn);
+	function uncue(time, fn) {
+		var n = cues.length;
+		var data;
+
+		if (typeof time === 'number') {
+			while (n--) {
+				data = cues[n];
+				if (time === data[0]) {
+					if (!fn || fn === data[1]) {
+						cues.splice(n, 1);
+						clearTimeout(data[2]);
+					}
+				}
+			}
+		}
+		else if (typeof time === 'function') {
+			fn = time;
+			while (n--) {
+				data = cues[n];
+				if (fn === data[1]) {
+					cues.splice(n, 1);
+					clearTimeout(data[2]);
+				}
+			}
+		}
+	}
+
+	function uncueLater(time, fn) {
+		var n = cues.length;
+		var data;
+
+		while (n--) {
+			data = cues[n];
+			if (time >= data[0]) {
+				if (!fn || fn === data[1]) {
+					cues.splice(n, 1);
+					clearTimeout(data[2]);
+				}
+			}
+		}
 	}
 
 	assign(Soundio.prototype, {
-		cue: function cue(time, fn) {
+		cue: function(time, fn) {
 			cue(this.audio, time, fn);
 			return this;
 		},
 
-		uncue: function uncue(fn) {
-			uncue(fn);
+		uncue: function(time, fn) {
+			uncue(time, fn);
+			return this;
+		},
+
+		uncueLater: function(time, fn) {
+			uncueLater(time, fn);
 			return this;
 		}
 	});
 
 	Soundio.cue = cue;
 	Soundio.uncue = uncue;
-	
+
+	function tempoToRate(tempo) { return tempo / 60; }
+	function rateToTempo(rate) { return rate * 60; }
+
+	function deleteTimesAfterBeat(clock, beat) {
+		var n = -1;
+
+		while (clock[++n]) {
+			entry = clock[n];
+			if (entry.beat > beat) { delete clock[n].time; }
+		}
+	}
+
+	function deleteTimesAfterEntry(clock, entry) {
+		return deleteTimesAfterBeat(clock, entry.beat);
+	}
+
+	function setTimeOnEntry(clock, entry) {
+		entry.time = clock.timeAtBeat(entry.beat);
+	}
+
+	function Clock(audio, data) {
+		var oscillator = audio.createOscillator();
+		var waveshaper = audio.createWaveShaper();
+		var gain = audio.createGain();
+
+		oscillator.type = 'square';
+		oscillator.connect(waveshaper);
+		waveshaper.shape = [1, 1, 1];
+		gain.gain.setValueAtTime(1, audio.currentTime);
+		oscillator.start();
+
+		Collection.call(this, [], { index: 'beat' });
+		AudioObject.call(this, audio, undefined, {
+			unity: waveshaper,
+			default: gain
+		});
+
+		// Hmmm. Do we need relative time?
+		var starttime = audio.currentTime;
+
+		this
+		.on('add', deleteTimesAfterEntry)
+		.on('add', setTimeOnEntry);
+	}
+
+	assign(Clock.prototype, Collection.prototype, AudioObject.prototype, {
+		beatAtTime: function(time) {
+			// Sort tempos by beat
+			this.sort();
+
+			var tempos = this;
+			var n = 0;
+			var entry = tempos[n];
+
+			if (!entry) {
+				// Where there are no tempo entries, make beat
+				// equivalent to time
+				return beat;
+			}
+
+			var rate, beat, t1;
+			var t2 = 0;
+
+			while (t2 < time) {
+				rate  = entry.rate;
+				beat  = entry.beat;
+				entry = tempos[++n];
+				t1 = t2;
+
+				if (!entry) { break; }
+
+				t2 = tempos.timeAtBeat(entry.beat);
+			}
+
+			return beat + (time - t1) * rate;
+		},
+
+		timeAtBeat: function(beat) {
+			// Sort tempos by beat
+			this.sort();
+
+			var tempos = this;
+			var n = 0;
+			var entry = tempos[n];
+
+			if (!entry) {
+				// Where there are no tempo entries, make time
+				// equivalent to beat
+				return beat;
+			}
+
+			var b1 = 0;
+			var rate = 1;
+			var time = 0;
+
+			while (entry && entry.beat < beat) {
+				time += entry.time || (entry.beat - b1 / rate);
+
+				// Next entry
+				b1 = entry.beat;
+				rate = entry.rate;
+				entry = tempos[++n];
+			}
+
+			return time;
+		},
+
+		cueTime: function(time, fn) {
+			cue(audio, time, fn);
+			return this;
+		},
+
+		cueBeat: function(beat, fn) {
+			cue(audio, this.timeAtBeat(time), fn);
+			return this;
+		}
+	});
 })(window.Soundio);
