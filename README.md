@@ -13,6 +13,7 @@ installed as git submodules:
 
 - <a href="https://github.com/cruncher/collection">github.com/cruncher/collection</a>
 - <a href="https://github.com/soundio/audio-object">github.com/soundio/audio-object</a>
+- <a href="https://github.com/soundio/clock">github.com/soundio/clock</a> (optional)
 - <a href="https://github.com/soundio/midi">github.com/soundio/midi</a> (optional)
 
 Install with submodules:
@@ -224,6 +225,10 @@ example, get all connections from object with id <code>6</code>:
 
 
 ### soundio.clock
+
+<code>soundio.clock</code> is an instance of <code>Clock</code>, and requires
+the repo <a href="http://github.com/soundio/clock">github.com/soundio/clock</a>.
+If <code>Clock</code> is not found, <code>soundio.clock</code> is <code>undefined</code>.
 
 A clock is tool for scheduling function calls on times or beats.
 A clock is a Collection of tempo data, used to map a <code>beat</code> clock
