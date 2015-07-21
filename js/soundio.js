@@ -20,6 +20,7 @@
 	var observe    = window.observe;
 	var unobserve  = window.unobserve;
 	var Collection = window.Collection;
+	var Clock      = window.Clock;
 	var assign     = Object.assign;
 	var splice     = Function.prototype.call.bind(Array.prototype.splice);
 
@@ -431,13 +432,20 @@
 			roundTripLatency: { value: Soundio.roundTripLatency, writable: true, configurable: true }
 		});
 
-		this.create(data);
+		if (Clock) {
+			Object.defineProperty(soundio, 'clock', {
+				value: new Clock(options.audio)
+			});
+		}
+
+		soundio.create(data);
 
 		if (Soundio.debug) {
 			soundio.on('clear', function(soundio) {
 				console.log('Soundio: "clear"');
 				console.log('Soundio: soundio.objects', soundio.objects.length);
 				console.log('Soundio: soundio.connections', soundio.connections.length);
+				if (Clock) { console.log('Soundio: soundio.clock', soundio.clock.length); }
 			});
 		}
 	}
@@ -496,6 +504,16 @@
 
 			if (data && data.midi && data.midi.length) {
 				this.midi.create.apply(this.midi, data.midi);
+			}
+
+			if (data && data.clock && data.clock.length) {
+				if (this.clock) {
+					this.clock.create.apply(this.clock, data.clock);
+				}
+				else {
+					// Uh-oh
+					console.warn('Soundio: clock data not imported. soundio.clock requires github.com/soundio/clock.')
+				}
 			}
 
 			this.trigger('create');
@@ -629,245 +647,3 @@
 
 	window.Soundio = Soundio;
 })(window);
-
-
-// Timing functions for Soundio
-// 
-// .cue(audio, time, fn)
-// .uncue(fn)
-
-(function(Soundio) {
-	"use strict";
-
-	var assign = Object.assign;
-	var cueTime = 50; // ms
-	var cues = [];
-
-	function createCue(time, fn, ms) {
-		return [time, fn, setTimeout(function() {
-			// Call the cued fn
-			fn(time);
-
-			// Remove timer from cues
-			var i = cues.indexOf(data);
-			cues.splice(i, 1);
-		}, ms)];
-	}
-
-	function cue(currentTime, time, fn) {
-		// Cues up a function to fire cueTime ms ahead of time, storing the
-		// timer in cues in case we should need to cancel it.
-		var diff = time - currentTime;
-		var ms = Math.floor(diff * 1000) - cueTime;
-		var data = createCue(time, fn, ms);
-
-		cues.push(data);
-	}
-
-	function uncue(time, fn) {
-		var n = cues.length;
-		var data;
-
-		if (typeof time === 'number') {
-			while (n--) {
-				data = cues[n];
-				if (time === data[0]) {
-					if (!fn || fn === data[1]) {
-						cues.splice(n, 1);
-						clearTimeout(data[2]);
-					}
-				}
-			}
-		}
-		else if (typeof time === 'function') {
-			fn = time;
-			while (n--) {
-				data = cues[n];
-				if (fn === data[1]) {
-					cues.splice(n, 1);
-					clearTimeout(data[2]);
-				}
-			}
-		}
-	}
-
-	function uncueLater(time, fn) {
-		var n = cues.length;
-		var data;
-
-		while (n--) {
-			data = cues[n];
-			if (time >= data[0]) {
-				if (!fn || fn === data[1]) {
-					cues.splice(n, 1);
-					clearTimeout(data[2]);
-				}
-			}
-		}
-	}
-
-	function recueAfterTime(clock, time) {
-		var n = clock.length;
-		var data;
-
-		while (--n) {
-			data = cues[n];
-			if (time < data[0]) {
-				clearTimeout(data[2]);
-				clock[n] = createCue(data[0], data[1]);
-			}
-		}
-	}
-
-	function recueAfterBeat(clock, beat) {
-		recueAfterTime(clock.timeAtBeat(time), fn);
-	}
-
-	assign(Soundio.prototype, {
-		cue: function(time, fn) {
-			cue(this.audio, time, fn);
-			return this;
-		},
-
-		uncue: function(time, fn) {
-			uncue(time, fn);
-			return this;
-		},
-
-		uncueLater: function(time, fn) {
-			uncueLater(time, fn);
-			return this;
-		}
-	});
-
-	Soundio.cue = cue;
-	Soundio.uncue = uncue;
-
-	function tempoToRate(tempo) { return tempo / 60; }
-	function rateToTempo(rate) { return rate * 60; }
-
-	function deleteTimesAfterBeat(clock, beat) {
-		var n = -1;
-
-		while (clock[++n]) {
-			entry = clock[n];
-			if (entry.beat > beat) { delete clock[n].time; }
-		}
-	}
-
-	function deleteTimesAfterEntry(clock, entry) {
-		return deleteTimesAfterBeat(clock, entry.beat);
-	}
-
-	function setTimeOnEntry(clock, entry) {
-		entry.time = clock.timeAtBeat(entry.beat);
-	}
-
-	function Clock(audio, data) {
-		var oscillator = audio.createOscillator();
-		var waveshaper = audio.createWaveShaper();
-		var gain = audio.createGain();
-
-		oscillator.type = 'square';
-		oscillator.connect(waveshaper);
-		waveshaper.shape = [1, 1, 1];
-		gain.gain.setValueAtTime(1, audio.currentTime);
-		oscillator.start();
-
-		Collection.call(this, [], { index: 'beat' });
-		AudioObject.call(this, audio, undefined, {
-			unity: waveshaper,
-			default: gain
-		});
-
-		// Hmmm. Do we need relative time?
-		var starttime = audio.currentTime;
-
-		this
-		.on('add', deleteTimesAfterEntry)
-		.on('add', setTimeOnEntry)
-		.on('add', function(clock, entry) {
-			clock.cueBeat(entry.beat, function(time) {
-				gain.gain.setValueAtTime(1, time);
-			});
-
-			recueAfterBeat(clock, entry.beat);
-		});
-
-		assign(this, {
-			cueTime: function(time, fn) {
-				// Make the cue timer 
-				cue(audio.currentTime, time, fn);
-				return this;
-			},
-
-			cueBeat: function(beat, fn) {
-				cue(audio.currentTime, this.timeAtBeat(time), fn);
-				return this;
-			}
-		});
-	}
-
-	assign(Clock.prototype, Collection.prototype, AudioObject.prototype, {
-		beatAtTime: function(time) {
-			// Sort tempos by beat
-			this.sort();
-
-			var tempos = this;
-			var n = 0;
-			var entry = tempos[n];
-
-			if (!entry) {
-				// Where there are no tempo entries, make beat
-				// equivalent to time
-				return beat;
-			}
-
-			var rate, beat, t1;
-			var t2 = 0;
-
-			while (t2 < time) {
-				rate  = entry.rate;
-				beat  = entry.beat;
-				entry = tempos[++n];
-				t1 = t2;
-
-				if (!entry) { break; }
-
-				t2 = tempos.timeAtBeat(entry.beat);
-			}
-
-			return beat + (time - t1) * rate;
-		},
-
-		timeAtBeat: function(beat) {
-			// Sort tempos by beat
-			this.sort();
-
-			var tempos = this;
-			var n = 0;
-			var entry = tempos[n];
-
-			if (!entry) {
-				// Where there are no tempo entries, make time
-				// equivalent to beat
-				return beat;
-			}
-
-			var b1 = 0;
-			var rate = 1;
-			var time = 0;
-
-			while (entry && entry.beat < beat) {
-				time += entry.time || (entry.beat - b1 / rate);
-
-				// Next entry
-				b1 = entry.beat;
-				rate = entry.rate;
-				entry = tempos[++n];
-			}
-
-			return time;
-		}
-	});
-})(window.Soundio);

@@ -223,6 +223,86 @@ example, get all connections from object with id <code>6</code>:
     soundio.connections.query({ source: 6 });
 
 
+### soundio.clock
+
+A clock is tool for scheduling function calls on times or beats.
+A clock is a Collection of tempo data, used to map a <code>beat</code> clock
+against the audio context's <code>time</code> clock.
+It is also an AudioObject with a default output representing the current
+beat <code>rate</code>.
+
+#### soundio.clock.add(tempo)
+
+Adds a tempo change to the list. Set tempo to 120bpm at beat 42:
+
+    soundio.clock.add({
+        beat: 42,
+        rate: 2
+    });
+
+#### soundio.clock.find(beat)
+
+Returns tempo change found at <code>beat</code> or <code>undefined</code>.
+
+#### soundio.clock.remove(beat)
+
+Removes tempo change found at <code>beat</code>.
+
+#### soundio.clock.cueTime(time, fn)
+#### soundio.clock.cueBeat(beat, fn)
+
+Cue a function to be called just before <code>time</code> or <code>beat</code>.
+<code>fn</code> is called with the argument <code>time</code>, which can used to
+accurately schedule Web Audio changes.
+
+    soundio.clock.cueBeat(42, function(time) {
+        gainParam.setValueAtTime(time, 0.25);
+        bufferSourceNode.start(time);
+    });
+
+##### soundio.clock.cueTime(time, fn, lookahead)
+##### soundio.clock.cueBeat(time, fn, lookahead)
+
+Pass in a number <code>lookahead</code> to override the default <code>-60</code> ms.
+
+#### soundio.clock.onTime(time, fn)
+#### soundio.clock.onBeat(beat, fn)
+
+Shorthand for <code>soundio.clock.cueTime(time, fn, 0)</code> or
+<code>soundio.clock.cueBeat(beat, fn, 0)</code>, calls <code>fn</code>
+at the time or beat specified with <code>0</code> ms lookahead.
+
+#### soundio.clock.uncueTime(time, fn)
+#### soundio.clock.uncueBeat(beat, fn)
+
+Removes <code>fn</code> at <code>time</code> or <code>beat</code> from the timer queue.
+Either or both <code>time</code> and <code>fn</code> can be given. To remove all cues
+at <code>time</code> or <code>beat</code> from the timer queue:
+
+    soundio.clock.uncueTime(time)
+    soundio.clock.uncueBeat(beat)
+
+To removes all cues to <code>fn</code> from the timer queue:
+
+    soundio.clock.uncueTime(fn)
+
+#### soundio.clock.uncueAfterTime(time, fn)
+#### soundio.clock.uncueAfterBeat(beat, fn)
+
+Removes all cues to <code>fn</code> after <code>time</code> or <code>beat</code>.
+Either or both <code>time</code>/<code>beat</code> and <code>fn</code> can be given.
+To remove all cues after <code>time</code> or <code>beat</code> from the timer queue:
+
+    soundio.clock.uncueAfterTime(time)
+    soundio.clock.uncueAfterBeat(beat)
+
+#### soundio.clock.timeAtBeat(beat)
+
+Returns the audio context time at <code>beat</code>.
+
+#### soundio.clock.beatAtTime(time)
+
+Returns the beat at <code>time</code>.
 
 
 ### soundio.midi
