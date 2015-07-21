@@ -1,6 +1,13 @@
 
-// Clock, for mapping beats against absolute time and for
-// scheduling function calls.
+(function(window) {
+	if (!window.console || !window.console.log) { return; }
+
+	console.log('Clock');
+	console.log('http://github.com/soundio/clock');
+	console.log('Map beats against time and schedule fn calls');
+	console.log('––––––––––––––––––––––––––––––––––––––––––––');
+})(this);
+
 
 (function(window) {
 	"use strict";

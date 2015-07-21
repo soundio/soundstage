@@ -1,40 +1,43 @@
-(function(Soundio) {
+(function(window) {
 	"use strict";
 
+	var AudioObject = window.AudioObject;
 	var assign = Object.assign;
 	var defaults = { gain: 1 };
 
-	function createGain(audio, settings) {
+	function Gain(audio, settings) {
 		var options = assign({}, defaults, settings);
 		var node = audio.createGain();
 		var gain = node.gain.value;
 		var muted = false;
-		var object = AudioObject(audio, node, node, {
-		    	gain: {
-		    		param: node.gain,
-		    		curve: 'exponential'
-		    	},
 
-		    	mute: {
-		    		get: function() {
-		    			return muted;
-		    		},
+		AudioObject.call(this, audio, node, node, {
+			gain: {
+				param: node.gain,
+				curve: 'exponential'
+			},
 
-		    		set: function(value, time, duration, curve) {
-		    			if (value) { gain = node.gain.value; }
-		    			AudioObject.automate(node.gain, value ? 0 : gain, time, duration, 'exponential');
-		    		},
+			mute: {
+				get: function() {
+					return muted;
+				},
 
-		    		duration: 0.012
-		    	}
-		    });
+				set: function(value, time, duration, curve) {
+					if (value) { gain = node.gain.value; }
+					AudioObject.automate(node.gain, value ? 0 : gain, time, duration, curve);
+				},
 
-		object.destroy = function destroy() {
+				duration: 0.012,
+				curve: 'exponential'
+			}
+		});
+
+		this.destroy = function destroy() {
 			node.disconnect();
 		};
-
-		return object;
 	}
 
-	Soundio.register('gain', createGain);
-})(window.Soundio);
+	assign(Gain.prototype, AudioObject.prototype);
+
+	Soundio.register('gain', Gain);
+})(window);

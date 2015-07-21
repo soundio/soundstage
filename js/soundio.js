@@ -76,12 +76,12 @@
 
 	var registry = {};
 
-	function create(audio, type, settings) {
+	function create(audio, type, settings, clock) {
 		if (!registry[type]) {
 			throw new Error('soundio: Calling Soundio.create(type, settings) unregistered type: ' + type);
 		}
 
-		var object = registry[type][0].call(this, audio, settings);
+		var object = new registry[type][0](audio, settings, clock);
 
 		// Type is not writable
 		Object.defineProperty(object, 'type', {
@@ -255,7 +255,7 @@
 
 			var audio = soundio.audio;
 
-			object = create(audio, type, settings);
+			object = create(audio, type, settings, soundio.clock);
 
 			Object.defineProperty(object, 'id', {
 				value: settings && settings.id || createId(this),

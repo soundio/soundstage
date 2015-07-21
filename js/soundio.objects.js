@@ -23,17 +23,21 @@
 		};
 	}
 
-	Soundio.register('delay', function createDelayObject(audio, settings) {
+	function DelayObject(audio, settings, clock) {
 		var options = assign({ maxDelay: 1, delayTime: 0 }, settings);
 		var node = audio.createDelay(options.maxDelay);
 
 		node.delayTime.setValueAtTime(options.delayTime, 0);
 
-		return AudioObject(audio, node, node, {
-			delayTime: node.delayTime
+		AudioObject.call(this, audio, node, node, {
+			time: node.delayTime
 		});
-	}, {
-		delayTime: { min: 0, max: 2000, transform: 'linear', value: 0 }
+	}
+
+	assign(DelayObject.prototype, AudioObject.prototype);
+
+	Soundio.register('delay', DelayObject, {
+		delayTime: { min: 0, max: 2000, transform: 'exponential', value: 0 }
 	});
 
 	Soundio.register('buffer', function createBufferObject(audio, settings) {
