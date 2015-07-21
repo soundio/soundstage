@@ -7,3 +7,6 @@
 [submodule "modules/midi"]
 	path = modules/midi
 	url = https://github.com/soundio/midi.git
+[submodule "modules/clock"]
+	path = modules/clock
+	url = https://github.com/soundio/clock.git
