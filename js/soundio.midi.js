@@ -86,7 +86,7 @@
 		// Support both AudioParams and simple properties
 		return typeof object[property] === 'function' ?
 			function(data, time) {
-				object[property].apply(object, MIDI.normaliseData(data, time, timeOffset));
+				object[property].apply(object, MIDI.normalise(data, time, timeOffset));
 			} :
 			function(data) {
 				object[property] = transform(data[2] / 127, binding.min, binding.max, object[property]);
