@@ -37,7 +37,7 @@
 		return node;
 	}
 
-	function File(audio, settings) {
+	function File(audio, settings, clock) {
 		var length = settings.buffers[0].length;
 		var buffer = audio.createBuffer(2, length, audio.sampleRate);
 		var gain = audio.createGain();
@@ -49,7 +49,7 @@
 		buffer.getChannelData(0).set(settings.buffers[0]);
 		buffer.getChannelData(1).set(settings.buffers[1]);
 
-		function schedule(audio, time) {
+		function schedule(time) {
 			node = createPlaybackNode(audio, buffer);
 			node.loopStart = 0;
 			node.connect(gain);
@@ -64,7 +64,7 @@
 
 			if (settings.duration > buffer.duration) {
 				node.loop = false;
-				Soundio.cue(audio, time + settings.duration, schedule);
+				clock.cueTime(time + settings.duration, schedule);
 			}
 			else {
 				node.loop = true;
@@ -74,7 +74,7 @@
 
 		function start(time) {
 			time = time || audio.currentTime;
-			schedule(audio, time);
+			schedule(time);
 			this.start = noop;
 			this.stop = stop;
 		}
@@ -109,7 +109,7 @@
 		return file;
 	}
 
-	function Loop(audio, settings) {
+	function Loop(audio, settings, clock) {
 		var options = extend({
 		    	wet: automation.wet.default,
 		    	dry: automation.dry.default
@@ -168,7 +168,7 @@
 			    	offset: (data.time - master.time) % master.duration
 			    });
 
-			var file = File(audio, settings);
+			var file = File(audio, settings, clock);
 
 			var destroy = file.destroy;
 

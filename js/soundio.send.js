@@ -92,15 +92,16 @@
 		    	send: send
 		    }, {
 		    	angle: {
-		    		get: function() { return angle; },
-
 		    		set: function(value) {
 		    			angle = value > 90 ? 90 : value < -90 ? -90 : value ;
 		    			var x = Math.sin(angle * pi / 180);
 		    			var y = 0;
 		    			var z = Math.cos(angle * pi / 180);
 		    			pan.setPosition(x, y, z);
-		    		}
+		    		},
+
+		    		defaultValue: 0,
+		    		duration: 0
 		    	},
 
 		    	gain: {
