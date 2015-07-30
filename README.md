@@ -226,8 +226,8 @@ example, get all connections from object with id <code>6</code>:
 
 ### soundio.clock
 
-An instance of <code><a href="http://github.com/soundio/clock">Clock</a></code>, and requires
-the repo <a href="http://github.com/soundio/clock">github.com/soundio/clock</a>.
+An instance of <code><a href="http://github.com/soundio/clock">Clock</a></code>,
+which requires the repo <a href="http://github.com/soundio/clock">github.com/soundio/clock</a>.
 If <code>Clock</code> is not found, <code>soundio.clock</code> is <code>undefined</code>.
 
 <code>soundio.clock</code> is a Collection of tempo data that maps a
