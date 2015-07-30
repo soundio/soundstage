@@ -226,11 +226,11 @@ example, get all connections from object with id <code>6</code>:
 
 ### soundio.clock
 
-<code>soundio.clock</code> is an instance of <code>Clock</code>, and requires
+An instance of <code><a href="http://github.com/soundio/clock">Clock</a></code>, and requires
 the repo <a href="http://github.com/soundio/clock">github.com/soundio/clock</a>.
 If <code>Clock</code> is not found, <code>soundio.clock</code> is <code>undefined</code>.
 
-The <code>clock</code> object is a Collection of tempo data that maps a
+<code>soundio.clock</code> is a Collection of tempo data that maps a
 <code>beat</code> clock against the audio context's <code>time</code> clock. It
 is a library of properties and methods for scheduling function calls. It is also
 an <a href="http://github.com/soundio/audio-object">AudioObject</a> with two
