@@ -234,8 +234,8 @@ If <code>Clock</code> is not found, <code>soundio.clock</code> is <code>undefine
 <code>beat</code> clock against the audio context's <code>time</code> clock. It
 is a library of properties and methods for scheduling function calls. It is also
 an <a href="http://github.com/soundio/audio-object">AudioObject</a> with two
-outputs, <code>"rate"</code> and <code>"duration"</code>, for syncing Web Audio
-parameters to the tempo.
+output nodes, <code>"rate"</code> and <code>"duration"</code>, for syncing Web
+Audio parameters to the tempo.
 
 #### .time
 
