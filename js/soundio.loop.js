@@ -184,7 +184,7 @@
 				masterStack.splice(i, 1);
 			};
 
-			file.connect(output);
+			file.connect(wet);
 			file.start(settings.time + settings.duration);
 			loop.stack.push(file);
 			masterStack.push(file);
@@ -194,7 +194,11 @@
 
 		var loop = AudioObject(audio, input, output, {
 		    	dry: { param: dry.gain },
-		    	wet: { param: wet.gain }
+		    	wet: {
+		    		param: wet.gain,
+		    		duration: 0.008,
+		    		curve: 'exponential'
+		    	}
 		    });
 
 		var latency = Soundio.roundTripLatency + bufferLength / audio.sampleRate ;

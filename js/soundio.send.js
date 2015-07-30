@@ -81,6 +81,8 @@
 		pan.panningModel = 'equalpower';
 		pan.pan.value = options.angle;
 
+		mute.gain.value = options.muted ? 0 : 1 ;
+
 		input.connect(splitter);
 		input.connect(output, 0, 0);
 		input.connect(pan);
@@ -112,6 +114,14 @@
 		    	gain: {
 		    		param: send.gain,
 		    		curve: 'exponential'
+		    	},
+
+		    	muted: {
+		    		set: function(value, time) {
+		    			AudioObject.automate(mute.gain, value ? 0 : 1, time, 0.008, 'exponential');
+		    		},
+
+		    		curve: 'exponential'
 		    	}
 		    });
 
@@ -142,32 +152,12 @@
 		    			rewire(input, pan, splitter, output, channel);
 		    		}
 		    	},
-		    	muted: {
-		    		enumerable: true,
-		    		configurable: true,
-
-		    		get: function() {
-		    			return muted;
-		    		},
-
-		    		set: function(value) {
-		    			if (value) {
-		    				mute.gain.value = 0;
-		    			}
-		    			else {
-		    				mute.gain.value = 1;
-		    			}
-		    			muted = !!value;
-		    		}
-		    	},
 
 		    	destroy: {
 		    		writable: true,
 		    		value: destroy
 		    	}
 		    });
-
-		plug.muted = muted;
 
 		// Wait for the next tick to instantiate destination, because during
 		// startup we can't be sure that all other plugs with ids have been
