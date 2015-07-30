@@ -142,7 +142,7 @@
 	}
 
 	function createInputObjects(soundio, count) {
-		var input = AudioObject.inputs(soundio);
+		var input = AudioObject.getInput(soundio);
 
 		function hasChannelsMono(object) {
 			return object.channels + '' === [count] + '';
@@ -176,7 +176,7 @@
 	}
 
 	function createOutputObjects(soundio, count) {
-		var output = AudioObject.outputs(soundio);
+		var output = AudioObject.getOutput(soundio);
 
 		function hasChannelsMono(object) {
 			return object.channels + '' === [count] + '';
@@ -452,8 +452,8 @@
 
 	assign(Soundio.prototype, {
 		create: function(data) {
-			var input = AudioObject.inputs(this);
-			var output = AudioObject.outputs(this);
+			var input = AudioObject.getInput(this);
+			var output = AudioObject.getOutput(this);
 
 //			if (data && data.samplePatches && data.samplePatches.length) {
 //				console.groupCollapsed('Soundio: create sampler patches...');
@@ -523,7 +523,7 @@
 		createInputs: function() {
 			// Create as many additional mono and stereo inputs
 			// as the sound card will allow.
-			var input = AudioObject.inputs(this);
+			var input = AudioObject.getInput(this);
 			createInputObjects(this, input.channelCount);
 			return this.inputs;
 		},
@@ -531,7 +531,7 @@
 		createOutputs: function() {
 			// Create as many additional mono and stereo outputs
 			// as the sound card will allow.
-			var output = AudioObject.outputs(this);
+			var output = AudioObject.getOutput(this);
 			createOutputObjects(this, output.channelCount);
 			return this.outputs;
 		},
@@ -572,7 +572,7 @@
 		destroy: function() {
 			// Remove soundio's input node from mediaInputs, and disconnect
 			// media from it.
-			var input = AudioObject.inputs(this);
+			var input = AudioObject.getInput(this);
 			var i = mediaInputs.indexOf(input);
 
 			if (i > -1) {
@@ -583,7 +583,7 @@
 				media.disconnect(input);
 			});
 
-			var output = AudioObject.outputs(this);
+			var output = AudioObject.getOutput(this);
 			output.disconnect();
 
 			this.clear();
