@@ -84,7 +84,7 @@
 		waveshaper.connect(gain);
 		gain.connect(filter.detune);
 
-		var enveloperInput = AudioObject.inputs(enveloper);
+		var enveloperInput = AudioObject.getInput(enveloper);
 
 		input.connect(enveloperInput);
 		enveloper.connect(depth);
