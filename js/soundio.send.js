@@ -61,7 +61,8 @@
 
 		var send = audio.createGain();
 		var mute = audio.createGain();
-		var pan = audio.createPanner();
+		//var pan = audio.createPanner();
+		var pan  = audio.createStereoPanner();
 		var channel = 'all';
 		var muted = options.muted;
 
@@ -78,6 +79,7 @@
 		send.gain.value = options.gain;
 
 		pan.panningModel = 'equalpower';
+		pan.pan.value = options.angle;
 
 		input.connect(splitter);
 		input.connect(output, 0, 0);
@@ -85,23 +87,26 @@
 		pan.connect(mute);
 		mute.connect(send);
 
-		var angle = options.angle;
-
 		var plug = AudioObject(audio, input, {
 		    	default: output,
 		    	send: send
 		    }, {
-		    	angle: {
-		    		set: function(value) {
-		    			angle = value > 90 ? 90 : value < -90 ? -90 : value ;
-		    			var x = Math.sin(angle * pi / 180);
-		    			var y = 0;
-		    			var z = Math.cos(angle * pi / 180);
-		    			pan.setPosition(x, y, z);
-		    		},
+//		    	angle: {
+//		    		set: function(value) {
+//		    			var angle = value > 90 ? 90 : value < -90 ? -90 : value ;
+//		    			var x = Math.sin(angle * pi / 180);
+//		    			var y = 0;
+//		    			var z = Math.cos(angle * pi / 180);
+//		    			pan.setPosition(x, y, z);
+//		    		},
+//
+//		    		value: options.angle,
+//		    		duration: 0
+//		    	},
 
-		    		defaultValue: 0,
-		    		duration: 0
+		    	angle: {
+		    		param: pan.pan,
+		    		curve: 'linear'
 		    	},
 
 		    	gain: {
