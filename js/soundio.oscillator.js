@@ -16,6 +16,7 @@
 	// The constructor must create an instance of AudioObject.
 	// One way to do this is to use AudioObject as a mix-in.
 	function OscillatorObject(audio, settings, clock) {
+		var DISCONNECT_AFTER = 5;
 		var options = assign({}, defaults, settings);
 		var outputNode = audio.createGain();
 		// osccache will contain a mapping of number (freq) to an object containing
@@ -46,7 +47,7 @@
 			gainNode.gain.value = Math.pow(gain, 2);
 			return gainNode;
 		}
-		function createCachedOscillator(number, velocity) {
+		function createCachedOscillator(number, velocity, time) {
 			if (!osccache[number]) {
 				var freq = MIDI.numberToFrequency(number);
 				var oscillatorNode = spawnOscillator(freq);
@@ -57,7 +58,7 @@
 
 				addToCache(number, oscillatorNode, gainNode);
 
-				oscillatorNode.start();
+				oscillatorNode.start(time);
 			}
 		}
 		function addToCache(number, oscillatorNode, gainNode) {
@@ -66,15 +67,23 @@
 			cacheEntry['gain'] = gainNode;
 			osccache[number] = cacheEntry;
 		}
-		function stopCachedOscillator(number) {
+		function stopCachedOscillator(number, time) {
 			if (osccache[number]) {
-				osccache[number]['oscillator'].stop();
+				osccache[number]['oscillator'].stop(time);
 			}
 		}
-		function removeFromCache(number) {
+		function removeFromCache(number, time) {
 			if (osccache[number]) {
-				osccache[number]['oscillator'].disconnect();
-				osccache[number]['gain'].disconnect();
+				var oscNode = osccache[number]['oscillator'];
+				var gainNode = osccache[number]['gain']
+				// Need to fix the parameters because we empty the cache instantly while
+				// we want to disconnect the node only after it has finished playing
+				clock.on(time + DISCONNECT_AFTER, function(osc, gain) {
+					return function() {
+						osc.disconnect();
+						gain.disconnect();
+					}
+				}(oscNode, gainNode));
 				delete osccache[number];
 			}
 		}
@@ -90,13 +99,16 @@
 		};
 
 		this.trigger = function(time, type, number, velocity) {
+			if (!velocity) {
+				velocity = .25;
+			}
 
 			if (type === 'noteon') {
-				createCachedOscillator(number, velocity);
+				createCachedOscillator(number, velocity, time);
 			}
 			else if (type === 'noteoff') {
-				stopCachedOscillator(number);
-				removeFromCache(number);
+				stopCachedOscillator(number, time);
+				removeFromCache(number, time);
 			}
 		};
 	}
