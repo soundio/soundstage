@@ -18,6 +18,13 @@
 	function OscillatorObject(audio, settings, clock) {
 		var options = assign({}, defaults, settings);
 		var outputNode = audio.createGain();
+		// osccache will contain a mapping of number (freq) to an object containing
+		// - the oscillator setup for the right frequency
+		// - a gain node that will tune the volume based on the velocity
+		// osscache = { 40: {
+		//		oscillator: {},
+		//		gain: {}
+		// }
 		var osccache = {};
 
 		// Initialise this as an AudioObject.
@@ -28,30 +35,63 @@
 				duration: 0.008
 			}
 		});
+		
+		function spawnOscillator (freq) {
+			var oscillatorNode = audio.createOscillator();
+			oscillatorNode.frequency.setValueAtTime(freq, audio.currentTime);
+			return oscillatorNode;
+		}
+		function spawnGain (gain) {
+			var gainNode = audio.createGain();
+			gainNode.gain.value = Math.pow(gain, 2);
+			return gainNode;
+		}
+		function createCachedOscillator(number, velocity) {
+			if (!osccache[number]) {
+				var freq = MIDI.numberToFrequency(number);
+				var oscillatorNode = spawnOscillator(freq);
+				var gainNode = spawnGain(velocity);
+
+				oscillatorNode.connect(gainNode);
+				gainNode.connect(outputNode);
+
+				addToCache(number, oscillatorNode, gainNode);
+
+				oscillatorNode.start();
+			}
+		}
+		function addToCache(number, oscillatorNode, gainNode) {
+			var cacheEntry = {};
+			cacheEntry['oscillator'] = oscillatorNode;
+			cacheEntry['gain'] = gainNode;
+			osccache[number] = cacheEntry;
+		}
+		function stopCachedOscillator(number) {
+			if (osccache[number]) {
+				osccache[number]['oscillator'].stop();
+			}
+		}
+		function removeFromCache(number) {
+			if (osccache[number]) {
+				osccache[number]['oscillator'].disconnect();
+				osccache[number]['gain'].disconnect();
+				delete osccache[number];
+			}
+		}
 
 		// Overwrite destroy so that it disconnects the graph
 		this.destroy = function() {
-			oscNode.disconnect();
 			outputNode.disconnect();
 		};
 
 		this.trigger = function(time, type, number, velocity) {
-			var freq = MIDI.numberToFrequency(number);
 
 			if (type === 'noteon') {
-				if (!osccache[number]) {
-					osccache[number] = audio.createOscillator();
-					osccache[number].connect(outputNode);
-					osccache[number].frequency.setValueAtTime(freq, audio.currentTime);
-					osccache[number].start();
-				}
+				createCachedOscillator(number, velocity);
 			}
 			else if (type === 'noteoff') {
-				if (osccache[number]) {
-					osccache[number].stop();
-					osccache[number].disconnect();
-					delete osccache[number];
-				}
+				stopCachedOscillator(number);
+				removeFromCache(number);
 			}
 		};
 	}
