@@ -57,7 +57,7 @@
 
 				addToCache(number, oscillatorNode, gainNode);
 
-				oscillatorNode.start();
+				oscillatorNode.start(time);
 			}
 		}
 		function addToCache(number, oscillatorNode, gainNode) {
@@ -68,7 +68,7 @@
 		}
 		function stopCachedOscillator(number) {
 			if (osccache[number]) {
-				osccache[number]['oscillator'].stop();
+				osccache[number]['oscillator'].stop(time);
 			}
 		}
 		function removeFromCache(number) {
