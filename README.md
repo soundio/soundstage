@@ -311,15 +311,15 @@ Remove all cues from the timer queue:
 
     clock.uncue();
 
-Remove all cues at <code>beat</code> from the timer queue:
+Remove cues at <code>beat</code> from the timer queue:
 
     clock.uncue(beat);
 
-Remove all cues to <code>fn</code> from the timer queue:
+Remove cues to fire <code>fn</code> from the timer queue:
 
     clock.uncue(fn);
 
-Remove all cues at <code>beat</code> for <code>fn</code> from the timer queue:
+Remove cues at <code>beat</code> to fire <code>fn</code> from the timer queue:
 
     clock.uncue(beat, fn)
 
@@ -332,7 +332,7 @@ Remove all cues after <code>beat</code> from the timer queue:
 
     clock.uncueAfter(beat);
 
-Remove all cues after <code>beat</code> for <code>fn</code> from the timer queue:
+Remove all cues after <code>beat</code> to fire <code>fn</code> from the timer queue:
 
     clock.uncueAfter(beat, fn)
 
@@ -366,19 +366,19 @@ Remove all cues from the timer queue:
 
     clock.uncueTime();
 
-Remove all cues at <code>time</code> from the timer queue:
+Remove cues at <code>time</code> from the timer queue:
 
     clock.uncueTime(time);
 
-Remove all cues to <code>fn</code> from the timer queue:
+Remove cues to fire <code>fn</code> from the timer queue:
 
     clock.uncueTime(fn);
 
-Remove all cues at <code>time</code> for <code>fn</code> from the timer queue:
+Remove cues at <code>time</code> to fire <code>fn</code> from the timer queue:
 
     clock.uncueTime(time, fn)
 
-#### .uncueAfterBeat(time, fn)
+#### .uncueAfterTime(time, fn)
 
 Removes <code>fn</code> after <code>time</code> from the timer queue.
 <code>fn</code> is optional.
