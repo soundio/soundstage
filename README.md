@@ -338,7 +338,7 @@ Remove all cues after <code>beat</code> to fire <code>fn</code> from the timer q
 
 #### .onTime(time, fn)
 
-Shorthand for <code>clock.cue(time, fn, 0)</code>, calls <code>fn</code>
+Shorthand for <code>clock.cueTime(time, fn, 0)</code>, calls <code>fn</code>
 at the time specified (<code>0</code> ms lookahead).
 
 #### .cueTime(time, fn)
