@@ -455,7 +455,7 @@
 			.then(function(buffer) { buffers[n] = buffer; });
 		}
 
-		object.trigger = function(time, duration, type, number, velocity) {
+		object.trigger = function(time, type, number, velocity, duration) {
 			Soundio.debug && console.log('––––––––––––––––––');
 			Soundio.debug && console.log('Soundio: sample trigger', type, number, velocity);
 
@@ -463,7 +463,8 @@
 				var array = notes[number];
 
 				if (!array) { return; }
-console.log('noteoff', array);
+
+				console.log('noteoff', array);
 				dampNote(audio.currentTime, array);
 				return;
 			}
