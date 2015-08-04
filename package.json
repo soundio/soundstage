@@ -32,6 +32,6 @@
     "qunitjs": "latest"
   },
   "scripts": {
-    "test": "karma start"
+    "test": "node_modules/karma/bin/karma start"
   }
 }
