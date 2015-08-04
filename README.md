@@ -1,9 +1,10 @@
 # Soundio
 
-Soundio provides a fast, declarative way to set up a Web Audio graph from JSON,
-an API for manipulating and observing it, and a JSONify-able structure that can
-be used as a data store. Soundio is the Graph Object Model used to make
-<a href="http://sound.io">sound.io</a>.
+Soundio is a Graph Object Model for Web Audio processing graphs. It provides an API
+for creating, manipulating and observing graphs, and a JSONify-able structure for
+exporting and importing them.
+
+Soundio is the library that powers <a href="http://sound.io">sound.io</a>.
 
 
 ## Dependencies and tests
@@ -310,15 +311,15 @@ Remove all cues from the timer queue:
 
     clock.uncue();
 
-Remove all cues at <code>beat</code> from the timer queue:
+Remove cues at <code>beat</code> from the timer queue:
 
     clock.uncue(beat);
 
-Remove all cues to <code>fn</code> from the timer queue:
+Remove cues to fire <code>fn</code> from the timer queue:
 
     clock.uncue(fn);
 
-Remove all cues at <code>beat</code> for <code>fn</code> from the timer queue:
+Remove cues at <code>beat</code> to fire <code>fn</code> from the timer queue:
 
     clock.uncue(beat, fn)
 
@@ -331,13 +332,13 @@ Remove all cues after <code>beat</code> from the timer queue:
 
     clock.uncueAfter(beat);
 
-Remove all cues after <code>beat</code> for <code>fn</code> from the timer queue:
+Remove all cues after <code>beat</code> to fire <code>fn</code> from the timer queue:
 
     clock.uncueAfter(beat, fn)
 
 #### .onTime(time, fn)
 
-Shorthand for <code>clock.cue(time, fn, 0)</code>, calls <code>fn</code>
+Shorthand for <code>clock.cueTime(time, fn, 0)</code>, calls <code>fn</code>
 at the time specified (<code>0</code> ms lookahead).
 
 #### .cueTime(time, fn)
@@ -365,19 +366,19 @@ Remove all cues from the timer queue:
 
     clock.uncueTime();
 
-Remove all cues at <code>time</code> from the timer queue:
+Remove cues at <code>time</code> from the timer queue:
 
     clock.uncueTime(time);
 
-Remove all cues to <code>fn</code> from the timer queue:
+Remove cues to fire <code>fn</code> from the timer queue:
 
     clock.uncueTime(fn);
 
-Remove all cues at <code>time</code> for <code>fn</code> from the timer queue:
+Remove cues at <code>time</code> to fire <code>fn</code> from the timer queue:
 
     clock.uncueTime(time, fn)
 
-#### .uncueAfterBeat(time, fn)
+#### .uncueAfterTime(time, fn)
 
 Removes <code>fn</code> after <code>time</code> from the timer queue.
 <code>fn</code> is optional.
