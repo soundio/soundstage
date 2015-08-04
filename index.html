@@ -28,5 +28,23 @@
 <script src="js/soundio.oscillator.js"></script>
 
 <script>
+(function(window) {
+	"use strict";
 
+	var soundio = window.Soundio({
+		objects: [
+			{id: 1, type: "osc"},
+			{id: 2, type: "output"}
+		],
+
+		connections: [
+			{source: 1, destination: 2}
+		]
+	});
+
+	var osc = soundio.find(1);
+
+	window.soundio = soundio;
+	window.osc = osc;
+})(window);
 </script>

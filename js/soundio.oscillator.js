@@ -17,11 +17,8 @@
 	// One way to do this is to use AudioObject as a mix-in.
 	function OscillatorObject(audio, settings, clock) {
 		var options = assign({}, defaults, settings);
-		var oscNode = audio.createOscillator();
 		var outputNode = audio.createGain();
-		var playing = false;
-
-		oscNode.frequency.value = 800;
+		var osccache = {};
 
 		// Initialise this as an AudioObject.
 		AudioObject.call(this, audio, undefined, outputNode, {
@@ -32,9 +29,6 @@
 			}
 		});
 
-		// Connect up the graph
-		oscNode.connect(outputNode);
-
 		// Overwrite destroy so that it disconnects the graph
 		this.destroy = function() {
 			oscNode.disconnect();
@@ -43,18 +37,20 @@
 
 		this.trigger = function(time, type, number, velocity) {
 			var freq = MIDI.numberToFrequency(number);
-			oscNode.frequency.setValueAtTime(freq, audio.currentTime);
-			
+
 			if (type === 'noteon') {
-				if (!playing) {
-					oscNode.start();
-					playing = true;
+				if (!osccache[number]) {
+					osccache[number] = audio.createOscillator();
+					osccache[number].connect(outputNode);
+					osccache[number].frequency.setValueAtTime(freq, audio.currentTime);
+					osccache[number].start();
 				}
 			}
 			else if (type === 'noteoff') {
-				if (playing) {
-					oscNode.stop();
-					playing = false;
+				if (osccache[number]) {
+					osccache[number].stop();
+					osccache[number].disconnect();
+					delete osccache[number];
 				}
 			}
 		};
