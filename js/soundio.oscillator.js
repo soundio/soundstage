@@ -81,6 +81,11 @@
 
 		// Overwrite destroy so that it disconnects the graph
 		this.destroy = function() {
+			for (var prop in osccache) {
+				osccache[prop]['oscillator'].disconnect();
+				osccache[prop]['gain'].disconnect();
+				delete osccache[prop];
+			}
 			outputNode.disconnect();
 		};
 
