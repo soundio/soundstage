@@ -1,8 +1,8 @@
 # Soundio
 
-Soundio provides a fast, declarative way to set up a Web Audio graph from JSON,
-an API for manipulating and observing it, and a JSONify-able structure that can
-be used as a data store. Soundio is the Graph Object Model used to make
+Soundio provides a fast, declarative way to set up a Web Audio processing graph from JSON,
+an API for manipulating and observing the graph, and a JSONify-able structure that can
+be used to save them. Soundio is the Graph Object Model used to make
 <a href="http://sound.io">sound.io</a>.
 
 
