@@ -94,6 +94,9 @@
 		};
 
 		this.trigger = function(time, type, number, velocity) {
+			if (!velocity) {
+				velocity = .25;
+			}
 
 			if (type === 'noteon') {
 				createCachedOscillator(number, velocity, time);
