@@ -25,35 +25,47 @@
 <script src="js/soundio.saturate.js"></script>
 <script src="js/soundio.compress.js"></script>
 <script src="js/soundio.envelope.js"></script>
+<script src="js/soundio.oscillator.js"></script>
 
 <script>
-	var soundio = Soundio({
+(function(window) {
+	"use strict";
+
+	var soundio = window.Soundio({
 		objects: [
-			{ id: 1,  type: 'input', channels: [0] },
-			{ id: 2,  type: 'output' },
-
-			// Sampler
-			{ id: 3,  type: 'gain' },
-			{ id: 4,  type: 'send', gain: 0 },
-
-			// Mic Track
-			{ id: 5,  type: 'gain' },
-			{ id: 6,  type: 'send', gain: 0.03125 },
+			{id: 1, type: "osc"},
+			{id: 2, type: "output"}
 		],
 
 		connections: [
-			{ source: 1,  destination: 3 },
-			{ source: 3,  destination: 4 },
-			{ source: 4,  destination: 2,  output: 'send' },
-
-			{ source: 1,  destination: 5 },
-			{ source: 5,  destination: 6 },
-			{ source: 6,  destination: 2,  output: 'send' }
-		],
-
-		midi: [
-			{ object: 4,  property: 'gain',      message: [176, 8] },
-//			{ object: 6,  property: 'gain',      message: [191, 7] }
+			{source: 1, destination: 2}
 		]
 	});
+
+	var osc = soundio.find(1);
+
+	window.soundio = soundio;
+	window.osc = osc;
+
+
+	var sequence = [
+		[2,   "noteon",  76, 0.8],
+		[2.5, "noteoff", 76, 0.8],
+		[2,   "noteon",  60, 0.8],
+		[2.5, "noteoff", 60, 0.8],
+		[2,   "noteon",  55, 0.8],
+		[2.5, "noteoff", 55, 0.8],
+		[2.5, "noteon",  77, 0.6],
+		[3,   "noteoff", 77, 0.6],
+		[3,   "noteon",  79, 1],
+		[3.5, "noteoff", 79, 1],
+		[3.5, "noteon",  74, 1],
+		[7,   "noteoff", 74, 1],
+		[3.5, "noteon",  58, 1],
+		[7,   "noteoff", 58, 1],
+		[3.5, "noteon",  55, 1],
+		[7,   "noteoff", 55, 1]
+	];
+
+})(window);
 </script>
