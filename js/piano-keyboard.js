@@ -103,4 +103,4 @@
 	//keyboard.registerKeys();
 
 	window.keyboard = keyboard;
-})(window)
+})(window);
