@@ -27,7 +27,7 @@ module('AudioObject', function(fixture) {
 		setTimeout(function() {
 			ok(isReceivingSignal(), 'Not receiving any signal!');
 			start();
-		}, 40);
+		}, 400);
 	});
 
 //	asyncTest('Testing .disconnect()', 1, function() {
