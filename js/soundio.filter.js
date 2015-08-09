@@ -85,9 +85,10 @@
 		gain.connect(filter.detune);
 
 		var enveloperInput = AudioObject.getInput(enveloper);
+		var enveloperOutput = AudioObject.getOutput(enveloper);
 
 		input.connect(enveloperInput);
-		enveloper.connect(depth);
+		enveloperOutput.connect(depth);
 		depth.connect(filter.detune);
 
 		var effect = AudioObject(audio, input, output, {
