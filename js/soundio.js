@@ -336,7 +336,7 @@
 		}
 	}
 
-	function disconnect(source, destination, outName, inName, outOutput, inInput) {
+	function disconnect(source, destination, outName, inName, outOutput, inInput, connections) {
 		var outNode = AudioObject.getOutput(source, outName);
 
 		if (!outNode) {
@@ -354,33 +354,37 @@
 		}
 
 		if (AudioObject.features.disconnectParameters) {
-			outNode.disconnect(inNode, outNumber, inNumber);
+			outNode.disconnect(inNode, outOutput, inInput);
 		}
 		else {
-			disconnectDestination(source, outName, outNode, inNode, outNumber, inNumber);
+			disconnectDestination(source, outName, outNode, inNode, outOutput, inInput, connections);
 		}
-
-		removeConnection(source, outName, outNumber, inNode, inNumber);
 	}
 
-	function disconnectDestination(source, outName, outNode, inNode, outNumber, inNumber) {
+	function disconnectDestination(source, outName, outNode, inNode, outOutput, inInput, connections) {
 		outNode.disconnect();
 
 		if (!inNode) { return; }
 
-		var connections = getConnections(source);
-		var outMap = connections[outName];
-		var entry;
+		var connects = connections.query({ source: source, output: outName });
 
-		if (!outMap) { return; }
+		if (connects.length === 0) { return; }
 
-		// Reconnect all entries apart from the node we just
-		// disconnected.
-		for (entry of outMap) {
-			if (entry[0] === inNode) { continue; }
-			// TODO: connect outNumber to inNumber based on
-			// entry[1].
-			outNode.connect(entry[0]);
+		// Reconnect all entries apart from the node we just disconnected.
+		var n = connects.length;
+		var destination, inName, inNode;
+
+		while (n--) {
+			destination = connects[n].destination;
+			inName = connects[n].input;
+			inNode = AudioObject.getInput(destination, inName);
+
+			if (!inNode) {
+				console.warn('Soundio: trying to reconnect destination object without input "' + inName + '". Dropping connection.');
+				continue;
+			}
+
+			outNode.connect(inNode);
 		}
 	}
 
@@ -413,7 +417,6 @@
 
 			Soundio.debug && console.log('Soundio: create connection', source.id, 'to', destination.id);
 
-			// AOC
 			connect(source, destination, outputName, inputName);
 			Collection.prototype.push.call(this, connection);
 			return connection;
@@ -436,8 +439,7 @@
 				return;
 			}
 
-			// AOC
-			disconnect(source, destination, outputName, inputName);
+			disconnect(source, destination, outputName, inputName, undefined, undefined, soundio.connections);
 		});
 	}
 

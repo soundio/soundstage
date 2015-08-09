@@ -17,83 +17,83 @@ module('AudioObject', function(fixture) {
 
 	n0.start();
 
-	soundio.connections.create({ source: n0, destination: n2 });
+	//soundio.connections.create({ source: n0, destination: n2 });
 
 	// Tests
 
-	asyncTest('Testing .connect(node)', 1, function() {
+	test('soundio.objects.length', 1, function() {
+		ok(soundio.objects.length === 3);
+	});
+
+	asyncTest('Testing connections.create()', 2, function() {
 		soundio.connections.create({ source: n0, destination: n1 });
+		ok(soundio.connections.length === 1);
 
 		setTimeout(function() {
 			ok(isReceivingSignal(), 'Not receiving any signal!');
 			start();
-		}, 400);
+		}, 50);
 	});
 
-//	asyncTest('Testing .disconnect()', 1, function() {
-//		object0.disconnect();
-//		setTimeout(function() {
-//			ok(!isReceivingSignal(), 'Signal should have been disconnected.');
-//			start();
-//		}, 50);
-//	});
-//
-//	asyncTest('Testing .disconnect(node)', 1, function() {
-//		object0.connect(n1);
-//		object0.connect(n2);
-//		object0.disconnect(n2);
-//		setTimeout(function() {
-//			ok(isReceivingSignal(), 'Not receiving any signal!');
-//			start();
-//		}, 50);
-//	});
-//
-//	asyncTest('Testing .disconnect(node)', 4, function() {
-//		object0.connect(n1);
-//		object0.connect(n2);
-//
-//		var map = AudioObject.connections(object0).default;
-//
-//		ok(map.get(n1), 'n1 should be in the connections map.');
-//		ok(map.get(n2), 'n2 should be in the connections map.');
-//
-//		object0.disconnect(n1);
-//
-//		ok(map.get(n1) === undefined, 'n1 should not be in the connections map.');
-//
-//		setTimeout(function() {
-//			ok(!isReceivingSignal(), 'Signal should have been disconnected.');
-//			start();
-//		}, 50);
-//	});
-//
-//	asyncTest('Testing .connect(object)', 1, function() {
-//		object0.disconnect();
-//		object0.connect(object1);
-//		setTimeout(function() {
-//			ok(isReceivingSignal(), 'Not receiving any signal! Buffer sum: ' + (Array.prototype.reduce.call(buffer, sum, 0)));
-//			start();
-//		}, 50);
-//	});
-//
-//	asyncTest('Testing .disconnect()', 1, function() {
-//		object0.disconnect();
-//		setTimeout(function() {
-//			ok(!isReceivingSignal(), 'Signal should have been disconnected.');
-//			start();
-//		}, 50);
-//	});
-//
-//	asyncTest('Testing .disconnect(object)', 1, function() {
-//		object0.connect(object1);
-//		object0.connect(n2);
-//		object0.disconnect(n2);
-//		setTimeout(function() {
-//			ok(isReceivingSignal(), 'Not receiving any signal! Buffer sum: ' + (Array.prototype.reduce.call(buffer, sum, 0)));
-//			start();
-//		}, 50);
-//	});
-//
+	asyncTest('Testing connections.delete()', 2, function() {
+		soundio.connections.delete({ source: n0, destination: n1 });
+		ok(soundio.connections.length === 0);
+
+		setTimeout(function() {
+			ok(!isReceivingSignal(), 'Signal should have been disconnected.');
+			start();
+		}, 50);
+	});
+
+	asyncTest('Testing connections.delete()', 2, function() {
+		soundio.connections.create({ source: n0, destination: n1 });
+		soundio.connections.create({ source: n0, destination: n2 });
+		soundio.connections.delete({ source: n0, destination: n2 });
+		ok(soundio.connections.length === 1);
+
+		setTimeout(function() {
+			ok(isReceivingSignal(), 'Not receiving any signal!');
+			start();
+		}, 50);
+	});
+
+	asyncTest('Testing connections.delete()', 3, function() {
+		soundio.connections.create({ source: n0, destination: n1 });
+		soundio.connections.create({ source: n0, destination: n2 });
+		ok(soundio.connections.length === 2);
+
+		soundio.connections.delete({ source: n0, destination: n1 });
+		ok(soundio.connections.length === 1);
+
+		setTimeout(function() {
+			ok(!isReceivingSignal(), 'Signal should have been disconnected.');
+			start();
+		}, 50);
+	});
+
+	asyncTest('Testing .connect(object)', 3, function() {
+		soundio.connections.delete({ source: n0 });
+		ok(soundio.connections.length === 0);
+
+		soundio.connections.create({ source: n0, destination: n1 });
+		ok(soundio.connections.length === 1);
+
+		setTimeout(function() {
+			ok(isReceivingSignal(), 'Not receiving any signal!');
+			start();
+		}, 50);
+	});
+
+	asyncTest('Testing .disconnect()', 2, function() {
+		soundio.connections.delete({ source: n0 });
+		ok(soundio.connections.length === 0);
+
+		setTimeout(function() {
+			ok(!isReceivingSignal(), 'Signal should have been disconnected.');
+			start();
+		}, 50);
+	});
+
 //	asyncTest('Testing .disconnect(object) and checking the connections map', 5, function() {
 //		object0.connect(object1);
 //		object0.connect(n2);
