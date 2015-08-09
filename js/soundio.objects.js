@@ -3,11 +3,15 @@
 
 	var Soundio = window.Soundio;
 	var assign  = Object.assign;
+	
+	var cache = [];
 	var defaults = {};
 	var automation = {
 	    	q:               { min: 0,   max: 100,   transform: 'quadratic',   value: 0.25 },
 	    	frequency:       { min: 16,  max: 16000, transform: 'logarithmic', value: 16 },
 	    };
+
+	function noop() {}
 
 	function aliasProperty(object, node, name) {
 		Object.defineProperty(object, name, {
@@ -23,22 +27,117 @@
 		};
 	}
 
-	function DelayObject(audio, settings, clock) {
-		var options = assign({ maxDelay: 1, delayTime: 0 }, settings);
+
+	// Delay Audio object
+
+	function DelayAudioObject(audio, settings, clock) {
+		var options = assign({ maxDelay: 1, delay: 0 }, settings);
 		var node = audio.createDelay(options.maxDelay);
 
-		node.delayTime.setValueAtTime(options.delayTime, 0);
+		node.delayTime.setValueAtTime(options.delay, 0);
 
 		AudioObject.call(this, audio, node, node, {
-			time: node.delayTime
+			delay: node.delayTime
 		});
 	}
 
-	assign(DelayObject.prototype, AudioObject.prototype);
-
-	Soundio.register('delay', DelayObject, {
-		delayTime: { min: 0, max: 2000, transform: 'exponential', value: 0 }
+	assign(DelayAudioObject.prototype, AudioObject.prototype);
+	Soundio.register('delay', DelayAudioObject, {
+		delay: { min: 0, max: 2, transform: 'linear', value: 0.020 }
 	});
+
+
+
+	// Script Audio object
+
+	var scriptDefaults = {
+		bufferSize: 512,
+		inputChannels: 2,
+		outputChannels: 2,
+		process: noop
+	};
+
+	function ScriptAudioObject(audio, settings) {
+		var options = assign(scriptDefaults, settings);
+		var node = audio.createScriptProcessor(options.bufferSize, options.inputChannels, options.outputChannels);
+
+		// Script nodes should be kept in memory to avoid Chrome bugs
+		cache.push(node);
+
+		node.channelCountMode = "explicit";
+		node.channelInterpretation = "discrete";
+
+		node.onaudioprocess = function(e) {
+			options.process(e.inputBuffer, e.outputBuffer);
+		};
+
+		AudioObject.call(this, audio, node, node);
+
+		this.destroy = function() {
+			var i = cache.indexOf(node);
+			if (i > -1) { cache.splice(i, 1); }
+		};
+	}
+
+	assign(ScriptAudioObject.prototype, AudioObject.prototype);
+	Soundio.register('script', ScriptAudioObject);
+
+
+
+	// Signal Detector Audio object
+
+	function SignalDetectorAudioObject(audio, settings) {
+		var options = assign({}, settings);
+		var object = this;
+		var inputNode = audio.createGain();
+		var outputNode = audio.createGain();
+		var scriptNode = audio.createScriptProcessor(256, 1, 0);
+		var signal;
+
+		scriptNode.channelCountMode = "explicit";
+
+		// Script nodes should be kept in memory to avoid Chrome bugs, and also
+		// need to be connected to something to avoid garbage collection. This
+		// is ok, as we're not sending any sound out of this node.
+		cache.push(scriptNode);
+		//scriptNode.connect(outputNode);
+
+		scriptNode.onaudioprocess = function(e) {
+			var buffer = e.inputBuffer.getChannelData(0);
+			var n = buffer.length;
+
+			while (n--) {
+				if (buffer[n] !== 0) {
+					object.signal = true;
+					return;
+				}
+			}
+
+			object.signal = false;
+		};
+
+		// Audio input is passed through to output, and branched to the
+		// signal detector script.
+		inputNode.connect(outputNode);
+		inputNode.connect(scriptNode);
+
+		AudioObject.call(this, audio, inputNode, outputNode);
+
+		this.signal = false;
+		this.destroy = function() {
+			inputNode.disconnect();
+			scriptNode.disconnect();
+			var i = cache.indexOf(scriptNode);
+			if (i > -1) { cache.splice(i, 1); }
+		};
+	}
+
+	assign(SignalDetectorAudioObject.prototype, AudioObject.prototype);
+	Soundio.register('signal-detector', SignalDetectorAudioObject);
+
+
+
+	// Buffer Audio object
 
 	Soundio.register('buffer', function createBufferObject(audio, settings) {
 		var options = assign({}, defaults, settings);
@@ -48,23 +147,24 @@
 			rate:   node.playbackRate
 		});
 
-		['loop', 'loopStart', 'loopEnd', 'buffer', 'onended']
-		.forEach(function(name) {
+		['loop', 'loopStart', 'loopEnd', 'buffer', 'onended'].forEach(function(name) {
 			aliasProperty(object, node, name);
 		});
 
-		['start', 'stop']
-		.forEach(function(name) {
+		['start', 'stop'].forEach(function(name) {
 			aliasMethod(object, node, name);
 		});
 
 		return object;
 	}, {
-		detune:       { min: -1200, max: 1200, transform: 'linear',      value: 0 },
-		playbackRate: { min: 0.25,  max: 4,    transform: 'logarithmic', value: 1 }
+		detune: { min: -1200, max: 1200, transform: 'linear',      value: 0 },
+		rate:   { min: 0.25,  max: 4,    transform: 'logarithmic', value: 1 }
 	});
 
-	Soundio.register('panner', function createPannerObject(audio, settings) {
+
+	// Pan Audio Object
+
+	Soundio.register('panner', function PanAudioObject(audio, settings) {
 		var options = assign({}, defaults, settings);
 		var node    = audio.createDelay();
 		var object  = AudioObject(audio, node, node);
@@ -170,7 +270,12 @@
 		return object;
 	}, automation);
 
-	Soundio.register('oscillator', function createOscillatorObject(audio, settings) {
+
+
+
+	// Oscillator Audio Object
+
+	function OscillatorAudioObject(audio, settings) {
 		var options = assign({}, defaults, settings);
 		var node    = audio.createOscillator();
 		var object  = AudioObject(audio, node, node, {
@@ -182,7 +287,7 @@
 
 		// We can't use 'type' as it is required by Soundio to describe the type
 		// of audio object.
-		Object.defineProperty(object, 'shape', {
+		Object.defineProperty(object, 'wave', {
 			get: function() { return node.type; },
 			set: function(value) { node.type = value; },
 			enumerable: true
@@ -191,11 +296,15 @@
 		['setPeriodicWave', 'start', 'stop']
 		.forEach(function(name) {
 			aliasMethod(object, node, name);
-		})
+		});
 
 		return object;
-	}, {
-		detune:    { min: -1200, max: 1200,  transform: 'linear' ,     value: -12 },
-		frequency: { min: 16,    max: 16000, transform: 'logarithmic', value: 16 }
+	}
+
+	assign(OscillatorAudioObject.prototype, AudioObject.prototype);
+
+	Soundio.register('oscillator', OscillatorAudioObject, {
+		detune:    { min: -1200, max: 1200,  transform: 'linear' ,     value: 0 },
+		frequency: { min: 16,    max: 16000, transform: 'logarithmic', value: 440 }
 	});
 })(window);

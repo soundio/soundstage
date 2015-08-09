@@ -306,13 +306,91 @@
 		return connection;
 	}
 
+	function connect(source, destination, outName, inName, outOutput, inInput) {
+		var outNode = AudioObject.getOutput(source, outName);
+		var inNode  = AudioObject.getInput(destination, inName);
+
+		if (!outNode) {
+			return console.warn('Soundio: trying to connect source object without output "' + outName + '". Dropping connection.');
+		}
+
+		if (!inNode) {
+			return console.warn('Soundio: trying to connect destination object without input "' + inName + '". Dropping connection.');
+		}
+
+		if (isDefined(outOutput) && isDefined(inInput)) {
+			if (outOutput >= outNode.numberOfOutputs) {
+				return console.warn('AudioObject: Trying to .connect() from a non-existent output (' +
+					outOutput + ') on output node {numberOfOutputs: ' + outNode.numberOfOutputs + '}. Dropping connection.');
+			}
+
+			if (inInput >= inNode.numberOfInputs) {
+				return console.warn('AudioObject: Trying to .connect() to a non-existent input (' +
+					inInput + ') on input node {numberOfInputs: ' + inNode.numberOfInputs + '}. Dropping connection.');
+			}
+
+			outNode.connect(inNode, outOutput, inInput);
+		}
+		else {
+			outNode.connect(inNode);
+		}
+	}
+
+	function disconnect(source, destination, outName, inName, outOutput, inInput) {
+		var outNode = AudioObject.getOutput(source, outName);
+
+		if (!outNode) {
+			return console.warn('AudioObject: trying to .disconnect() from an object without output "' + outName + '".');
+		}
+
+		if (!destination) {
+			return outNode.disconnect();
+		}
+
+		var inNode = AudioObject.getInput(destination, inName);
+
+		if (!inNode) {
+			return console.warn('AudioObject: trying to .disconnect() an object with no inputs.', destination);
+		}
+
+		if (AudioObject.features.disconnectParameters) {
+			outNode.disconnect(inNode, outNumber, inNumber);
+		}
+		else {
+			disconnectDestination(source, outName, outNode, inNode, outNumber, inNumber);
+		}
+
+		removeConnection(source, outName, outNumber, inNode, inNumber);
+	}
+
+	function disconnectDestination(source, outName, outNode, inNode, outNumber, inNumber) {
+		outNode.disconnect();
+
+		if (!inNode) { return; }
+
+		var connections = getConnections(source);
+		var outMap = connections[outName];
+		var entry;
+
+		if (!outMap) { return; }
+
+		// Reconnect all entries apart from the node we just
+		// disconnected.
+		for (entry of outMap) {
+			if (entry[0] === inNode) { continue; }
+			// TODO: connect outNumber to inNumber based on
+			// entry[1].
+			outNode.connect(entry[0]);
+		}
+	}
+
 	function Connections(soundio, array, settings) {
 		if (this === undefined || this === window) {
 			// Soundio has been called without the new keyword
 			return new Connections(soundio, array, settings);
 		}
 
-		// Initialise connections as an Collection 
+		// Initialise connections as a Collection 
 		Collection.call(this, array, settings);
 
 		this.create = distributeArgs(0, function(data) {
@@ -335,7 +413,8 @@
 
 			Soundio.debug && console.log('Soundio: create connection', source.id, 'to', destination.id);
 
-			source.connect(outputName, destination, inputName);
+			// AOC
+			connect(source, destination, outputName, inputName);
 			Collection.prototype.push.call(this, connection);
 			return connection;
 		});
@@ -357,7 +436,8 @@
 				return;
 			}
 
-			source.disconnect(outputName, destination, inputName);
+			// AOC
+			disconnect(source, destination, outputName, inputName);
 		});
 	}
 
@@ -420,7 +500,7 @@
 		AudioObject.call(soundio, options.audio, input, output);
 
 		// Hitch up the output to the destination
-		soundio.connect(audio.destination);
+		output.connect(audio.destination);
 
 		Object.defineProperties(soundio, {
 			audio:   { value: options.audio },
