@@ -23,7 +23,7 @@
 
 	function aliasMethod(object, node, name) {
 		object[name] = function() {
-			node.name.apply(node, arguments);
+			node[name].apply(node, arguments);
 		};
 	}
 

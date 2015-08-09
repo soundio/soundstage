@@ -9,14 +9,15 @@ module('AudioObject', function(fixture) {
 	// Set up audio objects
 	var n0 = soundio.objects.create('oscillator');
 	var n1 = soundio.objects.create('signal-detector');
-	var n2 = soundio.objects.create('gain');
+	var n2 = soundio.objects.create('output', { output: AudioObject.getOutput(soundio) });
 
 	function isReceivingSignal() {
-		return detector.signal;
+		return n1.signal;
 	}
 
 	n0.start();
 
+	soundio.connections.create({ source: n0, destination: n2 });
 
 	// Tests
 
