@@ -41,7 +41,8 @@ module.exports = function(config) {
       'js/soundio.envelope.js',
 
       'test/module.js',
-      'test/test-midi.js'
+      'test/test-midi.js',
+      'test/test-connections.js'
     ],
 
     // list of files to exclude
