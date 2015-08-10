@@ -12,6 +12,22 @@
 	// Declare some useful defaults
 	var defaults = { gain: 1 };
 
+	function UnityNode(audio) {
+		var oscillator = audio.createOscillator();
+		var waveshaper = audio.createWaveShaper();
+
+		var curve = new Float32Array(2);
+		curve[0] = curve[1] = 1;
+
+		oscillator.type = 'square';
+		oscillator.connect(waveshaper);
+		oscillator.frequency.value = 100;
+		waveshaper.curve = curve;
+		oscillator.start();
+
+		return waveshaper;
+	}
+
 	// A Soundio plugin is created with an object constructor.
 	// The constructor must create an instance of AudioObject.
 	// One way to do this is to use AudioObject as a mix-in.
@@ -26,7 +42,15 @@
 		//		oscillator: {},
 		//		gain: {}
 		// }
-		var osccache = {};
+		var unityNode  = UnityNode(audio);
+		var pitchNode  = audio.createGain();
+		var detuneNode = audio.createGain();
+		var osccache   = {};
+
+		pitchNode.gain.value = 0;
+		detuneNode.gain.value = 100;
+		unityNode.connect(pitchNode);
+		pitchNode.connect(detuneNode);
 
 		// Initialise this as an AudioObject.
 		AudioObject.call(this, audio, undefined, outputNode, {
@@ -34,6 +58,12 @@
 				param: outputNode.gain,
 				curve: 'linear',
 				duration: 0.008
+			},
+
+			pitch: {
+				param: pitchNode.gain,
+				curve: 'exponential',
+				duration: 0.004
 			}
 		});
 		
@@ -53,6 +83,7 @@
 				var oscillatorNode = spawnOscillator(freq);
 				var gainNode = spawnGain(velocity);
 
+				detuneNode.connect(oscillatorNode.detune);
 				oscillatorNode.connect(gainNode);
 				gainNode.connect(outputNode);
 
@@ -82,7 +113,7 @@
 					return function() {
 						osc.disconnect();
 						gain.disconnect();
-					}
+					};
 				}(oscNode, gainNode));
 				delete osccache[number];
 			}
@@ -98,18 +129,14 @@
 			outputNode.disconnect();
 		};
 
-		this.trigger = function(time, type, number, velocity) {
-			if (!velocity) {
-				velocity = .25;
-			}
+		this.start = function(time, number, velocity) {
+			velocity = velocity === undefined ? 0.25 : velocity ;
+			createCachedOscillator(number, velocity, time);
+		};
 
-			if (type === 'noteon') {
-				createCachedOscillator(number, velocity, time);
-			}
-			else if (type === 'noteoff') {
-				stopCachedOscillator(number, time);
-				removeFromCache(number, time);
-			}
+		this.stop = function(time, number) {
+			stopCachedOscillator(number, time);
+			removeFromCache(number, time);
 		};
 	}
 
