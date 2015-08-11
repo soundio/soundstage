@@ -147,23 +147,16 @@
 
 	// Buffer Audio object
 
+	var bufferDefaults = { loop: false, loopStart: 0, loopEnd: 0 };
+
 	function BufferAudioObject(audio, settings) {
-		var options = assign({}, defaults, settings);
+		var options = assign({}, bufferDefaults, settings);
 		var outputNode = audio.createGain();
 		var unityNode = UnityNode(audio);
 		var pitchNode = audio.createGain();
 		var detuneNode = audio.createGain();
 		var nodes = [];
 		var buffer, channel, data;
-
-		function end(e) {
-			var node = e.target;
-			var i = nodes.indexOf(node);
-			
-			if (i > -1) { nodes.splice(i, 1); }
-			node.disconnect();
-			detuneNode.disconnect(node.detune);
-		}
 
 		pitchNode.gain.value = 0;
 		detuneNode.gain.value = 100;
@@ -200,9 +193,47 @@
 			pitch: pitchNode.gain
 		});
 
-		this.loop = options.loop || false;
-		this.loopStart = options.loopStart || 0;
-		this.loopEnd = options.loopEnd || 0;
+		function end(e) {
+			var node = e.target;
+			var i = nodes.indexOf(node);
+			
+			if (i > -1) { nodes.splice(i, 1); }
+			node.disconnect();
+			detuneNode.disconnect(node.detune);
+		}
+
+		Object.defineProperties(this, {
+			loop: {
+				get: function() { return options.loop; },
+				set: function(value) {
+					var n = nodes.length;
+					options.loop = value;
+					while (n--) { nodes[n].loop = options.loop; }
+				},
+				enumerable: true
+			},
+
+			loopStart: {
+				get: function() { return options.loopStart; },
+				set: function(value) {
+					var n = nodes.length;
+					options.loopStart = value;
+					while (n--) { nodes[n].loopStart = options.loopStart; }
+				},
+				enumerable: true
+			},
+
+			loopEnd: {
+				get: function() { return options.loopEnd; },
+				set: function(value) {
+					var n = nodes.length;
+					options.loopEnd = value;
+					while (n--) { nodes[n].loopEnd = options.loopEnd; }
+				},
+				enumerable: true
+			}
+		});
+
 		this.noteCenter = 69; // A4
 
 		this.start = function(time, number) {
