@@ -31,7 +31,7 @@
 	// A Soundio plugin is created with an object constructor.
 	// The constructor must create an instance of AudioObject.
 	// One way to do this is to use AudioObject as a mix-in.
-	function OscillatorObject(audio, settings, clock) {
+	function OscillatorSynthAudioObject(audio, settings, clock) {
 		var DISCONNECT_AFTER = 5;
 		var options = assign({}, defaults, settings);
 		var outputNode = audio.createGain();
@@ -62,8 +62,8 @@
 
 			pitch: {
 				param: pitchNode.gain,
-				curve: 'exponential',
-				duration: 0.004
+				curve: 'linear',
+				duration: 0.006
 			}
 		});
 		
@@ -109,25 +109,16 @@
 				var gainNode = osccache[number]['gain']
 				// Need to fix the parameters because we empty the cache instantly while
 				// we want to disconnect the node only after it has finished playing
-				clock.on(time + DISCONNECT_AFTER, function(osc, gain) {
-					return function() {
+				clock.on(time + DISCONNECT_AFTER, (function(osc, gain, detune) {
+					return function(time) {
 						osc.disconnect();
 						gain.disconnect();
+						detune.disconnect(osc.detune);
 					};
-				}(oscNode, gainNode));
+				})(oscNode, gainNode, detuneNode));
 				delete osccache[number];
 			}
 		}
-
-		// Overwrite destroy so that it disconnects the graph
-		this.destroy = function() {
-			for (var prop in osccache) {
-				osccache[prop]['oscillator'].disconnect();
-				osccache[prop]['gain'].disconnect();
-				delete osccache[prop];
-			}
-			outputNode.disconnect();
-		};
 
 		this.start = function(time, number, velocity) {
 			velocity = velocity === undefined ? 0.25 : velocity ;
@@ -138,13 +129,23 @@
 			stopCachedOscillator(number, time);
 			removeFromCache(number, time);
 		};
+
+		// Overwrite destroy so that it disconnects the graph
+		this.destroy = function() {
+			for (var prop in osccache) {
+				osccache[prop]['oscillator'].disconnect();
+				osccache[prop]['gain'].disconnect();
+				delete osccache[prop];
+			}
+			outputNode.disconnect();
+		};
 	}
 
 	// Mix AudioObject prototype into MyObject prototype
-	assign(OscillatorObject.prototype, AudioObject.prototype);
+	assign(OscillatorSynthAudioObject.prototype, AudioObject.prototype);
 
 	// Register the object constructor with Soundio. The last
 	// parameter, controls, is optional but recommended if the
 	// intent is to make the object controllable, eg. via MIDI.
-	Soundio.register('osc', OscillatorObject);
+	Soundio.register('osc', OscillatorSynthAudioObject);
 })(window);

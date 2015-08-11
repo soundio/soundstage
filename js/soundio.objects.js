@@ -27,6 +27,21 @@
 		};
 	}
 
+	function UnityNode(audio) {
+		var oscillator = audio.createOscillator();
+		var waveshaper = audio.createWaveShaper();
+
+		var curve = new Float32Array(2);
+		curve[0] = curve[1] = 1;
+
+		oscillator.type = 'square';
+		oscillator.connect(waveshaper);
+		oscillator.frequency.value = 100;
+		waveshaper.curve = curve;
+		oscillator.start();
+
+		return waveshaper;
+	}
 
 	// Delay Audio object
 
@@ -89,8 +104,6 @@
 	function SignalDetectorAudioObject(audio, settings) {
 		var options = assign({}, settings);
 		var object = this;
-		var inputNode = audio.createGain();
-		var outputNode = audio.createGain();
 		var scriptNode = audio.createScriptProcessor(256, 1, 1);
 		var signal;
 
@@ -116,16 +129,11 @@
 			object.signal = false;
 		};
 
-		// Audio input is passed through to output, and branched to the
-		// signal detector script.
-		inputNode.connect(outputNode);
-		inputNode.connect(scriptNode);
-
-		AudioObject.call(this, audio, inputNode, outputNode);
+		AudioObject.call(this, audio, scriptNode);
 
 		this.signal = false;
+
 		this.destroy = function() {
-			inputNode.disconnect();
 			scriptNode.disconnect();
 			var i = cache.indexOf(scriptNode);
 			if (i > -1) { cache.splice(i, 1); }
@@ -139,27 +147,98 @@
 
 	// Buffer Audio object
 
-	Soundio.register('buffer', function createBufferObject(audio, settings) {
+	function BufferAudioObject(audio, settings) {
 		var options = assign({}, defaults, settings);
-		var node    = audio.createDelay();
-		var object  = AudioObject(audio, node, node, {
-			detune: node.detune,
-			rate:   node.playbackRate
+		var outputNode = audio.createGain();
+		var unityNode = UnityNode(audio);
+		var pitchNode = audio.createGain();
+		var detuneNode = audio.createGain();
+		var nodes = [];
+		var buffer, channel, data;
+
+		function end(e) {
+			var node = e.target;
+			var i = nodes.indexOf(node);
+			
+			if (i > -1) { nodes.splice(i, 1); }
+			node.disconnect();
+			detuneNode.disconnect(node.detune);
+		}
+
+		pitchNode.gain.value = 0;
+		detuneNode.gain.value = 100;
+		unityNode.connect(pitchNode);
+		pitchNode.connect(detuneNode);
+
+		if (options.buffer instanceof AudioBuffer) {
+			// It's already an AudioBuffer
+			buffer = options.buffer;
+		}
+		else if (typeof options.buffer === "string") {
+			// It's an URL. Go fetch the data.
+			Soundio
+			.fetchBuffer(audio, options.buffer)
+			.then(function(fetchedBuffer) {
+				buffer = fetchedBuffer;
+			});
+		}
+		else {
+			// It's an array of arrays
+			buffer = audio.createBuffer(options.buffer.length, options.buffer[0].length, audio.sampleRate);
+			channel = options.buffer.length;
+
+			while (channel--) {
+				data = options.buffer[channel] instanceof Float32Array ?
+					options.buffer[channel] :
+					new Float32Array(options.buffer[channel]) ;
+
+				buffer.copyToChannel(data, channel);
+			}
+		}
+
+		AudioObject.call(this, audio, undefined, outputNode, {
+			pitch: pitchNode.gain
 		});
 
-		['loop', 'loopStart', 'loopEnd', 'buffer', 'onended'].forEach(function(name) {
-			aliasProperty(object, node, name);
-		});
+		this.loop = options.loop || false;
+		this.loopStart = options.loopStart || 0;
+		this.loopEnd = options.loopEnd || 0;
+		this.noteCenter = 69; // A4
 
-		['start', 'stop'].forEach(function(name) {
-			aliasMethod(object, node, name);
-		});
+		this.start = function(time, number) {
+			if (!buffer) { return this; }
 
-		return object;
-	}, {
-		detune: { min: -1200, max: 1200, transform: 'linear',      value: 0 },
-		rate:   { min: 0.25,  max: 4,    transform: 'logarithmic', value: 1 }
+			var node = audio.createBufferSource();
+
+			if (typeof number === 'number') {
+				node.detune.value = 100 * (number - this.noteCenter);
+			}
+
+			detuneNode.connect(node.detune);
+			node.buffer = buffer;
+			node.loop = this.loop;
+			node.loopStart = this.loopStart;
+			node.loopEnd = this.loopEnd;
+			node.connect(outputNode);
+			node.onended = end;
+			node.start(time || 0);
+			nodes.push(node);
+			return this;
+		};
+
+		this.stop = function(time) {
+			var n = nodes.length;
+			while (n--) { nodes[n].stop(time || 0); }
+			return this;
+		};
+	}
+
+	assign(BufferAudioObject.prototype, AudioObject.prototype);
+	Soundio.register('buffer', BufferAudioObject, {
+		pitch: { min: -128, max: 128, transform: 'linear', value: 0 }
 	});
+
+	window.BufferAudioObject = BufferAudioObject;
 
 
 	// Pan Audio Object
