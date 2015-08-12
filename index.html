@@ -52,6 +52,8 @@
 	soundio.clock.tempo(0, 120);
 
 	var data = [
+		[0,   "noteon",  36, 1],
+		[4,   "noteoff", 36, 1],
 		[2,   "noteon",  64, 0.8],
 		[2.5, "noteoff", 64, 0.8],
 		[2,   "noteon",  58, 0.8],
@@ -73,7 +75,9 @@
 	var sequence = Sequence(soundio.clock, [
 		[0, "sequence", data, 1],
 		//[4, "sequence", data, 2],
-		[8, "sequence", data, 2],
+		[7, "sequence", data, 2],
+		[10, "sequence", data, 3],
+		[12, "sequence", data, 4],
 		//[2, "sequence", data, 0.5]
 	]);
 
