@@ -28,6 +28,29 @@
 		return waveshaper;
 	}
 
+	function spawnOscillator (audio, freq) {
+		var oscillatorNode = audio.createOscillator();
+		oscillatorNode.type = 'square';
+		oscillatorNode.frequency.setValueAtTime(freq, audio.currentTime);
+		return oscillatorNode;
+	}
+
+	function spawnGain (audio, gain) {
+		var gainNode = audio.createGain();
+		gainNode.gain.value = Math.pow(gain, 2);
+		return gainNode;
+	}
+
+	function spawnFilter (audio, freq, time) {
+		var filterNode = audio.createBiquadFilter();
+		filterNode.frequency.value = freq * 1;
+		filterNode.Q.value = 15;
+		filterNode.type = 'lowpass';
+		filterNode.frequency.exponentialRampToValueAtTime(freq * 3, time + 0.06);
+		filterNode.frequency.setTargetAtTime(freq * 1, time + 0.08, 1);
+		return filterNode;
+	}
+
 	// A Soundio plugin is created with an object constructor.
 	// The constructor must create an instance of AudioObject.
 	// One way to do this is to use AudioObject as a mix-in.
@@ -66,36 +89,29 @@
 				duration: 0.006
 			}
 		});
-		
-		function spawnOscillator (freq) {
-			var oscillatorNode = audio.createOscillator();
-			oscillatorNode.frequency.setValueAtTime(freq, audio.currentTime);
-			return oscillatorNode;
-		}
-		function spawnGain (gain) {
-			var gainNode = audio.createGain();
-			gainNode.gain.value = Math.pow(gain, 2);
-			return gainNode;
-		}
+
 		function createCachedOscillator(number, velocity, time) {
 			if (!osccache[number]) {
 				var freq = MIDI.numberToFrequency(number);
-				var oscillatorNode = spawnOscillator(freq);
-				var gainNode = spawnGain(velocity);
+				var oscillatorNode = spawnOscillator(audio, freq);
+				var gainNode = spawnGain(audio, velocity);
+				var filterNode = spawnFilter(audio, freq, time);
 
 				detuneNode.connect(oscillatorNode.detune);
-				oscillatorNode.connect(gainNode);
+				oscillatorNode.connect(filterNode);
+				filterNode.connect(gainNode);
 				gainNode.connect(outputNode);
 
-				addToCache(number, oscillatorNode, gainNode);
+				addToCache(number, oscillatorNode, gainNode, filterNode);
 
 				oscillatorNode.start(time);
 			}
 		}
-		function addToCache(number, oscillatorNode, gainNode) {
+		function addToCache(number, oscillatorNode, gainNode, filterNode) {
 			var cacheEntry = {};
 			cacheEntry['oscillator'] = oscillatorNode;
 			cacheEntry['gain'] = gainNode;
+			cacheEntry['filter'] = filterNode;
 			osccache[number] = cacheEntry;
 		}
 		function stopCachedOscillator(number, time) {
@@ -106,16 +122,18 @@
 		function removeFromCache(number, time) {
 			if (osccache[number]) {
 				var oscNode = osccache[number]['oscillator'];
-				var gainNode = osccache[number]['gain']
+				var gainNode = osccache[number]['gain'];
+				var filterNode = osccache[number]['filter'];
 				// Need to fix the parameters because we empty the cache instantly while
 				// we want to disconnect the node only after it has finished playing
-				clock.on(time + DISCONNECT_AFTER, (function(osc, gain, detune) {
+				clock.on(time + DISCONNECT_AFTER, (function(osc, gain, detune, filter) {
 					return function(time) {
 						osc.disconnect();
 						gain.disconnect();
+						filter.disconnect();
 						detune.disconnect(osc.detune);
 					};
-				})(oscNode, gainNode, detuneNode));
+				})(oscNode, gainNode, detuneNode, filterNode));
 				delete osccache[number];
 			}
 		}
