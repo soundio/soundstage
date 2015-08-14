@@ -20,7 +20,7 @@ module.exports = function(config) {
       'modules/audio-object/js/audio-object.js',
       'modules/clock/js/clock.js',
       'modules/midi/js/midi.js',
-      'modules/midi/js/midi.utils.js',
+      'modules/midi/js/midi-utils.js',
 
       'js/window.audiocontext.js',
       'js/navigator.getusermedia.js',
