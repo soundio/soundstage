@@ -12,7 +12,8 @@
 	// Declare some useful defaults
 	var defaults = {
 		gain: 1,
-		detune: 0.04
+		detune: 0.04,
+		waveform: 'square'
 	};
 
 	function UnityNode(audio) {
@@ -33,7 +34,6 @@
 
 	function spawnOscillator(audio, freq) {
 		var oscillatorNode = audio.createOscillator();
-		oscillatorNode.type = 'square';
 		oscillatorNode.frequency.setValueAtTime(freq, audio.currentTime);
 		return oscillatorNode;
 	}
@@ -61,7 +61,7 @@
 	// A Soundio plugin is created with an object constructor.
 	// The constructor must create an instance of AudioObject.
 	// One way to do this is to use AudioObject as a mix-in.
-	function OscillatorSynthAudioObject(audio, settings, clock) {
+	function ToneSynthAudioObject(audio, settings, clock) {
 		var DISCONNECT_AFTER = 5;
 		var options = assign({}, defaults, settings);
 		var object = this;
@@ -105,6 +105,7 @@
 				var gainNode = spawnGain(audio, velocity);
 				var filterNode = spawnFilter(audio, freq, time);
 
+				oscillatorNode.type = object.waveform;
 				oscillatorNode.detune.value = bell(object.detune * 100);
 				detuneNode.connect(oscillatorNode.detune);
 				oscillatorNode.connect(filterNode);
@@ -168,13 +169,14 @@
 		};
 
 		this.detune = options.detune;
+		this.waveform = options.waveform;
 	}
 
 	// Mix AudioObject prototype into MyObject prototype
-	assign(OscillatorSynthAudioObject.prototype, AudioObject.prototype);
+	assign(ToneSynthAudioObject.prototype, AudioObject.prototype);
 
 	// Register the object constructor with Soundio. The last
 	// parameter, controls, is optional but recommended if the
 	// intent is to make the object controllable, eg. via MIDI.
-	Soundio.register('osc', OscillatorSynthAudioObject);
+	Soundio.register('tone-synth', ToneSynthAudioObject);
 })(window);
