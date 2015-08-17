@@ -189,10 +189,30 @@
 //				// Automate nodes
 //				// envolopeNode...
 //			});
+
+			oscillatorNode.onended = function() {
+				qNode.disconnect(filterNode.Q);
+				unityNode.disconnect(envelopeNode);
+				frequencyNode.disconnect(noteGainNode);
+				detuneNode.disconnect(oscillatorNode.detune);
+				oscillatorNode.stop(time);
+
+				gainNode.disconnect();
+				filterNode.disconnect();
+				envelopeGainNode.disconnect();
+				velocityMultiplierNode.disconnect();
+				envelopeNode.disconnect();
+				noteGainNode.disconnect();
+				oscillatorNode.disconnect();
+			};
 		}
 
 		function addToCache(number, cacheEntry) {
 			osccache[number] = cacheEntry;
+		}
+
+		function removeFromCache(number) {
+			delete osccache[number];
 		}
 
 		function releaseNote(number, time) {
@@ -202,32 +222,9 @@
 			
 			cache[0].gain.setTargetAtTime(0, time, object.decay);
 			cache[4].gain.setTargetAtTime(0, time, object.decay);
-		}
+			cache[6].stop(time + 2);
 
-		function removeFromCache(number, time) {
-			var cache = osccache[number];
-
-			if (cache) {
-				// Need to fix the parameters because we empty the cache instantly while
-				// we want to disconnect the node only after it has finished playing
-				clock.on(time + DISCONNECT_AFTER, (function(cache) {
-					return function(time) {
-						qNode.disconnect(cache[1].Q);
-						unityNode.disconnect(cache[4]);
-						frequencyNode.disconnect(cache[5]);
-						detuneNode.disconnect(cache[6].detune);
-						cache[6].stop(time);
-
-						var n = cache.length;
-
-						while (n--) {
-							cache[n].disconnect();
-						}
-					};
-				})(cache));
-
-				delete osccache[number];
-			}
+			removeFromCache(number);
 		}
 
 		this.start = function(time, number, velocity) {
@@ -237,7 +234,6 @@
 
 		this.stop = function(time, number) {
 			releaseNote(number, time);
-			removeFromCache(number, time);
 		};
 
 		// Overwrite destroy so that it disconnects the graph
