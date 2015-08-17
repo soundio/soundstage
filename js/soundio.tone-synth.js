@@ -13,7 +13,8 @@
 	var defaults = {
 		gain: 1,
 		detune: 0.04,
-		waveform: 'square'
+		waveform: 'square',
+		decay: 0.06
 	};
 
 	function UnityNode(audio) {
@@ -46,11 +47,8 @@
 
 	function spawnFilter (audio, freq, time) {
 		var filterNode = audio.createBiquadFilter();
-		filterNode.frequency.value = freq * 1;
-		filterNode.Q.value = 15;
+		filterNode.Q.value = 20;
 		filterNode.type = 'lowpass';
-		filterNode.frequency.exponentialRampToValueAtTime(freq * 3, time + 0.06);
-		filterNode.frequency.setTargetAtTime(freq * 1, time + 0.08, 1);
 		return filterNode;
 	}
 
@@ -62,7 +60,7 @@
 	// The constructor must create an instance of AudioObject.
 	// One way to do this is to use AudioObject as a mix-in.
 	function ToneSynthAudioObject(audio, settings, clock) {
-		var DISCONNECT_AFTER = 5;
+		var DISCONNECT_AFTER = 2;
 		var options = assign({}, defaults, settings);
 		var object = this;
 		var outputNode = audio.createGain();
@@ -76,11 +74,17 @@
 		var unityNode  = UnityNode(audio);
 		var pitchNode  = audio.createGain();
 		var detuneNode = audio.createGain();
+		var frequencyNode = audio.createGain();
+		var qNode = audio.createGain();
 		var osccache   = {};
 
 		pitchNode.gain.value = 0;
 		detuneNode.gain.value = 100;
+		frequencyNode.gain.value = 440;
+		qNode.gain.value = 0;
 		unityNode.connect(pitchNode);
+		unityNode.connect(frequencyNode);
+		unityNode.connect(qNode);
 		pitchNode.connect(detuneNode);
 
 		// Initialise this as an AudioObject.
@@ -95,55 +99,133 @@
 				param: pitchNode.gain,
 				curve: 'linear',
 				duration: 0.006
+			},
+
+			filterFrequency: {
+				param: frequencyNode.gain,
+				curve: 'exponential',
+				duration: 0.008
+			},
+
+			filterQ: {
+				param: qNode.gain,
+				curve: 'linear',
+				duration: 0.008
 			}
 		});
 
 		function createCachedOscillator(number, velocity, time) {
-			if (!osccache[number]) {
-				var freq = MIDI.numberToFrequency(number);
-				var oscillatorNode = spawnOscillator(audio, freq);
-				var gainNode = spawnGain(audio, velocity);
-				var filterNode = spawnFilter(audio, freq, time);
+			if (osccache[number]) { return; }
 
-				oscillatorNode.type = object.waveform;
-				oscillatorNode.detune.value = bell(object.detune * 100);
-				detuneNode.connect(oscillatorNode.detune);
-				oscillatorNode.connect(filterNode);
-				filterNode.connect(gainNode);
-				gainNode.connect(outputNode);
+			var freq = MIDI.numberToFrequency(number);
 
-				addToCache(number, oscillatorNode, gainNode, filterNode);
+			var gainNode = spawnGain(audio, velocity);
+			gainNode.connect(outputNode);
 
-				oscillatorNode.start(time);
-			}
+			var filterNode = spawnFilter(audio, freq, time);
+			filterNode.connect(gainNode);
+
+			qNode.connect(filterNode.Q);
+
+			var envelopeGainNode = audio.createGain();
+			envelopeGainNode.gain.value = 1;
+			envelopeGainNode.connect(filterNode.frequency);
+
+			var velocityFollow = object.velocityFollow;
+			var velocityFactor = 2 * velocity - 1;
+			var velocityMultiplierNode = audio.createGain();
+
+			velocityMultiplierNode.gain.value = 1 + velocityFollow * velocityFactor;
+			velocityMultiplierNode.connect(envelopeGainNode.gain);
+
+			var envelopeNode = audio.createGain();
+			envelopeNode.gain.value = 0;
+			envelopeNode.gain.setValueAtTime(1, time);
+			envelopeNode.gain.exponentialRampToValueAtTime(1, time + 0.06);
+			envelopeNode.gain.setTargetAtTime(1, time + 0.2, 1);
+			envelopeNode.connect(velocityMultiplierNode);
+
+			unityNode.connect(envelopeNode);
+
+			var noteFollow = object.noteFollow;
+			var noteFactor = MIDI.numberToFrequency(number, 1);
+			var noteGainNode = audio.createGain();
+			noteGainNode.gain.value = Math.pow(noteFactor, noteFollow);
+			noteGainNode.connect(envelopeGainNode);
+
+			frequencyNode.connect(noteGainNode);
+
+			var oscillatorNode = spawnOscillator(audio, freq);
+			oscillatorNode.type = object.waveform;
+			oscillatorNode.detune.value = bell(object.detune * 100);
+			oscillatorNode.connect(filterNode);
+			oscillatorNode.start(time);
+
+			detuneNode.connect(oscillatorNode.detune);
+
+			addToCache(number, oscillatorNode, gainNode, filterNode);
+
+			addToCache(number, [
+				gainNode,               // 0
+				filterNode,             // 1
+				envelopeGainNode,       // 2
+				velocityMultiplierNode, // 3      
+				envelopeNode,           // 4
+				noteGainNode,           // 5
+				oscillatorNode          // 6
+			]);
+
+//			var attackCurve = Sequence(clock, [
+//				[0, "param", "filter.frequency", 0],
+//				[0.2, "param", "filter.frequency", 1, "exponential"]
+//			]).plug(function(time, type) {
+//				// Automate nodes
+//				// envolopeNode...
+//			});
+//
+//			var releaseCurve = Sequence(clock, [
+//				[0.2, "param", "filter.frequency", 0, "decay"]
+//			]).plug(function(time, type) {
+//				// Automate nodes
+//				// envolopeNode...
+//			});
 		}
-		function addToCache(number, oscillatorNode, gainNode, filterNode) {
-			var cacheEntry = {};
-			cacheEntry['oscillator'] = oscillatorNode;
-			cacheEntry['gain'] = gainNode;
-			cacheEntry['filter'] = filterNode;
+
+		function addToCache(number, cacheEntry) {
 			osccache[number] = cacheEntry;
 		}
-		function stopCachedOscillator(number, time) {
-			if (osccache[number]) {
-				osccache[number]['oscillator'].stop(time);
-			}
+
+		function releaseNote(number, time) {
+			var cache = osccache[number];
+
+			if (!cache) { return; }
+			
+			cache[0].gain.setTargetAtTime(0, time, object.decay);
+			cache[4].gain.setTargetAtTime(0, time, object.decay);
 		}
+
 		function removeFromCache(number, time) {
-			if (osccache[number]) {
-				var oscNode = osccache[number]['oscillator'];
-				var gainNode = osccache[number]['gain'];
-				var filterNode = osccache[number]['filter'];
+			var cache = osccache[number];
+
+			if (cache) {
 				// Need to fix the parameters because we empty the cache instantly while
 				// we want to disconnect the node only after it has finished playing
-				clock.on(time + DISCONNECT_AFTER, (function(osc, gain, detune, filter) {
+				clock.on(time + DISCONNECT_AFTER, (function(cache) {
 					return function(time) {
-						osc.disconnect();
-						gain.disconnect();
-						filter.disconnect();
-						detune.disconnect(osc.detune);
+						qNode.disconnect(cache[1].Q);
+						unityNode.disconnect(cache[4]);
+						frequencyNode.disconnect(cache[5]);
+						detuneNode.disconnect(cache[6].detune);
+						cache[6].stop(time);
+
+						var n = cache.length;
+
+						while (n--) {
+							cache[n].disconnect();
+						}
 					};
-				})(oscNode, gainNode, detuneNode, filterNode));
+				})(cache));
+
 				delete osccache[number];
 			}
 		}
@@ -154,7 +236,7 @@
 		};
 
 		this.stop = function(time, number) {
-			stopCachedOscillator(number, time);
+			releaseNote(number, time);
 			removeFromCache(number, time);
 		};
 
@@ -170,6 +252,10 @@
 
 		this.detune = options.detune;
 		this.waveform = options.waveform;
+		this.decay = options.decay;
+		this.filterKeyFollow = 1;
+		this.velocityFollow = 1;
+		this.noteFollow = 1;
 	}
 
 	// Mix AudioObject prototype into MyObject prototype
