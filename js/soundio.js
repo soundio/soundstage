@@ -82,12 +82,24 @@
 		}
 
 		var object = new registry[type][0](audio, settings, clock);
+		var keys = Object.keys(settings);
+		var n = keys.length;
+		var key;
 
-		// Type is not writable
-		Object.defineProperty(object, 'type', {
-			value: type,
-			enumerable: true
-		});
+		while (n--) {
+			key = keys[n];
+
+			if (key === "type") {
+				// Type is not writable
+				Object.defineProperty(object, "type", {
+					value: type,
+					enumerable: true
+				});
+			}
+			else {
+				object[key] = settings[key];
+			}
+		}
 
 		return object;
 	}
@@ -574,7 +586,9 @@
 
 						object.input = input;
 					}
-					if (type === 'output') { object.output = output; }
+					if (type === 'output') {
+						object.output = output;
+					}
 
 					this.objects.create(type, object);
 				}
