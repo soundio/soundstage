@@ -184,7 +184,7 @@
 				masterStack.splice(i, 1);
 			};
 
-			file.connect(wet);
+			AudioObject.getOutput(file).connect(wet);
 			file.start(settings.time + settings.duration);
 			loop.stack.push(file);
 			masterStack.push(file);

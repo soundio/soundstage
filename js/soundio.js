@@ -83,7 +83,12 @@
 	
 		while (n--) {
 			key = keys[n];
-	
+
+			if (key === "stack") {
+				// Avoid messing with the looper for just now
+				continue;
+			}
+
 			if (key === "type") {
 				// Type is not writable
 				Object.defineProperty(object, "type", {
