@@ -76,7 +76,7 @@
 
 	var registry = {};
 
-	function assignSettings(object, settings) {
+	function assignSettings(object, settings, type) {
 		var keys = Object.keys(settings);
 		var n = keys.length;
 		var key;
@@ -105,7 +105,7 @@
 		var object = new registry[type][0](audio, settings, clock);
 
 		if (settings) {
-			assignSettings(object, settings);
+			assignSettings(object, settings, type);
 		}
 
 		return object;
