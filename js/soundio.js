@@ -76,19 +76,14 @@
 
 	var registry = {};
 
-	function create(audio, type, settings, clock) {
-		if (!registry[type]) {
-			throw new Error('soundio: Calling Soundio.create(type, settings) unregistered type: ' + type);
-		}
-
-		var object = new registry[type][0](audio, settings, clock);
+	function assignSettings(object, settings) {
 		var keys = Object.keys(settings);
 		var n = keys.length;
 		var key;
-
+	
 		while (n--) {
 			key = keys[n];
-
+	
 			if (key === "type") {
 				// Type is not writable
 				Object.defineProperty(object, "type", {
@@ -99,6 +94,18 @@
 			else {
 				object[key] = settings[key];
 			}
+		}
+	}
+
+	function create(audio, type, settings, clock) {
+		if (!registry[type]) {
+			throw new Error('soundio: Calling Soundio.create(type, settings) unregistered type: ' + type);
+		}
+
+		var object = new registry[type][0](audio, settings, clock);
+
+		if (settings) {
+			assignSettings(object, settings);
 		}
 
 		return object;
