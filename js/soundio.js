@@ -76,7 +76,7 @@
 
 	var registry = {};
 
-	function assignSettings(object, settings, type) {
+	function assignSettings(object, settings) {
 		var keys = Object.keys(settings);
 		var n = keys.length;
 		var key;
@@ -89,28 +89,29 @@
 				continue;
 			}
 
-			if (key === "type") {
-				// Type is not writable
-				Object.defineProperty(object, "type", {
-					value: type,
-					enumerable: true
-				});
-			}
-			else {
-				object[key] = settings[key];
-			}
+			if (key === "type") { continue; }
+
+			object[key] = settings[key];
 		}
 	}
 
-	function create(audio, type, settings, clock) {
+	function create(audio, type, settings, clock, patches) {
 		if (!registry[type]) {
 			throw new Error('soundio: Calling Soundio.create(type, settings) unregistered type: ' + type);
 		}
 
-		var object = new registry[type][0](audio, settings, clock);
+		var object = new registry[type][0](audio, settings, clock, patches);
 
 		if (settings) {
 			assignSettings(object, settings, type);
+		}
+
+		if (!object.type) {
+			// Type is not writable
+			Object.defineProperty(object, "type", {
+				value: type,
+				enumerable: true
+			});
 		}
 
 		return object;
@@ -258,28 +259,32 @@
 		this.create = function(type, settings) {
 			var object;
 
+			if (!type) {
+				throw new Error('Soundio: Cannot create new object of type ' + type);
+			}
+
 			if (settings && settings.id) {
 				object = this.find(settings.id);
 
 				if (object) {
-					if (settings.type && settings.type !== object.type) {
+					//if (settings.type && settings.type !== object.type) {
 						throw new Error('Soundio: Cannot create new object with id of existing object.');
-					}
+					//}
 
-					var options = assign({}, settings);
+					//var options = assign({}, settings);
 
 					// Avoid trying to assign unwritable properties
-					delete options.id;
-					delete options.type;
+					//delete options.id;
+					//delete options.type;
 
-					assign(object, options);
-					return object;
+					//assign(object, options);
+					//return object;
 				}
 			}
 
 			var audio = soundio.audio;
 
-			object = create(audio, type, settings, soundio.clock);
+			object = create(audio, type, settings, soundio.clock, soundio.patches);
 
 			Object.defineProperty(object, 'id', {
 				value: settings && settings.id || createId(this),
@@ -535,6 +540,7 @@
 			inputs:  { value: objects.sub({ type: 'input' }, { sort: byChannels }) },
 			outputs: { value: objects.sub({ type: 'output' }, { sort: byChannels }) },
 			connections: { value: connections, enumerable: true },
+			patches: { value: Soundio.patches, enumerable: true },
 			roundTripLatency: { value: Soundio.roundTripLatency, writable: true, configurable: true }
 		});
 
@@ -721,8 +727,10 @@
 		});
 	}
 
+	var bufferRequests = {};
+
 	function fetchBuffer(audio, url) {
-		return new Promise(function(accept, reject) {
+		return bufferRequests[url] || (bufferRequests[url] = new Promise(function(accept, reject) {
 			var request = new XMLHttpRequest();
 			request.open('GET', url, true);
 			request.responseType = 'arraybuffer';
@@ -732,7 +740,7 @@
 			}
 
 			request.send();
-		});
+		}));
 	}
 
 	assign(Soundio, {
@@ -748,6 +756,7 @@
 
 		// .retrieveDefaults() is for MIDI to get the plugin's automation
 		retrieveDefaults: retrieveDefaults,
+		patches: Collection([], { index: "name" }),
 		isDefined: isDefined,
 		distributeArgs: distributeArgs,
 		fetchBuffer: fetchBuffer
