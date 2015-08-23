@@ -13,8 +13,13 @@
 	var defaults = {
 		gain: 1,
 		detune: 0.04,
-		waveform: 'square',
-		decay: 0.06
+		"oscillator-1":       "square",
+		"oscillator-1-gain":  "gain",
+		"oscillator-2":       "triangle",
+		"oscillator-2-pitch": 12,
+		"oscillator-2-gain":  1,
+		decay: 0.06,
+		"filter": "lowpass"
 	};
 
 	function UnityNode(audio) {
@@ -45,10 +50,9 @@
 		return gainNode;
 	}
 
-	function spawnFilter (audio, freq, time) {
+	function spawnFilter(audio, freq, time) {
 		var filterNode = audio.createBiquadFilter();
 		filterNode.Q.value = 20;
-		filterNode.type = 'lowpass';
 		return filterNode;
 	}
 
@@ -123,6 +127,7 @@
 			gainNode.connect(outputNode);
 
 			var filterNode = spawnFilter(audio, freq, time);
+			filterNode.type = object.filter;
 			filterNode.connect(gainNode);
 
 			qNode.connect(filterNode.Q);
@@ -155,15 +160,28 @@
 
 			frequencyNode.connect(noteGainNode);
 
+			var osc1gain = audio.createGain();
+			osc1gain.gain.value = object['oscillator-1-gain'];
+			osc1gain.connect(filterNode);
+
 			var oscillatorNode = spawnOscillator(audio, freq);
-			oscillatorNode.type = object.waveform;
+			oscillatorNode.type = object['oscillator-1'];
 			oscillatorNode.detune.value = bell(object.detune * 100);
-			oscillatorNode.connect(filterNode);
+			oscillatorNode.connect(osc1gain);
 			oscillatorNode.start(time);
 
 			detuneNode.connect(oscillatorNode.detune);
 
-			addToCache(number, oscillatorNode, gainNode, filterNode);
+			var osc2gain = audio.createGain();
+			osc2gain.gain.value = object['oscillator-2-gain'];
+			osc2gain.connect(filterNode);
+
+			var osc2 = audio.createOscillator();
+			osc2.frequency.setValueAtTime(freq, audio.currentTime);
+			osc2.type = object['oscillator-2'];
+			osc2.detune.value = bell(object.detune * 100) + object['oscillator-2-pitch'] * 100;
+			osc2.connect(osc2gain);
+			osc2.start(time);
 
 			addToCache(number, [
 				gainNode,               // 0
@@ -172,7 +190,10 @@
 				velocityMultiplierNode, // 3      
 				envelopeNode,           // 4
 				noteGainNode,           // 5
-				oscillatorNode          // 6
+				oscillatorNode,         // 6
+				osc1gain,               // 7
+				osc2,                   // 8
+				osc2gain                // 9
 			]);
 
 //			var attackCurve = Sequence(clock, [
@@ -195,7 +216,6 @@
 				unityNode.disconnect(envelopeNode);
 				frequencyNode.disconnect(noteGainNode);
 				detuneNode.disconnect(oscillatorNode.detune);
-				oscillatorNode.stop(time);
 
 				gainNode.disconnect();
 				filterNode.disconnect();
@@ -204,15 +224,14 @@
 				envelopeNode.disconnect();
 				noteGainNode.disconnect();
 				oscillatorNode.disconnect();
+				osc1gain.disconnect();
+				osc2.disconnect();
+				osc2gain.disconnect();
 			};
 		}
 
 		function addToCache(number, cacheEntry) {
 			osccache[number] = cacheEntry;
-		}
-
-		function removeFromCache(number) {
-			delete osccache[number];
 		}
 
 		function releaseNote(number, time) {
@@ -223,8 +242,9 @@
 			cache[0].gain.setTargetAtTime(0, time, object.decay);
 			cache[4].gain.setTargetAtTime(0, time, object.decay);
 			cache[6].stop(time + 2);
+			cache[8].stop(time + 2);
 
-			removeFromCache(number);
+			delete osccache[number];
 		}
 
 		this.start = function(time, number, velocity) {
@@ -247,8 +267,12 @@
 		};
 
 		this.detune = options.detune;
-		this.waveform = options.waveform;
+		this['oscillator-1'] = options['oscillator-1'];
+		this['oscillator-2'] = options['oscillator-2'];
+		this['oscillator-2-pitch'] = options['oscillator-2-pitch'];
+		this['oscillator-2-gain'] = options['oscillator-2-gain'];
 		this.decay = options.decay;
+		this.filter = options.filter;
 		this.filterKeyFollow = 1;
 		this.velocityFollow = 1;
 		this.noteFollow = 1;
