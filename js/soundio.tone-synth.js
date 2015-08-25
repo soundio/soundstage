@@ -199,14 +199,14 @@
 //			var attackCurve = Sequence(clock, [
 //				[0, "param", "filter.frequency", 0],
 //				[0.2, "param", "filter.frequency", 1, "exponential"]
-//			]).plug(function(time, type) {
+//			]).subscribe(function(time, type) {
 //				// Automate nodes
 //				// envolopeNode...
 //			});
 //
 //			var releaseCurve = Sequence(clock, [
 //				[0.2, "param", "filter.frequency", 0, "decay"]
-//			]).plug(function(time, type) {
+//			]).subscribe(function(time, type) {
 //				// Automate nodes
 //				// envolopeNode...
 //			});

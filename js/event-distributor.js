@@ -3,7 +3,7 @@
 
 	var timeDiffs = [];
 
-	var objectTriggers = {
+	var audioObjectTriggers = {
 		"noteon": function start(object, event) {
 			object.start && object.start(event[0], event[2], event[3]);
 		},
@@ -79,7 +79,7 @@
 
 			// Trigger changes on audio objects
 			if (object) {
-				objectTriggers[type](object, event);
+				audioObjectTriggers[type](object, event);
 			}
 
 			// Keep a note of the offset between audio time and
@@ -96,7 +96,7 @@
 
 		function distributeSequenceEvent(event) {
 			if (object) {
-				objectTriggers[type](object, event);
+				audioObjectTriggers[type](object, event);
 			}
 
 			if (MIDI && distributor.sendMIDI) {
@@ -113,7 +113,7 @@
 			event[0] = currentTime;
 
 			if (object) {
-				objectTriggers[type](object, event);
+				audioObjectTriggers[type](object, event);
 			}
 
 			if (MIDI && distributor.sendMIDI) {

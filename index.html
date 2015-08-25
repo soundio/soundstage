@@ -83,7 +83,7 @@
 
 	var synth = soundio.find(1);
 
-	sequence.plug(function() {
+	sequence.subscribe(function() {
 		synth.trigger.apply(synth, arguments);
 	});
 
