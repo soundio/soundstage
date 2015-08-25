@@ -109,13 +109,13 @@
 				duration: 0.006
 			},
 
-			filterFrequency: {
+			"filter-frequency": {
 				param: frequencyNode.gain,
 				curve: 'exponential',
 				duration: 0.008
 			},
 
-			filterQ: {
+			"filter-q": {
 				param: qNode.gain,
 				curve: 'linear',
 				duration: 0.008
