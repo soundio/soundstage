@@ -22,6 +22,10 @@
 		"filter": "lowpass"
 	};
 
+	function isDefined(val) {
+		return val !== undefined && val !== null;
+	}
+
 	function UnityNode(audio) {
 		var oscillator = audio.createOscillator();
 		var waveshaper = audio.createWaveShaper();
@@ -136,7 +140,7 @@
 			envelopeGainNode.gain.value = 1;
 			envelopeGainNode.connect(filterNode.frequency);
 
-			var velocityFollow = object.velocityFollow;
+			var velocityFollow = object['velocity-follow'];
 			var velocityFactor = 2 * velocity - 1;
 			var velocityMultiplierNode = audio.createGain();
 
@@ -144,7 +148,6 @@
 			velocityMultiplierNode.connect(envelopeGainNode.gain);
 
 			var envelopeNode = audio.createGain();
-			//envelopeNode.gain.value = 0;
 			envelopeNode.gain.setValueAtTime(1, time);
 			envelopeNode.gain.exponentialRampToValueAtTime(1, time + 0.06);
 			envelopeNode.gain.setTargetAtTime(1, time + 0.2, 1);
@@ -152,7 +155,7 @@
 
 			unityNode.connect(envelopeNode);
 
-			var noteFollow = object.noteFollow;
+			var noteFollow = object['note-follow'];
 			var noteFactor = MIDI.numberToFrequency(number, 1);
 			var noteGainNode = audio.createGain();
 			noteGainNode.gain.value = Math.pow(noteFactor, noteFollow);
@@ -196,7 +199,7 @@
 				osc2gain                // 9
 			]);
 
-//			var attackCurve = Sequence(clock, [
+//			var attackCurve = EnvelopeSequence(clock, [
 //				[0, "param", "filter.frequency", 0],
 //				[0.2, "param", "filter.frequency", 1, "exponential"]
 //			]).subscribe(function(time, type) {
@@ -204,7 +207,7 @@
 //				// envolopeNode...
 //			});
 //
-//			var releaseCurve = Sequence(clock, [
+//			var releaseCurve = EnvelopeSequence(clock, [
 //				[0.2, "param", "filter.frequency", 0, "decay"]
 //			]).subscribe(function(time, type) {
 //				// Automate nodes
@@ -253,6 +256,14 @@
 		};
 
 		this.stop = function(time, number) {
+			time = time || audio.currentTime;
+
+			if (!isDefined(number)) {
+				for (number in osccache) {
+					releaseNote(number, time);
+				}
+			}
+
 			releaseNote(number, time);
 		};
 
@@ -273,9 +284,8 @@
 		this['oscillator-2-gain'] = options['oscillator-2-gain'];
 		this.decay = options.decay;
 		this.filter = options.filter;
-		this.filterKeyFollow = 1;
-		this.velocityFollow = 1;
-		this.noteFollow = 1;
+		this['velocity-follow'] = 1;
+		this['note-follow'] = 1;
 	}
 
 	// Mix AudioObject prototype into MyObject prototype

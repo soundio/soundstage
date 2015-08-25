@@ -1,5 +1,9 @@
+// EventDistributor is glue code that routes events between
+// audio objects, sequences, MIDI and keys
+
 (function(window) {
 	var MIDI = window.MIDI;
+	var assign = Object.assign;
 
 	var timeDiffs = [];
 
@@ -12,9 +16,11 @@
 			object.stop && object.stop(event[0], event[2]);
 		},
 
-		"note": function startstop(object, event) {
+		"note": function startstop(object, event, clock) {
 			object.start && object.start(event[0], event[2], event[3]);
-			object.stop && object.stop(event[0] + event[4], event[2]);
+			object.stop && clock.cueTime(event[0] + event[4], function(time) {
+				 object.stop(time, event[2]);
+			});
 		},
 
 		"param": function automate(object, event) {
@@ -94,9 +100,11 @@
 
 		if (MIDI) { MIDI.on(distributeMIDI); }
 
-		function distributeSequenceEvent(event) {
+		function distributeSequenceEvent(time, type, number) {
+			// Called by sequence with (time, type, data ...)
+
 			if (object) {
-				audioObjectTriggers[type](object, event);
+				audioObjectTriggers[type](object, arguments, sequence.clock);
 			}
 
 			if (MIDI && distributor.sendMIDI) {
@@ -105,7 +113,18 @@
 			}
 		}
 
-		if (sequence) { sequence.subscribe(distributeSequenceEvent); }
+		function stopSequenceNotes() {
+			if (object) { object.stop(); }
+
+			if (MIDI && distributor.sendMIDI) {
+				//midi.send([0, "stop"]);
+			}
+		}
+
+		if (sequence) {
+			sequence.subscribe(distributeSequenceEvent);
+			sequence.on('stop', stopSequenceNotes);
+		}
 
 		function distributeKeys(event) {
 			var currentTime = audio.currentTime;
