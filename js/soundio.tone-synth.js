@@ -144,7 +144,7 @@
 			velocityMultiplierNode.connect(envelopeGainNode.gain);
 
 			var envelopeNode = audio.createGain();
-			envelopeNode.gain.value = 0;
+			//envelopeNode.gain.value = 0;
 			envelopeNode.gain.setValueAtTime(1, time);
 			envelopeNode.gain.exponentialRampToValueAtTime(1, time + 0.06);
 			envelopeNode.gain.setTargetAtTime(1, time + 0.2, 1);
