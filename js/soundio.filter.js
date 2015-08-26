@@ -66,7 +66,7 @@
 		    	})()
 		    };
 
-		filter.type = options['filter-type'];
+		filter.type = options['filter'];
 		filter.frequency.value = options.frequency;
 		filter.Q.value = options.q;
 		filter.gain.value = options.gain;
@@ -101,7 +101,7 @@
 		});
 		
 		Object.defineProperties(effect, {
-			'filter-type': {
+			'filter': {
 				get: function() { return filter.type; },
 				set: function(val) { filter.type = val; },
 				enumerable: true,

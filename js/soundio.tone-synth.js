@@ -18,8 +18,17 @@
 		"oscillator-2":       "triangle",
 		"oscillator-2-pitch": 12,
 		"oscillator-2-gain":  1,
-		decay: 0.06,
-		"filter": "lowpass"
+		"decay": 0.06,
+		"filter": "lowpass",
+		"attack-sequence": [
+			[0,   "param", "envelope", 1],
+			[0,   "param", "envelope", 3, 'linear', 0.6],
+			[0.8, "param", "envelope", 2, 'linear', 3]
+		],
+		"release-sequence": [
+			[0, "param", "gain", 0, "linear", 0.04],
+			[0, "param", "envelope", 1, "linear", 0.06]
+		]
 	};
 
 	function isDefined(val) {
@@ -97,13 +106,13 @@
 
 		// Initialise this as an AudioObject.
 		AudioObject.call(this, audio, undefined, outputNode, {
-			gain: {
+			"gain": {
 				param: outputNode.gain,
 				curve: 'linear',
 				duration: 0.008
 			},
 
-			pitch: {
+			"pitch": {
 				param: pitchNode.gain,
 				curve: 'linear',
 				duration: 0.006
@@ -148,9 +157,6 @@
 			velocityMultiplierNode.connect(envelopeGainNode.gain);
 
 			var envelopeNode = audio.createGain();
-			envelopeNode.gain.setValueAtTime(1, time);
-			envelopeNode.gain.exponentialRampToValueAtTime(1, time + 0.06);
-			envelopeNode.gain.setTargetAtTime(1, time + 0.2, 1);
 			envelopeNode.connect(velocityMultiplierNode);
 
 			unityNode.connect(envelopeNode);
@@ -186,6 +192,11 @@
 			osc2.connect(osc2gain);
 			osc2.start(time);
 
+			var params = {
+				"envelope": envelopeNode.gain,
+				"gain": gainNode.gain
+			};
+
 			addToCache(number, [
 				gainNode,               // 0
 				filterNode,             // 1
@@ -196,23 +207,16 @@
 				oscillatorNode,         // 6
 				osc1gain,               // 7
 				osc2,                   // 8
-				osc2gain                // 9
+				osc2gain,               // 9
+				params                  // 10
 			]);
 
-//			var attackCurve = EnvelopeSequence(clock, [
-//				[0, "param", "filter.frequency", 0],
-//				[0.2, "param", "filter.frequency", 1, "exponential"]
-//			]).subscribe(function(time, type) {
-//				// Automate nodes
-//				// envolopeNode...
-//			});
-//
-//			var releaseCurve = EnvelopeSequence(clock, [
-//				[0.2, "param", "filter.frequency", 0, "decay"]
-//			]).subscribe(function(time, type) {
-//				// Automate nodes
-//				// envolopeNode...
-//			});
+			EnvelopeSequence(clock, options["attack-sequence"])
+			.subscribe(function(time, type, param, value, curve, duration) {
+				var audioParam = params[param];
+				AudioObject.automate(audioParam, value, time, duration, curve)
+			})
+			.start(time);
 
 			oscillatorNode.onended = function() {
 				qNode.disconnect(filterNode.Q);
@@ -241,9 +245,16 @@
 			var cache = osccache[number];
 
 			if (!cache) { return; }
-			
-			cache[0].gain.setTargetAtTime(0, time, object.decay);
-			cache[4].gain.setTargetAtTime(0, time, object.decay);
+
+			var params = cache[10];
+
+			EnvelopeSequence(clock, options["release-sequence"])
+			.subscribe(function(time, type, param, value, curve, duration) {
+				var audioParam = params[param];
+				AudioObject.automate(audioParam, value, time, duration, curve);
+			})
+			.start(time);
+
 			cache[6].stop(time + 2);
 			cache[8].stop(time + 2);
 
