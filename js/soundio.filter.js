@@ -4,10 +4,10 @@
 	var extend = Object.assign;
 
 	var defaults = {
-	    	'filter-type': 'lowpass',
-	    	frequency: 20,
-	    	q: 0.25,
-	    	gain: 0,
+	    	'filter': 'lowpass',
+	    	'frequency': 20,
+	    	'q': 0.25,
+	    	'gain': 0,
 	    	'lfo-frequency': 12,
 	    	'lfo-depth': 0,
 	    	'lfo-type': 'random',
