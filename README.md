@@ -66,11 +66,11 @@ between the audio objects.
 
 <code>midi</code> is an array of routes for incoming MIDI messages.
 
-<code>sequence</code> is a
-<a href="http://github.com/soundio/music-json">Music JSON</a> sequence of
-events. The sequence is played on <code>soundio.start()</code>.
-
 <code>patches</code> is an array of patches used by audio objects.
+
+<code>sequence</code> is a
+<a href="http://github.com/soundio/music-json">Music JSON</a> sequence array of
+events. The sequence is played on <code>soundio.sequence.start()</code>.
 
 Call Soundio with this data to set it up as an audio graph:
 
@@ -90,8 +90,8 @@ This means you can <b>export an audio graph</b> you have made at, say,
 page</b> – call <code>Soundio(data)</code> with the data.
 
 Soundio also accepts an <code>options</code> object. There is currently one
-option. Where your page has an existing audio context, pass it in to allow
-Soundio to use it:
+option. Where your page has an existing audio context, pass it in to have
+Soundio use it:
 
 	var soundio = Soundio(data, { audio: myAudioContext });
 
