@@ -77,7 +77,6 @@
 	// The constructor must create an instance of AudioObject.
 	// One way to do this is to use AudioObject as a mix-in.
 	function ToneSynthAudioObject(audio, settings, clock) {
-		var DISCONNECT_AFTER = 2;
 		var options = assign({}, defaults, settings);
 		var object = this;
 		var outputNode = audio.createGain();
@@ -211,7 +210,7 @@
 				params                  // 10
 			]);
 
-			EnvelopeSequence(clock, options["attack-sequence"])
+			EnvelopeSequence(clock, object["attack-sequence"])
 			.subscribe(function(time, type, param, value, curve, duration) {
 				var audioParam = params[param];
 				AudioObject.automate(audioParam, value, time, duration, curve)
@@ -248,7 +247,7 @@
 
 			var params = cache[10];
 
-			EnvelopeSequence(clock, options["release-sequence"])
+			EnvelopeSequence(clock, object["release-sequence"])
 			.subscribe(function(time, type, param, value, curve, duration) {
 				var audioParam = params[param];
 				AudioObject.automate(audioParam, value, time, duration, curve);
@@ -297,6 +296,8 @@
 		this.filter = options.filter;
 		this['velocity-follow'] = 1;
 		this['note-follow'] = 1;
+		this['attack-sequence'] = Collection(options["attack-sequence"]);
+		this['release-sequence'] = Collection(options["release-sequence"]);
 	}
 
 	// Mix AudioObject prototype into MyObject prototype

@@ -21,6 +21,7 @@
 	var unobserve  = window.unobserve;
 	var Collection = window.Collection;
 	var Clock      = window.Clock;
+	var Sequence   = window.Sequence;
 	var assign     = Object.assign;
 	var splice     = Function.prototype.call.bind(Array.prototype.splice);
 
@@ -65,8 +66,8 @@
 				results.push(fn.apply(this, args));
 			}
 
-			// Return either the given object (likely for method chaining) or
-			// the array of results.
+			// Return either the given object (likely for
+			// method chaining) or the array of results.
 			return result || results;
 		}
 	}
@@ -84,14 +85,11 @@
 		while (n--) {
 			key = keys[n];
 
-			if (key === "stack") {
-				// Avoid messing with the looper for just now
-				continue;
+			// Assign only those settings that are not
+			// already defined
+			if (object[key] === undefined) {
+				object[key] = settings[key];
 			}
-
-			if (key === "type") { continue; }
-
-			object[key] = settings[key];
 		}
 	}
 
@@ -103,7 +101,7 @@
 		var object = new registry[type][0](audio, settings, clock, patches);
 
 		if (settings) {
-			assignSettings(object, settings, type);
+			assignSettings(object, settings);
 		}
 
 		if (!object.type) {
@@ -534,19 +532,23 @@
 		output.connect(audio.destination);
 
 		Object.defineProperties(soundio, {
-			audio:   { value: options.audio },
-			midi:    { value: midi, enumerable: true },
-			objects: { value: objects, enumerable: true },
-			inputs:  { value: objects.sub({ type: 'input' }, { sort: byChannels }) },
-			outputs: { value: objects.sub({ type: 'output' }, { sort: byChannels }) },
+			audio:    { value: options.audio },
+			midi:     { value: midi, enumerable: true },
+			objects:  { value: objects, enumerable: true },
+			inputs:   { value: objects.sub({ type: 'input' }, { sort: byChannels }) },
+			outputs:  { value: objects.sub({ type: 'output' }, { sort: byChannels }) },
 			connections: { value: connections, enumerable: true },
-			patches: { value: Soundio.patches, enumerable: true },
+			patches:  { value: Soundio.patches, enumerable: true },
 			roundTripLatency: { value: Soundio.roundTripLatency, writable: true, configurable: true }
 		});
 
 		if (Clock) {
-			Object.defineProperty(soundio, 'clock', {
-				value: new Clock(options.audio)
+			var clock = new Clock(options.audio);
+			var sequence = new Sequence(clock);
+
+			Object.defineProperties(soundio, {
+				clock: { value: clock },
+				sequence: { value: sequence, enumerable: true },
 			});
 		}
 
@@ -627,6 +629,15 @@
 				else {
 					// Uh-oh
 					console.warn('Soundio: clock data not imported. soundio.clock requires github.com/soundio/clock.')
+				}
+			}
+
+			if (data && data.sequence && data.sequence.length) {
+				if (this.sequence) {
+					this.sequence.add.apply(this.sequence, data.sequence);
+				}
+				else {
+					console.warn('Soundio: sequence data not imported. soundio.sequence requires github.com/soundio/sequence.')
 				}
 			}
 
