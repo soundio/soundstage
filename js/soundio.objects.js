@@ -339,7 +339,7 @@
 		release:   { min: 0,   max: 1,   transform: 'quadratic', value: 0.16  }  // seconds
 	});
 
-	Soundio.register('biquad filter', function createBiquadFilterObject(audio, settings) {
+	Soundio.register('biquad-filter', function createBiquadFilterObject(audio, settings) {
 		var options = assign({}, defaults, settings);
 		var node    = audio.createBiquadFilter();
 		var object  = AudioObject(audio, node, node, {

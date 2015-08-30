@@ -28,9 +28,11 @@ Tests use Karma. To run tests:
 	npm install
 	karma start
 
-## Soundio(data, options)
+## Soundio(data, options) – overview
 
-Soundio <code>data</code> is an object that looks something like this:
+Soundio <code>data</code> is an object with properties that define audio objects,
+the connections between them, a MIDI map and playable sequences. All properties
+are optional:
 
 	var data = {
 		objects: [
@@ -46,25 +48,36 @@ Soundio <code>data</code> is an object that looks something like this:
 
 		midi: [
 			{ message: [176, 8], object: 1, property: "frequency" }
-		]
+		],
+
+		patches: [],
+
+		sequence: []
 	};
 
-It contains three arrays, <code>objects</code>, <code>connections</code> and
-<code>midi</code>. <code>objects</code> is a collection of
+<code>objects</code> is an array of
 <a href="http://github.com/soundio/audio-object">audio objects</a> (an audio
-object is a wrapper for one or more Web Audio nodes). Audio objects must have an
-<code>id</code> and <code>type</code>, while other properties depend on the
-type. <code>connections</code> is a collection of objects defining connections
-between the audio objects, and <code>midi</code> defines routes for incoming
-MIDI messages.
+object is a wrapper for a Web Audio node graph). In Soundio, audio objects must
+have an <code>id</code> and <code>type</code>. Other properties depend on the
+audio params that this type of audio object exposes.
+
+<code>connections</code> is an array of connection objects defining connections
+between the audio objects.
+
+<code>midi</code> is an array of routes for incoming MIDI messages.
+
+<code>sequence</code> is a
+<a href="http://github.com/soundio/music-json">Music JSON</a> sequence of
+events. The sequence is played on <code>soundio.start()</code>.
+
+<code>patches</code> is an array of patches used by audio objects.
 
 Call Soundio with this data to set it up as an audio graph:
 
 	var soundio = Soundio(data);
 
 Turn your volume down a bit, enable the mic when prompted by the browser, and
-you will hear your voice being flanged. Changes to object properties are
-reflected 'live' in the Web Audio graph.
+you will hear your voice being flanged.
 
 The resulting object, <code>soundio</code>, has the same structure as
 <code>data</code>, so the graph can be converted back to data with:
@@ -72,24 +85,22 @@ The resulting object, <code>soundio</code>, has the same structure as
 	JSON.stringify(soundio);
 
 This means you can <b>export an audio graph</b> you have made at, say,
-<a href="http://sound.io">sound.io</a> – open the console and run this line –
-and <b>import it into your own web page</b> – call <code>Soundio()</code> with
-the data.
+<a href="http://sound.io">sound.io</a> – open the console and run
+<code>JSON.stringify(soundio)</code> – and <b>import it into your own web
+page</b> – call <code>Soundio(data)</code> with the data.
 
-Soundio also accepts an <code>options</code> object with one option. Where you
-have an existing AudioContext, pass it in to avoid creating a new one:
+Soundio also accepts an <code>options</code> object. There is currently one
+option. Where your page has an existing audio context, pass it in to allow
+Soundio to use it:
 
-	var soundio = Soundio(data, {
-			audio: AudioContext
-		});
+	var soundio = Soundio(data, { audio: myAudioContext });
 
 ## soundio
 
 ### soundio.create(data)
 
-Create objects from data. As with <code>Soundio(data)</code>, but
-<code>soundio.create(data)</code> adds objects, connections and midi routes to
-the existing graph.
+Create objects from data. As with <code>Soundio(data)</code>, but where
+<code>soundio.create(data)</code> adds new data to the existing data.
 
 ### soundio.clear()
 
@@ -150,7 +161,7 @@ plugins in a DAW:
 
 These audio objects wrap single Web Audio nodes and can be useful for testing:
 
-- "biquad filter"
+- "biquad-filter"
 - "compressor"
 - "convolver"
 - "delay"
@@ -459,29 +470,28 @@ example, get all connections from object with id <code>6</code>:
 
 ### Soundio.register(type, function)
 
-Register an audio object factory function for creating audio objects of type
+Register an audio object constructor function for creating audio objects of
 <code>type</code>.
 
-	Soundio.register('gain', function(audio, data) {
-		var gainNode = audio.createGain();
+	Soundio.register('my-audio-object', MyAudioObjectConstructor);
 
-		gainNode.gain.value = settings.gain;
+MyAudioObjectConstructor receives the parameters:
 
-		return AudioObject(audio, gain, gain, {
-			gain: gainNode.gain
-		});
-	});
+	function MyAudioObjectConstructor(audio, settings, clock, patches) {
+		var options = assign({}, defaults, settings);
+		// Set up audio object
+	};
 
-<code>data</code> is an object that comes directly from data passed to
-<code>soundio.objects.create(type, data)</code> or <code>Soundio(data)</code>.
+<code>settings</code> is an object that comes directly from set-up data passed to
+<code>soundio.objects.create(type, settings)</code> or <code>Soundio(data)</code>.
 You should make sure the registered audio object correctly initialises itself
-from <code>data</code>, and <code>JSON.stringify</code>s back to
-<code>data</code>.
+from <code>settings</code>, and <code>JSON.stringify</code>s back to
+<code>settings</code>.
 
-Soundio comes with the following audio object factories registered:
+Soundio comes with several audio object constructors already registered:
 
     // Single node audio objects 
-    'biquad filter'
+    'biquad-filter'
     'compressor'
     'convolver'
     'delay'
@@ -495,6 +505,9 @@ Soundio comes with the following audio object factories registered:
     'filter'
     'saturate'
     'send'
+
+Overwrite them at your peril. To make your own audio objects, use the
+<a href=""
 
 ### Soundio.isAudioParam(object)
 
