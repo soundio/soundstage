@@ -11,19 +11,23 @@
 
 	// Declare some useful defaults
 	var defaults = {
-		gain: 1,
-		detune: 0.04,
+		"gain":               0.25,
+		"detune":             0.04,
 		"oscillator-1":       "square",
 		"oscillator-1-gain":  "gain",
 		"oscillator-2":       "triangle",
 		"oscillator-2-pitch": 12,
 		"oscillator-2-gain":  1,
-		"decay": 0.06,
-		"filter": "lowpass",
+		"decay":              0.06,
+		"filter":             "lowpass",
+		"filter-frequency":   440,
+		"filter-q":           6,
+		"note-follow":        0,
+		"velocity-follow":    0,
 		"attack-sequence": [
 			[0,   "param", "envelope", 1],
 			[0,   "param", "envelope", 3, 'linear', 0.6],
-			[0.8, "param", "envelope", 2, 'linear', 3]
+			[0.8, "param", "envelope", 2, 'linear', 2]
 		],
 		"release-sequence": [
 			[0, "param", "gain", 0, "linear", 0.04],
@@ -63,12 +67,6 @@
 		return gainNode;
 	}
 
-	function spawnFilter(audio, freq, time) {
-		var filterNode = audio.createBiquadFilter();
-		filterNode.Q.value = 20;
-		return filterNode;
-	}
-
 	function bell(n) {
 		return n * (Math.random() + Math.random() - 1);
 	}
@@ -96,8 +94,8 @@
 
 		pitchNode.gain.value = 0;
 		detuneNode.gain.value = 100;
-		frequencyNode.gain.value = 440;
-		qNode.gain.value = 0;
+		frequencyNode.gain.value = options['filter-frequency'];
+		qNode.gain.value = options['filter-q'];
 		unityNode.connect(pitchNode);
 		unityNode.connect(frequencyNode);
 		unityNode.connect(qNode);
@@ -138,7 +136,8 @@
 			var gainNode = spawnGain(audio, velocity);
 			gainNode.connect(outputNode);
 
-			var filterNode = spawnFilter(audio, freq, time);
+			var filterNode = audio.createBiquadFilter();
+			filterNode.Q.value = 0;
 			filterNode.type = object.filter;
 			filterNode.connect(gainNode);
 
@@ -156,6 +155,7 @@
 			velocityMultiplierNode.connect(envelopeGainNode.gain);
 
 			var envelopeNode = audio.createGain();
+			envelopeNode.gain.value = 0;
 			envelopeNode.connect(velocityMultiplierNode);
 
 			unityNode.connect(envelopeNode);
@@ -176,7 +176,6 @@
 			oscillatorNode.type = object['oscillator-1'];
 			oscillatorNode.detune.value = bell(object.detune * 100);
 			oscillatorNode.connect(osc1gain);
-			oscillatorNode.start(time);
 
 			detuneNode.connect(oscillatorNode.detune);
 
@@ -189,12 +188,21 @@
 			osc2.type = object['oscillator-2'];
 			osc2.detune.value = bell(object.detune * 100) + object['oscillator-2-pitch'] * 100;
 			osc2.connect(osc2gain);
-			osc2.start(time);
 
 			var params = {
 				"envelope": envelopeNode.gain,
 				"gain": gainNode.gain
 			};
+
+			EnvelopeSequence(clock, object["attack-sequence"])
+			.subscribe(function(time, type, param, value, curve, duration) {
+				var audioParam = params[param];
+				AudioObject.automate(audioParam, value, time, duration, curve);
+			})
+			.start(time);
+
+			oscillatorNode.start(time);
+			osc2.start(time);
 
 			addToCache(number, [
 				gainNode,               // 0
@@ -209,13 +217,6 @@
 				osc2gain,               // 9
 				params                  // 10
 			]);
-
-			EnvelopeSequence(clock, object["attack-sequence"])
-			.subscribe(function(time, type, param, value, curve, duration) {
-				var audioParam = params[param];
-				AudioObject.automate(audioParam, value, time, duration, curve)
-			})
-			.start(time);
 
 			oscillatorNode.onended = function() {
 				qNode.disconnect(filterNode.Q);
@@ -254,8 +255,8 @@
 			})
 			.start(time);
 
-			cache[6].stop(time + 2);
-			cache[8].stop(time + 2);
+			cache[6].stop(time + 1);
+			cache[8].stop(time + 1);
 
 			delete osccache[number];
 		}
@@ -287,15 +288,14 @@
 			outputNode.disconnect();
 		};
 
-		this.detune = options.detune;
+		this['detune'] = options['detune'];
 		this['oscillator-1'] = options['oscillator-1'];
 		this['oscillator-2'] = options['oscillator-2'];
 		this['oscillator-2-pitch'] = options['oscillator-2-pitch'];
 		this['oscillator-2-gain'] = options['oscillator-2-gain'];
-		this.decay = options.decay;
-		this.filter = options.filter;
-		this['velocity-follow'] = 1;
-		this['note-follow'] = 1;
+		this['filter'] = options['filter'];
+		this['velocity-follow'] = options['velocity-follow'];
+		this['note-follow'] = options['note-follow'];
 		this['attack-sequence'] = Collection(options["attack-sequence"]);
 		this['release-sequence'] = Collection(options["release-sequence"]);
 	}
