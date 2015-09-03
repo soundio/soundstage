@@ -25,6 +25,9 @@
 		"note-follow":        0,
 		"velocity-follow":    0,
 		"attack-sequence": [
+			[0, "param", "gain", 0],
+			[0, "param", "gain", 1, "linear", 0.4],
+			[0, "param", "gain", 0.5, "decay", 2],
 			[0,   "param", "envelope", 1],
 			[0,   "param", "envelope", 3, 'linear', 0.6],
 			[0.8, "param", "envelope", 2, 'linear', 2]
