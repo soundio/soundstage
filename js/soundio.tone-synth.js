@@ -27,14 +27,14 @@
 		"attack-sequence": [
 			[0, "param", "gain", 0],
 			[0, "param", "gain", 1, "linear", 0.4],
-			[0, "param", "gain", 0.5, "decay", 2],
-			[0,   "param", "envelope", 1],
-			[0,   "param", "envelope", 3, 'linear', 0.6],
-			[0.8, "param", "envelope", 2, 'linear', 2]
+			[0.4, "param", "gain", 0.5, "decay", 2],
+			//[0,   "param", "envelope", 1],
+			//[0,   "param", "envelope", 3, 'linear', 0.6],
+			//[0.8, "param", "envelope", 2, 'linear', 2]
 		],
 		"release-sequence": [
-			[0, "param", "gain", 0, "linear", 0.04],
-			[0, "param", "envelope", 1, "linear", 0.06]
+			//[0, "param", "gain", 0, "linear", 0.04],
+			//[0, "param", "envelope", 1, "linear", 0.06]
 		]
 	};
 
