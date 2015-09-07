@@ -200,7 +200,7 @@
 			EnvelopeSequence(clock, object["attack-sequence"])
 			.subscribe(function(time, type, param, value, curve, duration) {
 				var audioParam = params[param];
-				AudioObject.automate(audioParam, value, time, duration, curve);
+				AudioObject.automate(audioParam, time, value, curve, duration);
 			})
 			.start(time);
 
@@ -256,7 +256,7 @@
 				var audioParam = params[param];
 				var attackValue = AudioObject.getValueAtTime(audioParam, time);
 
-				AudioObject.automate(audioParam, value * attackValue, time, duration, curve);
+				AudioObject.automate(audioParam, time, value * attackValue, curve, duration);
 			})
 			.start(time);
 

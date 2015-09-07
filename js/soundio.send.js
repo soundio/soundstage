@@ -118,7 +118,7 @@
 
 		    	muted: {
 		    		set: function(value, time) {
-		    			AudioObject.automate(mute.gain, value ? 0 : 1, time, 0.008, 'exponential');
+		    			AudioObject.automate(mute.gain, time, value ? 0 : 1, 'exponential', 0.008);
 		    		},
 
 		    		curve: 'exponential'
