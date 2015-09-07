@@ -18,7 +18,6 @@
 		"oscillator-2":       "triangle",
 		"oscillator-2-pitch": 12,
 		"oscillator-2-gain":  1,
-		"decay":              0.06,
 		"filter":             "lowpass",
 		"filter-frequency":   440,
 		"filter-q":           6,
@@ -251,11 +250,17 @@
 
 			var params = cache[10];
 
+			var values = {};
+			var key;
+
+			for (key in params) {
+				values[key] = AudioObject.valueAtTime(params[key], time);
+			}
+
 			EnvelopeSequence(clock, object["release-sequence"])
 			.subscribe(function(time, type, param, value, curve, duration) {
 				var audioParam = params[param];
-				var attackValue = AudioObject.getValueAtTime(audioParam, time);
-
+				var attackValue = values[param];
 				AudioObject.automate(audioParam, time, value * attackValue, curve, duration);
 			})
 			.start(time);
