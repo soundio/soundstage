@@ -28,13 +28,13 @@
 			[0, "param", "gain", 0],
 			[0, "param", "gain", 1, "linear", 0.4],
 			[0.4, "param", "gain", 0.5, "decay", 2],
-			//[0,   "param", "envelope", 1],
-			//[0,   "param", "envelope", 3, 'linear', 0.6],
-			//[0.8, "param", "envelope", 2, 'linear', 2]
+			[0,   "param", "envelope", 1],
+			[0,   "param", "envelope", 3, 'linear', 0.6],
+			[0.8, "param", "envelope", 2, 'linear', 2]
 		],
 		"release-sequence": [
-			//[0, "param", "gain", 0, "linear", 0.04],
-			//[0, "param", "envelope", 1, "linear", 0.06]
+			[0, "param", "gain", 0, "linear", 0.04],
+			[0, "param", "envelope", 1, "linear", 0.06]
 		]
 	};
 
@@ -254,12 +254,14 @@
 			EnvelopeSequence(clock, object["release-sequence"])
 			.subscribe(function(time, type, param, value, curve, duration) {
 				var audioParam = params[param];
-				AudioObject.automate(audioParam, value, time, duration, curve);
+				var attackValue = AudioObject.getValueAtTime(audioParam, time);
+
+				AudioObject.automate(audioParam, value * attackValue, time, duration, curve);
 			})
 			.start(time);
 
-			cache[6].stop(time + 1);
-			cache[8].stop(time + 1);
+			cache[6].stop(time + 2);
+			cache[8].stop(time + 2);
 
 			delete osccache[number];
 		}
