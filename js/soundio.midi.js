@@ -84,13 +84,27 @@
 		var transform = transforms[binding.transform];
 
 		// Support both AudioParams and simple properties
-		return typeof object[property] === 'function' ?
+
+		return property === 'start-stop' ?
+			// A start-stop property controls object start and stop
 			function(data, time) {
-				object[property].apply(object, MIDI.normalise(data, time, timeOffset));
+				var audio = object.audio;
+				var event = MIDI.normalise(data, audio.currentTime);
+
+				if (event[1] === "noteon") {
+					object.start(event[0], event[2], event[3]);
+				}
+				else if (event[1] === "noteoff") {
+					object.stop(event[0], event[2]);
+				}
 			} :
-			function(data) {
-				object[property] = transform(data[2] / 127, binding.min, binding.max, object[property]);
-			};
+			typeof object[property] === 'function' ?
+				function(data, time) {
+					object[property].apply(object, MIDI.normalise(data, time, timeOffset));
+				} :
+				function(data) {
+					object[property] = transform(data[2] / 127, binding.min, binding.max, object[property]);
+				};
 	}
 
 	function add(midimap, binding) {
