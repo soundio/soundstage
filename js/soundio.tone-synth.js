@@ -14,26 +14,37 @@
 		"gain":               0.25,
 		"detune":             0.04,
 		"oscillator-1":       "square",
-		"oscillator-1-gain":  "gain",
+		"oscillator-1-gain":  1,
 		"oscillator-2":       "triangle",
 		"oscillator-2-pitch": 12,
 		"oscillator-2-gain":  1,
 		"filter":             "lowpass",
 		"filter-frequency":   440,
 		"filter-q":           6,
-		"note-follow":        0,
-		"velocity-follow":    0,
+		"note-follow":        1,
+		"velocity-follow":    0.5,
+
 		"attack-sequence": [
-			[0, "param", "gain", 0],
-			[0, "param", "gain", 1, "linear", 0.4],
-			[0.4, "param", "gain", 0.5, "decay", 2],
-			[0,   "param", "envelope", 1],
-			[0,   "param", "envelope", 3, 'linear', 0.6],
-			[0.8, "param", "envelope", 2, 'linear', 2]
+			// Gain
+			[0,     "param", "gain", 0],
+			[0,     "param", "gain", 0.125, "linear", 0.008],
+			[0.008, "param", "gain", 1, "exponential", 0.08],
+			[0.088, "param", "gain", 0.25, "decay", 3],
+
+			// Filter cut-off
+			[0,     "param", "envelope", 0],
+			[0,     "param", "envelope", 3, 'linear', 0.6],
+			[0.8,   "param", "envelope", 2, 'linear', 2]
 		],
+
 		"release-sequence": [
-			[0, "param", "gain", 0, "linear", 0.4],
-			[0, "param", "envelope", 1, "linear", 0.6]
+			// Gain
+			[0,     "param", "gain", 0, "decay", 0.02],
+
+			// Filter cut-off
+			[0,     "param", "envelope", 2, "linear", 0.006],
+			[0.006, "param", "envelope", 1, "linear", 0.02],
+			[0.026, "param", "envelope", 0, "linear", 0.6]
 		]
 	};
 
@@ -61,12 +72,6 @@
 		var oscillatorNode = audio.createOscillator();
 		oscillatorNode.frequency.setValueAtTime(freq, audio.currentTime);
 		return oscillatorNode;
-	}
-
-	function spawnGain (audio, gain) {
-		var gainNode = audio.createGain();
-		gainNode.gain.value = Math.pow(gain, 2);
-		return gainNode;
 	}
 
 	function bell(n) {
@@ -135,7 +140,8 @@
 
 			var freq = MIDI.numberToFrequency(number);
 
-			var gainNode = spawnGain(audio, velocity);
+			var gainNode = audio.createGain();
+			gainNode.gain.value = 0;
 			gainNode.connect(outputNode);
 
 			var filterNode = audio.createBiquadFilter();
@@ -199,7 +205,12 @@
 			EnvelopeSequence(clock, object["attack-sequence"])
 			.subscribe(function(time, type, param, value, curve, duration) {
 				var audioParam = params[param];
-				AudioObject.automate(audioParam, time, value, curve, duration);
+				if (curve === "linear" || curve === "exponential") {
+					AudioObject.automate(audioParam, time, value, curve, duration);
+				}
+				else {
+					AudioObject.automate(audioParam, time, value, curve, duration);
+				}
 			})
 			.start(time);
 
@@ -255,14 +266,12 @@
 
 			for (key in params) {
 				values[key] = AudioObject.valueAtTime(params[key], time);
+				AudioObject.truncate(params[key], time);
 			}
-
-			console.log(values);
 
 			EnvelopeSequence(clock, object["release-sequence"])
 			.subscribe(function(time, type, param, value, curve, duration) {
-				console.log('RELEASE', param, time, value, values[param], curve, duration);
-				AudioObject.truncate(params[param], time);
+				// Scale release values by the last value of the attack sequence
 				AudioObject.automate(params[param], time, value * values[param], curve, duration);
 			})
 			.start(time);
