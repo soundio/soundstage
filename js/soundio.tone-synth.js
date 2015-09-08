@@ -32,8 +32,8 @@
 			[0.8, "param", "envelope", 2, 'linear', 2]
 		],
 		"release-sequence": [
-			[0, "param", "gain", 0, "linear", 0.04],
-			[0, "param", "envelope", 1, "linear", 0.06]
+			[0, "param", "gain", 0, "linear", 0.4],
+			[0, "param", "envelope", 1, "linear", 0.6]
 		]
 	};
 
@@ -257,11 +257,13 @@
 				values[key] = AudioObject.valueAtTime(params[key], time);
 			}
 
+			console.log(values);
+
 			EnvelopeSequence(clock, object["release-sequence"])
 			.subscribe(function(time, type, param, value, curve, duration) {
-				var audioParam = params[param];
-				var attackValue = values[param];
-				AudioObject.automate(audioParam, time, value * attackValue, curve, duration);
+				console.log('RELEASE', param, time, value, values[param], curve, duration);
+				AudioObject.truncate(params[param], time);
+				AudioObject.automate(params[param], time, value * values[param], curve, duration);
 			})
 			.start(time);
 
