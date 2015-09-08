@@ -48,6 +48,12 @@
 		]
 	};
 
+	var sequenceSettings = { sort: by0 };
+
+	function by0(a, b) {
+		return a[0] > b[0] ? 1 : a[0] < b[0] ? -1 : 0 ;
+	}
+
 	function isDefined(val) {
 		return val !== undefined && val !== null;
 	}
@@ -317,8 +323,8 @@
 		this['filter'] = options['filter'];
 		this['velocity-follow'] = options['velocity-follow'];
 		this['note-follow'] = options['note-follow'];
-		this['attack-sequence'] = Collection(options["attack-sequence"]);
-		this['release-sequence'] = Collection(options["release-sequence"]);
+		this['attack-sequence'] = Collection(options["attack-sequence"], sequenceSettings).sort();
+		this['release-sequence'] = Collection(options["release-sequence"], sequenceSettings).sort();
 	}
 
 	// Mix AudioObject prototype into MyObject prototype
