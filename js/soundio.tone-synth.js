@@ -222,8 +222,15 @@
 
 			var attack = object['attack-sequence'];
 			var n = -1;
-			var e, param;
+			var name, e, param;
 
+			// Set initial value
+			for (name in params) {
+				param = params[name];
+				AudioObject.automate(param, time, 0, "step");
+			}
+
+			// Cue up attack events on their params
 			while (++n < attack.length) {
 				e = attack[n];
 				param = params[e[2]];
@@ -280,10 +287,6 @@
 			if (!cache) { return; }
 
 			var params = cache[10];
-//			var attackSequence = cache[11];
-
-//			attackSequence.stop(time);
-
 			var values = {};
 			var key;
 
@@ -292,6 +295,9 @@
 				AudioObject.truncate(params[key], time);
 			}
 
+//			var attackSequence = cache[11];
+//			attackSequence.stop(time);
+//
 //			EnvelopeSequence(clock, object["release-sequence"])
 //			.subscribe(function(time, type, param, value, curve, duration) {
 //				// Scale release values by the last value of the attack sequence
@@ -299,6 +305,7 @@
 //			})
 //			.start(time);
 
+			// Cue up release events on their params 
 			var release = object['release-sequence'];
 			var n = -1;
 			var e, param;
