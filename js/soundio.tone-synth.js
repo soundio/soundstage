@@ -208,17 +208,30 @@
 				"gain": gainNode.gain
 			};
 
-			EnvelopeSequence(clock, object["attack-sequence"])
-			.subscribe(function(time, type, param, value, curve, duration) {
-				var audioParam = params[param];
-				if (curve === "linear" || curve === "exponential") {
-					AudioObject.automate(audioParam, time, value, curve, duration);
+//			var attackSequence = EnvelopeSequence(clock, object["attack-sequence"])
+//			.subscribe(function(time, type, param, value, curve, duration) {
+//				var audioParam = params[param];
+//				if (curve === "linear" || curve === "exponential") {
+//					AudioObject.automate(audioParam, time, value, curve, duration);
+//				}
+//				else {
+//					AudioObject.automate(audioParam, time, value, curve, duration);
+//				}
+//			})
+//			.start(time);
+
+			var attack = object['attack-sequence'];
+			var n = -1;
+			var e, param;
+
+			while (++n < attack.length) {
+				e = attack[n];
+				param = params[e[2]];
+
+				if (param) {
+					AudioObject.automate(param, time + e[0], e[3], e[4] || "step", e[5]);
 				}
-				else {
-					AudioObject.automate(audioParam, time, value, curve, duration);
-				}
-			})
-			.start(time);
+			}
 
 			oscillatorNode.start(time);
 			osc2.start(time);
@@ -234,7 +247,8 @@
 				osc1gain,               // 7
 				osc2,                   // 8
 				osc2gain,               // 9
-				params                  // 10
+				params,                 // 10
+//				attackSequence          // 11
 			]);
 
 			oscillatorNode.onended = function() {
@@ -266,6 +280,9 @@
 			if (!cache) { return; }
 
 			var params = cache[10];
+//			var attackSequence = cache[11];
+
+//			attackSequence.stop(time);
 
 			var values = {};
 			var key;
@@ -275,12 +292,25 @@
 				AudioObject.truncate(params[key], time);
 			}
 
-			EnvelopeSequence(clock, object["release-sequence"])
-			.subscribe(function(time, type, param, value, curve, duration) {
-				// Scale release values by the last value of the attack sequence
-				AudioObject.automate(params[param], time, value * values[param], curve, duration);
-			})
-			.start(time);
+//			EnvelopeSequence(clock, object["release-sequence"])
+//			.subscribe(function(time, type, param, value, curve, duration) {
+//				// Scale release values by the last value of the attack sequence
+//				AudioObject.automate(params[param], time, value * values[param], curve, duration);
+//			})
+//			.start(time);
+
+			var release = object['release-sequence'];
+			var n = -1;
+			var e, param;
+
+			while (++n < release.length) {
+				e = release[n];
+				param = params[e[2]];
+
+				if (param) {
+					AudioObject.automate(param, time + e[0], e[3] * values[e[2]], e[4] || "step", e[5]);
+				}
+			}
 
 			cache[6].stop(time + 2);
 			cache[8].stop(time + 2);
