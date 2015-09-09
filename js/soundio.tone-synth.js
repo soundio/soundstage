@@ -29,22 +29,22 @@
 			[0,     "param", "gain", 0],
 			[0,     "param", "gain", 0.125, "linear", 0.008],
 			[0.008, "param", "gain", 1, "exponential", 0.08],
-			[0.088, "param", "gain", 0.25, "decay", 3],
+			[0.088, "param", "gain", 0.25, "exponential", 2.25],
 
 			// Filter cut-off
 			[0,     "param", "envelope", 0],
-			[0,     "param", "envelope", 3, 'linear', 0.6],
-			[0.8,   "param", "envelope", 2, 'linear', 2]
+			[0,     "param", "envelope", 2, 'linear', 0.6],
+			[0.6,   "param", "envelope", 0.8, 'linear', 1.6]
 		],
 
 		"release-sequence": [
 			// Gain
-			[0,     "param", "gain", 0, "decay", 0.02],
+			[0,     "param", "gain", 0, "decay", 0.05],
 
 			// Filter cut-off
-			[0,     "param", "envelope", 2, "linear", 0.006],
-			[0.006, "param", "envelope", 1, "linear", 0.02],
-			[0.026, "param", "envelope", 0, "linear", 0.6]
+			[0,     "param", "envelope", 1.75, "linear", 0.006],
+			[0.006, "param", "envelope", 1.6667, "linear", 0.16],
+			[0.166, "param", "envelope", 0, "linear", 0.3]
 		]
 	};
 
