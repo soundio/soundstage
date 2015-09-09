@@ -14,10 +14,10 @@
 		"gain":               0.25,
 		"detune":             0.04,
 		"oscillator-1":       "square",
-		"oscillator-1-gain":  1,
+		"oscillator-1-gain":  0.5,
 		"oscillator-2":       "triangle",
 		"oscillator-2-pitch": 12,
-		"oscillator-2-gain":  1,
+		"oscillator-2-gain":  0.5,
 		"filter":             "lowpass",
 		"filter-frequency":   440,
 		"filter-q":           6,
@@ -354,6 +354,7 @@
 
 		this['detune'] = options['detune'];
 		this['oscillator-1'] = options['oscillator-1'];
+		this['oscillator-1-gain'] = options['oscillator-1-gain'];
 		this['oscillator-2'] = options['oscillator-2'];
 		this['oscillator-2-pitch'] = options['oscillator-2-pitch'];
 		this['oscillator-2-gain'] = options['oscillator-2-gain'];
