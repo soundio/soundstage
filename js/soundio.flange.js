@@ -157,7 +157,11 @@
 		delayGain.connect(rdelay.delayTime);
 
 		var flanger = AudioObject(audio, input, output, {
-			frequency: speed.frequency,
+			frequency: {
+				param: speed.frequency,
+				curve: "exponential",
+			},
+
 			feedback: fb.gain,
 			depth: depthGain.gain,
 			dry: dryGain.gain,
