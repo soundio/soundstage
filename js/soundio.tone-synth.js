@@ -48,6 +48,12 @@
 		]
 	};
 
+	var automation = {
+		"filter-q":         { min: 0,   max: 100,   transform: 'quadratic',   value: 0.25 },
+		"filter-frequency": { min: 16,  max: 16000, transform: 'logarithmic', value: 16 },
+		"velocity-follow":  { min: -2,  max: 6,     transform: 'linear',      value: 0 }
+	};
+
 	var sequenceSettings = { sort: by0 };
 
 	function by0(a, b) {
@@ -72,12 +78,6 @@
 		oscillator.start();
 
 		return waveshaper;
-	}
-
-	function spawnOscillator(audio, freq) {
-		var oscillatorNode = audio.createOscillator();
-		oscillatorNode.frequency.setValueAtTime(freq, audio.currentTime);
-		return oscillatorNode;
 	}
 
 	function bell(n) {
@@ -186,39 +186,30 @@
 			osc1gain.gain.value = object['oscillator-1-gain'];
 			osc1gain.connect(filterNode);
 
-			var oscillatorNode = spawnOscillator(audio, freq);
-			oscillatorNode.type = object['oscillator-1'];
-			oscillatorNode.detune.value = bell(object.detune * 100);
-			oscillatorNode.connect(osc1gain);
+			var osc1 = audio.createOscillator();
+			osc1.frequency.value = freq;
+			osc1.type = object['oscillator-1'];
+			osc1.detune.value = bell(object.detune * 100);
+			osc1.connect(osc1gain);
 
-			detuneNode.connect(oscillatorNode.detune);
+			detuneNode.connect(osc1.detune);
 
 			var osc2gain = audio.createGain();
 			osc2gain.gain.value = object['oscillator-2-gain'];
 			osc2gain.connect(filterNode);
 
 			var osc2 = audio.createOscillator();
-			osc2.frequency.setValueAtTime(freq, audio.currentTime);
+			osc2.frequency.value = freq;
 			osc2.type = object['oscillator-2'];
 			osc2.detune.value = bell(object.detune * 100) + object['oscillator-2-pitch'] * 100;
 			osc2.connect(osc2gain);
+
+			detuneNode.connect(osc2.detune);
 
 			var params = {
 				"envelope": envelopeNode.gain,
 				"gain": gainNode.gain
 			};
-
-//			var attackSequence = EnvelopeSequence(clock, object["attack-sequence"])
-//			.subscribe(function(time, type, param, value, curve, duration) {
-//				var audioParam = params[param];
-//				if (curve === "linear" || curve === "exponential") {
-//					AudioObject.automate(audioParam, time, value, curve, duration);
-//				}
-//				else {
-//					AudioObject.automate(audioParam, time, value, curve, duration);
-//				}
-//			})
-//			.start(time);
 
 			var attack = object['attack-sequence'];
 			var n = -1;
@@ -240,7 +231,7 @@
 				}
 			}
 
-			oscillatorNode.start(time);
+			osc1.start(time);
 			osc2.start(time);
 
 			addToCache(number, [
@@ -250,19 +241,19 @@
 				velocityMultiplierNode, // 3      
 				envelopeNode,           // 4
 				noteGainNode,           // 5
-				oscillatorNode,         // 6
+				osc1,         // 6
 				osc1gain,               // 7
 				osc2,                   // 8
 				osc2gain,               // 9
-				params,                 // 10
-//				attackSequence          // 11
+				params                  // 10
 			]);
 
-			oscillatorNode.onended = function() {
+			osc1.onended = function() {
 				qNode.disconnect(filterNode.Q);
 				unityNode.disconnect(envelopeNode);
 				frequencyNode.disconnect(noteGainNode);
-				detuneNode.disconnect(oscillatorNode.detune);
+				detuneNode.disconnect(osc1.detune);
+				detuneNode.disconnect(osc2.detune);
 
 				gainNode.disconnect();
 				filterNode.disconnect();
@@ -270,7 +261,7 @@
 				velocityMultiplierNode.disconnect();
 				envelopeNode.disconnect();
 				noteGainNode.disconnect();
-				oscillatorNode.disconnect();
+				osc1.disconnect();
 				osc1gain.disconnect();
 				osc2.disconnect();
 				osc2gain.disconnect();
@@ -294,16 +285,6 @@
 				values[key] = AudioObject.valueAtTime(params[key], time);
 				AudioObject.truncate(params[key], time);
 			}
-
-//			var attackSequence = cache[11];
-//			attackSequence.stop(time);
-//
-//			EnvelopeSequence(clock, object["release-sequence"])
-//			.subscribe(function(time, type, param, value, curve, duration) {
-//				// Scale release values by the last value of the attack sequence
-//				AudioObject.automate(params[param], time, value * values[param], curve, duration);
-//			})
-//			.start(time);
 
 			// Cue up release events on their params 
 			var release = object['release-sequence'];
@@ -359,8 +340,8 @@
 		this['oscillator-2-pitch'] = options['oscillator-2-pitch'];
 		this['oscillator-2-gain'] = options['oscillator-2-gain'];
 		this['filter'] = options['filter'];
-		this['velocity-follow'] = options['velocity-follow'];
 		this['note-follow'] = options['note-follow'];
+		this['velocity-follow'] = options['velocity-follow'];
 		this['attack-sequence'] = Collection(options["attack-sequence"], sequenceSettings).sort();
 		this['release-sequence'] = Collection(options["release-sequence"], sequenceSettings).sort();
 	}
@@ -371,5 +352,5 @@
 	// Register the object constructor with Soundio. The last
 	// parameter, controls, is optional but recommended if the
 	// intent is to make the object controllable, eg. via MIDI.
-	Soundio.register('tone-synth', ToneSynthAudioObject);
+	Soundio.register('tone-synth', ToneSynthAudioObject, automation);
 })(window);

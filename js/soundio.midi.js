@@ -91,11 +91,17 @@
 				var audio = object.audio;
 				var event = MIDI.normalise(data, audio.currentTime);
 
+				// This is all a bit of a fudge - we should be using MIDI to
+				// do this filtering.
+
 				if (event[1] === "noteon") {
 					object.start(event[0], event[2], event[3]);
 				}
 				else if (event[1] === "noteoff") {
 					object.stop(event[0], event[2]);
+				}
+				else if (event[1] === "pitch") {
+					object.pitch = event[2];
 				}
 			} :
 			typeof object[property] === 'function' ?
