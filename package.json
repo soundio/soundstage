@@ -1,9 +1,9 @@
 {
   "name": "soundio",
   "title": "Soundio",
-  "description": "A live Graph Object Model for the Web Audio API.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "homepage": "http://sound.io",
+  "description": "A live Graph Object Model for the Web Audio API.",
   "author": {
     "name": "Stephen Band",
     "twitter": "stephband"
@@ -14,10 +14,16 @@
   },
   "keywords": [
     "javascript",
-    "browser"
+    "browser",
+    "web",
+    "audio",
+    "soundio"
   ],
   "bugs": {
     "url": "https://github.com/soundio/soundio/issues"
+  },
+  "dependencies": {
+    "audio-object": "latest"
   },
   "devDependencies": {
     "karma": "latest",
@@ -33,5 +39,10 @@
   },
   "scripts": {
     "test": "node_modules/karma/bin/karma start"
-  }
+  },
+  "licenses": [
+    {
+      "type": "MIT"
+    }
+  ]
 }
