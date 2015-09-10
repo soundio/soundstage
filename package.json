@@ -26,6 +26,18 @@
     "audio-object": "latest"
   },
   "devDependencies": {
+    "es6-object-assign": "^1.0.1",
+    "es6-shim": "^0.33.3",
+    "event-stream": "^3.3.1",
+    "glob-all": "^3.0.1",
+    "gulp": "^3.9.0",
+    "gulp-clean": "^0.3.1",
+    "gulp-eslint": "^1.0.0",
+    "gulp-karma": "0.0.4",
+    "gulp-load-plugins": "^1.0.0-rc.1",
+    "gulp-rename": "^1.2.2",
+    "gulp-run-sequence": "^0.3.2",
+    "jasmine-core": "^2.3.4",
     "karma": "latest",
     "karma-chrome-launcher": "latest",
     "karma-coverage": "latest",
@@ -35,7 +47,8 @@
     "karma-qunit": "latest",
     "karma-safari-launcher": "latest",
     "qunit": "latest",
-    "qunitjs": "latest"
+    "qunitjs": "latest",
+    "vinyl-source-stream": "^1.1.0"
   },
   "scripts": {
     "test": "node_modules/karma/bin/karma start"
