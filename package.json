@@ -40,9 +40,5 @@
   "scripts": {
     "test": "node_modules/karma/bin/karma start"
   },
-  "licenses": [
-    {
-      "type": "MIT"
-    }
-  ]
+  "license": "MIT"
 }
