@@ -136,6 +136,7 @@
 				fetchBufferN(n, sampleMap.data[n].url);
 			}
 
+			updateLoaded();
 			regions = sampleMap.data;
 		}
 
@@ -212,14 +213,22 @@
 			dampNote(time || audio.currentTime, array);
 		};
 
-		object.destroy = function destroy() {
+		object.destroy = function() {
 			output.disconnect();
 		};
 
 		// Expose sample-maps settings, but non-enumerably so it
 		// doesn't get JSONified.
-		Object.defineProperty(object, 'sample-maps', {
-			value: presets.sub({ type: 'sample-map' })
+		Object.defineProperties(object, {
+			"loaded": {
+				value: 0,
+				writable: true,
+				enumerable: false
+			},
+
+			"sample-maps": {
+				value: presets.sub({ type: 'sample-map' })
+			}
 		});
 
 		return object;

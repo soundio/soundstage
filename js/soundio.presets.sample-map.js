@@ -34,7 +34,7 @@
 
 		// Note: These URLs are temporary! They will change.
 
-		{
+		data: [{
 			url: 'https://sound.io/static/audio/gretsch-kit/samples/bassdrum+oh-01.wav',
 			noteRange: [36],
 			velocityRange: [0/7, 1/7],
