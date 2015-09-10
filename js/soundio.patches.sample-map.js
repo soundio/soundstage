@@ -3,7 +3,7 @@
 
 	var Soundio = window.Soundio;
 
-	Soundio.patches[Soundio.patches.create ? 'create' : 'add']({
+	Soundio.presets[Soundio.presets.create ? 'create' : 'add']({
 		type: 'sample-map',
 		version: 1,
 		name: 'Gretsch Kit',

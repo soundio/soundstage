@@ -96,7 +96,7 @@
 		}
 	}
 
-	function createSample(audio, settings, clock, patches) {
+	function createSample(audio, settings, clock, presets) {
 		var options = assign({}, defaults, settings);
 		var output = audio.createGain();
 		var object = AudioObject(audio, undefined, output);
@@ -113,10 +113,10 @@
 		}
 
 		function updateSampleMap() {
-			var sampleMap = patches.find(object['sample-map']);
+			var sampleMap = presets.find(object['sample-map']);
 
 			if (!sampleMap) {
-				console.log('Soundio sampler:', object['sample-map'], 'is not in patches.');
+				console.log('Soundio sampler:', object['sample-map'], 'is not in presets.');
 				return;
 			}
 
@@ -216,7 +216,7 @@
 		// Expose sample-maps settings, but non-enumerably so it
 		// doesn't get JSONified.
 		Object.defineProperty(object, 'sample-maps', {
-			value: patches.sub({ type: 'sample-map' })
+			value: presets.sub({ type: 'sample-map' })
 		});
 
 		return object;
