@@ -16,12 +16,12 @@
 	"use strict";
 
 	// Imports
-	// TODO: At some point in future use Web Modules
 	var observe    = window.observe;
 	var unobserve  = window.unobserve;
 	var Collection = window.Collection;
 	var Clock      = window.Clock;
 	var Sequence   = window.Sequence;
+	var EventDistributor = window.EventDistributor;
 	var assign     = Object.assign;
 	var splice     = Function.prototype.call.bind(Array.prototype.splice);
 
@@ -525,7 +525,18 @@
 		var input    = createInput(options.audio, 2);
 		var output   = createOutput(options.audio);
 		var clock    = new Clock(options.audio);
-		var sequence = new Sequence(clock);
+		var sequence = new Sequence(clock, [], {
+			resolve: function(sequence, path) {
+				var object = soundio.find(path);
+
+				if (!object) {
+					console.warn('Soundio: object', path, 'not found.');
+					return;
+				}
+
+				var distributor = new EventDistributor(audio, clock, object, sequence);
+			}
+		});
 
 		// Initialise soundio as an Audio Object 
 		AudioObject.call(soundio, options.audio, input, output);
@@ -560,6 +571,28 @@
 	}
 
 	assign(Soundio.prototype, {
+		start: function(time) {
+			if (isDefined(time)) {
+				this.sequence.start(this.clock.beatAtTime(time));
+			}
+			else {
+				this.sequence.start();
+			}
+
+			return this;
+		},
+
+		stop: function(time) {
+			if (isDefined(time)) {
+				this.sequence.stop(this.clock.beatAtTime(time));
+			}
+			else {
+				this.sequence.stop();
+			}
+
+			return this;
+		},
+
 		create: function(data) {
 			var input = AudioObject.getInput(this);
 			var output = AudioObject.getOutput(this);
@@ -638,6 +671,7 @@
 
 			this.trigger('create');
 			console.groupEnd();
+			return this;
 		},
 
 		createInputs: function() {
@@ -707,6 +741,7 @@
 			output.disconnect();
 
 			this.clear();
+			return this;
 		}
 	}, AudioObject.prototype, mixin.events);
 

@@ -96,7 +96,7 @@
 		}
 	}
 
-	function createSample(audio, settings, clock, presets) {
+	function createSampler(audio, settings, clock, presets) {
 		var options = assign({}, defaults, settings);
 		var output = audio.createGain();
 		var object = AudioObject(audio, undefined, output);
@@ -106,10 +106,17 @@
 		// Maintain a map of currently playing notes
 		var notes = {};
 
+		function updateLoaded() {
+			object.loaded = buffers.filter(isDefined).length / buffers.length;
+		}
+
 		function fetchBufferN(n, url) {
 			Soundio
 			.fetchBuffer(audio, url)
-			.then(function(buffer) { buffers[n] = buffer; });
+			.then(function(buffer) {
+				buffers[n] = buffer;
+				updateLoaded();
+			});
 		}
 
 		function updateSampleMap() {
@@ -121,8 +128,9 @@
 			}
 
 			// Maintain a list of buffers of urls declared in regions
-			buffers = [];
 			var n = sampleMap.data.length;
+			buffers.length = 0;
+			buffers.length = n;
 
 			while (n--) {
 				fetchBufferN(n, sampleMap.data[n].url);
@@ -131,30 +139,12 @@
 			regions = sampleMap.data;
 		}
 
-		observe(object, 'sample-map', updateSampleMap)
+		observe(object, 'sample-map', updateSampleMap);
 		object['sample-map'] = options['sample-map'];
 
-		object.trigger = function(time, type, number, velocity, duration) {
-			Soundio.debug && console.log('––––––––––––––––––');
-			Soundio.debug && console.log('Soundio: sample trigger', type, number, velocity);
-
-			if (type === "noteoff") {
-				var array = notes[number];
-
-				if (!array) { return; }
-
-				console.log('noteoff', array);
-				dampNote(audio.currentTime, array);
-				return;
-			}
-
+		object.start = function(time, number, velocity) {
 			if (velocity === 0) {
 				return;
-			}
-
-			if (type === "note") {
-				// Hmmm...
-				// dampNote(time + duration, number, velocity);
 			}
 
 			if (!notes[number]) {
@@ -174,6 +164,12 @@
 			while (n--) {
 				region = regions[n];
 				buffer = buffers[n];
+
+				if (!buffer) {
+					console.log('Soundio sampler: No buffer for region', n);
+					continue;
+				}
+
 				regionGain = rangeGain(region, number, velocity);
 				sensitivity = isDefined(region.velocitySensitivity) ? region.velocitySensitivity : 1 ;
 
@@ -209,6 +205,13 @@
 			}
 		};
 
+		object.stop = function(time, number) {
+			var array = notes[number];
+
+			if (!array) { return; }
+			dampNote(audio.currentTime, array);
+		};
+
 		object.destroy = function destroy() {
 			output.disconnect();
 		};
@@ -222,5 +225,5 @@
 		return object;
 	}
 
-	Soundio.register('sample', createSample);
+	Soundio.register('sampler', createSampler);
 })(window);
