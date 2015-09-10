@@ -15,21 +15,24 @@
 		//   velocityRange: [minLimit, minFade, maxFade, maxLimit], // All numbers in the range 0-1
 		//   url: 'audio.wav',
 		// }
-		data: [{
-			url: 'https://sound.io/static/presentations/2015/swissjs/audio/sine-sweep-gain-change.wav',
-			noteRange: [16],
-			velocityRange: [0, 1],
-			velocitySensitivity: 0,
-			gain: 0.25,
-			muteDecay: 0.08
-		}, {
-			url: 'https://sound.io/static/presentations/2015/swissjs/audio/sine-sweep-fade-change.wav',
-			noteRange: [17],
-			velocityRange: [0, 1],
-			velocitySensitivity: 0,
-			gain: 0.25,
-			muteDecay: 0.08
-		}, 
+
+//		data: [{
+//			url: 'https://sound.io/static/presentations/2015/swissjs/audio/sine-sweep-gain-change.wav',
+//			noteRange: [16],
+//			velocityRange: [0, 1],
+//			velocitySensitivity: 0,
+//			gain: 0.25,
+//			muteDecay: 0.08
+//		}, {
+//			url: 'https://sound.io/static/presentations/2015/swissjs/audio/sine-sweep-fade-change.wav',
+//			noteRange: [17],
+//			velocityRange: [0, 1],
+//			velocitySensitivity: 0,
+//			gain: 0.25,
+//			muteDecay: 0.08
+//		}, 
+
+		// Note: These URLs are temporary! They will change.
 
 		{
 			url: 'https://sound.io/static/audio/gretsch-kit/samples/bassdrum+oh-01.wav',
