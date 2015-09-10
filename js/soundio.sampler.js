@@ -188,7 +188,7 @@
 				node.buffer = buffer;
 				node.loop = region.loop;
 				node.connect(gain);
-				node.start();
+				node.start(time);
 
 				// Store the region and associated nodes, that we may
 				// dispose of them elegantly later.
@@ -209,7 +209,7 @@
 			var array = notes[number];
 
 			if (!array) { return; }
-			dampNote(audio.currentTime, array);
+			dampNote(time || audio.currentTime, array);
 		};
 
 		object.destroy = function destroy() {
