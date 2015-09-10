@@ -67,7 +67,7 @@
 		sequence.add(event);
 	}
 
-	function EventDistributor(audio, object, sequence, midimap, keys) {
+	function EventDistributor(audio, clock, object, sequence, midimap, keys) {
 		var distributor = this;
 		var midimap = assign({}, midimap);
 		var notes = {};
@@ -104,7 +104,7 @@
 			// Called by sequence with (time, type, data ...)
 
 			if (object) {
-				audioObjectTriggers[type](object, arguments, sequence.clock);
+				audioObjectTriggers[type](object, arguments, clock);
 			}
 
 			if (MIDI && distributor.sendMIDI) {
@@ -114,7 +114,7 @@
 		}
 
 		function stopSequenceNotes() {
-			if (object) { object.stop(); }
+			if (object && object.stop) { object.stop(); }
 
 			if (MIDI && distributor.sendMIDI) {
 				//midi.send([0, "stop"]);

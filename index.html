@@ -11,6 +11,7 @@
 
 <script src="js/window.audiocontext.js"></script>
 <script src="js/navigator.getusermedia.js"></script>
+<script src="js/event-distributor.js"></script>
 <script src="js/soundio.js"></script>
 <script src="js/soundio.midi.js"></script>
 <script src="js/soundio.objects.js"></script>
@@ -29,27 +30,28 @@
 <script src="js/soundio.metronome.js"></script>
 <script src="js/soundio.tone-synth.js"></script>
 
+<script src="js/soundio.presets.sample-map.js"></script>
+
 <script>
 (function(window) {
 	"use strict";
 
-	var soundio = window.soundio = window.Soundio({
-		objects: [
-			{id: 1, type: "tone-synth"},
-			{id: 2, type: "output"},
-			{id: 3, type: "metronome", playing: true }
-		],
+	var drumSequence = [
+		[0.0, "note", 51, 0.76, 0.125],
+		[0.5, "note", 51, 0.52, 0.125],
+		[1.0, "note", 51, 0.71, 0.125],
+		[1.5, "note", 51, 0.51, 0.125],
+		[2.0, "note", 51, 0.75, 0.125],
+		[2.5, "note", 51, 0.54, 0.125],
+		[3.0, "note", 51, 0.72, 0.125],
+		[3.5, "note", 51, 0.53, 0.125],
 
-		connections: [
-			{source: 1, destination: 2},
-			{source: 3, destination: 2}
-		]
-	});
-
-	var osc = window.osc = soundio.find(1);
-	var metronome = window.metronome = soundio.find(3);
-
-	soundio.clock.tempo(0, 120);
+		[0.0, "note", 36, 0.65, 0.125],
+		[0.5, "note", 36, 0.5, 0.125],
+		[1.5, "note", 38, 0.75, 0.125],
+		[2.5, "note", 36, 0.4, 0.125],
+		[3.0, "note", 38, 0.5, 0.125]
+	];
 
 	var data = [
 		[0,   "noteon",  36, 1],
@@ -72,27 +74,46 @@
 		[7,   "noteoff", 53, 1]
 	];
 
-	var sequence = Sequence(soundio.clock, [
-		[0, "sequence", data, 1],
-		//[4, "sequence", data, 2],
-		[7, "sequence", data, 2],
-		[10, "sequence", data, 3],
-		[12, "sequence", data, 4],
-		//[2, "sequence", data, 0.5]
-	]);
+	var soundio = window.soundio = window.Soundio({
+		objects: [
+			{id: 1, type: "tone-synth"},
+			{id: 2, type: "output"},
+			{id: 3, type: "metronome" },
+			{id: 4, type: "sampler"}
+		],
 
-	var synth = soundio.find(1);
+		connections: [
+			{source: 1, destination: 2},
+			{source: 3, destination: 2},
+			{source: 4, destination: 2}
+		],
 
-	sequence.subscribe(function() {
-		synth.trigger.apply(synth, arguments);
+		sequence: [
+			[0,  "sequence", drumSequence, 1, 4],
+			[4,  "sequence", drumSequence, 1, 4],
+			[8,  "sequence", drumSequence, 1, 4],
+			[12, "sequence", drumSequence, 1, 4],
+
+			[4, "sequence", data, 1, 1],
+			[12, "sequence", data, 2, 1],
+			[16, "sequence", data, 3, 4],
+			//[12, "sequence", data, 4, 1],
+			//[2, "sequence", data, 0.5]
+		]
 	});
 
-	setTimeout(function() {
-		sequence.start(4);
-		sequence.cue(8, function(time) {
-			metronome.stop();
-		});
-	}, 600);
+	var osc = window.osc = soundio.find(1);
+	var metronome = window.metronome = soundio.find(3);
+	var sampler = window.sampler = soundio.find(4);
 
+	soundio.clock.tempo(0, 120);
+
+	observe(sampler, 'loaded', function() {
+		console.log(sampler.loaded);
+
+		if (sampler.loaded === 1) {
+			soundio.start();
+		}
+	});
 })(window);
 </script>

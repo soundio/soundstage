@@ -16,12 +16,12 @@
 	"use strict";
 
 	// Imports
-	// TODO: At some point in future use Web Modules
 	var observe    = window.observe;
 	var unobserve  = window.unobserve;
 	var Collection = window.Collection;
 	var Clock      = window.Clock;
 	var Sequence   = window.Sequence;
+	var EventDistributor = window.EventDistributor;
 	var assign     = Object.assign;
 	var splice     = Function.prototype.call.bind(Array.prototype.splice);
 
@@ -93,12 +93,12 @@
 		}
 	}
 
-	function create(audio, type, settings, clock, patches) {
+	function create(audio, type, settings, clock, presets) {
 		if (!registry[type]) {
 			throw new Error('soundio: Calling Soundio.create(type, settings) unregistered type: ' + type);
 		}
 
-		var object = new registry[type][0](audio, settings, clock, patches);
+		var object = new registry[type][0](audio, settings, clock, presets);
 
 		if (settings) {
 			assignSettings(object, settings);
@@ -282,7 +282,7 @@
 
 			var audio = soundio.audio;
 
-			object = create(audio, type, settings, soundio.clock, soundio.patches);
+			object = create(audio, type, settings, soundio.clock, soundio.presets);
 
 			Object.defineProperty(object, 'id', {
 				value: settings && settings.id || createId(this),
@@ -517,13 +517,26 @@
 			return new Soundio(data, settings);
 		}
 
-		var soundio = this;
-		var options = assign({}, defaults, settings);
-		var objects = Objects(this);
-		var midi    = Soundio.MidiMap(objects);
+		var soundio  = this;
+		var options  = assign({}, defaults, settings);
+		var objects  = Objects(this);
+		var midi     = Soundio.MidiMap(objects);
 		var connections = Connections(this);
-		var input   = createInput(options.audio, 2);
-		var output  = createOutput(options.audio);
+		var input    = createInput(options.audio, 2);
+		var output   = createOutput(options.audio);
+		var clock    = new Clock(options.audio);
+		var sequence = new Sequence(clock, [], {
+			resolve: function(sequence, path) {
+				var object = soundio.find(path);
+
+				if (!object) {
+					console.warn('Soundio: object', path, 'not found.');
+					return;
+				}
+
+				var distributor = new EventDistributor(audio, clock, object, sequence);
+			}
+		});
 
 		// Initialise soundio as an Audio Object 
 		AudioObject.call(soundio, options.audio, input, output);
@@ -531,6 +544,7 @@
 		// Hitch up the output to the destination
 		output.connect(audio.destination);
 
+		// Define soundio's properties
 		Object.defineProperties(soundio, {
 			audio:    { value: options.audio },
 			midi:     { value: midi, enumerable: true },
@@ -538,19 +552,11 @@
 			inputs:   { value: objects.sub({ type: 'input' }, { sort: byChannels }) },
 			outputs:  { value: objects.sub({ type: 'output' }, { sort: byChannels }) },
 			connections: { value: connections, enumerable: true },
-			patches:  { value: Soundio.patches, enumerable: true },
+			clock:    { value: clock },
+			sequence: { value: sequence, enumerable: true },
+			presets:  { value: Soundio.presets, enumerable: true },
 			roundTripLatency: { value: Soundio.roundTripLatency, writable: true, configurable: true }
 		});
-
-		if (Clock) {
-			var clock = new Clock(options.audio);
-			var sequence = new Sequence(clock);
-
-			Object.defineProperties(soundio, {
-				clock: { value: clock },
-				sequence: { value: sequence, enumerable: true },
-			});
-		}
 
 		soundio.create(data);
 
@@ -565,14 +571,36 @@
 	}
 
 	assign(Soundio.prototype, {
+		start: function(time) {
+			if (isDefined(time)) {
+				this.sequence.start(this.clock.beatAtTime(time));
+			}
+			else {
+				this.sequence.start();
+			}
+
+			return this;
+		},
+
+		stop: function(time) {
+			if (isDefined(time)) {
+				this.sequence.stop(this.clock.beatAtTime(time));
+			}
+			else {
+				this.sequence.stop();
+			}
+
+			return this;
+		},
+
 		create: function(data) {
 			var input = AudioObject.getInput(this);
 			var output = AudioObject.getOutput(this);
 
 //			if (data && data.samplePatches && data.samplePatches.length) {
-//				console.groupCollapsed('Soundio: create sampler patches...');
+//				console.groupCollapsed('Soundio: create sampler presets...');
 //				if (typeof samplePatches === 'string') {
-//					// Sample patches is a URL! Uh-oh.
+//					// Sample presets is a URL! Uh-oh.
 //				}
 //				else {
 //					this.samplePatches.create.apply(this.connections, data.connections);
@@ -643,6 +671,7 @@
 
 			this.trigger('create');
 			console.groupEnd();
+			return this;
 		},
 
 		createInputs: function() {
@@ -712,6 +741,7 @@
 			output.disconnect();
 
 			this.clear();
+			return this;
 		}
 	}, AudioObject.prototype, mixin.events);
 
@@ -767,7 +797,7 @@
 
 		// .retrieveDefaults() is for MIDI to get the plugin's automation
 		retrieveDefaults: retrieveDefaults,
-		patches: Collection([], { index: "name" }),
+		presets: Collection([], { index: "name" }),
 		isDefined: isDefined,
 		distributeArgs: distributeArgs,
 		fetchBuffer: fetchBuffer

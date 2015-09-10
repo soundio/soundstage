@@ -50,7 +50,7 @@ are optional:
 			{ message: [176, 8], object: 1, property: "frequency" }
 		],
 
-		patches: [],
+		presets: [],
 
 		sequence: []
 	};
@@ -66,7 +66,7 @@ between the audio objects.
 
 <code>midi</code> is an array of routes for incoming MIDI messages.
 
-<code>patches</code> is an array of patches used by audio objects.
+<code>presets</code> is an array of presets used by audio objects.
 
 <code>sequence</code> is a
 <a href="http://github.com/soundio/music-json">Music JSON</a> sequence array of
@@ -477,7 +477,7 @@ Register an audio object constructor function for creating audio objects of
 
 MyAudioObjectConstructor receives the parameters:
 
-	function MyAudioObjectConstructor(audio, settings, clock, patches) {
+	function MyAudioObjectConstructor(audio, settings, clock, presets) {
 		var options = assign({}, defaults, settings);
 		// Set up audio object
 	};

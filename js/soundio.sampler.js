@@ -96,7 +96,7 @@
 		}
 	}
 
-	function createSample(audio, settings, clock, patches) {
+	function createSampler(audio, settings, clock, presets) {
 		var options = assign({}, defaults, settings);
 		var output = audio.createGain();
 		var object = AudioObject(audio, undefined, output);
@@ -106,55 +106,46 @@
 		// Maintain a map of currently playing notes
 		var notes = {};
 
+		function updateLoaded() {
+			object.loaded = buffers.filter(isDefined).length / buffers.length;
+		}
+
 		function fetchBufferN(n, url) {
 			Soundio
 			.fetchBuffer(audio, url)
-			.then(function(buffer) { buffers[n] = buffer; });
+			.then(function(buffer) {
+				buffers[n] = buffer;
+				updateLoaded();
+			});
 		}
 
 		function updateSampleMap() {
-			var sampleMap = patches.find(object['sample-map']);
+			var sampleMap = presets.find(object['sample-map']);
 
 			if (!sampleMap) {
-				console.log('Soundio sampler:', object['sample-map'], 'is not in patches.');
+				console.log('Soundio sampler:', object['sample-map'], 'is not in presets.');
 				return;
 			}
 
 			// Maintain a list of buffers of urls declared in regions
-			buffers = [];
 			var n = sampleMap.data.length;
+			buffers.length = 0;
+			buffers.length = n;
 
 			while (n--) {
 				fetchBufferN(n, sampleMap.data[n].url);
 			}
 
+			updateLoaded();
 			regions = sampleMap.data;
 		}
 
-		observe(object, 'sample-map', updateSampleMap)
+		observe(object, 'sample-map', updateSampleMap);
 		object['sample-map'] = options['sample-map'];
 
-		object.trigger = function(time, type, number, velocity, duration) {
-			Soundio.debug && console.log('––––––––––––––––––');
-			Soundio.debug && console.log('Soundio: sample trigger', type, number, velocity);
-
-			if (type === "noteoff") {
-				var array = notes[number];
-
-				if (!array) { return; }
-
-				console.log('noteoff', array);
-				dampNote(audio.currentTime, array);
-				return;
-			}
-
+		object.start = function(time, number, velocity) {
 			if (velocity === 0) {
 				return;
-			}
-
-			if (type === "note") {
-				// Hmmm...
-				// dampNote(time + duration, number, velocity);
 			}
 
 			if (!notes[number]) {
@@ -174,6 +165,12 @@
 			while (n--) {
 				region = regions[n];
 				buffer = buffers[n];
+
+				if (!buffer) {
+					console.log('Soundio sampler: No buffer for region', n);
+					continue;
+				}
+
 				regionGain = rangeGain(region, number, velocity);
 				sensitivity = isDefined(region.velocitySensitivity) ? region.velocitySensitivity : 1 ;
 
@@ -192,7 +189,7 @@
 				node.buffer = buffer;
 				node.loop = region.loop;
 				node.connect(gain);
-				node.start();
+				node.start(time);
 
 				// Store the region and associated nodes, that we may
 				// dispose of them elegantly later.
@@ -209,18 +206,33 @@
 			}
 		};
 
-		object.destroy = function destroy() {
+		object.stop = function(time, number) {
+			var array = notes[number];
+
+			if (!array) { return; }
+			dampNote(time || audio.currentTime, array);
+		};
+
+		object.destroy = function() {
 			output.disconnect();
 		};
 
 		// Expose sample-maps settings, but non-enumerably so it
 		// doesn't get JSONified.
-		Object.defineProperty(object, 'sample-maps', {
-			value: patches.sub({ type: 'sample-map' })
+		Object.defineProperties(object, {
+			"loaded": {
+				value: 0,
+				writable: true,
+				enumerable: false
+			},
+
+			"sample-maps": {
+				value: presets.sub({ type: 'sample-map' })
+			}
 		});
 
 		return object;
 	}
 
-	Soundio.register('sample', createSample);
+	Soundio.register('sampler', createSampler);
 })(window);
