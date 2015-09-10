@@ -35,7 +35,7 @@ module.exports = function(config) {
       'js/soundio.flange.js',
       'js/soundio.gain.js',
       'js/soundio.loop.js',
-      'js/soundio.sample.js',
+      'js/soundio.sampler.js',
       'js/soundio.saturate.js',
       'js/soundio.compress.js',
       'js/soundio.envelope.js',
