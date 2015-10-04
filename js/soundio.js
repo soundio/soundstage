@@ -554,6 +554,7 @@
 			connections: { value: connections, enumerable: true },
 			clock:    { value: clock },
 			sequence: { value: sequence, enumerable: true },
+			sequences: { value: data.sequences || {}, enumerable: true },
 			presets:  { value: Soundio.presets, enumerable: true },
 			roundTripLatency: { value: Soundio.roundTripLatency, writable: true, configurable: true }
 		});
