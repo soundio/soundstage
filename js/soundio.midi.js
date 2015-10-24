@@ -3,12 +3,12 @@
 
 	var observe   = window.observe;
 	var unobserve = window.unobserve;
-	var Soundio   = window.Soundio;
+	var Soundstage   = window.Soundstage;
 	var MIDI      = window.MIDI;
 
 	var assign    = Object.assign;
-	var isDefined = Soundio.isDefined;
-	var distributeArgs = Soundio.distributeArgs;
+	var isDefined = Soundstage.isDefined;
+	var distributeArgs = Soundstage.distributeArgs;
 
 	var timeOffset = 0;
 
@@ -48,11 +48,11 @@
 		}
 	};
 
-	Soundio.transforms = transforms;
+	Soundstage.transforms = transforms;
 
 
 	if (!MIDI) {
-		Soundio.debug && console.log('Soundio: MIDI library not found. Soundio will not respond to MIDI.');
+		Soundstage.debug && console.log('Soundstage: MIDI library not found. Soundstage will not respond to MIDI.');
 	}
 
 	// Midi
@@ -63,7 +63,7 @@
 	}
 
 	function createMidiBinding(data, object) {
-		var defaults = Soundio.retrieveDefaults(object.type)[data.property] || {};
+		var defaults = Soundstage.retrieveDefaults(object.type)[data.property] || {};
 
 		return Object.defineProperties({
 			message:   data.message,
@@ -148,8 +148,8 @@
 	}
 
 	function MidiMap(objects, array) {
-		if (this === undefined || this === window || this === Soundio) {
-			// Soundio has been called without the new keyword
+		if (this === undefined || this === window || this === Soundstage) {
+			// Soundstage has been called without the new keyword
 			return new MidiMap(objects, array);
 		}
 
@@ -168,7 +168,7 @@
 
 			var binding = createMidiBinding(data, object);
 			Collection.prototype.push.call(this, binding);
-			Soundio.debug && console.log('Soundio: create MIDI binding', binding.message, 'to', binding.object.id, binding.property);
+			Soundstage.debug && console.log('Soundstage: create MIDI binding', binding.message, 'to', binding.object.id, binding.property);
 			return binding;
 		});
 
@@ -192,6 +192,6 @@
 //		unlisten: unlisten
 	});
 
-	Soundio.MidiMap = MidiMap;
-	Soundio.transforms = transforms;
+	Soundstage.MidiMap = MidiMap;
+	Soundstage.transforms = transforms;
 })(window);

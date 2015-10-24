@@ -1,4 +1,4 @@
-(function(Soundio) {
+(function(Soundstage) {
 	"use strict";
 
 	var defaults = {
@@ -262,6 +262,6 @@
 		return plug;
 	}
 
-	Soundio.register('saturate', createSaturator, automationDefaults);
+	Soundstage.register('saturate', createSaturator, automationDefaults);
 
-})(window.Soundio);
+})(window.Soundstage);

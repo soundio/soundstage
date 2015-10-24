@@ -1,15 +1,15 @@
-# Soundio
+# Soundstage
 
-Soundio is a Graph Object Model for Web Audio processing graphs. It provides an API
+Soundstage is a Graph Object Model for Web Audio processing graphs. It provides an API
 for creating, manipulating and observing graphs, and a JSONify-able structure for
 exporting and importing them.
 
-Soundio is the library that powers <a href="http://sound.io">sound.io</a>.
+Soundstage is the library that powers <a href="http://sound.io">sound.io</a>.
 
 
 ## Dependencies and tests
 
-Soundio is in development. It is currently dependent on three repos that can be
+Soundstage is in development. It is currently dependent on three repos that can be
 installed as git submodules:
 
 - <a href="https://github.com/cruncher/collection">github.com/cruncher/collection</a>
@@ -28,9 +28,9 @@ Tests use Karma. To run tests:
 	npm install
 	karma start
 
-## Soundio(data, options) – overview
+## Soundstage(data, options) – overview
 
-Soundio <code>data</code> is an object with properties that define audio objects,
+Soundstage <code>data</code> is an object with properties that define audio objects,
 the connections between them, a MIDI map and playable sequences. All properties
 are optional:
 
@@ -57,7 +57,7 @@ are optional:
 
 <code>objects</code> is an array of
 <a href="http://github.com/soundio/audio-object">audio objects</a> (an audio
-object is a wrapper for a Web Audio node graph). In Soundio, audio objects must
+object is a wrapper for a Web Audio node graph). In Soundstage, audio objects must
 have an <code>id</code> and <code>type</code>. Other properties depend on the
 audio params that this type of audio object exposes.
 
@@ -72,9 +72,9 @@ between the audio objects.
 <a href="http://github.com/soundio/music-json">Music JSON</a> sequence array of
 events. The sequence is played on <code>soundio.sequence.start()</code>.
 
-Call Soundio with this data to set it up as an audio graph:
+Call Soundstage with this data to set it up as an audio graph:
 
-	var soundio = Soundio(data);
+	var soundio = Soundstage(data);
 
 Turn your volume down a bit, enable the mic when prompted by the browser, and
 you will hear your voice being flanged.
@@ -87,19 +87,19 @@ The resulting object, <code>soundio</code>, has the same structure as
 This means you can <b>export an audio graph</b> you have made at, say,
 <a href="http://sound.io">sound.io</a> – open the console and run
 <code>JSON.stringify(soundio)</code> – and <b>import it into your own web
-page</b> – call <code>Soundio(data)</code> with the data.
+page</b> – call <code>Soundstage(data)</code> with the data.
 
-Soundio also accepts an <code>options</code> object. There is currently one
+Soundstage also accepts an <code>options</code> object. There is currently one
 option. Where your page has an existing audio context, pass it in to have
-Soundio use it:
+Soundstage use it:
 
-	var soundio = Soundio(data, { audio: myAudioContext });
+	var soundio = Soundstage(data, { audio: myAudioContext });
 
 ## soundio
 
 ### soundio.create(data)
 
-Create objects from data. As with <code>Soundio(data)</code>, but where
+Create objects from data. As with <code>Soundstage(data)</code>, but where
 <code>soundio.create(data)</code> adds new data to the existing data.
 
 ### soundio.clear()
@@ -466,14 +466,14 @@ example, get all connections from object with id <code>6</code>:
     soundio.connections.query({ object: 6 });
 
 
-## Soundio
+## Soundstage
 
-### Soundio.register(type, function)
+### Soundstage.register(type, function)
 
 Register an audio object constructor function for creating audio objects of
 <code>type</code>.
 
-	Soundio.register('my-audio-object', MyAudioObjectConstructor);
+	Soundstage.register('my-audio-object', MyAudioObjectConstructor);
 
 MyAudioObjectConstructor receives the parameters:
 
@@ -483,12 +483,12 @@ MyAudioObjectConstructor receives the parameters:
 	};
 
 <code>settings</code> is an object that comes directly from set-up data passed to
-<code>soundio.objects.create(type, settings)</code> or <code>Soundio(data)</code>.
+<code>soundio.objects.create(type, settings)</code> or <code>Soundstage(data)</code>.
 You should make sure the registered audio object correctly initialises itself
 from <code>settings</code>, and <code>JSON.stringify</code>s back to
 <code>settings</code>.
 
-Soundio comes with several audio object constructors already registered:
+Soundstage comes with several audio object constructors already registered:
 
     // Single node audio objects 
     'biquad-filter'
@@ -509,9 +509,9 @@ Soundio comes with several audio object constructors already registered:
 Overwrite them at your peril. To make your own audio objects, use the
 <a href=""
 
-### Soundio.isAudioParam(object)
+### Soundstage.isAudioParam(object)
 
-### Soundio.isDefined(value)
+### Soundstage.isDefined(value)
 
 Returns <code>true</code> where <code>value</code> is not <code>undefined</code>
 or <code>null</code>.

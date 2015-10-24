@@ -1,6 +1,6 @@
 {
   "name": "soundio",
-  "title": "Soundio",
+  "title": "Soundstage",
   "version": "0.2.0",
   "homepage": "http://sound.io",
   "description": "A live Graph Object Model for the Web Audio API.",

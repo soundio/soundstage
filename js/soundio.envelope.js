@@ -1,4 +1,4 @@
-(function(Soundio) {
+(function(Soundstage) {
 	"use strict";
 
 	var defaults = {
@@ -70,5 +70,5 @@
 		return enveloper;
 	}
 
-	Soundio.register('envelope', createEnveloper);
-})(window.Soundio);
+	Soundstage.register('envelope', createEnveloper);
+})(window.Soundstage);

@@ -1,7 +1,7 @@
 (function(window) {
 	"use strict";
 
-	var Soundio  = window.Soundio;
+	var Soundstage  = window.Soundstage;
 	var assign   = Object.assign;
 
 	// Ignore any notes that have a region gain less than -60dB. This does not
@@ -111,7 +111,7 @@
 		}
 
 		function fetchBufferN(n, url) {
-			Soundio
+			Soundstage
 			.fetchBuffer(audio, url)
 			.then(function(buffer) {
 				buffers[n] = buffer;
@@ -123,7 +123,7 @@
 			var sampleMap = presets.find(object['sample-map']);
 
 			if (!sampleMap) {
-				console.log('Soundio sampler:', object['sample-map'], 'is not in presets.');
+				console.log('Soundstage sampler:', object['sample-map'], 'is not in presets.');
 				return;
 			}
 
@@ -167,7 +167,7 @@
 				buffer = buffers[n];
 
 				if (!buffer) {
-					console.log('Soundio sampler: No buffer for region', n);
+					console.log('Soundstage sampler: No buffer for region', n);
 					continue;
 				}
 
@@ -234,5 +234,5 @@
 		return object;
 	}
 
-	Soundio.register('sampler', createSampler);
+	Soundstage.register('sampler', createSampler);
 })(window);

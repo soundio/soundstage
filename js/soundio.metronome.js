@@ -2,7 +2,7 @@
 	"use strict";
 
 	var AudioObject = window.AudioObject;
-	var Soundio = window.Soundio;
+	var Soundstage = window.Soundstage;
 	var assign = Object.assign;
 	var defaults = {
 		beats: 4,
@@ -83,5 +83,5 @@
 
 	assign(MetronomeObject.prototype, AudioObject.prototype);
 
-	Soundio.register('metronome', MetronomeObject);
+	Soundstage.register('metronome', MetronomeObject);
 })(window);

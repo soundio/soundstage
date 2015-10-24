@@ -1,4 +1,4 @@
-(function(Soundio) {
+(function(Soundstage) {
 	"use strict";
 
 	var assign = Object.assign;
@@ -50,5 +50,5 @@
 		return object;
 	}
 
-	Soundio.register('output', createOutput);
-})(window.Soundio);
+	Soundstage.register('output', createOutput);
+})(window.Soundstage);

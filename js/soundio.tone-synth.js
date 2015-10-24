@@ -1,8 +1,8 @@
 (function(window) {
 	"use strict";
 
-	// Require Soundio and AudioObject.
-	var Soundio = window.Soundio;
+	// Require Soundstage and AudioObject.
+	var Soundstage = window.Soundstage;
 	var AudioObject = window.AudioObject;
 	var MIDI = window.MIDI;
 
@@ -84,7 +84,7 @@
 		return n * (Math.random() + Math.random() - 1);
 	}
 
-	// A Soundio plugin is created with an object constructor.
+	// A Soundstage plugin is created with an object constructor.
 	// The constructor must create an instance of AudioObject.
 	// One way to do this is to use AudioObject as a mix-in.
 	function ToneSynthAudioObject(audio, settings, clock) {
@@ -349,8 +349,8 @@
 	// Mix AudioObject prototype into MyObject prototype
 	assign(ToneSynthAudioObject.prototype, AudioObject.prototype);
 
-	// Register the object constructor with Soundio. The last
+	// Register the object constructor with Soundstage. The last
 	// parameter, controls, is optional but recommended if the
 	// intent is to make the object controllable, eg. via MIDI.
-	Soundio.register('tone-synth', ToneSynthAudioObject, automation);
+	Soundstage.register('tone-synth', ToneSynthAudioObject, automation);
 })(window);

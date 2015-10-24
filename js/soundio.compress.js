@@ -1,4 +1,4 @@
-(function(Soundio) {
+(function(Soundstage) {
 	"use strict";
 
 	var defaults = {
@@ -47,5 +47,5 @@
 		return effect;
 	}
 
-	Soundio.register('compress', Compressor, automation);
-})(window.Soundio);
+	Soundstage.register('compress', Compressor, automation);
+})(window.Soundstage);

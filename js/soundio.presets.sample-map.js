@@ -1,9 +1,9 @@
 (function(window) {
 	"use strict";
 
-	var Soundio = window.Soundio;
+	var Soundstage = window.Soundstage;
 
-	Soundio.presets[Soundio.presets.create ? 'create' : 'add']({
+	Soundstage.presets[Soundstage.presets.create ? 'create' : 'add']({
 		type: 'sample-map',
 		version: 1,
 		name: 'Gretsch Kit',
