@@ -1,4 +1,4 @@
-NOTE: This lib has had a name change. It was called Soundio, but has been renamed to avoid confusing it with the website sound.io. You will still find ref
+NOTE: This lib has been renamed to avoid confusing it with the website sound.io. You may still find references to Soundio in the code.
 
 # Soundstage
 
