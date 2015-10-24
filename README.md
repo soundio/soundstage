@@ -1,3 +1,5 @@
+NOTE: This lib has had a name change. It was called Soundio, but has been renamed to avoid confusing it with the website sound.io. You will still find ref
+
 # Soundstage
 
 Soundstage is a Graph Object Model for Web Audio processing graphs. It provides an API
@@ -19,8 +21,8 @@ installed as git submodules:
 
 Install with submodules:
 
-	git clone https://github.com/soundio/soundio.git
-	cd soundio
+	git clone https://github.com/soundio/soundstage.git
+	cd soundstage
 	git submodule update --init
 
 Tests use Karma. To run tests:
@@ -70,56 +72,56 @@ between the audio objects.
 
 <code>sequence</code> is a
 <a href="http://github.com/soundio/music-json">Music JSON</a> sequence array of
-events. The sequence is played on <code>soundio.sequence.start()</code>.
+events. The sequence is played on <code>soundstage.sequence.start()</code>.
 
 Call Soundstage with this data to set it up as an audio graph:
 
-	var soundio = Soundstage(data);
+	var soundstage = Soundstage(data);
 
 Turn your volume down a bit, enable the mic when prompted by the browser, and
 you will hear your voice being flanged.
 
-The resulting object, <code>soundio</code>, has the same structure as
+The resulting object, <code>soundstage</code>, has the same structure as
 <code>data</code>, so the graph can be converted back to data with:
 
-	JSON.stringify(soundio);
+	JSON.stringify(soundstage);
 
 This means you can <b>export an audio graph</b> you have made at, say,
 <a href="http://sound.io">sound.io</a> – open the console and run
-<code>JSON.stringify(soundio)</code> – and <b>import it into your own web
+<code>JSON.stringify(soundstage)</code> – and <b>import it into your own web
 page</b> – call <code>Soundstage(data)</code> with the data.
 
 Soundstage also accepts an <code>options</code> object. There is currently one
 option. Where your page has an existing audio context, pass it in to have
 Soundstage use it:
 
-	var soundio = Soundstage(data, { audio: myAudioContext });
+	var soundstage = Soundstage(data, { audio: myAudioContext });
 
-## soundio
+## soundstage
 
-### soundio.create(data)
+### soundstage.create(data)
 
 Create objects from data. As with <code>Soundstage(data)</code>, but where
-<code>soundio.create(data)</code> adds new data to the existing data.
+<code>soundstage.create(data)</code> adds new data to the existing data.
 
-### soundio.clear()
+### soundstage.clear()
 
 Remove and destroy all objects and connections.
 
-### soundio.destroy()
+### soundstage.destroy()
 
 Removes and destroys all objects and connections, disconnects any media
-inputs from soundio's input, and disconnects soundio's output from audio
+inputs from soundstage's input, and disconnects soundstage's output from audio
 destination.
 
-### soundio.objects
+### soundstage.objects
 
 A collecton of <a href="http://github.com/soundio/audio-object">audio objects</a>.
-An audio object controls one or more audio nodes. In soundio, audio objects have
+An audio object controls one or more audio nodes. In soundstage, audio objects have
 an <code>id</code> and a <code>type</code>. <code>name</code> is optional. Other
 properties depend on the type.
 
-	var flanger = soundio.objects.find(1);
+	var flanger = soundstage.objects.find(1);
 	
 	{
 	    id: 7,
@@ -138,7 +140,7 @@ Web Audio graph.
 For more about audio objects see
 <a href="http://github.com/soundio/audio-object">github.com/soundio/audio-object</a>.
 
-#### soundio.objects.create(type, settings)
+#### soundstage.objects.create(type, settings)
 
 Create an audio object.
 
@@ -171,23 +173,23 @@ These audio objects wrap single Web Audio nodes and can be useful for testing:
 <code>settings</code> depend on the type of audio object being created.
 
 Returns the created audio object. Created objects can also be found in
-<code>soundio.objects</code>, as well as in <code>soundio.inputs</code> and
-<code>soundio.outputs</code> if they are of type <code>"input"</code> or
+<code>soundstage.objects</code>, as well as in <code>soundstage.inputs</code> and
+<code>soundstage.outputs</code> if they are of type <code>"input"</code> or
 <code>"output"</code> respectively.
 
-#### soundio.objects.delete(object || id)
+#### soundstage.objects.delete(object || id)
 
 Destroy an audio object in the graph. Both the object and any connections to or
 from the object are destroyed.
 
-#### soundio.objects.find(id || query)
-#### soundio.objects.query(query)
+#### soundstage.objects.find(id || query)
+#### soundstage.objects.query(query)
 
-### soundio.connections
+### soundstage.connections
 
 A collection of connections between the audio objects in the graph. A connection
 has a <code>source</code> and a <code>destination</code> that point to
-<code>id</code>s of objects in <code>soundio.objects</code>:
+<code>id</code>s of objects in <code>soundstage.objects</code>:
 
 	{
 		source: 7,
@@ -205,44 +207,44 @@ and/or a named input node on the destination object:
 	}
 
 
-#### soundio.connections.create(data)
+#### soundstage.connections.create(data)
 
 Connect two objects. <code>data</code> must have <code>source</code> and
 <code>destination</code> defined. Naming an <code>output</code> or
 <code>input</code> is optional. They will default to <code>"default"</code>.
 
-    soundio.connections.create({
+    soundstage.connections.create({
         source: 7,
         output: "send",
         destination: 12
     });
 
 
-#### soundio.connections.delete(query)
+#### soundstage.connections.delete(query)
 
 Removes all connections whose properties are equal to the properties defined in
 the <code>query</code> object. For example, disconnect all connections to
 object with id <code>3</code>:
 
-    soundio.connections.query({ destination: 3 });
+    soundstage.connections.query({ destination: 3 });
 
 
-#### soundio.connections.query(query)
+#### soundstage.connections.query(query)
 
 Returns an array of all objects in <code>connections</code> whose properties
 are equal to the properties defined in the <code>query</code> object. For
 example, get all connections from object with id <code>6</code>:
 
-    soundio.connections.query({ source: 6 });
+    soundstage.connections.query({ source: 6 });
 
 
-### soundio.clock
+### soundstage.clock
 
 An instance of <code><a href="http://github.com/soundio/clock">Clock</a></code>,
 which requires the repo <a href="http://github.com/soundio/clock">github.com/soundio/clock</a>.
-If <code>Clock</code> is not found, <code>soundio.clock</code> is <code>undefined</code>.
+If <code>Clock</code> is not found, <code>soundstage.clock</code> is <code>undefined</code>.
 
-<code>soundio.clock</code> is a Collection of tempo data that maps a
+<code>soundstage.clock</code> is a Collection of tempo data that maps a
 <code>beat</code> clock against the audio context's <code>time</code> clock. It
 is a library of properties and methods for scheduling function calls. It is also
 an <a href="http://github.com/soundio/audio-object">AudioObject</a> with two
@@ -416,7 +418,7 @@ Remove all cues after <code>time</code> for <code>fn</code> from the timer queue
 
 
 
-### soundio.midi
+### soundstage.midi
 
 A collection of MIDI routes that make object properties controllable via
 incoming MIDI events. A midi route looks like this:
@@ -431,11 +433,11 @@ incoming MIDI events. A midi route looks like this:
     }
 
 
-#### soundio.midi.create(data)
+#### soundstage.midi.create(data)
 
 Create a MIDI route from data:
 
-    soundio.midi.create({
+    soundstage.midi.create({
         message:   [191, 0],
         object:    1,
         property:  "gain",
@@ -448,22 +450,22 @@ The properties <code>transform</code>, <code>min</code> and <code>max</code> are
 optional. They default to different values depending on the type of the object.
 
 
-#### soundio.midi.delete(query)
+#### soundstage.midi.delete(query)
 
 Removes all MIDI routes whose properties are equal to the properties defined in
 the <code>query</code> object. For example, disconnect all routes to gain
 properties:
 
-    soundio.midi.query({ property: "gain" });
+    soundstage.midi.query({ property: "gain" });
 
 
-#### soundio.midi.query(query)
+#### soundstage.midi.query(query)
 
-Returns an array of all objects in <code>soundio.midi</code> whose properties
+Returns an array of all objects in <code>soundstage.midi</code> whose properties
 are equal to the properties defined in the <code>query</code> object. For
 example, get all connections from object with id <code>6</code>:
 
-    soundio.connections.query({ object: 6 });
+    soundstage.connections.query({ object: 6 });
 
 
 ## Soundstage
@@ -483,7 +485,7 @@ MyAudioObjectConstructor receives the parameters:
 	};
 
 <code>settings</code> is an object that comes directly from set-up data passed to
-<code>soundio.objects.create(type, settings)</code> or <code>Soundstage(data)</code>.
+<code>soundstage.objects.create(type, settings)</code> or <code>Soundstage(data)</code>.
 You should make sure the registered audio object correctly initialises itself
 from <code>settings</code>, and <code>JSON.stringify</code>s back to
 <code>settings</code>.
