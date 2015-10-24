@@ -554,6 +554,7 @@
 			connections: { value: connections, enumerable: true },
 			clock:    { value: clock },
 			sequence: { value: sequence, enumerable: true },
+			sequences: { value: {}, enumerable: true },
 			presets:  { value: Soundstage.presets, enumerable: true },
 			roundTripLatency: { value: Soundstage.roundTripLatency, writable: true, configurable: true }
 		});
@@ -594,6 +595,8 @@
 		},
 
 		create: function(data) {
+			if (!data) { return this; }
+
 			var input = AudioObject.getInput(this);
 			var output = AudioObject.getOutput(this);
 
@@ -609,7 +612,7 @@
 
 			console.groupCollapsed('Soundstage: create graph...');
 
-			if (data && data.objects && data.objects.length) {
+			if (data.objects && data.objects.length) {
 				var n = data.objects.length;
 				var object, type;
 
@@ -642,15 +645,15 @@
 				}
 			}
 
-			if (data && data.connections && data.connections.length) {
+			if (data.connections && data.connections.length) {
 				this.connections.create.apply(this.connections, data.connections);
 			}
 
-			if (data && data.midi && data.midi.length) {
+			if (data.midi && data.midi.length) {
 				this.midi.create.apply(this.midi, data.midi);
 			}
 
-			if (data && data.clock && data.clock.length) {
+			if (data.clock && data.clock.length) {
 				if (this.clock) {
 					this.clock.create.apply(this.clock, data.clock);
 				}
@@ -660,13 +663,17 @@
 				}
 			}
 
-			if (data && data.sequence && data.sequence.length) {
+			if (data.sequence && data.sequence.length) {
 				if (this.sequence) {
 					this.sequence.add.apply(this.sequence, data.sequence);
 				}
 				else {
 					console.warn('Soundstage: sequence data not imported. soundio.sequence requires github.com/soundio/sequence.')
 				}
+			}
+
+			if (data.sequences) {
+				assign(this.sequences, data.sequences);
 			}
 
 			this.trigger('create');
