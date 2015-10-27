@@ -673,7 +673,12 @@
 			}
 
 			if (data.sequences) {
-				assign(this.sequences, data.sequences);
+				var keys = Object.keys(data.sequences);
+				var k = keys.length;
+
+				while (k--) {
+					this.sequences[keys[k]] = new Collection(data.sequences[keys[k]], { index: 0 });
+				}
 			}
 
 			this.trigger('create');
