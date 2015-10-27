@@ -2,7 +2,7 @@
 	if (!window.console || !window.console.log) { return; }
 
 	console.log('Soundstage');
-	console.log('http://github.com/soundio/soundio');
+	console.log('http://github.com/soundio/soundstage');
 	console.log('Graph Object Model for the Web Audio API');
 	console.log('––––––––––––––––––––––––––––––––––––––––');
 })(this);
@@ -95,7 +95,7 @@
 
 	function create(audio, type, settings, clock, presets) {
 		if (!registry[type]) {
-			throw new Error('soundio: Calling Soundstage.create(type, settings) unregistered type: ' + type);
+			throw new Error('soundstage: Calling Soundstage.create(type, settings) unregistered type: ' + type);
 		}
 
 		var object = new registry[type][0](audio, settings, clock, presets);
@@ -117,14 +117,14 @@
 
 	function register(name, fn, defaults) {
 		if (registry[name]) {
-			throw new Error('soundio: Calling Soundstage.register(name, fn) but name already registered: ' + name);
+			throw new Error('soundstage: Calling Soundstage.register(name, fn) but name already registered: ' + name);
 		}
 
 		registry[name] = [fn, defaults];
 	}
 
 	function retrieveDefaults(name) {
-		if (!registry[name]) { throw new Error('soundio: Calling Soundstage.defaults(name) unregistered name: ' + name); }
+		if (!registry[name]) { throw new Error('soundstage: Calling Soundstage.defaults(name) unregistered name: ' + name); }
 		return assign({}, registry[name][1]);
 	}
 
@@ -164,8 +164,8 @@
 		return merger;
 	}
 
-	function createInputObjects(soundio, count) {
-		var input = AudioObject.getInput(soundio);
+	function createInputObjects(soundstage, count) {
+		var input = AudioObject.getInput(soundstage);
 
 		function hasChannelsMono(object) {
 			return object.channels + '' === [count] + '';
@@ -178,8 +178,8 @@
 		while (count--) {
 			// Only create new inputs where an input with this
 			// channel does not already exist.
-			if(!soundio.inputs.filter(hasChannelsMono).length) {
-				soundio.objects.create('input', {
+			if(!soundstage.inputs.filter(hasChannelsMono).length) {
+				soundstage.objects.create('input', {
 					input: input,
 					channels: [count]
 				});
@@ -187,19 +187,19 @@
 
 			// Only create a new stereo input where an input with these
 			// channels does not already exist.
-			if (count % 2 === 0 && !soundio.inputs.filter(hasChannelsStereo).length) {
-				soundio.objects.create('input', {
+			if (count % 2 === 0 && !soundstage.inputs.filter(hasChannelsStereo).length) {
+				soundstage.objects.create('input', {
 					input: input,
 					channels: [count, count + 1]
 				});
 			}
 		}
 
-		soundio.inputs.sort(byChannels);
+		soundstage.inputs.sort(byChannels);
 	}
 
-	function createOutputObjects(soundio, count) {
-		var output = AudioObject.getOutput(soundio);
+	function createOutputObjects(soundstage, count) {
+		var output = AudioObject.getOutput(soundstage);
 
 		function hasChannelsMono(object) {
 			return object.channels + '' === [count] + '';
@@ -212,15 +212,15 @@
 		while (count--) {
 			// Only create new outputs where an input with this
 			// channel does not already exist.
-			if (count % 2 === 0 && !soundio.outputs.filter(hasChannelsStereo).length) {
-				soundio.objects.create('output', {
+			if (count % 2 === 0 && !soundstage.outputs.filter(hasChannelsStereo).length) {
+				soundstage.objects.create('output', {
 					output: output,
 					channels: [count, count + 1]
 				});
 			}
 		}
 
-		soundio.outputs.sort(byChannels);
+		soundstage.outputs.sort(byChannels);
 	}
 
 	// Soundstage constructor
@@ -245,10 +245,10 @@
 
 	// Objects
 
-	function Objects(soundio, array, settings) {
+	function Objects(soundstage, array, settings) {
 		if (this === undefined || this === window) {
 			// Soundstage has been called without the new keyword
-			return new Objects(soundio, array, settings);
+			return new Objects(soundstage, array, settings);
 		}
 
 		// Initialise connections as an Collection 
@@ -280,9 +280,9 @@
 				}
 			}
 
-			var audio = soundio.audio;
+			var audio = soundstage.audio;
 
-			object = create(audio, type, settings, soundio.clock, soundio.presets);
+			object = create(audio, type, settings, soundstage.clock, soundstage.presets);
 
 			Object.defineProperty(object, 'id', {
 				value: settings && settings.id || createId(this),
@@ -300,8 +300,8 @@
 		};
 
 		this.delete = function(object) {
-			soundio.connections.delete({ source: object.id });
-			soundio.connections.delete({ destination: object.id });
+			soundstage.connections.delete({ source: object.id });
+			soundstage.connections.delete({ destination: object.id });
 			this.remove(object);
 			object.destroy();
 		};
@@ -415,10 +415,10 @@
 		}
 	}
 
-	function Connections(soundio, array, settings) {
+	function Connections(soundstage, array, settings) {
 		if (this === undefined || this === window) {
 			// Soundstage has been called without the new keyword
-			return new Connections(soundio, array, settings);
+			return new Connections(soundstage, array, settings);
 		}
 
 		// Initialise connections as a Collection 
@@ -430,8 +430,8 @@
 				return this;
 			};
 
-			var source = isDefined(data.source) && soundio.objects.find(data.source);
-			var destination = isDefined(data.destination) && soundio.objects.find(data.destination);
+			var source = isDefined(data.source) && soundstage.objects.find(data.source);
+			var destination = isDefined(data.destination) && soundstage.objects.find(data.destination);
 
 			if (!source || !destination) {
 				console.warn('Soundstage: Failed to create connection – source or destination not found.', data);
@@ -451,22 +451,22 @@
 
 		this
 		.on('remove', function(connections, connection) {
-			var source = soundio.objects.find(connection.source);
-			var destination = soundio.objects.find(connection.destination);
+			var source = soundstage.objects.find(connection.source);
+			var destination = soundstage.objects.find(connection.destination);
 			var outputName = isDefined(connection.output) ? connection.output : 'default' ;
 			var inputName  = isDefined(connection.input)  ? connection.input  : 'default' ;
 
 			if (!source) {
-				Soundstage.debug && console.log('Soundstage: connection.source', connection.source, 'is not in soundio.objects.');
+				Soundstage.debug && console.log('Soundstage: connection.source', connection.source, 'is not in soundstage.objects.');
 				return;
 			}
 
 			if (!destination) {
-				Soundstage.debug && console.log('Soundstage: connection.destination', connection.destination, 'is not in soundio.objects.');
+				Soundstage.debug && console.log('Soundstage: connection.destination', connection.destination, 'is not in soundstage.objects.');
 				return;
 			}
 
-			disconnect(source, destination, outputName, inputName, undefined, undefined, soundio.connections);
+			disconnect(source, destination, outputName, inputName, undefined, undefined, soundstage.connections);
 		});
 	}
 
@@ -517,7 +517,7 @@
 			return new Soundstage(data, settings);
 		}
 
-		var soundio  = this;
+		var soundstage = this;
 		var options  = assign({}, defaults, settings);
 		var objects  = Objects(this);
 		var midi     = Soundstage.MidiMap(objects);
@@ -527,7 +527,7 @@
 		var clock    = new Clock(options.audio);
 		var sequence = new Sequence(clock, [], {
 			resolve: function(sequence, path) {
-				var object = soundio.find(path);
+				var object = soundstage.find(path);
 
 				if (!object) {
 					console.warn('Soundstage: object', path, 'not found.');
@@ -538,14 +538,14 @@
 			}
 		});
 
-		// Initialise soundio as an Audio Object 
-		AudioObject.call(soundio, options.audio, input, output);
+		// Initialise soundstage as an Audio Object 
+		AudioObject.call(soundstage, options.audio, input, output);
 
 		// Hitch up the output to the destination
 		output.connect(audio.destination);
 
-		// Define soundio's properties
-		Object.defineProperties(soundio, {
+		// Define soundstage's properties
+		Object.defineProperties(soundstage, {
 			audio:    { value: options.audio },
 			midi:     { value: midi, enumerable: true },
 			objects:  { value: objects, enumerable: true },
@@ -559,14 +559,14 @@
 			roundTripLatency: { value: Soundstage.roundTripLatency, writable: true, configurable: true }
 		});
 
-		soundio.create(data);
+		soundstage.create(data);
 
 		if (Soundstage.debug) {
-			soundio.on('clear', function(soundio) {
+			soundstage.on('clear', function(soundstage) {
 				console.log('Soundstage: "clear"');
-				console.log('Soundstage: soundio.objects', soundio.objects.length);
-				console.log('Soundstage: soundio.connections', soundio.connections.length);
-				if (Clock) { console.log('Soundstage: soundio.clock', soundio.clock.length); }
+				console.log('Soundstage: soundstage.objects', soundstage.objects.length);
+				console.log('Soundstage: soundstage.connections', soundstage.connections.length);
+				if (Clock) { console.log('Soundstage: soundstage.clock', soundstage.clock.length); }
 			});
 		}
 	}
@@ -621,11 +621,11 @@
 					type = object.type;
 
 					// Nasty workaround for fact that input and output
-					// objects need soundio's input and output nodes.
+					// objects need soundstage's input and output nodes.
 					if (type === 'input') {
 						// If we are creating an input for the first time, now
 						// is the moment to request user permission to use the
-						// microphone and hook it up soundio's input node.
+						// microphone and hook it up soundstage's input node.
 						if (mediaInputs.indexOf(input) === -1) {
 							Soundstage.requestMedia().then(function(media) {
 								input.channelCount = media.channelCount;
@@ -659,7 +659,7 @@
 				}
 				else {
 					// Uh-oh
-					console.warn('Soundstage: clock data not imported. soundio.clock requires github.com/soundio/clock.')
+					console.warn('Soundstage: clock data not imported. soundstage.clock requires github.com/soundio/clock.')
 				}
 			}
 
@@ -668,7 +668,7 @@
 					this.sequence.add.apply(this.sequence, data.sequence);
 				}
 				else {
-					console.warn('Soundstage: sequence data not imported. soundio.sequence requires github.com/soundio/sequence.')
+					console.warn('Soundstage: sequence data not imported. soundstage.sequence requires github.com/soundio/sequence.')
 				}
 			}
 
@@ -736,7 +736,7 @@
 		},
 
 		destroy: function() {
-			// Remove soundio's input node from mediaInputs, and disconnect
+			// Remove soundstage's input node from mediaInputs, and disconnect
 			// media from it.
 			var input = AudioObject.getInput(this);
 			var i = mediaInputs.indexOf(input);
