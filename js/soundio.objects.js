@@ -1,7 +1,7 @@
 (function(window) {
 	"use strict";
 
-	var Soundio = window.Soundio;
+	var Soundstage = window.Soundstage;
 	var assign  = Object.assign;
 	
 	var cache = [];
@@ -57,7 +57,7 @@
 	}
 
 	assign(DelayAudioObject.prototype, AudioObject.prototype);
-	Soundio.register('delay', DelayAudioObject, {
+	Soundstage.register('delay', DelayAudioObject, {
 		delay: { min: 0, max: 2, transform: 'linear', value: 0.020 }
 	});
 
@@ -95,7 +95,7 @@
 	}
 
 	assign(ScriptAudioObject.prototype, AudioObject.prototype);
-	Soundio.register('script', ScriptAudioObject);
+	Soundstage.register('script', ScriptAudioObject);
 
 
 
@@ -141,7 +141,7 @@
 	}
 
 	assign(SignalDetectorAudioObject.prototype, AudioObject.prototype);
-	Soundio.register('signal-detector', SignalDetectorAudioObject);
+	Soundstage.register('signal-detector', SignalDetectorAudioObject);
 
 
 
@@ -169,7 +169,7 @@
 		}
 		else if (typeof options.buffer === "string") {
 			// It's an URL. Go fetch the data.
-			Soundio
+			Soundstage
 			.fetchBuffer(audio, options.buffer)
 			.then(function(fetchedBuffer) {
 				buffer = fetchedBuffer;
@@ -265,7 +265,7 @@
 	}
 
 	assign(BufferAudioObject.prototype, AudioObject.prototype);
-	Soundio.register('buffer', BufferAudioObject, {
+	Soundstage.register('buffer', BufferAudioObject, {
 		pitch: { min: -128, max: 128, transform: 'linear', value: 0 }
 	});
 
@@ -274,7 +274,7 @@
 
 	// Pan Audio Object
 
-	Soundio.register('panner', function PanAudioObject(audio, settings) {
+	Soundstage.register('panner', function PanAudioObject(audio, settings) {
 		var options = assign({}, defaults, settings);
 		var node    = audio.createDelay();
 		var object  = AudioObject(audio, node, node);
@@ -292,7 +292,7 @@
 		return object;
 	}, {});
 
-	Soundio.register('stereo panner', function createStereoPannerObject(audio, settings) {
+	Soundstage.register('stereo panner', function createStereoPannerObject(audio, settings) {
 		var options = assign({}, defaults, settings);
 		var node    = audio.createStereoPanner();
 		var object  = AudioObject(audio, node, node, {
@@ -304,7 +304,7 @@
 		pan: { min: -1, max: 1, transform: 'linear' , value: 0 }
 	});
 
-	Soundio.register('convolver', function createConvolverObject(audio, settings) {
+	Soundstage.register('convolver', function createConvolverObject(audio, settings) {
 		var options = assign({}, defaults, settings);
 		var node    = audio.createConvolver();
 		var object  = AudioObject(audio, node, node);
@@ -317,7 +317,7 @@
 		return object;
 	}, {});
 
-	Soundio.register('compressor', function createCompressorObject(audio, settings) {
+	Soundstage.register('compressor', function createCompressorObject(audio, settings) {
 		var options = assign({}, defaults, settings);
 		var node    = audio.createDynamicsCompressor();
 		var object  = AudioObject(audio, node, node, {
@@ -339,7 +339,7 @@
 		release:   { min: 0,   max: 1,   transform: 'quadratic', value: 0.16  }  // seconds
 	});
 
-	Soundio.register('biquad-filter', function createBiquadFilterObject(audio, settings) {
+	Soundstage.register('biquad-filter', function createBiquadFilterObject(audio, settings) {
 		var options = assign({}, defaults, settings);
 		var node    = audio.createBiquadFilter();
 		var object  = AudioObject(audio, node, node, {
@@ -349,7 +349,7 @@
 			gain:      node.gain
 		});
 
-		// We can't use 'type' as it is required by Soundio to describe the type
+		// We can't use 'type' as it is required by Soundstage to describe the type
 		// of audio object.
 		Object.defineProperty(object, 'shape', {
 			get: function() { return node.type; },
@@ -367,7 +367,7 @@
 		gain:      { min: -40,    max: 40,    transform: 'linear',      value: 0 }
 	});
 
-	Soundio.register('waveshaper', function createWaveshaperObject(audio, settings) {
+	Soundstage.register('waveshaper', function createWaveshaperObject(audio, settings) {
 		var options = assign({}, defaults, settings);
 		var node    = audio.createWaveShaper();
 		var object  = AudioObject(audio, node, node);
@@ -395,7 +395,7 @@
 
 		aliasProperty(object, node, 'onended');
 
-		// We can't use 'type' as it is required by Soundio to describe the type
+		// We can't use 'type' as it is required by Soundstage to describe the type
 		// of audio object.
 		Object.defineProperty(object, 'wave', {
 			get: function() { return node.type; },
@@ -413,7 +413,7 @@
 
 	assign(OscillatorAudioObject.prototype, AudioObject.prototype);
 
-	Soundio.register('oscillator', OscillatorAudioObject, {
+	Soundstage.register('oscillator', OscillatorAudioObject, {
 		detune:    { min: -1200, max: 1200,  transform: 'linear' ,     value: 0 },
 		frequency: { min: 16,    max: 16000, transform: 'logarithmic', value: 440 }
 	});

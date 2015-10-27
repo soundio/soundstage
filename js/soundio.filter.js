@@ -1,4 +1,4 @@
-(function(Soundio) {
+(function(Soundstage) {
 	"use strict";
 
 	var extend = Object.assign;
@@ -33,7 +33,7 @@
 		var input = audio.createGain();
 		var output = audio.createGain();
 		var filter = audio.createBiquadFilter();
-		var enveloper = Soundio.create(audio, 'envelope', {
+		var enveloper = Soundstage.create(audio, 'envelope', {
 		    	attack: options['env-attack'],
 		    	decay: options['env-decay']
 		    });
@@ -152,6 +152,6 @@
 		return effect;
 	}
 
-	Soundio.register('filter', createFilter, automation);
+	Soundstage.register('filter', createFilter, automation);
 
-})(window.Soundio);
+})(window.Soundstage);

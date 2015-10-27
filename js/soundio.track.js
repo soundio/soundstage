@@ -1,4 +1,4 @@
-(function(Soundio, AudioObject, Collection, app) {
+(function(Soundstage, AudioObject, Collection, app) {
 	"use strict";
 
 	var extend = Object.assign;
@@ -99,6 +99,6 @@
 		return new Track(audio, settings);
 	}
 
-	Soundio.register('track', createTrack, automation);
+	Soundstage.register('track', createTrack, automation);
 
-})(window.Soundio, window.AudioObject, window.Collection, window.app);
+})(window.Soundstage, window.AudioObject, window.Collection, window.app);

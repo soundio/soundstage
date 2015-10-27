@@ -1,4 +1,4 @@
-(function(Soundio) {
+(function(Soundstage) {
 	"use strict";
 
 	var extend = Object.assign;
@@ -170,6 +170,6 @@
 		return plug;
 	}
 
-	Soundio.register('send', createSend, automationDefaults);
+	Soundstage.register('send', createSend, automationDefaults);
 
-})(window.Soundio);
+})(window.Soundstage);

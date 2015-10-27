@@ -1,6 +1,6 @@
 module('AudioObject', function(fixture) {
 
-	var soundio = Soundio();
+	var soundio = Soundstage();
 
 	// We're going to test .connect() and .disconnect() by feeding a signal
 	// through a couple of audio nodes and seeing if we can detect it coming

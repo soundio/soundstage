@@ -1,4 +1,4 @@
-(function(Soundio) {
+(function(Soundstage) {
 	"use strict";
 
 	var extend = Object.assign;
@@ -193,6 +193,6 @@
 		return flanger;
 	}
 
-	Soundio.register('flange', createStereoFlanger, automation);
+	Soundstage.register('flange', createStereoFlanger, automation);
 
-})(window.Soundio);
+})(window.Soundstage);

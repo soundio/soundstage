@@ -23,5 +23,5 @@
 
 	assign(Gain.prototype, AudioObject.prototype);
 
-	Soundio.register('gain', Gain);
+	Soundstage.register('gain', Gain);
 })(window);

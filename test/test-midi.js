@@ -1,7 +1,7 @@
-module('Soundio MIDI', function(fixture) {
+module('Soundstage MIDI', function(fixture) {
 	"use strict";
 
-	var soundio = Soundio({
+	var soundio = Soundstage({
 		objects: [
 			{ id: 1,  type: 'input', channels: [0] },
 			{ id: 2,  type: 'output' },

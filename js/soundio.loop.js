@@ -1,7 +1,7 @@
 (function(window) {
 	"use strict";
 
-	var Soundio    = window.Soundio;
+	var Soundstage    = window.Soundstage;
 	var Collection = window.Collection;
 	var observe    = window.observe;
 	var unobserve  = window.unobserve;
@@ -201,11 +201,11 @@
 		    	}
 		    });
 
-		var latency = Soundio.roundTripLatency + bufferLength / audio.sampleRate ;
+		var latency = Soundstage.roundTripLatency + bufferLength / audio.sampleRate ;
 		var recordTime;
 
 		function start() {
-			latency = Soundio.roundTripLatency + bufferLength / audio.sampleRate ;
+			latency = Soundstage.roundTripLatency + bufferLength / audio.sampleRate ;
 			//console.log('START');
 			worker.postMessage({ type: 'start', time: audio.currentTime - latency, sampleRate: audio.sampleRate });
 			recording = 1;
@@ -306,6 +306,6 @@
 		}
 	});
 
-	Soundio.register('file', File);
-	Soundio.register('loop', Loop, automation);
+	Soundstage.register('file', File);
+	Soundstage.register('loop', Loop, automation);
 })(window);
