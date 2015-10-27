@@ -600,15 +600,15 @@
 			var input = AudioObject.getInput(this);
 			var output = AudioObject.getOutput(this);
 
-//			if (data && data.samplePatches && data.samplePatches.length) {
-//				console.groupCollapsed('Soundstage: create sampler presets...');
-//				if (typeof samplePatches === 'string') {
-//					// Sample presets is a URL! Uh-oh.
-//				}
-//				else {
-//					this.samplePatches.create.apply(this.connections, data.connections);
-//				}
-//			}
+			//	if (data && data.samplePatches && data.samplePatches.length) {
+			//		console.groupCollapsed('Soundstage: create sampler presets...');
+			//		if (typeof samplePatches === 'string') {
+			//			// Sample presets is a URL! Uh-oh.
+			//		}
+			//		else {
+			//			this.samplePatches.create.apply(this.connections, data.connections);
+			//		}
+			//	}
 
 			console.groupCollapsed('Soundstage: create graph...');
 
