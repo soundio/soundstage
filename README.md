@@ -116,7 +116,7 @@ destination.
 
 ### soundstage.objects
 
-A collecton of <a href="http://github.com/soundio/audio-object">audio objects</a>.
+A collection of <a href="http://github.com/soundio/audio-object">audio objects</a>.
 An audio object controls one or more audio nodes. In soundstage, audio objects have
 an <code>id</code> and a <code>type</code>. <code>name</code> is optional. Other
 properties depend on the type.
