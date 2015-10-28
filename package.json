@@ -1,9 +1,9 @@
 {
-  "name": "soundio",
+  "name": "soundstage",
   "title": "Soundstage",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "homepage": "http://sound.io",
-  "description": "A live Graph Object Model for the Web Audio API.",
+  "description": "Live Graph Object Model and Sequencing Engine for the Web Audio API.",
   "author": {
     "name": "Stephen Band",
     "twitter": "stephband"
@@ -17,7 +17,9 @@
     "browser",
     "web",
     "audio",
-    "soundio"
+    "soundio",
+    "soundstage",
+    "sequence"
   ],
   "bugs": {
     "url": "https://github.com/soundio/soundio/issues"

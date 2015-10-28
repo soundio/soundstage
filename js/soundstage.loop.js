@@ -12,8 +12,8 @@
 	    };
 
 	var bufferLength = 1024;
-	var workerPath = '/static/soundio/js/soundio.loop.worker.js';
- 
+	var workerPath = '/static/soundstage/js/soundstage.loop.worker.js';
+
 	var extend = Object.assign;
 	var processors = [];
 	var master = {

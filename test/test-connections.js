@@ -1,15 +1,15 @@
 module('AudioObject', function(fixture) {
 
-	var soundio = Soundstage();
+	var soundstage = Soundstage();
 
 	// We're going to test .connect() and .disconnect() by feeding a signal
 	// through a couple of audio nodes and seeing if we can detect it coming
 	// out the other end.
 
 	// Set up audio objects
-	var n0 = soundio.objects.create('oscillator');
-	var n1 = soundio.objects.create('signal-detector');
-	var n2 = soundio.objects.create('output', { output: AudioObject.getOutput(soundio) });
+	var n0 = soundstage.objects.create('oscillator');
+	var n1 = soundstage.objects.create('signal-detector');
+	var n2 = soundstage.objects.create('output', { output: AudioObject.getOutput(soundstage) });
 
 	function isReceivingSignal() {
 		return n1.signal;
@@ -17,17 +17,17 @@ module('AudioObject', function(fixture) {
 
 	n0.start();
 
-	//soundio.connections.create({ source: n0, destination: n2 });
+	//soundstage.connections.create({ source: n0, destination: n2 });
 
 	// Tests
 
-	test('soundio.objects.length', 1, function() {
-		ok(soundio.objects.length === 3);
+	test('soundstage.objects.length', 1, function() {
+		ok(soundstage.objects.length === 3);
 	});
 
 	asyncTest('Testing connections.create()', 2, function() {
-		soundio.connections.create({ source: n0, destination: n1 });
-		ok(soundio.connections.length === 1);
+		soundstage.connections.create({ source: n0, destination: n1 });
+		ok(soundstage.connections.length === 1);
 
 		setTimeout(function() {
 			ok(isReceivingSignal(), 'Not receiving any signal!');
@@ -36,8 +36,8 @@ module('AudioObject', function(fixture) {
 	});
 
 	asyncTest('Testing connections.delete()', 2, function() {
-		soundio.connections.delete({ source: n0, destination: n1 });
-		ok(soundio.connections.length === 0);
+		soundstage.connections.delete({ source: n0, destination: n1 });
+		ok(soundstage.connections.length === 0);
 
 		setTimeout(function() {
 			ok(!isReceivingSignal(), 'Signal should have been disconnected.');
@@ -46,10 +46,10 @@ module('AudioObject', function(fixture) {
 	});
 
 	asyncTest('Testing connections.delete()', 2, function() {
-		soundio.connections.create({ source: n0, destination: n1 });
-		soundio.connections.create({ source: n0, destination: n2 });
-		soundio.connections.delete({ source: n0, destination: n2 });
-		ok(soundio.connections.length === 1);
+		soundstage.connections.create({ source: n0, destination: n1 });
+		soundstage.connections.create({ source: n0, destination: n2 });
+		soundstage.connections.delete({ source: n0, destination: n2 });
+		ok(soundstage.connections.length === 1);
 
 		setTimeout(function() {
 			ok(isReceivingSignal(), 'Not receiving any signal!');
@@ -58,12 +58,12 @@ module('AudioObject', function(fixture) {
 	});
 
 	asyncTest('Testing connections.delete()', 3, function() {
-		soundio.connections.create({ source: n0, destination: n1 });
-		soundio.connections.create({ source: n0, destination: n2 });
-		ok(soundio.connections.length === 2);
+		soundstage.connections.create({ source: n0, destination: n1 });
+		soundstage.connections.create({ source: n0, destination: n2 });
+		ok(soundstage.connections.length === 2);
 
-		soundio.connections.delete({ source: n0, destination: n1 });
-		ok(soundio.connections.length === 1);
+		soundstage.connections.delete({ source: n0, destination: n1 });
+		ok(soundstage.connections.length === 1);
 
 		setTimeout(function() {
 			ok(!isReceivingSignal(), 'Signal should have been disconnected.');
@@ -72,11 +72,11 @@ module('AudioObject', function(fixture) {
 	});
 
 	asyncTest('Testing .connect(object)', 3, function() {
-		soundio.connections.delete({ source: n0 });
-		ok(soundio.connections.length === 0);
+		soundstage.connections.delete({ source: n0 });
+		ok(soundstage.connections.length === 0);
 
-		soundio.connections.create({ source: n0, destination: n1 });
-		ok(soundio.connections.length === 1);
+		soundstage.connections.create({ source: n0, destination: n1 });
+		ok(soundstage.connections.length === 1);
 
 		setTimeout(function() {
 			ok(isReceivingSignal(), 'Not receiving any signal!');
@@ -85,8 +85,8 @@ module('AudioObject', function(fixture) {
 	});
 
 	asyncTest('Testing .disconnect()', 2, function() {
-		soundio.connections.delete({ source: n0 });
-		ok(soundio.connections.length === 0);
+		soundstage.connections.delete({ source: n0 });
+		ok(soundstage.connections.length === 0);
 
 		setTimeout(function() {
 			ok(!isReceivingSignal(), 'Signal should have been disconnected.');
