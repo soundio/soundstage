@@ -519,6 +519,7 @@
 
 		var soundstage = this;
 		var options  = assign({}, defaults, settings);
+		var audio    = options.audio;
 		var objects  = Objects(this);
 		var midi     = Soundstage.MidiMap(objects);
 		var connections = Connections(this);
@@ -526,7 +527,11 @@
 		var output   = createOutput(options.audio);
 		var clock    = new Clock(options.audio);
 		var sequence = new Sequence(clock, [], {
-			resolve: function(sequence, path) {
+			find: function(name) {
+				return soundstage.sequences[name];
+			},
+
+			distribute: function(path, sequence) {
 				var object = soundstage.find(path);
 
 				if (!object) {
@@ -535,6 +540,10 @@
 				}
 
 				var distributor = new EventDistributor(audio, clock, object, sequence);
+
+				sequence.on('stop', function() {
+					distributor.destroy();
+				});
 			}
 		});
 

@@ -84,7 +84,7 @@
 			}
 
 			// Trigger changes on audio objects
-			if (object) {
+			if (object && audioObjectTriggers[type]) {
 				audioObjectTriggers[type](object, event);
 			}
 
@@ -103,7 +103,7 @@
 		function distributeSequenceEvent(time, type, number) {
 			// Called by sequence with (time, type, data ...)
 
-			if (object) {
+			if (object && audioObjectTriggers[type]) {
 				audioObjectTriggers[type](object, arguments, clock);
 			}
 
@@ -148,6 +148,7 @@
 
 		if (keys) { keys.subscribe(distributeKeys); }
 
+		this.destroy = function() {};
 		this.recording = false;
 		this.sendMIDI = false;
 
