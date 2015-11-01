@@ -544,6 +544,17 @@
 				sequence.on('stop', function() {
 					distributor.destroy();
 				});
+			},
+
+			spawn: function(sequence, name) {
+				// Echo events from created sub sequences to their corresponding data
+				// sequences in .sequences. TODO: Should the sequence model be capable
+				// of playing multiple .start() calls, enabling us to keep just one copy
+				// of it in .sequences? Possibly.
+				if (!name) { return; }
+
+				var collection = soundstage.sequences[name];
+				sequence.on(collection);
 			}
 		});
 

@@ -98,7 +98,8 @@
 			}
 		}
 
-		if (MIDI) { MIDI.on(distributeMIDI); }
+		// We havent tested MIDI distribution yet...
+		//if (MIDI) { MIDI.on(distributeMIDI); }
 
 		function distributeSequenceEvent(time, type, number) {
 			// Called by sequence with (time, type, data ...)
