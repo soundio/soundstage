@@ -672,21 +672,21 @@
 				}
 			}
 
-			if (data.sequence && data.sequence.length) {
-				if (this.sequence) {
-					this.sequence.add.apply(this.sequence, data.sequence);
-				}
-				else {
-					console.warn('Soundstage: sequence data not imported. soundstage.sequence requires github.com/soundio/sequence.')
-				}
-			}
-
 			if (data.sequences) {
 				var keys = Object.keys(data.sequences);
 				var k = keys.length;
 
 				while (k--) {
 					this.sequences[keys[k]] = new Collection(data.sequences[keys[k]], { index: 0 });
+				}
+			}
+
+			if (data.sequence && data.sequence.length) {
+				if (this.sequence) {
+					this.sequence.add.apply(this.sequence, data.sequence);
+				}
+				else {
+					console.warn('Soundstage: sequence data not imported. soundstage.sequence requires github.com/soundio/sequence.')
 				}
 			}
 
