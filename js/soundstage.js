@@ -3,8 +3,7 @@
 
 	console.log('Soundstage');
 	console.log('http://github.com/soundio/soundstage');
-	console.log('Graph Object Model for the Web Audio API');
-	console.log('––––––––––––––––––––––––––––––––––––––––');
+	//console.log('Graph Object Model for the Web Audio API');
 })(this);
 
 
@@ -517,21 +516,27 @@
 			return new Soundstage(data, settings);
 		}
 
-		var soundstage = this;
-		var options  = assign({}, defaults, settings);
-		var audio    = options.audio;
-		var objects  = Objects(this);
-		var midi     = Soundstage.MidiMap(objects);
+		var soundstage  = this;
+		var options     = assign({}, defaults, settings);
+		var audio       = options.audio;
+		var objects     = Objects(this);
+		var midi        = Soundstage.MidiMap(objects);
 		var connections = Connections(this);
-		var input    = createInput(options.audio, 2);
-		var output   = createOutput(options.audio);
-		var clock    = new Clock(options.audio);
-		var sequence = new Sequence(clock, [], {
+		var input       = createInput(options.audio, 2);
+		var output      = createOutput(options.audio);
+		var clock       = new Clock(options.audio);
+		var sequence    = new Sequence();
+
+		// Initialise soundstage as an Audio Object 
+		AudioObject.call(this, options.audio, input, output);
+
+		// Initialise soundstage as a playhead for the sequence 
+		Head.call(this, sequence, clock, {
 			find: function(name) {
 				return soundstage.sequences[name];
 			},
 
-			distribute: function(path, sequence) {
+			distribute: function(path, head) {
 				var object = soundstage.find(path);
 
 				if (!object) {
@@ -539,18 +544,16 @@
 					return;
 				}
 
-				var distributor = new EventDistributor(audio, clock, object, sequence);
+				var distributor = new EventDistributor(audio, clock, object, head);
 
-				sequence.on('stop', function() {
-					distributor.destroy();
-				});
+				head.on('stop', function() { distributor.destroy(); });
 			},
 
 			spawn: function(sequence, name) {
-				// Echo events from created sub sequences to their corresponding data
-				// sequences in .sequences. TODO: Should the sequence model be capable
-				// of playing multiple .start() calls, enabling us to keep just one copy
-				// of it in .sequences? Possibly.
+				// Echo events from created sub sequences to their corresponding
+				// data sequences in .sequences. TODO: Should the sequence model
+				// be capable of playing multiple .start() calls, enabling us to
+				// keep just one copy of it in .sequences? Possibly.
 				if (!name) { return; }
 
 				var collection = soundstage.sequences[name];
@@ -558,24 +561,24 @@
 			}
 		});
 
-		// Initialise soundstage as an Audio Object 
-		AudioObject.call(soundstage, options.audio, input, output);
+		// Manually push the head (this) into the sequence's head stack.
+		sequence.heads.push(this);
 
 		// Hitch up the output to the destination
 		output.connect(audio.destination);
 
 		// Define soundstage's properties
 		Object.defineProperties(soundstage, {
-			audio:    { value: options.audio },
-			midi:     { value: midi, enumerable: true },
-			objects:  { value: objects, enumerable: true },
-			inputs:   { value: objects.sub({ type: 'input' }, { sort: byChannels }) },
-			outputs:  { value: objects.sub({ type: 'output' }, { sort: byChannels }) },
+			audio:       { value: options.audio },
+			midi:        { value: midi, enumerable: true },
+			objects:     { value: objects, enumerable: true },
+			inputs:      { value: objects.sub({ type: 'input' }, { sort: byChannels }) },
+			outputs:     { value: objects.sub({ type: 'output' }, { sort: byChannels }) },
 			connections: { value: connections, enumerable: true },
-			clock:    { value: clock },
-			sequence: { value: sequence, enumerable: true },
-			sequences: { value: {}, enumerable: true },
-			presets:  { value: Soundstage.presets, enumerable: true },
+			clock:       { value: clock },
+			sequence:    { value: sequence, enumerable: true },
+			sequences:   { value: {}, enumerable: true },
+			presets:     { value: Soundstage.presets, enumerable: true },
 			roundTripLatency: { value: Soundstage.roundTripLatency, writable: true, configurable: true }
 		});
 
@@ -591,28 +594,29 @@
 		}
 	}
 
-	assign(Soundstage.prototype, {
-		start: function(time) {
-			if (isDefined(time)) {
-				this.sequence.start(this.clock.beatAtTime(time));
-			}
-			else {
-				this.sequence.start();
-			}
+	assign(Soundstage.prototype, Head.prototype, {
+		//	start: function(time) {
+		//		var sequence = this.sequence;
+		//		var beat = isDefined(time) && this.clock.beatAtTime(time);
+		//
+		//		sequence
+		//		.createHead(this.clock)
+		//		.start(beat);
+		//
+		//		return this;
+		//	},
 
-			return this;
-		},
-
-		stop: function(time) {
-			if (isDefined(time)) {
-				this.sequence.stop(this.clock.beatAtTime(time));
-			}
-			else {
-				this.sequence.stop();
-			}
-
-			return this;
-		},
+		//	stop: function(time) {
+		//		var heads = this.sequence.heads;
+		//		var beat = isDefined(time) && this.clock.beatAtTime(time);
+		//		var n = heads.length;
+		//
+		//		while (n--) {
+		//			heads[n].stop(beat);
+		//		}
+		//
+		//		return this;
+		//	},
 
 		create: function(data) {
 			if (!data) { return this; }
@@ -756,6 +760,9 @@
 		},
 
 		destroy: function() {
+			// Destroy the playhead.
+			Head.prototype.destroy.call(this);
+
 			// Remove soundstage's input node from mediaInputs, and disconnect
 			// media from it.
 			var input = AudioObject.getInput(this);
@@ -840,3 +847,8 @@
 	// Legacy namespace
 	window.Soundio = Soundstage;
 })(window);
+
+(function(window) {
+	if (!window.console || !window.console.log) { return; }
+	console.log('––––––––––––––––––––––––––––––––––––––––');
+})(this);

@@ -67,7 +67,7 @@
 		sequence.add(event);
 	}
 
-	function EventDistributor(audio, clock, object, sequence, midimap, keys) {
+	function EventDistributor(audio, clock, object, head, midimap, keys) {
 		var distributor = this;
 		var midimap = assign({}, midimap);
 		var notes = {};
@@ -93,8 +93,8 @@
 			EventDistributor.midiTimeOffset = currentTime - time / 1000;
 
 			// Map "noteon" and "noteoff" events to "note" events
-			if (sequence && distributor.recording) {
-				addToSequence(sequence, event, notes, currentTime);
+			if (head && distributor.recording) {
+				addToSequence(head, event, notes, currentTime);
 			}
 		}
 
@@ -102,7 +102,7 @@
 		//if (MIDI) { MIDI.on(distributeMIDI); }
 
 		function distributeSequenceEvent(time, type, number) {
-			// Called by sequence with (time, type, data ...)
+			// Called by head with (time, type, data ...)
 
 			if (object && audioObjectTriggers[type]) {
 				audioObjectTriggers[type](object, arguments, clock);
@@ -122,9 +122,9 @@
 			}
 		}
 
-		if (sequence) {
-			sequence.subscribe(distributeSequenceEvent);
-			sequence.on('stop', stopSequenceNotes);
+		if (head) {
+			head.subscribe(distributeSequenceEvent);
+			head.on('stop', stopSequenceNotes);
 		}
 
 		function distributeKeys(event) {
@@ -142,8 +142,8 @@
 			}
 
 			// Map "noteon" and "noteoff" events to "note" events
-			if (sequence && distributor.recording) {
-				addToSequence(sequence, event, notes, currentTime);
+			if (head && distributor.recording) {
+				addToSequence(head, event, notes, currentTime);
 			}
 		}
 
