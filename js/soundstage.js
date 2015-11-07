@@ -594,30 +594,9 @@
 		}
 	}
 
-	assign(Soundstage.prototype, Head.prototype, {
-		//	start: function(time) {
-		//		var sequence = this.sequence;
-		//		var beat = isDefined(time) && this.clock.beatAtTime(time);
-		//
-		//		sequence
-		//		.createHead(this.clock)
-		//		.start(beat);
-		//
-		//		return this;
-		//	},
+	Object.setPrototypeOf(Soundstage.prototype, Head.prototype);
 
-		//	stop: function(time) {
-		//		var heads = this.sequence.heads;
-		//		var beat = isDefined(time) && this.clock.beatAtTime(time);
-		//		var n = heads.length;
-		//
-		//		while (n--) {
-		//			heads[n].stop(beat);
-		//		}
-		//
-		//		return this;
-		//	},
-
+	assign(Soundstage.prototype, {
 		create: function(data) {
 			if (!data) { return this; }
 
@@ -692,7 +671,7 @@
 				var k = keys.length;
 
 				while (k--) {
-					this.sequences[keys[k]] = new Collection(data.sequences[keys[k]], { index: 0 });
+					this.sequences[keys[k]] = new Sequence(data.sequences[keys[k]]);
 				}
 			}
 
@@ -782,7 +761,7 @@
 			this.clear();
 			return this;
 		}
-	}, AudioObject.prototype, mixin.events);
+	});
 
 
 	// Soundstage properties and methods

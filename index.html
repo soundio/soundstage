@@ -74,7 +74,7 @@
 		[7,   "noteoff", 53, 1]
 	];
 
-	var soundio = window.soundio = window.Soundstage({
+	var soundstage = window.Soundstage({
 		objects: [
 			{id: 1, type: "tone-synth"},
 			{id: 2, type: "output"},
@@ -102,17 +102,17 @@
 		]
 	});
 
-	var osc = window.osc = soundio.find(1);
-	var metronome = window.metronome = soundio.find(3);
-	var sampler = window.sampler = soundio.find(4);
+	var osc = window.osc = soundstage.find(1);
+	var metronome = window.metronome = soundstage.find(3);
+	var sampler = window.sampler = soundstage.find(4);
 
-	soundio.clock.tempo(0, 120);
+	soundstage.clock.tempo(0, 120);
 
 	observe(sampler, 'loaded', function() {
 		console.log(sampler.loaded);
 
 		if (sampler.loaded === 1) {
-			soundio.start();
+			soundstage.start();
 		}
 	});
 })(window);
