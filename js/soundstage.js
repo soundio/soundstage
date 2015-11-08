@@ -250,7 +250,7 @@
 			return new Objects(soundstage, array, settings);
 		}
 
-		// Initialise connections as an Collection 
+		// Initialise this as an Collection 
 		Collection.call(this, array, settings);
 
 		this.create = function(type, settings) {
@@ -264,18 +264,7 @@
 				object = this.find(settings.id);
 
 				if (object) {
-					//if (settings.type && settings.type !== object.type) {
-						throw new Error('Soundstage: Cannot create new object with id of existing object.');
-					//}
-
-					//var options = assign({}, settings);
-
-					// Avoid trying to assign unwritable properties
-					//delete options.id;
-					//delete options.type;
-
-					//assign(object, options);
-					//return object;
+					throw new Error('Soundstage: Cannot create new object with id of existing object.');
 				}
 			}
 
@@ -550,16 +539,7 @@
 					console.log('STOP', head.n, this.n, 'distributor.destroy()');
 					distributor.destroy();
 				});
-			},
-
-			//spawn: function(sequence, name) {
-			//	// Echo events from created sub sequences to their corresponding
-			//	// data sequences in .sequences.
-			//	//if (!name) { return; }
-
-			//	//var collection = soundstage.sequences[name];
-			//	//sequence.on(collection);
-			//}
+			}
 		});
 
 		// Manually push the head (this) into the sequence's head stack.
@@ -575,6 +555,8 @@
 			objects:     { value: objects, enumerable: true },
 			inputs:      { value: objects.sub({ type: 'input' }, { sort: byChannels }) },
 			outputs:     { value: objects.sub({ type: 'output' }, { sort: byChannels }) },
+			// TODO: sequences totally should be objects
+			//sequences:   { value: objects.sub({ type: 'sequence' }) },
 			connections: { value: connections, enumerable: true },
 			clock:       { value: clock },
 			sequence:    { value: sequence, enumerable: true },
