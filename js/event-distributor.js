@@ -114,8 +114,8 @@
 			}
 		}
 
-		function stopSequenceNotes() {
-			if (object && object.stop) { object.stop(); }
+		function stopSequenceNotes(head, time) {
+			if (object && object.stop) { object.stop(time); }
 
 			if (MIDI && distributor.sendMIDI) {
 				//midi.send([0, "stop"]);
@@ -124,7 +124,7 @@
 
 		if (head) {
 			head.subscribe(distributeSequenceEvent);
-			head.on('stop', stopSequenceNotes);
+			head.on('cuestop', stopSequenceNotes);
 		}
 
 		function distributeKeys(event) {
