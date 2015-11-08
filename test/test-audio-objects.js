@@ -33,19 +33,14 @@ module('AudioObject', function(fixture) {
 
 		function testInput(i) {
 			var input = inputs[i];
-
 			soundstage.connect(input, detector);
 
 			setTimeout(function() {
 				ok(isReceivingSignal(), 'Not receiving any signal from ' + input.name);
+				soundstage.disconnect(input, detector);
 
-				if (i) {
-					soundstage.disconnect(input, detector);
-					setTimeout(function() { testInput(--i); }, 50);
-				}
-				else {
-					start();
-				}
+				if (i) { setTimeout(function() { testInput(--i); }, 50); }
+				else { start(); }
 			}, 50);
 		}
 	});
