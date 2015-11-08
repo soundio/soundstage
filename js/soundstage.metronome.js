@@ -14,6 +14,7 @@
 		var oscillator = audio.createOscillator();
 		var filter = audio.createBiquadFilter();
 		var gain = audio.createGain();
+		var output = audio.createGain();
 		var object = this;
 		var beat;
 
@@ -36,15 +37,17 @@
 
 			gain.gain.cancelScheduledValues(attackTime);
 			gain.gain.setValueAtTime(0.001, attackTime);
-			gain.gain.exponentialRampToValueAtTime(accent ? 1 : 0.5, time);
-			gain.gain.setTargetAtTime(0, time, 0.03125);
+			gain.gain.exponentialRampToValueAtTime(accent ? 0.25 : 0.125, time);
+			gain.gain.setTargetAtTime(0, time, 0.025);
 
 			clock.cue(++beat, tick);
 		}
 
+		output.gain.value = options.gain;
+
 		// Initialise as AudioObject
-		AudioObject.call(this, audio, undefined, gain, {
-			gain: gain.gain
+		AudioObject.call(this, audio, undefined, output, {
+			gain: output.gain
 		});
 
 		this.start = function(time) {
@@ -74,9 +77,11 @@
 		filter.connect(gain);
 
 		gain.gain.value = 0;
+		gain.connect(output);
 
 		this.beats = options.beats;
 		this.frequency = options.frequency;
+		this.gain = options.gain;
 
 		if (options.playing) { this.start(); }
 	}
