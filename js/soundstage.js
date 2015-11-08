@@ -546,19 +546,20 @@
 
 				var distributor = new EventDistributor(audio, clock, object, head);
 
-				head.on('stop', function() { distributor.destroy(); });
+				head.on('stop', function(head) {
+					console.log('STOP', head.n, this.n, 'distributor.destroy()');
+					distributor.destroy();
+				});
 			},
 
-			spawn: function(sequence, name) {
-				// Echo events from created sub sequences to their corresponding
-				// data sequences in .sequences. TODO: Should the sequence model
-				// be capable of playing multiple .start() calls, enabling us to
-				// keep just one copy of it in .sequences? Possibly.
-				if (!name) { return; }
+			//spawn: function(sequence, name) {
+			//	// Echo events from created sub sequences to their corresponding
+			//	// data sequences in .sequences.
+			//	//if (!name) { return; }
 
-				var collection = soundstage.sequences[name];
-				sequence.on(collection);
-			}
+			//	//var collection = soundstage.sequences[name];
+			//	//sequence.on(collection);
+			//}
 		});
 
 		// Manually push the head (this) into the sequence's head stack.
