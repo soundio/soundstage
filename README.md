@@ -99,7 +99,7 @@ Soundstage use it:
 
 ## soundstage
 
-### soundstage.create(data)
+### .create(data)
 
 Create objects from data. As with <code>Soundstage(data)</code>, but where
 <code>soundstage.create(data)</code> adds new data to the existing data.
@@ -108,11 +108,37 @@ Create objects from data. As with <code>Soundstage(data)</code>, but where
 
 Remove and destroy all objects and connections.
 
-### soundstage.destroy()
+### .destroy()
 
 Removes and destroys all objects and connections, disconnects any media
 inputs from soundstage's input, and disconnects soundstage's output from audio
 destination.
+
+### .connect()
+
+    soundstage.connect(source, destination);
+
+Connects the default output of <code>source</code> to
+the default input of <code>destination</code>, where
+<code>source</code> and <code>destination</code> are audio
+objects or ids of audio objects.
+
+    soundstage.connect(source, destination, output, input);
+
+Connects the named <code>output</code> of <code>source</code>
+to named <code>input</code> of <code>destination</code>.
+
+### .disconnect()
+
+    soundstage.disconnect(source, destination);
+
+Disconnects the default output of <code>source</code> from
+the default input of <code>destination</code>.
+
+    soundstage.connect(source, destination, output, input);
+
+Connects the named <code>output</code> of <code>source</code>
+to named <code>input</code> of <code>destination</code>.
 
 ### soundstage.objects
 

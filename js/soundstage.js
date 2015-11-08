@@ -418,14 +418,13 @@
 				return this;
 			};
 
-			var source = isDefined(data.source) && soundstage.objects.find(data.source);
-			var destination = isDefined(data.destination) && soundstage.objects.find(data.destination);
-
-			if (!source || !destination) {
+			if (!isDefined(data.source) || !isDefined(data.destination)) {
 				console.warn('Soundstage: Failed to create connection – source or destination not found.', data);
-				return;
+				return this;
 			}
 
+			var source = isDefined(data.source) && soundstage.objects.find(data.source);
+			var destination = isDefined(data.destination) && soundstage.objects.find(data.destination);
 			var connection = createConnection(source, destination, data.output, data.input);
 			var outputName = isDefined(connection.output) ? connection.output : 'default' ;
 			var inputName  = isDefined(connection.input)  ? connection.input  : 'default' ;
@@ -719,6 +718,28 @@
 			Soundstage.debug && console.groupEnd();
 
 			return this;
+		},
+
+		connect: function(source, destination, output, input) {
+			this.connections.create({
+				source: source,
+				destination: destination,
+				output: output,
+				input: input
+			});
+
+			return this;
+		},
+
+		disconnect: function(source, destination, output, input) {
+			var selector = {};
+
+			source      && (selector.source = source);
+			destination && (selector.source = destination);
+			output      && (selector.source = output);
+			input       && (selector.source = input);
+
+			var connections = this.connections.delete(selector);
 		},
 
 		destroy: function() {
