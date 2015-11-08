@@ -42,7 +42,8 @@ module.exports = function(config) {
 
       'test/module.js',
       'test/test-midi.js',
-      'test/test-connections.js'
+      'test/test-connections.js',
+      'test/test-audio-objects.js'
     ],
 
     // list of files to exclude
@@ -98,7 +99,7 @@ module.exports = function(config) {
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['Chrome', 'Firefox'],
+    browsers: ['Chrome'],
     //browsers: ['Firefox'],
 
     // Continuous Integration mode

@@ -43,6 +43,19 @@
 		return waveshaper;
 	}
 
+	var unityNodeMap = new WeakMap();
+
+	Soundstage.UnityNode = function(audio) {
+		var node = unityNodeMap.get(audio);
+
+		if (!node) {
+			node = UnityNode(audio);
+			unityNodeMap.set(audio, node);
+		}
+
+		return node;
+	};
+
 	// Delay Audio object
 
 	function DelayAudioObject(audio, settings, clock) {
@@ -101,17 +114,18 @@
 
 	// Signal Detector Audio object
 
-	function SignalDetectorAudioObject(audio, settings) {
-		var options = assign({}, settings);
+	function SignalDetectorAudioObject(audio) {
 		var object = this;
 		var scriptNode = audio.createScriptProcessor(256, 1, 1);
 		var signal;
 
 		scriptNode.channelCountMode = "explicit";
 
-		// Script nodes should be kept in memory to avoid Chrome bugs, and also
-		// need to be connected to destination to avoid garbage collection. This
-		// is ok, as we're not sending any sound out of this script node.
+		// Script nodes should be kept in memory to avoid
+		// Chrome bugs, and also need to be connected to
+		// destination to avoid garbage collection. This is
+		// ok, as we're not sending any sound out of this
+		// script node.
 		cache.push(scriptNode);
 		scriptNode.connect(audio.destination);
 
@@ -142,7 +156,7 @@
 
 	assign(SignalDetectorAudioObject.prototype, AudioObject.prototype);
 	Soundstage.register('signal-detector', SignalDetectorAudioObject);
-
+	Soundstage.SignalDetectorAudioObject = SignalDetectorAudioObject;
 
 
 	// Buffer Audio object
@@ -269,7 +283,7 @@
 		pitch: { min: -128, max: 128, transform: 'linear', value: 0 }
 	});
 
-	window.BufferAudioObject = BufferAudioObject;
+	Soundstage.BufferAudioObject = BufferAudioObject;
 
 
 	// Pan Audio Object
@@ -385,19 +399,43 @@
 
 	// Oscillator Audio Object
 
+	var automation = {
+		detune:    { min: -1200, max: 1200,  transform: 'linear' ,     value: 0 },
+		frequency: { min: 16,    max: 16000, transform: 'logarithmic', value: 440 }
+	};
+
+	var defaults = createDefaults(automation);
+
+	function createDefaults(automation) {
+		var defaults = {};
+
+		Object.keys(automation)
+		.forEach(function(key) {
+			defaults[key] = automation[key].value;
+		});
+
+		return defaults;
+	}
+
 	function OscillatorAudioObject(audio, settings) {
+		var object  = this;
 		var options = assign({}, defaults, settings);
 		var node    = audio.createOscillator();
-		var object  = AudioObject(audio, node, node, {
+
+		node.detune.value = options.detune;
+		node.frequency.value = options.frequency;
+
+		AudioObject.call(this, audio, node, node, {
 			detune:    node.detune,
 			frequency: node.frequency
 		});
 
-		aliasProperty(object, node, 'onended');
+		aliasProperty(this, node, 'onended');
 
-		// We can't use 'type' as it is required by Soundstage to describe the type
-		// of audio object.
-		Object.defineProperty(object, 'wave', {
+		// We shouldn't use 'type' as it is required by
+		// Soundstage to describe the type of audio object.
+		// Waveform. Yeah.
+		Object.defineProperty(this, 'waveform', {
 			get: function() { return node.type; },
 			set: function(value) { node.type = value; },
 			enumerable: true
@@ -408,13 +446,12 @@
 			aliasMethod(object, node, name);
 		});
 
-		return object;
+		this.destroy = function() {
+			node.disconnect();
+		};
 	}
 
 	assign(OscillatorAudioObject.prototype, AudioObject.prototype);
-
-	Soundstage.register('oscillator', OscillatorAudioObject, {
-		detune:    { min: -1200, max: 1200,  transform: 'linear' ,     value: 0 },
-		frequency: { min: 16,    max: 16000, transform: 'logarithmic', value: 440 }
-	});
+	Soundstage.register('oscillator', OscillatorAudioObject, automation);
+	Soundstage.OscillatorAudioObject = OscillatorAudioObject;
 })(window);
