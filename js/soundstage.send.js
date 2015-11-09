@@ -61,25 +61,23 @@
 
 		var send = audio.createGain();
 		var mute = audio.createGain();
-		//var pan = audio.createPanner();
-		var pan  = audio.createStereoPanner();
+
 		var channel = 'all';
 		var muted = options.muted;
-
-		function destroy() {
-			input.disconnect();
-			output.disconnect();
-			pan.disconnect();
-			mute.disconnect();
-			send.disconnect();
-			splitter.disconnect();
-		}
 
 		input.gain.value = 1;
 		send.gain.value = options.gain;
 
-		pan.panningModel = 'equalpower';
-		pan.pan.value = options.angle;
+		var pan;
+
+		if (audio.createStereoPanner) {
+			pan  = audio.createStereoPanner();
+			pan.pan.value = options.angle;
+		}
+		else {
+			pan  = audio.createPanner();
+			pan.panningModel = 'equalpower';
+		}
 
 		mute.gain.value = options.muted ? 0 : 1 ;
 
@@ -93,22 +91,20 @@
 		    	default: output,
 		    	send: send
 		    }, {
-//		    	angle: {
-//		    		set: function(value) {
-//		    			var angle = value > 90 ? 90 : value < -90 ? -90 : value ;
-//		    			var x = Math.sin(angle * pi / 180);
-//		    			var y = 0;
-//		    			var z = Math.cos(angle * pi / 180);
-//		    			pan.setPosition(x, y, z);
-//		    		},
-//
-//		    		value: options.angle,
-//		    		duration: 0
-//		    	},
-
-		    	angle: {
+		    	angle: audio.createStereoPanner ? {
 		    		param: pan.pan,
 		    		curve: 'linear'
+		    	} : {
+		    		set: function(value) {
+		    			var angle = value > 90 ? 90 : value < -90 ? -90 : value ;
+		    			var x = Math.sin(angle * pi / 180);
+		    			var y = 0;
+		    			var z = Math.cos(angle * pi / 180);
+		    			pan.setPosition(x, y, z);
+		    		},
+
+		    		value: options.angle,
+		    		duration: 0
 		    	},
 
 		    	gain: {
@@ -120,8 +116,7 @@
 		    		set: function(value, time) {
 		    			AudioObject.automate(mute.gain, time, value ? 0 : 1, 'exponential', 0.008);
 		    		},
-
-		    		curve: 'exponential'
+		    		curve: 'linear'
 		    	}
 		    });
 
@@ -151,13 +146,17 @@
 		    			channel = value;
 		    			rewire(input, pan, splitter, output, channel);
 		    		}
-		    	},
-
-		    	destroy: {
-		    		writable: true,
-		    		value: destroy
 		    	}
 		    });
+
+		this.destroy = function() {
+			input.disconnect();
+			output.disconnect();
+			pan.disconnect();
+			mute.disconnect();
+			send.disconnect();
+			splitter.disconnect();
+		};
 
 		// Wait for the next tick to instantiate destination, because during
 		// startup we can't be sure that all other plugs with ids have been

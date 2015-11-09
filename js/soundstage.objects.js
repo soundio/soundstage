@@ -306,16 +306,39 @@
 		return object;
 	}, {});
 
-	Soundstage.register('stereo panner', function createStereoPannerObject(audio, settings) {
+	Soundstage.register('pan', function StereoPannerObject(audio, settings) {
 		var options = assign({}, defaults, settings);
-		var node    = audio.createStereoPanner();
-		var object  = AudioObject(audio, node, node, {
-			pan: node.pan
+		var node;
+
+		if (audio.createStereoPanner) {
+			node  = audio.createStereoPanner();
+			node.pan.value = options.angle;
+		}
+		else {
+			node  = audio.createPanner();
+			node.panningModel = 'equalpower';
+		}
+
+		AudioObject.call(this, audio, node, node, {
+			angle: audio.createStereoPanner ?
+				node.pan :
+				{
+					set: function(value) {
+						var angle = value > 90 ? 90 : value < -90 ? -90 : value ;
+						var x = Math.sin(angle * pi / 180);
+						var y = 0;
+						var z = Math.cos(angle * pi / 180);
+						pan.setPosition(x, y, z);
+					},
+
+					value: options.angle,
+					duration: 0
+				},
 		});
 
 		return object;
 	}, {
-		pan: { min: -1, max: 1, transform: 'linear' , value: 0 }
+		angle: { min: -1, max: 1, transform: 'linear' , value: 0 }
 	});
 
 	Soundstage.register('convolver', function createConvolverObject(audio, settings) {
