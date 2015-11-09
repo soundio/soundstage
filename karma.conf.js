@@ -12,6 +12,11 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
+      'js/window.audiocontext.js',
+      'js/window.audiocontext.createstereopanner.js',
+      'js/navigator.getusermedia.js',
+      'js/object.setprototypeof.js',
+
       'modules/collection/js/object.assign.js',
       'modules/collection/js/observe.js',
       'modules/collection/js/mixin.array.js',
@@ -23,8 +28,6 @@ module.exports = function(config) {
       'modules/midi/js/midi.js',
       'modules/midi/js/midi-utils.js',
 
-      'js/window.audiocontext.js',
-      'js/navigator.getusermedia.js',
       'js/soundstage.js',
       'js/soundstage.midi.js',
       'js/soundstage.objects.js',
@@ -100,7 +103,7 @@ module.exports = function(config) {
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['Chrome', 'Firefox'],
+    browsers: ['Chrome', 'Firefox', 'Safari'],
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits

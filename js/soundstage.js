@@ -144,7 +144,10 @@
 	}
 
 	function createOutput(audio) {
-		var count = audio.destination.maxChannelCount;
+		// Safari sets audio.destination.maxChannelCount to
+		// 0 - possibly something to do with not yet
+		// supporting multichannel audio, but still annoying.
+		var count = audio.destination.maxChannelCount || 2;
 		var merger = audio.createChannelMerger(count);
 
 		// Used by meter-canvas controller - there is no way to automatically
@@ -504,8 +507,6 @@
 			return new Soundstage(data, settings);
 		}
 
-		console.log('Soundstage()');
-
 		var soundstage  = this;
 		var options     = assign({}, defaults, settings);
 		var audio       = options.audio;
@@ -517,12 +518,8 @@
 		var clock       = new Clock(options.audio);
 		var sequence    = new Sequence();
 
-console.log('INPUT', input);
-
 		// Initialise soundstage as an Audio Object 
 		AudioObject.call(this, options.audio, input, output);
-
-console.log('INPUT', AudioObject.getInput(this));
 
 		// Initialise soundstage as a playhead for the sequence 
 		Head.call(this, sequence, clock, {
@@ -546,8 +543,6 @@ console.log('INPUT', AudioObject.getInput(this));
 				});
 			}
 		});
-
-console.assert(AudioObject.getInput(this));
 
 		// Manually push the head (this) into the sequence's head stack.
 		sequence.heads.push(this);
@@ -846,5 +841,5 @@ console.assert(AudioObject.getInput(this));
 
 (function(window) {
 	if (!window.console || !window.console.log) { return; }
-	console.log('––––––––––––––––––––––––––––––––––––––––');
+	console.log('____________________________________');
 })(this);
