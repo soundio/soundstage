@@ -591,3 +591,8 @@ Returns <code>true</code> where <code>object</code> is an AudioObject.
 
 Returns <code>true</code> where <code>object</code> is not <code>undefined</code>
 or <code>null</code>.
+
+
+## Author
+
+Stephen Band <a href="http://twitter.com/stephband">@stephband</a>
