@@ -167,8 +167,6 @@
 	}
 
 	function createInputObjects(soundstage, count) {
-		var input = AudioObject.getInput(soundstage);
-
 		function hasChannelsMono(object) {
 			return object.channels + '' === [count] + '';
 		}
@@ -181,19 +179,13 @@
 			// Only create new inputs where an input with this
 			// channel does not already exist.
 			if(!soundstage.inputs.filter(hasChannelsMono).length) {
-				soundstage.objects.create('input', {
-					input: input,
-					channels: [count]
-				});
+				soundstage.objects.create('input', { channels: [count] });
 			};
 
 			// Only create a new stereo input where an input with these
 			// channels does not already exist.
 			if (count % 2 === 0 && !soundstage.inputs.filter(hasChannelsStereo).length) {
-				soundstage.objects.create('input', {
-					input: input,
-					channels: [count, count + 1]
-				});
+				soundstage.objects.create('input', { channels: [count, count + 1] });
 			}
 		}
 
@@ -608,23 +600,8 @@
 					object = data.objects[n];
 					type = object.type;
 
-					// Nasty workaround for fact that input and output
-					// objects need soundstage's input and output nodes.
-					if (type === 'input') {
-						// If we are creating an input for the first time, now
-						// is the moment to request user permission to use the
-						// microphone and hook it up soundstage's input node.
-						if (mediaInputs.indexOf(input) === -1) {
-							Soundstage.requestMedia().then(function(media) {
-								input.channelCount = media.channelCount;
-								media.connect(input);
-							});
-
-							mediaInputs.push(input);
-						}
-
-						object.input = input;
-					}
+					// Nasty workaround for fact that output
+					// objects need soundstage's output node.
 					if (type === 'output') {
 						object.output = output;
 					}
@@ -675,10 +652,15 @@
 		},
 
 		createInputs: function() {
-			// Create as many additional mono and stereo inputs
-			// as the sound card will allow.
-			var input = AudioObject.getInput(this);
-			createInputObjects(this, input.channelCount);
+			var soundstage = this;
+
+			Soundstage
+			.requestMedia(this.audio)
+			.then(function(media) {
+				soundstage.mediaChannelCount = media.channelCount;
+			});
+
+			createInputObjects(this, this.mediaChannelCount || 2);
 			return this.inputs;
 		},
 
@@ -758,7 +740,9 @@
 				mediaInputs.splice(i, 1);
 			}
 
-			Soundstage.requestMedia().then(function(media) {
+			Soundstage
+			.requestMedia(this.audio)
+			.then(function(media) {
 				media.disconnect(input);
 			});
 
@@ -771,27 +755,7 @@
 	});
 
 
-	// Soundstage properties and methods
-
-	function requestMedia() {
-		return new Promise(function(fulfill, reject) {
-			if (navigator.getUserMedia) {
-				navigator.getUserMedia({ audio: { optional: [{ echoCancellation: false }] } }, function(stream) {
-					var input = audio.createMediaStreamSource(stream);
-
-					if (window.console) {
-						console.log('Soundstage: Input enabled. Channels:', input.channelCount);
-					}
-
-					fulfill(input);
-					return input;
-				}, reject);
-			}
-			else {
-				reject({ message: 'navigator.getUserMedia: ' + !!navigator.getUserMedia });
-			}
-		});
-	}
+	// Fetch audio buffer from a URL
 
 	var bufferRequests = {};
 
@@ -809,13 +773,48 @@
 		}));
 	}
 
+
+	// Handle user media streams
+
+	var streamRequest;
+	var mediaRequests = new WeakMap();
+
+	function requestStream() {
+		if (!streamRequest) {
+			streamRequest = new Promise(function(accept, reject) {
+				return navigator.getUserMedia ?
+					navigator.getUserMedia({
+						audio: { optional: [{ echoCancellation: false }] }
+					}, accept, reject) :
+					reject({
+						message: 'navigator.getUserMedia: ' + !!navigator.getUserMedia
+					});
+			});
+		}
+
+		return streamRequest;
+	}
+
+	function requestMedia(audio) {
+		var request = mediaRequests.get(audio);
+
+		if (!request) {
+			request = requestStream().then(function(stream) {
+				return audio.createMediaStreamSource(stream);
+			});
+
+			mediaRequests.set(audio, request);
+		}
+
+		return request;
+	}
+
+
+	// Extend Soundstage namespace
+
 	assign(Soundstage, {
 		debug: true,
-		requestMedia: function() {
-			var promise = requestMedia();
-			this.requestMedia = function() { return promise; }
-			return promise;
-		},
+		requestMedia: requestMedia,
 		roundTripLatency: 0.020,
 		create: create,
 		register: register,

@@ -11,18 +11,23 @@
 
 	var rautoname = /In\s\d+\/\d+/;
 
-	function increment(n) {
-		return n + 1;
-	}
+	function increment(n) { return ++n; }
 
 	function InputAudioObject(audio, settings) {
-		// A fudge. Are we going to give objects access to
-		// soundstage instances?
-		var input = settings.input;
-		var options = assign({}, defaults, settings);
-		var output = audio.createChannelMerger(options.channels.length);
+		var options  = assign({}, defaults, settings);
+		var output   = audio.createChannelMerger(options.channels.length);
+		var request  = Soundstage.requestMedia(audio);
 		var channels = [];
 
+		function update(media) {
+			var count = channels.length;
+			media.disconect(output);
+			while (count--) {
+				media.connect(output, channels[count], count);
+			}
+		}
+
+		// Initialise as an Audio Object
 		AudioObject.call(this, audio, undefined, output);
 
 		Object.defineProperties(this, {
@@ -31,33 +36,32 @@
 			channels: {
 				get: function() { return channels; },
 				set: function(array) {
+					var count = array.length;
+
 					// Where there is no change do nothing
 					if (array + '' === channels + '') { return; }
 
-					//input.disconnect(output);
-					var count = array.length;
-
 					while (count--) {
-						input.connect(output, array[count], count);
 						channels[count] = array[count];
 					}
 
 					if (!this.name || rautoname.test(this.name)) {
 						this.name = 'In ' + array.map(increment).join('/');
 					}
+
+					request.then(update);
 				},
 				enumerable: true,
 				configurable: true
 			}
 		});
 
-		this.channels = options.channels;
 		this.destroy = function destroy() {
 			input.disconnect(output);
 			output.disconnect();
 		};
 
-		return object;
+		this.channels = options.channels;
 	}
 
 	Object.setPrototypeOf(InputAudioObject.prototype, AudioObject.prototype);

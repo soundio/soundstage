@@ -592,6 +592,17 @@ Returns <code>true</code> where <code>object</code> is an AudioObject.
 Returns <code>true</code> where <code>object</code> is not <code>undefined</code>
 or <code>null</code>.
 
+### .requestMedia()
+
+    Soundstage.requestMedia(audio).then(function(mediaNode) {
+        mediaNode.connect(...);
+    });
+
+Given the audio context <code>audio</code>, requestMedia returns a promise that
+resolves to a MediaStreamSourceNode. That node carries the stream from the
+device's physical audio inputs.
+
+Only one MediaStreamSourceNode is created per audio context.
 
 ## Author
 
