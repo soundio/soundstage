@@ -9,9 +9,8 @@ module('AudioObject', function(fixture) {
 
 	// Set up audio objects
 	var inputs = soundstage.createInputs();
-	var signal = soundstage.objects.create('oscillator').start();
+	var signal = soundstage.objects.create('oscillator');
 	var detector = new Soundstage.SignalDetectorAudioObject(audio);
-
 
 	function isReceivingSignal() {
 		return detector.signal;
@@ -24,7 +23,7 @@ module('AudioObject', function(fixture) {
 	// Tests
 
 	test('soundstage.objects.length', 1, function() {
-		ok(soundstage.objects.length === 1);
+		ok(soundstage.objects.length > 1, 'soundstage.objects.length === ' + soundstage.objects.length);
 	});
 
 	asyncTest('Testing soundstage.createInputs()', function() {

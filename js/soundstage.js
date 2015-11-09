@@ -504,6 +504,8 @@
 			return new Soundstage(data, settings);
 		}
 
+		console.log('Soundstage()');
+
 		var soundstage  = this;
 		var options     = assign({}, defaults, settings);
 		var audio       = options.audio;
@@ -515,8 +517,12 @@
 		var clock       = new Clock(options.audio);
 		var sequence    = new Sequence();
 
+console.log('INPUT', input);
+
 		// Initialise soundstage as an Audio Object 
 		AudioObject.call(this, options.audio, input, output);
+
+console.log('INPUT', AudioObject.getInput(this));
 
 		// Initialise soundstage as a playhead for the sequence 
 		Head.call(this, sequence, clock, {
@@ -540,6 +546,8 @@
 				});
 			}
 		});
+
+console.assert(AudioObject.getInput(this));
 
 		// Manually push the head (this) into the sequence's head stack.
 		sequence.heads.push(this);
@@ -820,15 +828,20 @@
 		// .retrieveDefaults() is for MIDI to get the plugin's automation
 		retrieveDefaults: retrieveDefaults,
 		presets: Collection([], { index: "name" }),
-		isDefined: isDefined,
 		distributeArgs: distributeArgs,
-		fetchBuffer: fetchBuffer
+		fetchBuffer: fetchBuffer,
+		isDefined: isDefined,
+
+		// Helper functions from AudioObject
+		getInput: AudioObject.getInput,
+		getOutput: AudioObject.getOutput,
+		isAudioContext: AudioObject.isAudioContext,
+		isAudioNode: AudioObject.isAudioNode,
+		isAudioParam: AudioObject.isAudioParam,
+		isAudioObject: AudioObject.isAudioObject
 	});
 
 	window.Soundstage = Soundstage;
-
-	// Legacy namespace
-	window.Soundio = Soundstage;
 })(window);
 
 (function(window) {

@@ -399,13 +399,6 @@
 
 	// Oscillator Audio Object
 
-	var automation = {
-		detune:    { min: -1200, max: 1200,  transform: 'linear' ,     value: 0 },
-		frequency: { min: 16,    max: 16000, transform: 'logarithmic', value: 440 }
-	};
-
-	var defaults = createDefaults(automation);
-
 	function createDefaults(automation) {
 		var defaults = {};
 
@@ -417,8 +410,14 @@
 		return defaults;
 	}
 
+	var automation = {
+		detune:    { min: -1200, max: 1200,  transform: 'linear' ,     value: 0 },
+		frequency: { min: 16,    max: 16000, transform: 'logarithmic', value: 440 }
+	};
+
+	var defaults = createDefaults(automation);
+
 	function OscillatorAudioObject(audio, settings) {
-		var object  = this;
 		var options = assign({}, defaults, settings);
 		var node    = audio.createOscillator();
 
@@ -441,14 +440,27 @@
 			enumerable: true
 		});
 
-		['setPeriodicWave', 'start', 'stop']
-		.forEach(function(name) {
-			aliasMethod(object, node, name);
-		});
+		assign(this, {
+			start: function() {
+				node.start.apply(node, arguments);
+				return this;
+			},
 
-		this.destroy = function() {
-			node.disconnect();
-		};
+			stop: function() {
+				node.stop.apply(node, arguments);
+				return this;
+			},
+
+			setPeriodicWave: function() {
+				node.setPeriodicWave.apply(node, arguments);
+				return this;
+			},
+
+			destroy: function() {
+				node.disconnect();
+				return this;
+			}
+		});
 	}
 
 	assign(OscillatorAudioObject.prototype, AudioObject.prototype);

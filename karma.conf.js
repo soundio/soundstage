@@ -19,6 +19,7 @@ module.exports = function(config) {
       'modules/collection/js/collection.js',
       'modules/audio-object/js/audio-object.js',
       'modules/clock/js/clock.js',
+      'modules/sequence/src/sequence.js',
       'modules/midi/js/midi.js',
       'modules/midi/js/midi-utils.js',
 
@@ -63,7 +64,7 @@ module.exports = function(config) {
 
     // Commented for everyday use - the coverage reporter reduces scripts to one
     // line, meaning that karma gives false line numbers for errors
-    reporters: ['nested'],  // 'progress', 'coverage'
+    //reporters: ['nested'],  // 'progress', 'coverage'
 
     // optionally, configure the reporter
     coverageReporter: {
@@ -99,8 +100,7 @@ module.exports = function(config) {
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['Chrome'],
-    //browsers: ['Firefox'],
+    browsers: ['Chrome', 'Firefox'],
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits

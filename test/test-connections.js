@@ -1,4 +1,4 @@
-module('AudioObject', function(fixture) {
+module('connections: ', function(fixture) {
 
 	var soundstage = Soundstage();
 
@@ -11,9 +11,7 @@ module('AudioObject', function(fixture) {
 	var n1 = soundstage.objects.create('signal-detector');
 	var n2 = soundstage.objects.create('output', { output: AudioObject.getOutput(soundstage) });
 
-	function isReceivingSignal() {
-		return n1.signal;
-	}
+	function isReceivingSignal() { return n1.signal; }
 
 	n0.start();
 
@@ -25,7 +23,7 @@ module('AudioObject', function(fixture) {
 		ok(soundstage.objects.length === 3);
 	});
 
-	asyncTest('Testing connections.create()', 2, function() {
+	asyncTest('Test connections.create()', 2, function() {
 		soundstage.connections.create({ source: n0, destination: n1 });
 		ok(soundstage.connections.length === 1);
 
@@ -35,7 +33,7 @@ module('AudioObject', function(fixture) {
 		}, 50);
 	});
 
-	asyncTest('Testing connections.delete()', 2, function() {
+	asyncTest('Test connections.delete()', 2, function() {
 		soundstage.connections.delete({ source: n0, destination: n1 });
 		ok(soundstage.connections.length === 0);
 
@@ -45,19 +43,21 @@ module('AudioObject', function(fixture) {
 		}, 50);
 	});
 
-	asyncTest('Testing connections.delete()', 2, function() {
+	asyncTest('Test connections.delete()', 3, function() {
 		soundstage.connections.create({ source: n0, destination: n1 });
 		soundstage.connections.create({ source: n0, destination: n2 });
 		soundstage.connections.delete({ source: n0, destination: n2 });
 		ok(soundstage.connections.length === 1);
 
 		setTimeout(function() {
-			ok(isReceivingSignal(), 'Not receiving any signal!');
+			ok(soundstage.connections.length === 1);
+			console.log(soundstage.connections[0].source, soundstage.connections[0].destination);
+			ok(isReceivingSignal(), 'Detector is not recieveing signal, when it should have remained connected.');
 			start();
-		}, 50);
+		}, 200);
 	});
 
-	asyncTest('Testing connections.delete()', 3, function() {
+	asyncTest('Test connections.delete()', 3, function() {
 		soundstage.connections.create({ source: n0, destination: n1 });
 		soundstage.connections.create({ source: n0, destination: n2 });
 		ok(soundstage.connections.length === 2);
@@ -71,7 +71,7 @@ module('AudioObject', function(fixture) {
 		}, 50);
 	});
 
-	asyncTest('Testing .connect(object)', 3, function() {
+	asyncTest('Test .connect(object)', 3, function() {
 		soundstage.connections.delete({ source: n0 });
 		ok(soundstage.connections.length === 0);
 

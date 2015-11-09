@@ -534,12 +534,60 @@ Soundstage comes with several audio object constructors already registered:
     'saturate'
     'send'
 
-Overwrite them at your peril. To make your own audio objects, use the
-<a href=""
+Overwrite them at your peril.
 
-### Soundstage.isAudioParam(object)
 
-### Soundstage.isDefined(value)
+### .getInput()
 
-Returns <code>true</code> where <code>value</code> is not <code>undefined</code>
+    Soundstage.getInput(object);
+
+Returns the default input AudioNode of an AudioObject.
+
+    Soundstage.getInput(object, 'rate');
+
+Returns the named input AudioNode of the AudioObject <code>object</code>.
+
+If <code>object</code> is not an AudioObject, returns <code>undefined</code>.
+
+### .getOutput()
+
+    Soundstage.getOutput(object);
+
+Returns the default output AudioNode of an AudioObject.
+
+    Soundstage.getInput(object, 'rate');
+
+Returns the named output AudioNode of the AudioObject <code>object</code>.
+
+If <code>object</code> is not an AudioObject, returns <code>undefined</code>.
+
+### .isAudioContext()
+
+    Soundstage.isAudioContext(object);
+
+Returns <code>true</code> where <code>object</code> is an AudioContext.
+
+### .isAudioNode()
+
+    Soundstage.isAudioNode(object);
+
+Returns <code>true</code> where <code>object</code> is an AudioNode.
+
+### .isAudioParam()
+
+    Soundstage.isAudioParam(object);
+
+Returns <code>true</code> where <code>object</code> is an AudioParam.
+
+### .isAudioObject()
+
+    Soundstage.isAudioObject(object);
+
+Returns <code>true</code> where <code>object</code> is an AudioObject.
+
+### .isDefined()
+
+    Soundstage.isDefined(object)
+
+Returns <code>true</code> where <code>object</code> is not <code>undefined</code>
 or <code>null</code>.
