@@ -18,8 +18,6 @@ module('AudioObject', function(fixture) {
 
 	signal.start();
 
-	//soundstage.connections.create({ source: n0, destination: n2 });
-
 	// Tests
 
 	test('soundstage.objects.length', 1, function() {

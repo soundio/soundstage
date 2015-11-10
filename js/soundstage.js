@@ -556,7 +556,8 @@
 			sequence:    { value: sequence, enumerable: true },
 			sequences:   { value: {}, enumerable: true },
 			presets:     { value: Soundstage.presets, enumerable: true },
-			roundTripLatency: { value: Soundstage.roundTripLatency, writable: true, configurable: true }
+			mediaChannelCount: { value: undefined, writable: true, configurable: true },
+			roundTripLatency:  { value: Soundstage.roundTripLatency, writable: true, configurable: true }
 		});
 
 		soundstage.update(data);
@@ -613,7 +614,6 @@
 		update: function(data) {
 			if (!data) { return this; }
 
-			var input = AudioObject.getInput(this);
 			var output = AudioObject.getOutput(this);
 
 			//	if (data && data.samplePatches && data.samplePatches.length) {
@@ -636,8 +636,8 @@
 					object = data.objects[n];
 					type = object.type;
 
-					// Nasty workaround for fact that output
-					// objects need soundstage's output node.
+					// Nasty workaround for fact that output objects need
+					// soundstage's output node.
 					if (type === 'output') {
 						object.output = output;
 					}
