@@ -97,7 +97,7 @@ Soundstage use it:
 
 	var soundstage = Soundstage(data, { audio: myAudioContext });
 
-## soundstage
+## soundstage methods
 
 ### .create()
 
@@ -120,15 +120,16 @@ them to <code>soundstage.objects</code> along the way).
 
 If information about your input device is not available yet (when the promise
 <code>Soundstage.requestMedia(audio)</code> is resolved), then three input
-audio objects are created by default, from the input channels Stereo 1-2,
-Mono 1 and Mono 2.
+audio objects are created by default, from the input channels Stereo L-R,
+Mono L and Mono R. More are created if the device allows it when it becomes
+available.
 
     console.log(soundstage.inputs)
 
     [
-        { type: "input", id: 1, channels: [1,2] },
-        { type: "input", id: 2, channels: [1] },
-        { type: "input", id: 3, channels: [2] }
+        { type: "input", id: 1, channels: [0,1] },
+        { type: "input", id: 2, channels: [0] },
+        { type: "input", id: 3, channels: [1] }
     ]
 
 *Currently, multi-channel input devices are not supported by browsers.
@@ -140,14 +141,12 @@ Mono 1 and Mono 2.
 Creates as many output audio objects as your output device will allow (adding
 them to <code>soundstage.objects</code> along the way).
 
-If information about your device is not available yet (when the promise
-<code>Soundstage.requestMedia(audio)</code> is resolved), then one output
-audio object is created by default, for destination Stereo 1-2.
+One output audio object is created by default, for destination Stereo 1-2.
 
     console.log(soundstage.outputs)
 
     [
-        { type: "output", id: 4, channels: [1,2] }
+        { type: "output", id: 4, channels: [0,1] }
     ]
 
 ### .destroy()
@@ -160,15 +159,14 @@ destination.
 
     soundstage.connect(source, destination);
 
-Connects the default output of <code>source</code> to
-the default input of <code>destination</code>, where
-<code>source</code> and <code>destination</code> are audio
-objects or ids of audio objects.
+Connects the default output of <code>source</code> to the default input of
+<code>destination</code>, where <code>source</code> and
+<code>destination</code> are audio objects or ids of audio objects.
 
-    soundstage.connect(source, destination, output, input);
+    soundstage.connect(source, destination, outName, inName);
 
-Connects the named <code>output</code> of <code>source</code>
-to named <code>input</code> of <code>destination</code>.
+Connects the named output of <code>source</code> to named input of
+<code>destination</code>.
 
 ### .disconnect()
 
@@ -177,10 +175,10 @@ to named <code>input</code> of <code>destination</code>.
 Disconnects the default output of <code>source</code> from
 the default input of <code>destination</code>.
 
-    soundstage.connect(source, destination, output, input);
+    soundstage.connect(source, destination, outName, inName);
 
-Connects the named <code>output</code> of <code>source</code>
-to named <code>input</code> of <code>destination</code>.
+Disconnects the named output of <code>source</code> from the named
+<code>input</code> of <code>destination</code>.
 
 ### .update()
 
@@ -198,14 +196,16 @@ Creates new objects, or updates existing objects, from data.
         ]
     });
 
-<code>Soundstage(data)</code> uses <code>soundstage.update</code> internally
-when initially creating a soundstage from data.
+<code>Soundstage(data)</code> uses <code>soundstage.update(data)</code>
+internally when initially creating a <code>soundstage</code> from data.
 
     Soundstage(data);
 
 ### .clear()
 
 Remove and destroy all objects, connections, midi maps and sequences.
+
+## soundstage properties
 
 ### soundstage.objects
 
@@ -277,6 +277,16 @@ from the object are destroyed.
 
 #### soundstage.objects.find(id || query)
 #### soundstage.objects.query(query)
+
+### soundstage.inputs
+
+A subset collection of <code>soundstage.objects</code>, containing only type
+<code>'input'</code> audio objects.
+
+### soundstage.outputs
+
+A subset collection of <code>soundstage.objects</code>, containing only type
+<code>'output'</code> audio objects.
 
 ### soundstage.connections
 
