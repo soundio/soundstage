@@ -111,6 +111,28 @@ values for it's properties.
 
     soundstage.connect(delay, output);
 
+Soundstage comes with audio object types:
+
+    "input"
+    "output"
+    "biquad-filter"
+    "compressor"
+    "convolver"
+    "delay"
+    "filter"
+    "flanger"
+    "loop"
+    "oscillator"
+    "pan"
+    "saturate"
+    "sampler"
+    "send"
+    "signal-detector"
+    "tone-synth"
+    "waveshaper"
+
+You can also add your own audio objects with <code>Soundstage.register(type, fn, settings)</code>.
+
 ### .createInputs()
 
     soundstage.createInputs();
@@ -207,7 +229,7 @@ internally when initially creating a <code>soundstage</code> from data.
 
 ## soundstage properties
 
-### soundstage.objects
+### .objects
 
 A collection of <a href="http://github.com/soundio/audio-object">audio objects</a>.
 An audio object controls one or more audio nodes. In soundstage, audio objects have
@@ -233,50 +255,23 @@ Web Audio graph.
 For more about audio objects see
 <a href="http://github.com/soundio/audio-object">github.com/soundio/audio-object</a>.
 
-#### soundstage.objects.create(type, settings)
+    soundstage.objects.create(type, settings)
 
-Create an audio object.
-
-<code>type</code> is a string.
-
-These audio objects connect to the sound card input and output respectively:
-
-- "input"
-- "output"
-
-These audio objects wrap sub-graphs of audio nodes and are kind of equivalent to
-plugins in a DAW:
-
-- "compress"
-- "filter"
-- "flange"
-- "loop"
-- "saturate"
-- "send"
-
-These audio objects wrap single Web Audio nodes and can be useful for testing:
-
-- "biquad-filter"
-- "compressor"
-- "convolver"
-- "delay"
-- "oscillator"
-- "waveshaper"
-
-<code>settings</code> depend on the type of audio object being created.
+Create an audio object. <code>type</code> is a string, properties of
+<code>settings</code> depend on the type.
 
 Returns the created audio object. Created objects can also be found in
 <code>soundstage.objects</code>, as well as in <code>soundstage.inputs</code> and
 <code>soundstage.outputs</code> if they are of type <code>"input"</code> or
 <code>"output"</code> respectively.
 
-#### soundstage.objects.delete(object || id)
+    soundstage.objects.delete(object || id)
 
 Destroy an audio object in the graph. Both the object and any connections to or
 from the object are destroyed.
 
-#### soundstage.objects.find(id || query)
-#### soundstage.objects.query(query)
+    soundstage.objects.find(id || query)
+    soundstage.objects.query(query)
 
 ### soundstage.inputs
 
@@ -310,7 +305,7 @@ and/or a named input node on the destination object:
 	}
 
 
-#### soundstage.connections.create(data)
+    soundstage.connections.create(data)
 
 Connect two objects. <code>data</code> must have <code>source</code> and
 <code>destination</code> defined. Naming an <code>output</code> or
@@ -323,7 +318,7 @@ Connect two objects. <code>data</code> must have <code>source</code> and
     });
 
 
-#### soundstage.connections.delete(query)
+    soundstage.connections.delete(query)
 
 Removes all connections whose properties are equal to the properties defined in
 the <code>query</code> object. For example, disconnect all connections to
@@ -332,7 +327,7 @@ object with id <code>3</code>:
     soundstage.connections.query({ destination: 3 });
 
 
-#### soundstage.connections.query(query)
+    soundstage.connections.query(query)
 
 Returns an array of all objects in <code>connections</code> whose properties
 are equal to the properties defined in the <code>query</code> object. For
@@ -536,7 +531,7 @@ incoming MIDI events. A midi route looks like this:
     }
 
 
-#### soundstage.midi.create(data)
+    soundstage.midi.create(data)
 
 Create a MIDI route from data:
 
@@ -553,7 +548,7 @@ The properties <code>transform</code>, <code>min</code> and <code>max</code> are
 optional. They default to different values depending on the type of the object.
 
 
-#### soundstage.midi.delete(query)
+    soundstage.midi.delete(query)
 
 Removes all MIDI routes whose properties are equal to the properties defined in
 the <code>query</code> object. For example, disconnect all routes to gain
@@ -562,7 +557,7 @@ properties:
     soundstage.midi.query({ property: "gain" });
 
 
-#### soundstage.midi.query(query)
+    soundstage.midi.query(query)
 
 Returns an array of all objects in <code>soundstage.midi</code> whose properties
 are equal to the properties defined in the <code>query</code> object. For
