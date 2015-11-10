@@ -1,5 +1,3 @@
-NOTE: This lib has been renamed to avoid confusing it with the website sound.io. You may still find references to Soundio in the code.
-
 # Soundstage
 
 Soundstage is a Graph Object Model for Web Audio processing graphs. It provides an API
