@@ -559,7 +559,7 @@
 			roundTripLatency: { value: Soundstage.roundTripLatency, writable: true, configurable: true }
 		});
 
-		soundstage.create(data);
+		soundstage.update(data);
 
 		if (Soundstage.debug) {
 			soundstage.on('clear', function(soundstage) {
@@ -574,7 +574,43 @@
 	Object.setPrototypeOf(Soundstage.prototype, Head.prototype);
 
 	assign(Soundstage.prototype, {
-		create: function(data) {
+		create: function(type, settings) {
+			return this.objects.create(type, settings);
+		},
+
+		createInputs: function() {
+			var soundstage = this;
+
+			if (this.mediaChannelCount === undefined) {
+				Soundstage
+				.requestMedia(this.audio)
+				.then(function(media) {
+					soundstage.mediaChannelCount = media.channelCount;
+					createInputObjects(this, this.mediaChannelCount);
+				});
+
+				createInputObjects(this, 2);
+			}
+			else {
+				createInputObjects(this, this.mediaChannelCount);
+			}
+
+			return this.inputs;
+		},
+
+		createOutputs: function() {
+			// Create as many additional mono and stereo outputs
+			// as the sound card will allow.
+			var output = AudioObject.getOutput(this);
+			createOutputObjects(this, output.channelCount);
+			return this.outputs;
+		},
+
+		find: function() {
+			return Collection.prototype.find.apply(this.objects, arguments);
+		},
+
+		update: function(data) {
 			if (!data) { return this; }
 
 			var input = AudioObject.getInput(this);
@@ -649,31 +685,6 @@
 			this.trigger('create');
 			console.groupEnd();
 			return this;
-		},
-
-		createInputs: function() {
-			var soundstage = this;
-
-			Soundstage
-			.requestMedia(this.audio)
-			.then(function(media) {
-				soundstage.mediaChannelCount = media.channelCount;
-			});
-
-			createInputObjects(this, this.mediaChannelCount || 2);
-			return this.inputs;
-		},
-
-		createOutputs: function() {
-			// Create as many additional mono and stereo outputs
-			// as the sound card will allow.
-			var output = AudioObject.getOutput(this);
-			createOutputObjects(this, output.channelCount);
-			return this.outputs;
-		},
-
-		find: function() {
-			return Collection.prototype.find.apply(this.objects, arguments);
 		},
 
 		clear: function() {

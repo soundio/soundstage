@@ -61,6 +61,7 @@
 			output.disconnect();
 		};
 
+		// Setting the channels connects the media to the output
 		this.channels = options.channels;
 	}
 

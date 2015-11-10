@@ -99,14 +99,56 @@ Soundstage use it:
 
 ## soundstage
 
-### .create(data)
+### .create()
 
-Create objects from data. As with <code>Soundstage(data)</code>, but where
-<code>soundstage.create(data)</code> adds new data to the existing data.
+    soundstage.create(type, settings);
 
-### soundstage.clear()
+Creates an audio object of <code>type</code>, with <code>settings</code> giving
+values for it's properties.
 
-Remove and destroy all objects and connections.
+    var delay = soundstage.create('delay', { time: 1 });
+    var output = soundstage.outputs[0];
+
+    soundstage.connect(delay, output);
+
+### .createInputs()
+
+    soundstage.createInputs();
+
+Creates as many input audio objects as your input device will allow* (adding
+them to <code>soundstage.objects</code> along the way).
+
+If information about your input device is not available yet (when the promise
+<code>Soundstage.requestMedia(audio)</code> is resolved), then three input
+audio objects are created by default, from the input channels Stereo 1-2,
+Mono 1 and Mono 2.
+
+    console.log(soundstage.inputs)
+
+    [
+        { type: "input", id: 1, channels: [1,2] },
+        { type: "input", id: 2, channels: [1] },
+        { type: "input", id: 3, channels: [2] }
+    ]
+
+*Currently, multi-channel input devices are not supported by browsers.
+
+### .createOutputs()
+
+    soundstage.createOutputs();
+
+Creates as many output audio objects as your output device will allow (adding
+them to <code>soundstage.objects</code> along the way).
+
+If information about your device is not available yet (when the promise
+<code>Soundstage.requestMedia(audio)</code> is resolved), then one output
+audio object is created by default, for destination Stereo 1-2.
+
+    console.log(soundstage.outputs)
+
+    [
+        { type: "output", id: 4, channels: [1,2] }
+    ]
 
 ### .destroy()
 
@@ -139,6 +181,31 @@ the default input of <code>destination</code>.
 
 Connects the named <code>output</code> of <code>source</code>
 to named <code>input</code> of <code>destination</code>.
+
+### .update()
+
+    soundstage.update(data);
+
+Creates new objects, or updates existing objects, from data.
+
+    soundstage.update({
+        objects: [
+            { type: "flanger", id: 5 },
+            { type: "looper", id: 6 }
+        },
+        connections: [
+            { source: 5, destination: 6 }
+        ]
+    });
+
+<code>Soundstage(data)</code> uses <code>soundstage.update</code> internally
+when initially creating a soundstage from data.
+
+    Soundstage(data);
+
+### .clear()
+
+Remove and destroy all objects, connections, midi maps and sequences.
 
 ### soundstage.objects
 
