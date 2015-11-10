@@ -149,12 +149,6 @@ One output audio object is created by default, for destination Stereo 1-2.
         { type: "output", id: 4, channels: [0,1] }
     ]
 
-### .destroy()
-
-Removes and destroys all objects and connections, disconnects any media
-inputs from soundstage's input, and disconnects soundstage's output from audio
-destination.
-
 ### .connect()
 
     soundstage.connect(source, destination);
@@ -180,6 +174,16 @@ the default input of <code>destination</code>.
 Disconnects the named output of <code>source</code> from the named
 <code>input</code> of <code>destination</code>.
 
+### .clear()
+
+Remove and destroy all objects, connections, midi maps and sequences.
+
+### .destroy()
+
+Removes and destroys all objects and connections, disconnects any media
+inputs from soundstage's input, and disconnects soundstage's output from audio
+destination.
+
 ### .update()
 
     soundstage.update(data);
@@ -200,10 +204,6 @@ Creates new objects, or updates existing objects, from data.
 internally when initially creating a <code>soundstage</code> from data.
 
     Soundstage(data);
-
-### .clear()
-
-Remove and destroy all objects, connections, midi maps and sequences.
 
 ## soundstage properties
 
