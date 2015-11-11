@@ -225,6 +225,22 @@ internally when initially creating a <code>soundstage</code> from data.
 
     Soundstage(data);
 
+### .find()
+
+    soundstage.find(id)
+
+Returns the audio objects with id.
+
+### .query()
+
+    soundstage.query(selector)
+
+Takes either a selector string or a query object and
+returns an array of matching audio objects.
+
+    soundstage.query('[type="tone-synth"]');
+    soundstage.query({ type: 'tone-synth' });
+
 ## soundstage properties
 
 ### .objects

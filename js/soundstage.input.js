@@ -18,10 +18,14 @@
 		var output   = audio.createChannelMerger(options.channels.length);
 		var request  = Soundstage.requestMedia(audio);
 		var channels = [];
+		var n = 0;
 
 		function update(media) {
 			var count = channels.length;
-			media.disconect(output);
+
+			// Don't do this the first time
+			if (n++) { media.disconnect(output); }
+
 			while (count--) {
 				media.connect(output, channels[count], count);
 			}
@@ -57,8 +61,11 @@
 		});
 
 		this.destroy = function destroy() {
-			input.disconnect(output);
 			output.disconnect();
+
+			request.then(function() {
+				media.disconnect(output);
+			});
 		};
 
 		// Setting the channels connects the media to the output

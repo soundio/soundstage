@@ -71,6 +71,30 @@
 		}
 	}
 
+	function toType(object) {
+		return object.type;
+	}
+
+	function overloadByTypes(map) {
+		return function() {
+			var types = Array.prototype.map.call(arguments, toType);
+			var fn = map[types] || map['default'];
+
+			if (fn) {
+				fn.apply(this, arguments);
+			}
+
+			return this;
+		};
+	}
+
+
+	function selectorToObject(selector) {
+		return {
+			// Accepts selectors of the form '[type="audio-object-type"]'
+			type: (/^\[type=[\"\']([\w\-]+)[\"\']\]$/.exec(selector) || [])[1]
+		};
+	}
 
 	// Create and register audio objects
 
@@ -136,11 +160,6 @@
 			a.channels > b.channels ? 1 :
 			a.channels < b.channels ? -1 :
 			0 ;
-	}
-
-	function createInput(audio, channelCount) {
-		var input = audio.createChannelSplitter(channelCount);
-		return input;
 	}
 
 	function createOutput(audio) {
@@ -463,17 +482,19 @@
 			return this.remove.apply(this, connections) ;
 		},
 
-		query: function(query) {
+		query: function(selector) {
 			// Allow query.source and query.destination to be
 			// objects or object ids.
-			var object = Object.assign({}, query);
+			var object = typeof selector === "string" ?
+				selectorToObject(selector) :
+				Object.assign({}, selector) ;
 
-			if (typeof query.source === 'object') {
-				object.source = query.source.id;
+			if (typeof selector.source === 'object') {
+				object.source = selector.source.id;
 			}
 
-			if (typeof query.destination === 'object') {
-				object.destination = query.destination.id;
+			if (typeof selector.destination === 'object') {
+				object.destination = selector.destination.id;
 			}
 
 			return Collection.prototype.query.call(this, object);
@@ -505,13 +526,12 @@
 		var objects     = Objects(this);
 		var midi        = Soundstage.MidiMap(objects);
 		var connections = Connections(this);
-		var input       = createInput(options.audio, 2);
 		var output      = createOutput(options.audio);
 		var clock       = new Clock(options.audio);
 		var sequence    = new Sequence();
 
 		// Initialise soundstage as an Audio Object 
-		AudioObject.call(this, options.audio, input, output);
+		AudioObject.call(this, options.audio, undefined, output);
 
 		// Initialise soundstage as a playhead for the sequence 
 		Head.call(this, sequence, clock, {
@@ -587,7 +607,7 @@
 				.requestMedia(this.audio)
 				.then(function(media) {
 					soundstage.mediaChannelCount = media.channelCount;
-					createInputObjects(this, this.mediaChannelCount);
+					createInputObjects(soundstage, soundstage.mediaChannelCount);
 				});
 
 				createInputObjects(this, 2);
@@ -610,6 +630,17 @@
 		find: function() {
 			return Collection.prototype.find.apply(this.objects, arguments);
 		},
+
+		query: overloadByTypes({
+			"string": function stringQuery(selector) {
+				return this.query(selectorToObject(selector));
+			},
+
+			"object": function objectQuery(selector) {
+				var query = Object.assign({}, selector) ;
+				return this.objects.query(query);
+			}
+		}),
 
 		update: function(data) {
 			if (!data) { return this; }
@@ -811,7 +842,12 @@
 
 		if (!request) {
 			request = requestStream().then(function(stream) {
-				return audio.createMediaStreamSource(stream);
+				var source = audio.createMediaStreamSource(stream);
+				var channelCount = source.channelCount;
+				var splitter = audio.createChannelSplitter(channelCount);
+
+				source.connect(splitter);
+				return splitter;
 			});
 
 			mediaRequests.set(audio, request);
