@@ -72,7 +72,7 @@
 	}
 
 	function toType(object) {
-		return object.type;
+		return typeof object;
 	}
 
 	function overloadByTypes(map) {
@@ -80,11 +80,12 @@
 			var types = Array.prototype.map.call(arguments, toType);
 			var fn = map[types] || map['default'];
 
-			if (fn) {
-				fn.apply(this, arguments);
+			if (!fn) {
+				console.warn('Soundstage: method does not support types (' + types + ').')
+				return;
 			}
 
-			return this;
+			return fn.apply(this, arguments);
 		};
 	}
 
