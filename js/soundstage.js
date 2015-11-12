@@ -798,6 +798,27 @@
 	});
 
 
+	// Helper functions
+
+	var eventTypes = {
+		"note": true,
+		"noteon": true,
+		"noteoff": true,
+		"param": true,
+		"sequence": true,
+		"pitch": true,
+		"control": true,
+		"end": true
+	};
+
+	function isEvent(object) {
+		// Duck typing to detect sequence events
+		return object &&
+			object.length > 2 &&
+			typeof object[0] === "number" &&
+			eventTypes[object[1]] ;
+	}
+
 	// Fetch audio buffer from a URL
 
 	var bufferRequests = {};
@@ -873,6 +894,7 @@
 		distributeArgs: distributeArgs,
 		fetchBuffer: fetchBuffer,
 		isDefined: isDefined,
+		isEvent: isEvent,
 
 		// Helper functions from AudioObject
 		getInput: AudioObject.getInput,

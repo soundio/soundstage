@@ -678,6 +678,13 @@ Returns <code>true</code> where <code>object</code> is an AudioObject.
 Returns <code>true</code> where <code>object</code> is not <code>undefined</code>
 or <code>null</code>.
 
+### .isEvent()
+
+    Soundstage.isEvent(object)
+
+Returns <code>true</code> where <code>object</code> is a sequence event. Uses
+duck typing - events have no prototype to check for type.
+
 ### .requestMedia()
 
     Soundstage.requestMedia(audio).then(function(mediaNode) {
