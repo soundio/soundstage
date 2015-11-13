@@ -9,7 +9,7 @@
 		frequency: 624
 	};
 
-	function MetronomeObject(audio, settings, clock) {
+	function MetronomeAudioObject(audio, settings, clock) {
 		var options = assign({}, defaults, settings);
 		var oscillator = audio.createOscillator();
 		var filter = audio.createBiquadFilter();
@@ -86,7 +86,8 @@
 		if (options.playing) { this.start(); }
 	}
 
-	assign(MetronomeObject.prototype, AudioObject.prototype);
+	assign(MetronomeAudioObject.prototype, AudioObject.prototype);
 
-	Soundstage.register('metronome', MetronomeObject);
+	Soundstage.register('metronome', MetronomeAudioObject);
+	Soundstage.MetronomeAudioObject = MetronomeAudioObject;
 })(window);
