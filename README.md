@@ -243,6 +243,19 @@ returns an array of matching audio objects.
 
 ## soundstage properties
 
+### .tempo
+
+    var tempo = soundstage.tempo;
+
+Gets and sets the tempo. A shortcut for controlling
+<code>soundstage.clock.rate</code>, where
+
+    soundstage.tempo = 60;
+
+sets the clock rate to <code>1</code>.
+
+<code>soundstage.tempo</code> is published in <code>JSON.stringify(soundstage)</code>.
+
 ### .objects
 
 A collection of <a href="http://github.com/soundio/audio-object">audio objects</a>.
@@ -287,15 +300,21 @@ from the object are destroyed.
     soundstage.objects.find(id || query)
     soundstage.objects.query(query)
 
+<code>soundstage.objects</code> is published in <code>JSON.stringify(soundstage)</code>.
+
 ### soundstage.inputs
 
 A subset collection of <code>soundstage.objects</code>, containing only type
 <code>'input'</code> audio objects.
 
+<code>soundstage.inputs</code> is NOT published in <code>JSON.stringify(soundstage)</code>.
+
 ### soundstage.outputs
 
 A subset collection of <code>soundstage.objects</code>, containing only type
 <code>'output'</code> audio objects.
+
+<code>soundstage.outputs</code> is NOT published in <code>JSON.stringify(soundstage)</code>.
 
 ### soundstage.connections
 
@@ -349,19 +368,20 @@ example, get all connections from object with id <code>6</code>:
 
     soundstage.connections.query({ source: 6 });
 
-
 ### soundstage.clock
 
 An instance of <code><a href="http://github.com/soundio/clock">Clock</a></code>,
 which requires the repo <a href="http://github.com/soundio/clock">github.com/soundio/clock</a>.
 If <code>Clock</code> is not found, <code>soundstage.clock</code> is <code>undefined</code>.
 
-<code>soundstage.clock</code> is a Collection of tempo data that maps a
-<code>beat</code> clock against the audio context's <code>time</code> clock. It
-is a library of properties and methods for scheduling function calls. It is also
-an <a href="http://github.com/soundio/audio-object">AudioObject</a> with two
+<code>soundstage.clock</code> maps a <code>beat</code> clock against the audio
+context's <code>time</code> clock, and publishes properties and methods for
+scheduling function calls. It is also an
+<a href="http://github.com/soundio/audio-object">AudioObject</a> with two
 output nodes, <code>"rate"</code> and <code>"duration"</code>, for syncing Web
-Audio parameters to the tempo.
+Audio parameters to tempo.
+
+<code>soundstage.clock</code> is not published by <code>JSON.stringify(soundstage)</code>.
 
 #### .time
 

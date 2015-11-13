@@ -578,7 +578,13 @@
 			sequences:   { value: {}, enumerable: true },
 			presets:     { value: Soundstage.presets, enumerable: true },
 			mediaChannelCount: { value: undefined, writable: true, configurable: true },
-			roundTripLatency:  { value: Soundstage.roundTripLatency, writable: true, configurable: true }
+			roundTripLatency:  { value: Soundstage.roundTripLatency, writable: true, configurable: true },
+			tempo: {
+				get: function() { return this.clock.rate * 60; },
+				set: function(n) { this.clock.rate = n / 60; },
+				enumerable: true,
+				configurable: true
+			}
 		});
 
 		soundstage.update(data);
@@ -712,6 +718,10 @@
 				else {
 					console.warn('Soundstage: sequence data not imported. soundstage.sequence requires github.com/soundio/sequence.')
 				}
+			}
+
+			if (data.tempo) {
+				this.tempo = data.tempo;
 			}
 
 			this.trigger('create');
