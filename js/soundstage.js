@@ -899,7 +899,7 @@
 		register: register,
 
 		// .retrieveDefaults() is for MIDI to get the plugin's automation
-		retrieveDefaults: retrieveDefaults,
+		defaults: retrieveDefaults,
 		presets: Collection([], { index: "name" }),
 		distributeArgs: distributeArgs,
 		fetchBuffer: fetchBuffer,
@@ -912,7 +912,11 @@
 		isAudioContext: AudioObject.isAudioContext,
 		isAudioNode: AudioObject.isAudioNode,
 		isAudioParam: AudioObject.isAudioParam,
-		isAudioObject: AudioObject.isAudioObject
+		isAudioObject: AudioObject.isAudioObject,
+
+		// Helper functions from Sequence
+		getEventDuration: Sequence.getEventDuration,
+		getSequenceDuration: Sequence.getSequenceDuration
 	});
 
 	window.Soundstage = Soundstage;

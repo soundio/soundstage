@@ -643,6 +643,18 @@ Soundstage comes with several audio object constructors already registered:
 Overwrite them at your peril.
 
 
+### .getEventDuration()
+
+    Soundstage.getEventDuration(event);
+
+Returns the duration of a sequence event.
+
+### .getSequenceDuration()
+
+    Soundstage.getSequenceDuration(events);
+
+Returns the duration of a collection of events, a sequence.
+
 ### .getInput()
 
     Soundstage.getInput(object);
