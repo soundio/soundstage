@@ -105,7 +105,7 @@
 		var keys = Object.keys(settings);
 		var n = keys.length;
 		var key;
-	
+
 		while (n--) {
 			key = keys[n];
 
@@ -179,7 +179,7 @@
 		// the sum of channels from all inputs).
 		merger.channelCountMode = 'explicit';
 
-		// Upmix/downmix incoming connections. 
+		// Upmix/downmix incoming connections.
 		merger.channelInterpretation = 'speakers';
 
 		merger.connect(audio.destination);
@@ -265,7 +265,7 @@
 			return new Objects(soundstage, array, settings);
 		}
 
-		// Initialise this as an Collection 
+		// Initialise this as an Collection
 		Collection.call(this, array, settings);
 
 		this.create = function(type, settings) {
@@ -315,25 +315,21 @@
 
 	// Connections
 
+	function isDefault(object, key) {
+		return object[key] === 'default' || object[key] === undefined;
+	}
+
 	function createConnection(source, destination, output, input) {
-		var connection = Object.defineProperties({}, {
-			source:      { value: source.id, enumerable: true },
-			destination: { value: destination.id, enumerable: true }
-		});
+		var connection = {
+			source:      source.id,
+			destination: destination.id
+		};
 
-		if (isDefined(output)) {
-			Object.defineProperty(connection, 'output', {
-				value: output, enumerable: true
-			});
-		}
+		if (isDefined(output)) { connection.output = output; }
+		if (isDefined(input))  { connection.input = input; }
 
-		if (isDefined(input)) {
-			Object.defineProperty(connection, 'input', {
-				value: input, enumerable: true
-			});
-		}
-
-		return connection;
+		// Connection objects are immutable
+		return Object.seal(connection);
 	}
 
 	function connect(source, destination, outName, inName, outOutput, inInput) {
@@ -341,11 +337,11 @@
 		var inNode  = AudioObject.getInput(destination, inName);
 
 		if (!outNode) {
-			return console.warn('Soundstage: trying to connect source object without output "' + outName + '". Dropping connection.');
+			return console.warn('Soundstage: trying to connect source with no output "' + outName + '". Dropping connection.');
 		}
 
 		if (!inNode) {
-			return console.warn('Soundstage: trying to connect destination object without input "' + inName + '". Dropping connection.');
+			return console.warn('Soundstage: trying to connect destination with no input "' + inName + '". Dropping connection.');
 		}
 
 		if (isDefined(outOutput) && isDefined(inInput)) {
@@ -366,7 +362,7 @@
 		}
 	}
 
-	function disconnect(source, destination, outName, inName, outOutput, inInput, connections) {
+	function disconnect(source, destination, outName, inName, outOutput, inInput, objects, connections) {
 		var outNode = AudioObject.getOutput(source, outName);
 
 		if (!outNode) {
@@ -387,11 +383,11 @@
 			outNode.disconnect(inNode, outOutput, inInput);
 		}
 		else {
-			disconnectDestination(source, outName, outNode, inNode, outOutput, inInput, connections);
+			disconnectDestination(source, outName, outNode, inNode, outOutput, inInput, objects, connections);
 		}
 	}
 
-	function disconnectDestination(source, outName, outNode, inNode, outOutput, inInput, connections) {
+	function disconnectDestination(source, outName, outNode, inNode, outOutput, inInput, objects, connections) {
 		outNode.disconnect();
 
 		if (!inNode) { return; }
@@ -405,46 +401,44 @@
 		var destination, inName, inNode;
 
 		while (n--) {
-			destination = connects[n].destination;
-			inName = connects[n].input;
-			inNode = AudioObject.getInput(destination, inName);
-
-			if (!inNode) {
-				console.warn('Soundstage: trying to reconnect destination object without input "' + inName + '". Dropping connection.');
-				continue;
-			}
-
+			destination = objects.find(connects[n].destination);
+			inNode = AudioObject.getInput(destination, connects[n].input);
 			outNode.connect(inNode);
 		}
 	}
 
-	function Connections(soundstage, array, settings) {
+	function Connections(objects, array, settings) {
 		if (this === undefined || this === window) {
 			// Soundstage has been called without the new keyword
-			return new Connections(soundstage, array, settings);
+			return new Connections(objects, array, settings);
 		}
 
-		// Initialise connections as a Collection 
+		// Initialise connections as a Collection
 		Collection.call(this, array, settings);
 
 		this.create = distributeArgs(0, function(data) {
 			if (this.query(data).length) {
-				console.log('Soundstage: Cannot create connection – connection between source and destination already exists.');
+				console.log('Soundstage: connections.create() failed. Source and destination already connected.');
 				return this;
 			};
 
-			if (!isDefined(data.source) || !isDefined(data.destination)) {
-				console.warn('Soundstage: Failed to create connection – source or destination not found.', data);
+			if (!isDefined(data.source)) {
+				console.warn('Soundstage: connections.create() failed. Source not found.', data.source);
 				return this;
 			}
 
-			var source = isDefined(data.source) && soundstage.objects.find(data.source);
-			var destination = isDefined(data.destination) && soundstage.objects.find(data.destination);
-			var connection = createConnection(source, destination, data.output, data.input);
-			var outputName = isDefined(connection.output) ? connection.output : 'default' ;
-			var inputName  = isDefined(connection.input)  ? connection.input  : 'default' ;
+			if (!isDefined(data.destination)) {
+				console.warn('Soundstage: connections.create() failed. Destination not found.', data.destination);
+				return this;
+			}
 
-			Soundstage.debug && console.log('Soundstage: create connection', source.id, 'to', destination.id);
+			var source      = objects.find(data.source);
+			var destination = objects.find(data.destination);
+			var connection  = createConnection(source, destination, data.output, data.input);
+			var outputName  = isDefined(connection.output) ? connection.output : 'default' ;
+			var inputName   = isDefined(connection.input)  ? connection.input  : 'default' ;
+
+			Soundstage.debug && console.log('Soundstage: connections.create()', source.id, 'to', destination.id);
 
 			connect(source, destination, outputName, inputName);
 			Collection.prototype.push.call(this, connection);
@@ -453,10 +447,10 @@
 
 		this
 		.on('remove', function(connections, connection) {
-			var source = soundstage.objects.find(connection.source);
-			var destination = soundstage.objects.find(connection.destination);
-			var outputName = isDefined(connection.output) ? connection.output : 'default' ;
-			var inputName  = isDefined(connection.input)  ? connection.input  : 'default' ;
+			var source      = objects.find(connection.source);
+			var destination = objects.find(connection.destination);
+			var outputName  = isDefined(connection.output) ? connection.output : 'default' ;
+			var inputName   = isDefined(connection.input)  ? connection.input  : 'default' ;
 
 			if (!source) {
 				Soundstage.debug && console.log('Soundstage: connection.source', connection.source, 'is not in soundstage.objects.');
@@ -468,34 +462,41 @@
 				return;
 			}
 
-			disconnect(source, destination, outputName, inputName, undefined, undefined, soundstage.connections);
+			disconnect(source, destination, outputName, inputName, undefined, undefined, objects, this);
 		});
 	}
 
+	// Connections has a subset of Collection methods
 	assign(Connections.prototype, mixin.events, {
 		delete: function(query) {
 			var connections = this.query(query);
 
 			if (connections.length === 0) { return this; }
-
-			Soundstage.debug && console.log('Soundstage: delete connection', connections);
-
-			return this.remove.apply(this, connections) ;
+			console.log('Soundstage: delete connection', connections);
+			return Collection.prototype.remove.apply(this, connections);
 		},
 
 		query: function(selector) {
-			// Allow query.source and query.destination to be
-			// objects or object ids.
-			var object = typeof selector === "string" ?
-				selectorToObject(selector) :
-				Object.assign({}, selector) ;
+			var object = Object.assign({}, selector) ;
 
-			if (typeof selector.source === 'object') {
-				object.source = selector.source.id;
+			// Allow source to be object or id.
+			if (typeof object.source === 'object') {
+				object.source = object.source.id;
 			}
 
-			if (typeof selector.destination === 'object') {
-				object.destination = selector.destination.id;
+			// Allow destination to be object or id.
+			if (typeof object.destination === 'object') {
+				object.destination = object.destination.id;
+			}
+
+			// Recognise undefined or 'default' as default output
+			if (isDefault(object, 'output')) {
+				object.output = isDefault;
+			}
+
+			// Recognise undefined or 'default' as default input
+			if (isDefault(object, 'input')) {
+				object.input = isDefault;
 			}
 
 			return Collection.prototype.query.call(this, object);
@@ -505,7 +506,6 @@
 		forEach: Collection.prototype.forEach,
 		indexOf: Collection.prototype.indexOf,
 		map:     Collection.prototype.map,
-		remove:  Collection.prototype.remove,
 		sub:     Collection.prototype.sub,
 		toJSON:  Collection.prototype.toJSON
 	});
@@ -526,15 +526,15 @@
 		var audio       = options.audio;
 		var objects     = Objects(this);
 		var midi        = Soundstage.MidiMap(objects);
-		var connections = Connections(this);
+		var connections = Connections(objects);
 		var output      = createOutput(options.audio);
 		var clock       = new Clock(options.audio);
 		var sequence    = new Sequence();
 
-		// Initialise soundstage as an Audio Object 
+		// Initialise soundstage as an Audio Object
 		AudioObject.call(this, options.audio, undefined, output);
 
-		// Initialise soundstage as a playhead for the sequence 
+		// Initialise soundstage as a playhead for the sequence
 		Head.call(this, sequence, clock, {
 			find: function(name) {
 				return soundstage.sequences[name];
@@ -897,8 +897,6 @@
 		roundTripLatency: 0.020,
 		create: create,
 		register: register,
-
-		// .retrieveDefaults() is for MIDI to get the plugin's automation
 		defaults: retrieveDefaults,
 		presets: Collection([], { index: "name" }),
 		distributeArgs: distributeArgs,
@@ -916,7 +914,10 @@
 
 		// Helper functions from Sequence
 		getEventDuration: Sequence.getEventDuration,
-		getSequenceDuration: Sequence.getSequenceDuration
+		getSequenceDuration: Sequence.getSequenceDuration,
+
+		// Collated feature tests
+		features: assign({}, AudioObject.features)
 	});
 
 	window.Soundstage = Soundstage;

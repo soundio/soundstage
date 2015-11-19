@@ -1,3 +1,5 @@
+<meta charset="utf-8" />
+
 <script src="js/window.audiocontext.js"></script>
 <script src="js/navigator.getusermedia.js"></script>
 <script src="js/object.setprototypeof.js"></script>
@@ -35,6 +37,28 @@
 
 <script>
 	window.soundstage = Soundstage();
+
+	var n0 = soundstage.objects.create('oscillator');
+	var n1 = soundstage.objects.create('signal-detector');
+	var n2 = soundstage.objects.create('output', { output: AudioObject.getOutput(soundstage) });
+
+	function isReceivingSignal() { return n1.signal; }
+
+	n0.start();
+
+	soundstage.connections.create({ source: n0, destination: n1 });
+	soundstage.connections.create({ source: n0, destination: n2 });
+
+	console.log('SIGNAL n1', isReceivingSignal());
+
+	setTimeout(function() {
+		console.log('SIGNAL n1', isReceivingSignal());
+		soundstage.connections.delete({ source: n0, destination: n2 });
+	}, 100);
+
+	setTimeout(function() {
+		console.log('SIGNAL n1', isReceivingSignal());
+	}, 200);
 </script>
 
 <!--script>

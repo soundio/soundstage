@@ -30,7 +30,7 @@ module('connections: ', function(fixture) {
 		setTimeout(function() {
 			ok(isReceivingSignal(), 'Node n1 should be recieving signal.');
 			start();
-		}, 50);
+		}, 100);
 	});
 
 	asyncTest('Test connections.delete()', 2, function() {
@@ -40,7 +40,7 @@ module('connections: ', function(fixture) {
 		setTimeout(function() {
 			ok(!isReceivingSignal(), 'Signal should have been disconnected.');
 			start();
-		}, 50);
+		}, 100);
 	});
 
 	asyncTest('Test connections.delete()', 3, function() {
@@ -52,9 +52,9 @@ module('connections: ', function(fixture) {
 		setTimeout(function() {
 			ok(soundstage.connections.length === 1);
 			console.log(soundstage.connections[0].source, soundstage.connections[0].destination);
-			ok(isReceivingSignal(), 'Detector is not recieveing signal, when it should have remained connected.');
+			ok(isReceivingSignal(), 'Detector is not recieving signal, when it should have remained connected.');
 			start();
-		}, 200);
+		}, 100);
 	});
 
 	asyncTest('Test connections.delete()', 3, function() {
@@ -68,7 +68,7 @@ module('connections: ', function(fixture) {
 		setTimeout(function() {
 			ok(!isReceivingSignal(), 'Signal should have been disconnected.');
 			start();
-		}, 50);
+		}, 100);
 	});
 
 	asyncTest('Test .connect(object)', 3, function() {
@@ -81,7 +81,7 @@ module('connections: ', function(fixture) {
 		setTimeout(function() {
 			ok(isReceivingSignal(), 'Not receiving any signal!');
 			start();
-		}, 50);
+		}, 100);
 	});
 
 	asyncTest('Testing .disconnect()', 2, function() {
@@ -91,7 +91,7 @@ module('connections: ', function(fixture) {
 		setTimeout(function() {
 			ok(!isReceivingSignal(), 'Signal should have been disconnected.');
 			start();
-		}, 50);
+		}, 100);
 	});
 
 //	asyncTest('Testing .disconnect(object) and checking the connections map', 5, function() {

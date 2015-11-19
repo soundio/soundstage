@@ -40,7 +40,7 @@ are optional:
 			{ id: 1, type: "flange", frequency: 0.33, feedback: 0.9, delay: 0.16 },
 			{ id: 2, type: "output" }
 		],
-		
+
 		connections: [
 			{ source: 0, destination: 1 },
 			{ source: 1, destination: 2 }
@@ -264,7 +264,7 @@ an <code>id</code> and a <code>type</code>. <code>name</code> is optional. Other
 properties depend on the type.
 
 	var flanger = soundstage.objects.find(1);
-	
+
 	{
 	    id: 7,
 	    type: "flange",
@@ -275,7 +275,7 @@ Changes to <code>flanger.frequency</code> are reflected immediately in the
 Web Audio graph.
 
 	flanger.frequency = 480;
-	
+
 	// flanger.automate(name, value, time, curve)
 	flanger.automate('frequency', 2400, audio.currentTime + 0.8, 'exponential');
 
@@ -624,7 +624,7 @@ from <code>settings</code>, and <code>JSON.stringify</code>s back to
 
 Soundstage comes with several audio object constructors already registered:
 
-    // Single node audio objects 
+    // Single node audio objects
     'biquad-filter'
     'compressor'
     'convolver'
@@ -728,6 +728,18 @@ resolves to a MediaStreamSourceNode. That node carries the stream from the
 device's physical audio inputs.
 
 Only one MediaStreamSourceNode is created per audio context.
+
+### .features
+
+    Soundstage.features
+
+An object of results from feature tests.
+
+    Soundstage.features.disconectParameters
+
+<code>true</code> if the Web Audio API supports disconnecting specified nodes
+via the <code>node1.disconnect(node2)</code>, otherwise <code>false</code>.
+
 
 ## Author
 
