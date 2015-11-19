@@ -16,6 +16,15 @@ gulp.task('lint', function() {
 
 // Run the unit tests
 gulp.task('test', function(done) {
+
+    // todo: There's some depreciation warning about .start().
+    // It says use this instead:
+    //
+    // server = new Server(config, [done])
+    // server.start()
+    //
+    // Look into it.
+
     return karma
     .start({
         // unfortunately, karma needs the __dirname here
