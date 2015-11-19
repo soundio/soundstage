@@ -20,7 +20,7 @@ gulp.task('test', function(done) {
     .start({
         // unfortunately, karma needs the __dirname here
         configFile: path.join(__dirname, 'karma.conf.js'),
-        browsers: ['Chrome'],
+        browsers: ['Chrome', 'Firefox', 'Safari'],
         singleRun: true
     }, function(err) {
       // Stop the gulp task when an error occurs

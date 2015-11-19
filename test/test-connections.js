@@ -28,7 +28,7 @@ module('connections: ', function(fixture) {
 		ok(soundstage.connections.length === 1);
 
 		setTimeout(function() {
-			ok(isReceivingSignal(), 'Not receiving any signal!');
+			ok(isReceivingSignal(), 'Node n1 should be recieving signal.');
 			start();
 		}, 50);
 	});
