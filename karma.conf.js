@@ -1,6 +1,11 @@
 // Karma configuration
 
+var package = require('./package.json');
+
 module.exports = function(config) {
+  var sourceFiles = package.sourceFiles;
+  var testFiles   = package.testFiles;
+
   config.set({
 
     // base path that will be used to resolve all patterns (eg. files, exclude)
@@ -11,43 +16,7 @@ module.exports = function(config) {
     frameworks: ['qunit'],
 
     // list of files / patterns to load in the browser
-    files: [
-      'js/window.audiocontext.js',
-      'js/window.audiocontext.createstereopanner.js',
-      'js/navigator.getusermedia.js',
-      'js/object.setprototypeof.js',
-
-      'modules/collection/js/object.assign.js',
-      'modules/collection/js/observe.js',
-      'modules/collection/js/mixin.events.js',
-      'modules/collection/js/collection.js',
-      'modules/audio-object/js/audio-object.js',
-      'modules/clock/js/clock.js',
-      'modules/sequence/src/sequence.js',
-      'modules/midi/js/midi.js',
-      'modules/midi/js/midi-utils.js',
-
-      'js/soundstage.js',
-      'js/soundstage.midi.js',
-      'js/soundstage.objects.js',
-      'js/soundstage.input.js',
-      'js/soundstage.output.js',
-      'js/soundstage.track.js',
-      'js/soundstage.send.js',
-      'js/soundstage.filter.js',
-      'js/soundstage.flange.js',
-      'js/soundstage.gain.js',
-      'js/soundstage.loop.js',
-      'js/soundstage.sampler.js',
-      'js/soundstage.saturate.js',
-      'js/soundstage.compress.js',
-      'js/soundstage.envelope.js',
-
-      'test/module.js',
-      'test/test-midi.js',
-      'test/test-connections.js',
-      'test/test-audio-objects.js'
-    ],
+    files: sourceFiles.concat(testFiles),
 
     // list of files to exclude
     exclude: [

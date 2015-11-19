@@ -76,5 +76,11 @@
     "js/soundstage.metronome.js",
     "js/soundstage.tone-synth.js",
     "js/soundstage.presets.sample-map.js"
+  ],
+  "testFiles": [
+    "test/module.js",
+    "test/test-midi.js",
+    "test/test-connections.js",
+    "test/test-audio-objects.js"
   ]
 }
