@@ -63,7 +63,7 @@
 	}
 
 	function createMidiBinding(data, object) {
-		var defaults = Soundstage.retrieveDefaults(object.type)[data.property] || {};
+		var defaults = Soundstage.defaults(object.type)[data.property] || {};
 
 		return Object.defineProperties({
 			message:   data.message,
@@ -153,7 +153,7 @@
 			return new MidiMap(objects, array);
 		}
 
-		// Initialise bindings as a Collection 
+		// Initialise bindings as a Collection
 		Collection.call(this, array);
 
 		var midimap = this;
