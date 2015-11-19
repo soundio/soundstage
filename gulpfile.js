@@ -1,5 +1,7 @@
+var package = require('./package.json')
 var path = require('path');
 var gulp = require('gulp');
+var concat = require('gulp-concat');
 
 /*
   We should put the configuration into a separate package
@@ -82,3 +84,9 @@ gulp.task('default', function(done) {
 gulp.task('watch', function() {
   gulp.watch(CONFIG.files.src, ['default'])
 });
+
+gulp.task('concat', function() {
+    return gulp.src(package.sourceFiles)
+    .pipe(concat('soundstage.js'))
+    .pipe(gulp.dest('./build/'));
+})

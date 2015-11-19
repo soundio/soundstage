@@ -29,6 +29,7 @@
   },
   "devDependencies": {
     "gulp": "latest",
+    "gulp-concat": "^2.6.0",
     "karma": "latest",
     "karma-chrome-launcher": "latest",
     "karma-coverage": "latest",
@@ -41,5 +42,38 @@
   "scripts": {
     "test": "node_modules/karma/bin/karma start"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "sourceFiles": [
+      "js/window.audiocontext.js",
+      "js/navigator.getusermedia.js",
+      "js/object.setprototypeof.js",
+      "modules/object.assign/object.assign.js",
+      "modules/collection/js/observe.js",
+      "modules/collection/js/mixin.events.js",
+      "modules/collection/js/collection.js",
+      "modules/audio-object/js/audio-object.js",
+      "modules/midi/js/midi.js",
+      "modules/midi/js/midi-utils.js",
+      "modules/clock/js/clock.js",
+      "modules/sequence/src/sequence.js",
+      "js/event-distributor.js",
+      "js/soundstage.js",
+      "js/soundstage.midi.js",
+      "js/soundstage.objects.js",
+      "js/soundstage.input.js",
+      "js/soundstage.output.js",
+      "js/soundstage.track.js",
+      "js/soundstage.send.js",
+      "js/soundstage.filter.js",
+      "js/soundstage.flange.js",
+      "js/soundstage.gain.js",
+      "js/soundstage.loop.js",
+      "js/soundstage.sampler.js",
+      "js/soundstage.saturate.js",
+      "js/soundstage.compress.js",
+      "js/soundstage.envelope.js",
+      "js/soundstage.metronome.js",
+      "js/soundstage.tone-synth.js",
+      "js/soundstage.presets.sample-map.js"
+  ]
 }
