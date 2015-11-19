@@ -328,7 +328,6 @@
 		if (isDefined(output)) { connection.output = output; }
 		if (isDefined(input))  { connection.input = input; }
 
-		// Connection objects are immutable
 		return Object.seal(connection);
 	}
 
@@ -337,22 +336,26 @@
 		var inNode  = AudioObject.getInput(destination, inName);
 
 		if (!outNode) {
-			return console.warn('Soundstage: trying to connect source with no output "' + outName + '". Dropping connection.');
+			console.warn('Soundstage: trying to connect source with no output "' + outName + '". Dropping connection.');
+			return;
 		}
 
 		if (!inNode) {
-			return console.warn('Soundstage: trying to connect destination with no input "' + inName + '". Dropping connection.');
+			console.warn('Soundstage: trying to connect destination with no input "' + inName + '". Dropping connection.');
+			return;
 		}
 
 		if (isDefined(outOutput) && isDefined(inInput)) {
 			if (outOutput >= outNode.numberOfOutputs) {
-				return console.warn('AudioObject: Trying to .connect() from a non-existent output (' +
+				console.warn('AudioObject: Trying to .connect() from a non-existent output (' +
 					outOutput + ') on output node {numberOfOutputs: ' + outNode.numberOfOutputs + '}. Dropping connection.');
+				return;
 			}
 
 			if (inInput >= inNode.numberOfInputs) {
-				return console.warn('AudioObject: Trying to .connect() to a non-existent input (' +
+				console.warn('AudioObject: Trying to .connect() to a non-existent input (' +
 					inInput + ') on input node {numberOfInputs: ' + inNode.numberOfInputs + '}. Dropping connection.');
+				return;
 			}
 
 			outNode.connect(inNode, outOutput, inInput);
