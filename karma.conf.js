@@ -19,7 +19,6 @@ module.exports = function(config) {
 
       'modules/collection/js/object.assign.js',
       'modules/collection/js/observe.js',
-      'modules/collection/js/mixin.array.js',
       'modules/collection/js/mixin.events.js',
       'modules/collection/js/collection.js',
       'modules/audio-object/js/audio-object.js',
@@ -52,7 +51,7 @@ module.exports = function(config) {
 
     // list of files to exclude
     exclude: [
-      
+
     ],
 
     // preprocess matching files before serving them to the browser
