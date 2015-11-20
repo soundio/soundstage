@@ -1,6 +1,5 @@
 (function(window) {
 	if (!window.console || !window.console.log) { return; }
-
 	console.log('Soundstage');
 	console.log('http://github.com/soundio/soundstage');
 	//console.log('Graph Object Model for the Web Audio API');
@@ -527,20 +526,27 @@
 		var soundstage  = this;
 		var options     = assign({}, defaults, settings);
 		var audio       = options.audio;
-		var objects     = Objects(this);
-		var midi        = Soundstage.MidiMap(objects);
-		var connections = Connections(objects);
-		var output      = createOutput(options.audio);
-		var clock       = new Clock(options.audio);
-		var sequence    = new Sequence();
+		var output      = createOutput(audio);
 
-		// Initialise soundstage as an Audio Object
+		var objects     = new Objects(this);
+		var inputs      = objects.sub({ type: 'input' }, { sort: byChannels });
+		var outputs     = objects.sub({ type: 'output' }, { sort: byChannels });
+		var connections = new Connections(objects);
+		var midi        = Soundstage.MidiMap(objects);
+		var clock       = new Clock(audio);
+		var sequences   = new Collection({ index: "name" });
+
+		// Initialise soundstage as an Audio Object with no inputs and
+		// a channel merger as an output.
 		AudioObject.call(this, options.audio, undefined, output);
 
+		// Initialise soundstage as a sequence
+		Sequence.call(this, data);
+
 		// Initialise soundstage as a playhead for the sequence
-		Head.call(this, sequence, clock, {
+		Head.call(this, this, clock, {
 			find: function(name) {
-				return soundstage.sequences[name];
+				return sequences.find(name);
 			},
 
 			distribute: function(path, head) {
@@ -561,7 +567,7 @@
 		});
 
 		// Manually push the head (this) into the sequence's head stack.
-		sequence.heads.push(this);
+		this.heads.push(this);
 
 		// Hitch up the output to the destination
 		output.connect(audio.destination);
@@ -571,14 +577,11 @@
 			audio:       { value: options.audio },
 			midi:        { value: midi, enumerable: true },
 			objects:     { value: objects, enumerable: true },
-			inputs:      { value: objects.sub({ type: 'input' }, { sort: byChannels }) },
-			outputs:     { value: objects.sub({ type: 'output' }, { sort: byChannels }) },
-			// TODO: sequences totally should be objects
-			//sequences:   { value: objects.sub({ type: 'sequence' }) },
+			inputs:      { value: inputs },
+			outputs:     { value: outputs },
 			connections: { value: connections, enumerable: true },
 			clock:       { value: clock },
-			sequence:    { value: sequence, enumerable: true },
-			sequences:   { value: {}, enumerable: true },
+			sequences:   { value: sequences, enumerable: true },
 			presets:     { value: Soundstage.presets, enumerable: true },
 			mediaChannelCount: { value: undefined, writable: true, configurable: true },
 			roundTripLatency:  { value: Soundstage.roundTripLatency, writable: true, configurable: true },
@@ -669,6 +672,8 @@
 
 			console.groupCollapsed('Soundstage: create graph...');
 
+			if (data.name) { this.name = data.name + ''; }
+
 			if (data.objects && data.objects.length) {
 				var n = data.objects.length;
 				var object, type;
@@ -710,17 +715,12 @@
 				var k = keys.length;
 
 				while (k--) {
-					this.sequences[keys[k]] = new Sequence(data.sequences[keys[k]]);
+					this.sequences.add(new Sequence(data.sequences[keys[k]]));
 				}
 			}
 
 			if (data.sequence && data.sequence.length) {
-				if (this.sequence) {
-					this.sequence.add.apply(this.sequence, data.sequence);
-				}
-				else {
-					console.warn('Soundstage: sequence data not imported. soundstage.sequence requires github.com/soundio/sequence.')
-				}
+				this.sequence.add.apply(this.sequence, data.sequence);
 			}
 
 			if (data.tempo) {
@@ -917,7 +917,7 @@
 
 		// Helper functions from Sequence
 		getEventDuration: Sequence.getEventDuration,
-		getSequenceDuration: Sequence.getSequenceDuration,
+		getEventsDuration: Sequence.getEventsDuration,
 
 		// Collated feature tests
 		features: assign({}, AudioObject.features)

@@ -2883,16 +2883,15 @@ if (!Object.setPrototypeOf) {
 
 (function(window) {
 	if (!window.console || !window.console.log) { return; }
-
 	console.log('Sequence');
 	console.log('http://github.com/soundio/sequencer');
-	console.log('–––––––––––––––––––––––––––––––––––');
 })(this);
 
 (function(window) {
 	"use strict";
 
 	var assign = Object.assign;
+	var Collection = window.Collection;
 
 	var defaults = {
 		rate: 1,
@@ -2901,7 +2900,8 @@ if (!Object.setPrototypeOf) {
 		spawn: noop
 	};
 
-	var collectionSettings = {
+	var eventsDefaults = {
+		index: 0,
 		sort: by0
 	};
 
@@ -2912,6 +2912,8 @@ if (!Object.setPrototypeOf) {
 	function isDefined(val) {
 		return val !== undefined && val !== null;
 	}
+
+	function destroyThis() { this.destroy(); }
 
 	function by0(a, b) {
 		return a[0] > b[0] ? 1 : a[0] < b[0] ? -1 : 0 ;
@@ -2925,12 +2927,12 @@ if (!Object.setPrototypeOf) {
 		return object.subscribers;
 	}
 
-	function clockBeatAtBeat(sequence, beat) {
-		return sequence.startBeat + beat / sequence.rate ;
+	function clockBeatAtBeat(head, beat) {
+		return head.startBeat + beat / head.rate ;
 	}
 
-	function beatAtClockBeat(sequence, clockBeat) {
-		return (clockBeat - sequence.startBeat) * sequence.rate ;
+	function beatAtClockBeat(head, beat) {
+		return (beat - head.startBeat) * head.rate ;
 	}
 
 	function mergeNoteEvents(data) {
@@ -2951,26 +2953,27 @@ if (!Object.setPrototypeOf) {
 						data.splice(n, 1, e3);
 						data.splice(m, 1);
 						break;
-					} 
+					}
 				}
 			}
 		}
 	}
 
-	function uncue(sequence, e, trigger) {
-		// TODO: This is dodgy, it will remove untelated events
-		// that happen to be at the same time. Uh-oh.
+// Never called
+//	function uncue(sequence, e, trigger) {
+//		// TODO: This is dodgy, it will remove untelated events
+//		// that happen to be at the same time. Uh-oh.
+//
+//		if (e[1] === 'note') {
+//			sequence.uncue(e[0], trigger);
+//			sequence.uncue(e[0] + e[4], trigger);
+//		}
+//		else {
+//			sequence.uncue(e[0], trigger);
+//		}
+//	}
 
-		if (e[1] === 'note') {
-			sequence.uncue(e[0], trigger);
-			sequence.uncue(e[0] + e[4], trigger);
-		}
-		else {
-			sequence.uncue(e[0], trigger);
-		}
-	}
-
-	function getSequenceDuration(sequence, round, find) {
+	function getEventsDuration(sequence, round, find) {
 		var n = sequence.length;
 		var time = 0;
 		var duration = 0;
@@ -2994,8 +2997,8 @@ if (!Object.setPrototypeOf) {
 					e[5] :
 			e[1] === "sequence" ?
 				typeof e[2] === 'string' || typeof e[2] === 'number' ?
-					getSequenceDuration(find(e[2]), 1, find) :
-					getSequenceDuration(e[2], 1, find) :
+					getEventsDuration(find(e[2]), 1, find) :
+					getEventsDuration(e[2], 1, find) :
 			0 ;
 	}
 
@@ -3041,17 +3044,7 @@ if (!Object.setPrototypeOf) {
 	}
 
 	function spawnHead(sequence, clock, settings, time, path) {
-		var heads = sequence.heads;
 		var head = new Head(sequence, clock, settings);
-
-		if (heads) {
-			heads.push(head);
-
-			head.on('stop', function(clock) {
-				var i = heads.indexOf(this);
-				if (i > -1) { heads.splice(i, 1); }
-			});
-		}
 
 		// Where there is a path, use the resolver to subscribe the thing
 		// at the end of the path to the childSequence.
@@ -3059,7 +3052,7 @@ if (!Object.setPrototypeOf) {
 			settings.distribute(path, head);
 		}
 
-		// Where there is no path it's events are emitted by the parent
+		// Where there is no path its events are emitted by the parent
 		else {
 			head.subscribe(function() {
 				var subscribers = getSubscribers(clock).slice();
@@ -3073,45 +3066,48 @@ if (!Object.setPrototypeOf) {
 		}
 
 		head
-		.on('stop', function() { head.destroy(); })
+		.on('stop', destroyThis)
 		.start(clock.beatAtTime(time));
 	}
 
-	function Sequence(data, settings) {
+	function Sequence(data) {
 		if (this === undefined || this === window) {
 			// If this is undefined the constructor has been called without the
 			// new keyword, or without a context applied. Do that now.
-			return new Sequence(data, settings);
+			return new Sequence(data);
 		}
 
-		// Set up sequence as a collection.
-		Collection.call(this, data, { index: 0 });
+		// Force name to be a string
+		var name   = data && data.name ? data.name + '' : '';
+		var events = new Collection(data && data.events || [], eventsDefaults);
+		var heads  = new Collection();
 
-		// Keep a collection of play heads.
-		Object.defineProperty(this, 'heads', { value: Collection() });
-
-		this.settings = settings;
+		Object.defineProperties(this, {
+			name:   { value: name, enumerable: true, configurable: true, writable: true },
+			events: { value: events, enumerable: true },
+			heads:  { value: heads }
+		});
 	}
 
-	assign(Sequence.prototype, Collection.prototype, {
+	assign(Sequence.prototype, {
 		createHead: function(clock) {
-			var head = new Head(this, clock, this.settings);
+			var head = new Head(this.events, clock, this.settings);
 			this.heads.push(head);
 			return head;
 		},
 
-		start: function(time) {
-			
-		},
-
-		stop: function(time) {
-			
-		}
+//		start: function(time) {
+//
+//		},
+//
+//		stop: function(time) {
+//
+//		}
 	});
 
 	assign(Sequence, {
 		getEventDuration: getEventDuration,
-		getSequenceDuration: getSequenceDuration
+		getEventsDuration: getEventsDuration
 	});
 
 	function mixinAudioRate(audio, clock, options) {
@@ -3124,7 +3120,7 @@ if (!Object.setPrototypeOf) {
 		durationNode.gain.value = 1 / options.rate;
 
 		// Set up clock as an audio object with outputs "rate" and
-		// "duration" and audio property "rate". 
+		// "duration" and audio property "rate".
 		AudioObject.call(this, audio, undefined, {
 			rate:     rateNode,
 			duration: durationNode,
@@ -3157,17 +3153,17 @@ if (!Object.setPrototypeOf) {
 			return new Head(sequence, clock, settings);
 		}
 
-		var head = this;
-		var audio = clock.audio;
+		var head    = this;
+		var events  = sequence.events;
+		var audio   = clock.audio;
 		var options = assign({}, defaults, settings);
-		var startBeat;
 		var playing = false;
+		var startBeat;
 
 		mixinAudioRate.call(this, audio, clock, options);
 
-		Object.defineProperty(this, '_notes', {
-			value: {}
-		});
+		// TODO: Hide this
+		Object.defineProperty(this, '_notes', { value: {} });
 
 		// Delegate parent clock's events
 		clock.on(this);
@@ -3191,17 +3187,32 @@ if (!Object.setPrototypeOf) {
 			publishEvent(time, event, head, spawn);
 		}
 
-		function spawn(time, type, sequence, rate, path) {
-			var name;
+		function spawn(time, type, events, rate, path) {
+			var name, childSequence;
 
-			if (typeof sequence === "number" || typeof sequence === "string") {
-				name = sequence;
-				sequence = options.find(name);
+			if (typeof events === "number" || typeof events === "string") {
+				name = events;
+				childSequence = options.find(name);
+			}
+			else {
+				childSequence = {
+					name: sequence.name + '-child',
+					events: events,
+					heads: []
+				}
 			}
 
 			var settings = assign({}, options, { rate: rate || 1 });
+			var childHead = spawnHead(childSequence, head, settings, time, path);
 
-			spawnHead(sequence, head, settings, time, path);
+			if (sequence.heads) {
+				sequence.heads.push(head);
+
+				head.on('stop', function(clock) {
+					var i = sequence.heads.indexOf(this);
+					if (i > -1) { sequence.heads.splice(i, 1); }
+				});
+			}
 		}
 
 		function cueStop(time) {
@@ -3216,7 +3227,7 @@ if (!Object.setPrototypeOf) {
 		Object.defineProperties(this, {
 			clock: { value: clock },
 			startBeat: { get: function() { return startBeat; } },
-			playing: { get: function() { return playing; } },
+			playing:   { get: function() { return playing; } },
 			n: { value: n++ }
 		});
 
@@ -3224,13 +3235,13 @@ if (!Object.setPrototypeOf) {
 			start: function(beat) {
 				startBeat = isDefined(beat) ? beat : this.clock.beat ;
 
-				var l = sequence.length;
+				var l = events.length;
 				var n = -1;
 				var e;
-				var duration = getSequenceDuration(sequence, 1, options.find);
+				var duration = getEventsDuration(events, 1, options.find);
 
 				while (++n < l) {
-					e = sequence[n];
+					e = events[n];
 					this.cue(e[0], publish, e);
 				}
 
@@ -3254,20 +3265,20 @@ if (!Object.setPrototypeOf) {
 			}
 		});
 
-		sequence
-		.on('add', function(sequence, e) {
+		events
+		.on('add', function(events, e) {
 			// Don't listen to delegated add and removes
-			if (this !== sequence) { return; }
+			if (this !== events) { return; }
 
-			if (e[0] >= sequence.beat) {
+			if (e[0] >= events.beat) {
 				head.cue(e[0], publish, e);
 			}
 		})
-		.on('remove', function(sequence, e) {
+		.on('remove', function(events, e) {
 			// Don't listen to delegated add and removes
-			if (this !== sequence) { return; }
+			if (this !== events) { return; }
 
-			if (e[0] >= sequence.beat) {
+			if (e[0] >= events.beat) {
 				head.uncue(e[0], publish, e);
 			}
 		});
@@ -3447,7 +3458,12 @@ if (!Object.setPrototypeOf) {
 	});
 
 	window.EnvelopeSequence = EnvelopeSequence;
-})(window);
+})(this);
+
+(function(window) {
+	if (!window.console || !window.console.log) { return; }
+	console.log('–––––––––––––––––––––––––––––––––––');
+})(this);
 
 // EventDistributor is glue code that routes events between
 // audio objects, sequences, MIDI and keys
@@ -3616,7 +3632,6 @@ if (!Object.setPrototypeOf) {
 })(window);
 (function(window) {
 	if (!window.console || !window.console.log) { return; }
-
 	console.log('Soundstage');
 	console.log('http://github.com/soundio/soundstage');
 	//console.log('Graph Object Model for the Web Audio API');
@@ -4143,20 +4158,27 @@ if (!Object.setPrototypeOf) {
 		var soundstage  = this;
 		var options     = assign({}, defaults, settings);
 		var audio       = options.audio;
-		var objects     = Objects(this);
-		var midi        = Soundstage.MidiMap(objects);
-		var connections = Connections(objects);
-		var output      = createOutput(options.audio);
-		var clock       = new Clock(options.audio);
-		var sequence    = new Sequence();
+		var output      = createOutput(audio);
 
-		// Initialise soundstage as an Audio Object
+		var objects     = new Objects(this);
+		var inputs      = objects.sub({ type: 'input' }, { sort: byChannels });
+		var outputs     = objects.sub({ type: 'output' }, { sort: byChannels });
+		var connections = new Connections(objects);
+		var midi        = Soundstage.MidiMap(objects);
+		var clock       = new Clock(audio);
+		var sequences   = new Collection({ index: "name" });
+
+		// Initialise soundstage as an Audio Object with no inputs and
+		// a channel merger as an output.
 		AudioObject.call(this, options.audio, undefined, output);
 
+		// Initialise soundstage as a sequence
+		Sequence.call(this, data);
+
 		// Initialise soundstage as a playhead for the sequence
-		Head.call(this, sequence, clock, {
+		Head.call(this, this, clock, {
 			find: function(name) {
-				return soundstage.sequences[name];
+				return sequences.find(name);
 			},
 
 			distribute: function(path, head) {
@@ -4177,7 +4199,7 @@ if (!Object.setPrototypeOf) {
 		});
 
 		// Manually push the head (this) into the sequence's head stack.
-		sequence.heads.push(this);
+		this.heads.push(this);
 
 		// Hitch up the output to the destination
 		output.connect(audio.destination);
@@ -4187,14 +4209,11 @@ if (!Object.setPrototypeOf) {
 			audio:       { value: options.audio },
 			midi:        { value: midi, enumerable: true },
 			objects:     { value: objects, enumerable: true },
-			inputs:      { value: objects.sub({ type: 'input' }, { sort: byChannels }) },
-			outputs:     { value: objects.sub({ type: 'output' }, { sort: byChannels }) },
-			// TODO: sequences totally should be objects
-			//sequences:   { value: objects.sub({ type: 'sequence' }) },
+			inputs:      { value: inputs },
+			outputs:     { value: outputs },
 			connections: { value: connections, enumerable: true },
 			clock:       { value: clock },
-			sequence:    { value: sequence, enumerable: true },
-			sequences:   { value: {}, enumerable: true },
+			sequences:   { value: sequences, enumerable: true },
 			presets:     { value: Soundstage.presets, enumerable: true },
 			mediaChannelCount: { value: undefined, writable: true, configurable: true },
 			roundTripLatency:  { value: Soundstage.roundTripLatency, writable: true, configurable: true },
@@ -4285,6 +4304,8 @@ if (!Object.setPrototypeOf) {
 
 			console.groupCollapsed('Soundstage: create graph...');
 
+			if (data.name) { this.name = data.name + ''; }
+
 			if (data.objects && data.objects.length) {
 				var n = data.objects.length;
 				var object, type;
@@ -4326,17 +4347,12 @@ if (!Object.setPrototypeOf) {
 				var k = keys.length;
 
 				while (k--) {
-					this.sequences[keys[k]] = new Sequence(data.sequences[keys[k]]);
+					this.sequences.add(new Sequence(data.sequences[keys[k]]));
 				}
 			}
 
 			if (data.sequence && data.sequence.length) {
-				if (this.sequence) {
-					this.sequence.add.apply(this.sequence, data.sequence);
-				}
-				else {
-					console.warn('Soundstage: sequence data not imported. soundstage.sequence requires github.com/soundio/sequence.')
-				}
+				this.sequence.add.apply(this.sequence, data.sequence);
 			}
 
 			if (data.tempo) {
@@ -4533,7 +4549,7 @@ if (!Object.setPrototypeOf) {
 
 		// Helper functions from Sequence
 		getEventDuration: Sequence.getEventDuration,
-		getSequenceDuration: Sequence.getSequenceDuration,
+		getEventsDuration: Sequence.getEventsDuration,
 
 		// Collated feature tests
 		features: assign({}, AudioObject.features)

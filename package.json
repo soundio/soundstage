@@ -81,6 +81,7 @@
     "test/module.js",
     "test/test-midi.js",
     "test/test-connections.js",
+    "test/test-sequence.js",
     "test/test-audio-objects.js"
   ]
 }

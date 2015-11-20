@@ -649,9 +649,9 @@ Overwrite them at your peril.
 
 Returns the duration of a sequence event.
 
-### .getSequenceDuration()
+### .getEventsDuration()
 
-    Soundstage.getSequenceDuration(events);
+    Soundstage.getEventsDuration(events);
 
 Returns the duration of a collection of events, a sequence.
 
