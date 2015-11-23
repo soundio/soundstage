@@ -719,8 +719,8 @@
 				}
 			}
 
-			if (data.sequence && data.sequence.length) {
-				this.sequence.add.apply(this.sequence, data.sequence);
+			if (data.events && data.events.length) {
+				this.events.add.apply(this.sequence, data.sequence);
 			}
 
 			if (data.tempo) {
