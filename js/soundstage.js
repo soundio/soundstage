@@ -513,6 +513,28 @@
 	});
 
 
+	// Sequences
+
+	function Sequences(data) {
+		// Initialise connections as a Collection
+		Collection.call(this, data, { index: "name" });
+	}
+
+	Object.setPrototypeOf(Sequences.prototype, Collection.prototype);
+
+	assign(Sequences.prototype, {
+		create: function(data) {
+			var sequence = new Sequence(data);
+			this.add(sequence);
+			return sequence;
+		},
+
+		delete: function(data) {
+			// Todo.
+		}
+	});
+
+
 	// Soundstage
 
 	var mediaInputs = [];
@@ -534,7 +556,7 @@
 		var connections = new Connections(objects);
 		var midi        = Soundstage.MidiMap(objects);
 		var clock       = new Clock(audio);
-		var sequences   = new Collection({ index: "name" });
+		var sequences   = new Sequences();
 
 		// Initialise soundstage as an Audio Object with no inputs and
 		// a channel merger as an output.
@@ -715,12 +737,12 @@
 				var k = keys.length;
 
 				while (k--) {
-					this.sequences.add(new Sequence(data.sequences[keys[k]]));
+					this.sequences.create(data.sequences[keys[k]]);
 				}
 			}
 
 			if (data.events && data.events.length) {
-				this.events.add.apply(this.sequence, data.sequence);
+				this.events.add.apply(this.events, data.events);
 			}
 
 			if (data.tempo) {

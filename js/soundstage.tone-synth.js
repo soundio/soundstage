@@ -24,7 +24,7 @@
 		"note-follow":        1,
 		"velocity-follow":    0.5,
 
-		"attack-sequence": [
+		"attack-events": [
 			// Gain
 			[0,     "param", "gain", 0],
 			[0,     "param", "gain", 0.125, "linear", 0.008],
@@ -37,7 +37,7 @@
 			[0.6,   "param", "envelope", 0.8, 'linear', 1.6]
 		],
 
-		"release-sequence": [
+		"release-events": [
 			// Gain
 			[0,     "param", "gain", 0, "decay", 0.05],
 
@@ -211,7 +211,7 @@
 				"gain": gainNode.gain
 			};
 
-			var attack = object['attack-sequence'];
+			var attack = object['attack-events'];
 			var n = -1;
 			var name, e, param;
 
@@ -238,7 +238,7 @@
 				gainNode,               // 0
 				filterNode,             // 1
 				envelopeGainNode,       // 2
-				velocityMultiplierNode, // 3      
+				velocityMultiplierNode, // 3
 				envelopeNode,           // 4
 				noteGainNode,           // 5
 				osc1,         // 6
@@ -286,8 +286,8 @@
 				AudioObject.truncate(params[key], time);
 			}
 
-			// Cue up release events on their params 
-			var release = object['release-sequence'];
+			// Cue up release events on their params
+			var release = object['release-events'];
 			var n = -1;
 			var e, param;
 
@@ -343,8 +343,8 @@
 		this['filter'] = options['filter'];
 		this['note-follow'] = options['note-follow'];
 		this['velocity-follow'] = options['velocity-follow'];
-		this['attack-sequence'] = Collection(options["attack-sequence"], sequenceSettings).sort();
-		this['release-sequence'] = Collection(options["release-sequence"], sequenceSettings).sort();
+		this['attack-events'] = Collection(options["attack-events"], sequenceSettings).sort();
+		this['release-events'] = Collection(options["release-events"], sequenceSettings).sort();
 	}
 
 	// Mix AudioObject prototype into MyObject prototype
