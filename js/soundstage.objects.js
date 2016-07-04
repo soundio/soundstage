@@ -3,7 +3,7 @@
 
 	var Soundstage = window.Soundstage;
 	var assign  = Object.assign;
-	
+
 	var cache = [];
 	var defaults = {};
 	var automation = {
@@ -210,7 +210,7 @@
 		function end(e) {
 			var node = e.target;
 			var i = nodes.indexOf(node);
-			
+
 			if (i > -1) { nodes.splice(i, 1); }
 			node.disconnect();
 			detuneNode.disconnect(node.detune);
@@ -250,7 +250,7 @@
 
 		this.noteCenter = 69; // A4
 
-		this.start = function(time, number) {
+		this.start = function(time, offset, duration, number) {
 			if (!buffer) { return this; }
 
 			var node = audio.createBufferSource();
@@ -266,7 +266,7 @@
 			node.loopEnd = this.loopEnd;
 			node.connect(outputNode);
 			node.onended = end;
-			node.start(time || 0);
+			node.start(time || 0, offset, duration);
 			nodes.push(node);
 			return this;
 		};
