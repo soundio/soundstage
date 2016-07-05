@@ -3,7 +3,7 @@
 
 	var Soundstage = window.Soundstage;
 	var assign  = Object.assign;
-	
+
 	var cache = [];
 	var defaults = {};
 	var automation = {
@@ -210,7 +210,7 @@
 		function end(e) {
 			var node = e.target;
 			var i = nodes.indexOf(node);
-			
+
 			if (i > -1) { nodes.splice(i, 1); }
 			node.disconnect();
 			detuneNode.disconnect(node.detune);
@@ -319,7 +319,7 @@
 			node.panningModel = 'equalpower';
 		}
 
-		AudioObject.call(this, audio, node, node, {
+		var object = AudioObject.call(this, audio, node, node, {
 			angle: audio.createStereoPanner ?
 				node.pan :
 				{
