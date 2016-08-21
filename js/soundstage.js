@@ -14,6 +14,7 @@
 	"use strict";
 
 	// Imports
+	var Fn         = window.Fn;
 	var observe    = window.observe;
 	var unobserve  = window.unobserve;
 	var Collection = window.Collection;
@@ -24,7 +25,7 @@
 	var splice     = Function.prototype.call.bind(Array.prototype.splice);
 
 	// Set up audio
-	// TODO: delay audio context creation until we know we need it
+	// ToDo: delay audio context creation until we know we need it
 	var audio = new window.AudioContext();
 	var output = audio.createChannelMerger(2);
 
@@ -34,9 +35,12 @@
 
 	// Helper functions
 
-	function isDefined(val) {
-		return val !== undefined && val !== null;
-	}
+	var isDefined = Fn.isDefined;
+	var toType    = Fn.toType;
+
+	//function isDefined(val) {
+	//	return val !== undefined && val !== null;
+	//}
 
 	// distributeArgs(i, fn)
 	//
@@ -70,9 +74,9 @@
 		}
 	}
 
-	function toType(object) {
-		return typeof object;
-	}
+	//function toType(object) {
+	//	return typeof object;
+	//}
 
 	function overloadByTypes(map) {
 		return function() {
@@ -680,6 +684,11 @@
 		update: function(data) {
 			if (!data) { return this; }
 
+			// Accept data as a JSON string
+			if (typeof data === 'string') {
+				data = JSON.parse(data);
+			}
+
 			var output = AudioObject.getOutput(this);
 
 			//	if (data && data.samplePatches && data.samplePatches.length) {
@@ -720,16 +729,6 @@
 
 			if (data.midi && data.midi.length) {
 				this.midi.create.apply(this.midi, data.midi);
-			}
-
-			if (data.clock && data.clock.length) {
-				if (this.clock) {
-					this.clock.create.apply(this.clock, data.clock);
-				}
-				else {
-					// Uh-oh
-					console.warn('Soundstage: clock data not imported. soundstage.clock requires github.com/soundio/clock.')
-				}
 			}
 
 			if (data.sequences) {
@@ -803,6 +802,10 @@
 			input       && (selector.source = input);
 
 			var connections = this.connections.delete(selector);
+		},
+
+		stringify: function() {
+			return JSON.stringify(this);
 		},
 
 		destroy: function() {

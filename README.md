@@ -204,6 +204,28 @@ Removes and destroys all objects and connections, disconnects any media
 inputs from soundstage's input, and disconnects soundstage's output from audio
 destination.
 
+### .find()
+
+    soundstage.find(id)
+
+Returns the audio objects with id.
+
+### .query()
+
+    soundstage.query(selector)
+
+Takes either a selector string or a query object and
+returns an array of matching audio objects.
+
+    soundstage.query('[type="tone-synth"]');
+    soundstage.query({ type: 'tone-synth' });
+
+### .stringify()
+
+    soundstage.stringify()
+
+Returns the JSON string <code>JSON.stringify(soundstage)</code>.
+
 ### .update()
 
     soundstage.update(data);
@@ -221,25 +243,7 @@ Creates new objects, or updates existing objects, from data.
     });
 
 <code>Soundstage(data)</code> uses <code>soundstage.update(data)</code>
-internally when initially creating a <code>soundstage</code> from data.
-
-    Soundstage(data);
-
-### .find()
-
-    soundstage.find(id)
-
-Returns the audio objects with id.
-
-### .query()
-
-    soundstage.query(selector)
-
-Takes either a selector string or a query object and
-returns an array of matching audio objects.
-
-    soundstage.query('[type="tone-synth"]');
-    soundstage.query({ type: 'tone-synth' });
+internally when initially creating a <code>soundstage</code>.
 
 ## soundstage properties
 
@@ -252,9 +256,7 @@ Gets and sets the tempo. A shortcut for controlling
 
     soundstage.tempo = 60;
 
-sets the clock rate to <code>1</code>.
-
-<code>soundstage.tempo</code> is published in <code>JSON.stringify(soundstage)</code>.
+sets the clock rate to <code>1</code> beat per second.
 
 ### .objects
 
