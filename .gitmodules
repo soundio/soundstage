@@ -10,9 +10,6 @@
 [submodule "modules/clock"]
 	path = modules/clock
 	url = https://github.com/soundio/clock.git
-[submodule "modules/sequence"]
-	path = modules/sequence
-	url = https://github.com/soundio/sequence.git
 [submodule "git_modules/object.assign"]
 	path = modules/object.assign
 	url = https://github.com/cruncher/object.assign.git
