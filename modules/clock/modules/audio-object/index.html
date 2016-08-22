@@ -1,0 +1,20 @@
+<script src="js/audio-object.js"></script>
+<script>
+(function() {
+	"use strict";
+
+	var audio = new window.AudioContext();
+	
+	var i1 = audio.createGain();
+	var i2 = audio.createGain();
+	var o1 = audio.createGain();
+	var o2 = audio.createGain();
+	i1.connect(o1);
+	i2.connect(o2);
+	
+	var a1 = AudioObject(audio, i1, o1);
+	var a2 = AudioObject(audio, i2, o2);
+	a1.connect(a2);
+	//a2.connect(a1, 1, 0); // This should error! 
+})();
+</script>
