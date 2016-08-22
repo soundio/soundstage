@@ -1,0 +1,6 @@
+[submodule "modules/audio-object"]
+	path = modules/audio-object
+	url = https://github.com/soundio/audio-object.git
+[submodule "modules/collection"]
+	path = modules/collection
+	url = https://github.com/cruncher/collection.git
