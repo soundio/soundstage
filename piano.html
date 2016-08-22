@@ -1,15 +1,17 @@
-<script src="modules/collection/js/object.assign.js"></script>
+<script src="js/window.audiocontext.js"></script>
+<script src="js/navigator.getusermedia.js"></script>
+<script src="js/object.setprototypeof.js"></script>
+
+<script src="modules/object.assign/object.assign.js"></script>
+<script src="modules/fn/js/fn.js"></script>
+<script src="modules/fn/js/events.js"></script>
 <script src="modules/collection/js/observe.js"></script>
-<script src="modules/collection/js/mixin.array.js"></script>
-<script src="modules/collection/js/mixin.events.js"></script>
 <script src="modules/collection/js/collection.js"></script>
 <script src="modules/audio-object/js/audio-object.js"></script>
 <script src="modules/midi/js/midi.js"></script>
 <script src="modules/midi/js/midi-utils.js"></script>
-<script src="modules/clock/js/clock.js"></script>
+<script src="clock/js/clock.js"></script>
 
-<script src="js/window.audiocontext.js"></script>
-<script src="js/navigator.getusermedia.js"></script>
 <script src="js/soundstage.js"></script>
 <script src="js/soundstage.midi.js"></script>
 <script src="js/soundstage.objects.js"></script>
@@ -101,7 +103,7 @@
 	    	self.regNumber += self.regNumberStep;
 	    	event.preventDefault();
 	    }
-	    
+
 	    // now we can play
 	    if (!self._register && self.keyMap.hasOwnProperty(key)){
 	    	self.pressed(event.timeStamp, 'noteon', self.keyMap[key]);
@@ -129,7 +131,7 @@
 	  	velocity = velocity || 127;
 	  	var diffTime = (time - this.startTime);
 	  	var midiNumber = MIDI.typeToNumber(this.channel, type);
-	  	
+
 	  	// Play the note in the oscillator
 	  	window.osc.trigger(0, type, number, velocity);
 
@@ -149,7 +151,7 @@
 
 	// Create a new MIDIKeyboard
 	var keyboard = new MidiKeyboard();
-	
+
 	// Enable registering of keys
 	keyboard.registerKeys();
 
