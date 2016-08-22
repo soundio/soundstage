@@ -1,7 +1,7 @@
 {
   "name": "soundstage",
   "title": "Soundstage",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "homepage": "http://sound.io",
   "description": "Live Graph Object Model and Sequencing Engine for the Web Audio API.",
   "author": {
@@ -17,6 +17,7 @@
     "browser",
     "web",
     "audio",
+    "sound",
     "soundio",
     "soundstage",
     "sequence"
