@@ -1,73 +1,52 @@
-<script src="soundstage/modules/collection/js/object.assign.js"></script>
-<script src="soundstage/modules/collection/js/observe.js"></script>
-<script src="soundstage/modules/collection/js/mixin.array.js"></script>
-<script src="soundstage/modules/collection/js/mixin.events.js"></script>
-<script src="soundstage/modules/collection/js/collection.js"></script>
-<script src="soundstage/modules/audio-object/js/audio-object.js"></script>
-<script src="soundstage/modules/midi/js/midi.js"></script>
-<script src="soundstage/modules/midi/js/midi-utils.js"></script>
-<script src="soundstage/modules/clock/js/clock.js"></script>
+<script src="../js/window.audiocontext.js"></script>
+<script src="../js/navigator.getusermedia.js"></script>
+<script src="../js/object.setprototypeof.js"></script>
 
-<script src="soundstage/js/window.audiocontext.js"></script>
-<script src="soundstage/js/navigator.getusermedia.js"></script>
-<script src="soundstage/js/soundstage.js"></script>
-<script src="soundstage/js/soundstage.midi.js"></script>
-<script src="soundstage/js/soundstage.objects.js"></script>
-<script src="soundstage/js/soundstage.input.js"></script>
-<script src="soundstage/js/soundstage.output.js"></script>
-<script src="soundstage/js/soundstage.track.js"></script>
-<script src="soundstage/js/soundstage.send.js"></script>
-<script src="soundstage/js/soundstage.filter.js"></script>
-<script src="soundstage/js/soundstage.flange.js"></script>
-<script src="soundstage/js/soundstage.gain.js"></script>
-<script src="soundstage/js/soundstage.loop.js"></script>
-<script src="soundstage/js/soundstage.sampler.js"></script>
-<script src="soundstage/js/soundstage.saturate.js"></script>
-<script src="soundstage/js/soundstage.compress.js"></script>
-<script src="soundstage/js/soundstage.envelope.js"></script>
-<script src="soundstage/js/soundstage.tone-synth.js"></script>
-<script src="src/sequencer.js"></script>
+<script src="../modules/object.assign/object.assign.js"></script>
+<script src="../modules/fn/js/fn.js"></script>
+<script src="../modules/fn/js/events.js"></script>
+<script src="../modules/collection/js/observe.js"></script>
+<script src="../modules/collection/js/collection.js"></script>
+<script src="../modules/audio-object/js/audio-object.js"></script>
+<script src="../clock/js/clock.js"></script>
+
+<script src="js/sequence.js"></script>
 
 <script>
-(function(window) {
-    "use strict";
-    var soundio = window.Soundio({
-        objects: [
-            {id: 1, type: "tone-synth"},
-            {id: 2, type: "output"}
-        ],
+var audio = new window.AudioContext();
+var clock = new Clock(audio);
+var sequence = new Sequence(clock, [
+    [0, "noteon", 49, 0.2],
+    [1, "noteoff", 49],
+    [2, "sequence", [
+        [0, "noteon", 64, 0.4],
+        [1, "noteoff", 64],
+        [2, "sequence", [
+            [0, "noteon", 80, 0.6],
+            [1, "noteoff", 80],
+            [2, "stop"],
+            // The rest of this sequence should never be played, as we just sent
+            // a "stop" event.
+            [2, "sequence", [
+                [0, "noteon", 120, 0.8],
+                [1, "noteoff", 120]
+            ]],
+            [3, "noteon", 80, 0.6],
+            [4, "noteoff", 80],
+        ], 0.5]
+    ], 2],
+    [3.5, "noteon", 50, 0.2],
+    [4.5, "noteoff", 50]
+]);
 
-        connections: [
-            {source: 1, destination: 2}
-        ]
-    });
+// Set the base tempo to 100bpm
+clock.rate = 1.666666667;
 
-    var osc = soundio.find(1);
-    var clock = soundio.clock;
-    console.log('clock', clock);
-    var seq = new Sequencer(osc, clock);
-    console.log(seq);
-    var music = {
-        "sequence": [
-            [2,   "note", 76, 0.8, 0.5],
-            [2.5, "note", 77, 0.6, 0.5],
-            [3,   "note", 79, 1, 0.5],
-            [3.5, "note", 74, 1, 3.5],
-            [10,  "note", 76, 1, 0.5],
-            [0, "chord", "C", "∆7", 4],
-            [4, "chord", "G", "-7", 4]
-        ],
+sequence.subscribe(function(time, type, number, velocity) {
+    console.log(time, type, number, velocity);
+});
 
-        "interpretation": {
-            "time_signature": "4/4",
-            "key": "C",
-            "transpose": 0
-        }
-    };
-
-    console.log(music);
-    seq.play(music);
-    window.soundio = soundio;
-    window.osc = osc;
-})(window);
+setTimeout(function() {
+    sequence.createHead(clock).start();
+}, 2000);
 </script>

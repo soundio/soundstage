@@ -374,7 +374,7 @@
 				deleteTimesAfterBeat(this, 0);
 
 				// Cue up tempo changes
-				this.forEach(cueTempo);
+				this.tempos.forEach(cueTempo);
 
 				//recueAfterBeat(cues, this, 0);
 				this.trigger('start', starttime);
