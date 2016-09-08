@@ -1,0 +1,31 @@
+<p>If you don't hear anything, turn the volume up.</p>
+
+<label>Rate</label>
+<input type="range" min="0.33333333333333" max="6" step="any" id="clock-rate" value="2" />
+
+<script src="../js/window.audiocontext.js"></script>
+<script src="../js/navigator.getusermedia.js"></script>
+<script src="../js/object.setprototypeof.js"></script>
+
+<script src="../modules/object.assign/object.assign.js"></script>
+<script src="../modules/fn/js/fn.js"></script>
+
+<script src="js/clock.js"></script>
+
+<script>
+	var Clock = window.Clock;
+	var audio = new window.AudioContext();
+	var clock = new Clock(audio, [
+		[4, 'rate', 2],
+		[8, 'rate', 0.5]
+	]);
+
+	clock.start();
+	clock.requestCue(function log(start, stop) {
+		console.log(audio.currentTime.toFixed(3), start.toFixed(3));
+		if (audio.currentTime > 10) { return; }
+		clock.requestCue(log);
+	});
+
+
+</script>

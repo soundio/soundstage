@@ -1,11 +1,5 @@
 
 (function(window) {
-	if (!window.console || !window.console.log) { return; }
-	console.log('Sequence');
-	console.log('http://github.com/soundio/sequencer');
-})(this);
-
-(function(window) {
 	"use strict";
 
 	var Fn     = window.Fn;
@@ -618,9 +612,4 @@
 	});
 
 	window.EnvelopeSequence = EnvelopeSequence;
-})(this);
-
-(function(window) {
-	if (!window.console || !window.console.log) { return; }
-	console.log('–––––––––––––––––––––––––––––––––––');
 })(this);
