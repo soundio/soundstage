@@ -10,22 +10,52 @@
 <script src="../modules/object.assign/object.assign.js"></script>
 <script src="../modules/fn/js/fn.js"></script>
 
+<script src="../modules/audio-object/js/audio-object.js"></script>
 <script src="js/clock.js"></script>
 
 <script>
 	var Clock = window.Clock;
 	var audio = new window.AudioContext();
-	var clock = new Clock(audio, [
-		[4, 'rate', 2],
-		[8, 'rate', 0.5]
-	]);
 
-	clock.start();
-	clock.requestCue(function log(start, stop) {
-		console.log(audio.currentTime.toFixed(3), start.toFixed(3));
-		if (audio.currentTime > 10) { return; }
-		clock.requestCue(log);
-	});
+	var data = [
+		[0.5, 'rate', 2],
+		[1, 'note', 60, 1, 1],
+		[2, 'note', 61, 1, 1],
+		[3, 'note', 62, 1, 1],
+		[4, 'note', 63, 1, 1],
+		[5, 'rate', 0.5],
+		[6, 'note', 65, 1, 1]
+	];
 
+	var clock = new Clock(audio, data);
 
+	setTimeout(function() {
+		clock.start();
+	
+		var prevtime = audio.currentTime;
+	
+		clock.requestCue(function log(time) {
+			if (audio.currentTime > 8) { return; }
+	
+			//console.log(audio.currentTime.toFixed(3), time.toFixed(3), clock.timeToBeat(time).toFixed(3));
+	
+			Fn(data)
+			.filter(Fn.compose(Fn.equals('note'), Fn.get(1)))
+			.map(function toTime(event) {
+				var result = event.slice();
+				result[0] = clock.beatToTime(event[0]);
+				return result;
+			})
+			.filter(Fn.compose(function(t) {
+				return prevtime < t && t < time;
+			}, Fn.get(0)))
+			.each(function(event){
+				console.log('EVENT', event[0].toFixed(3), clock.timeToBeat(event[0]).toFixed(3), event);
+			});
+	
+			prevtime = time;
+	
+			clock.requestCue(log);
+		});
+	}, 2000);
 </script>
