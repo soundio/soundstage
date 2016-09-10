@@ -47,11 +47,14 @@
 	var n = 0;
 
 	clock.requestCue(function cue(time) {
+		// Make the test run for 3 seconds only
+		if (audio.currentTime > 3) { return; }
+		graph.drawCue(audio.currentTime, time);
 		clock.requestCue(cue);
 	});
 
 	function scheduleEvents(t1, t2) {
-		console.log('Frame ' + n, t1, t2);
+		//console.log('Frame ' + n, t1, t2);
 
 		Fn(data)
 		.filter(Fn.compose(Fn.equals('note'), Fn.get(1)))
@@ -86,9 +89,6 @@
 		clock.requestCue(function cue(time) {
 			// Make the test run for 3 seconds only
 			if (audio.currentTime > 3) { return; }
-
-			graph.drawCue(audio.currentTime, time);
-
 			scheduleEvents(prevtime, time);
 			prevtime = time;
 			clock.requestCue(cue);
