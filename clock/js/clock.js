@@ -7,12 +7,6 @@
 	var AudioObject      = window.AudioObject;
 	var isAudioContext   = AudioObject.isAudioContext;
 
-	var defaults = {
-		frameDuration: 0.08,
-		// Cannot be less than frameDuration
-		lookahead:     0.1
-	};
-
 	function call(fn) {
 		fn();
 	}
@@ -175,7 +169,7 @@
 
 		function start() {
 			prevTime = startTime = getTime();
-console.log('START', startTime);
+
 			this.now = now;
 			this.stop = stop;
 
@@ -195,7 +189,7 @@ console.log('START', startTime);
 			// Create a frame timer wrapper for the audio context
 
 			getTime = function() { return object.currentTime; };
-			timer = new FrameTimer(defaults.frameDuration, defaults.lookahead, getTime);
+			timer = new FrameTimer(Clock.frameDuration, Clock.lookahead, getTime);
 			this.requestCue = timer.requestFrame;
 			this.cancelCue = timer.cancelFrame;
 			this.beatToTime = beatToTime;
@@ -260,6 +254,11 @@ console.log('START', startTime);
 		create: function() {
 			return new Clock(this);
 		}
+	});
+
+	assign(Clock, {
+		lookahead: 0.06,
+		frameDuration: 0.06
 	});
 
 	window.Clock = Clock;

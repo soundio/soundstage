@@ -1,7 +1,5 @@
-<p>If you don't hear anything, turn the volume up.</p>
 
-<label>Rate</label>
-<input type="range" min="0.33333333333333" max="6" step="any" id="clock-rate" value="2" />
+<canvas id="canvas-0" width="1440" height="256"></canvas>
 
 <script src="../js/window.audiocontext.js"></script>
 <script src="../js/navigator.getusermedia.js"></script>
@@ -13,49 +11,87 @@
 <script src="../modules/audio-object/js/audio-object.js"></script>
 <script src="js/clock.js"></script>
 
+<script src="test/canvas.js"></script>
+
+<style>
+	canvas {
+		display: block;
+		width: 1440px;
+		max-width: 1440px;
+	}
+</style>
+
 <script>
 	var Clock = window.Clock;
 	var audio = new window.AudioContext();
 
 	var data = [
-		[0.5, 'rate', 2],
-		[1, 'note', 60, 1, 1],
-		[2, 'note', 61, 1, 1],
-		[3, 'note', 62, 1, 1],
-		[4, 'note', 63, 1, 1],
-		[5, 'rate', 0.5],
-		[6, 'note', 65, 1, 1]
+		// 160bpm
+		[0, 'rate', 3],
+		[0, 'note', 12, 1, 1],
+		[0.1, 'note', 14, 1, 1],
+		[0.2, 'note', 16, 1, 1],
+		[0.3, 'note', 18, 1, 1],
+		[0.4, 'note', 20, 1, 1],
+		[0.5, 'note', 22, 1, 1],
+		[1, 'note', 24, 1, 1],
+		[2, 'note', 36, 1, 1],
+		[3, 'note', 48, 1, 1],
+		[3, 'rate', 6],
+		[4, 'note', 60, 1, 1],
+		[5, 'note', 72, 1, 1],
+		[6, 'note', 84, 1, 1]
 	];
 
 	var clock = new Clock(audio, data);
+	var n = 0;
+
+	clock.requestCue(function cue(time) {
+		clock.requestCue(cue);
+	});
+
+	function scheduleEvents(t1, t2) {
+		console.log('Frame ' + n, t1, t2);
+
+		Fn(data)
+		.filter(Fn.compose(Fn.equals('note'), Fn.get(1)))
+		.map(function toTime(event) {
+			var result = event.slice();
+			result[0] = clock.beatToTime(event[0]);
+			return result;
+		})
+		.filter(Fn.compose(function(t) {
+			// Filter events in this frame
+			return t1 <= t && t < t2;
+		}, Fn.get(0)))
+		.each(function(event) {
+			// Schedule the events to play (or draw them!)
+			graph.drawEvent(audio.currentTime, event[0], event[2]);
+		});
+
+		++n;
+	}
 
 	setTimeout(function() {
 		clock.start();
-	
-		var prevtime = audio.currentTime;
-	
-		clock.requestCue(function log(time) {
-			if (audio.currentTime > 8) { return; }
-	
-			//console.log(audio.currentTime.toFixed(3), time.toFixed(3), clock.timeToBeat(time).toFixed(3));
-	
-			Fn(data)
-			.filter(Fn.compose(Fn.equals('note'), Fn.get(1)))
-			.map(function toTime(event) {
-				var result = event.slice();
-				result[0] = clock.beatToTime(event[0]);
-				return result;
-			})
-			.filter(Fn.compose(function(t) {
-				return prevtime < t && t < time;
-			}, Fn.get(0)))
-			.each(function(event){
-				console.log('EVENT', event[0].toFixed(3), clock.timeToBeat(event[0]).toFixed(3), event);
-			});
-	
+		
+		var prevtime = clock.beatToTime(0);
+		graph.drawBar(prevtime);
+
+		// Schedule the first 80ms of events
+		scheduleEvents(prevtime, prevtime + Clock.frameDuration + Clock.lookahead);
+		prevtime = prevtime + Clock.frameDuration + Clock.lookahead;
+
+		// Request the first cue
+		clock.requestCue(function cue(time) {
+			// Make the test run for 3 seconds only
+			if (audio.currentTime > 3) { return; }
+
+			graph.drawCue(audio.currentTime, time);
+
+			scheduleEvents(prevtime, time);
 			prevtime = time;
-	
-			clock.requestCue(log);
+			clock.requestCue(cue);
 		});
-	}, 2000);
+	}, 500);
 </script>
