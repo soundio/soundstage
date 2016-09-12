@@ -9,8 +9,17 @@
 		{ r: 140, g: 155, b: 140 }
 	];
 
+	var warningColor = 'red';
+
 	function toX(seconds) {
 		return seconds * 480;
+	}
+
+	function drawLabel(x, text, color) {
+		canvas.font = "14px sans-serif";
+		canvas.textBaseline = "hanging";
+		canvas.fillStyle = color;
+		canvas.fillText(text, x + 2, 0, 300);
 	}
 
 	function drawBar(x, y, color) {
@@ -73,6 +82,7 @@
 		var n = 10;
 		while (n--) {
 			drawBar(toX(n), 0, '#bbbbbb');
+			drawLabel(toX(n), n + 's', '#bbbbbb');
 		}
 	}
 
@@ -93,21 +103,23 @@
 
 	var n = 0;
 	var c = colors[0];
+	var frameY = 20;
 
 	window.graph = {
 		drawCue: function(s1, s2) {
 			n = (n + 1) % 3;
 			c = colors[n];
-			drawRegion(toX(s1), toX(s2), n * 4 + 4, 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',0.1)');
-			drawLine(toX(s1), toX(s2),   n * 4 + 4, 'rgb(' + c.r + ',' + c.g + ',' + c.b + ')');
+			drawRegion(toX(s1), toX(s2), n * 4 + frameY, 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',0.1)');
+			drawLine(toX(s1), toX(s2),   n * 4 + frameY, 'rgb(' + c.r + ',' + c.g + ',' + c.b + ')');
 		},
 
 		drawBar: function(seconds) {
 			drawBar(toX(seconds), 0, 'blue');
+			drawLabel(toX(seconds), seconds.toFixed(3) + 's', 'blue');
 		},
 
 		drawEvent: function(s1, s2, value) {
-			drawEvent(toX(s1), toX(s2), (128 - value) * 2, 'rgb(' + c.r + ',' + c.g + ',' + c.b + ')');
+			drawEvent(toX(s1), toX(s2), (128 - value) * 2, s2 < s1 ? warningColor : 'rgb(' + c.r + ',' + c.g + ',' + c.b + ')');
 		}
 	};
 })(this);

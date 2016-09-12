@@ -157,7 +157,7 @@
 				return result;
 			})
 			.filter(Fn.compose(function(t) {
-				return prevTime < t && t < time;
+				return prevTime <= t && t < time;
 			}, Fn.get(0)))
 			.each(function(event){
 				clock.automate(event[1], event[2], event[0]);
@@ -167,8 +167,12 @@
 			clock.requestCue(cue);
 		}
 
-		function start() {
-			prevTime = startTime = getTime();
+		function start(time) {
+			prevTime = startTime = Fn.isDefined(time) ?
+				isAudioContext(object) ?
+					timeToBeat(time) :
+					object.timeToBeat(time) :
+				getTime() ;
 
 			this.now = now;
 			this.stop = stop;
@@ -226,7 +230,7 @@
 		// Set up clock as an audio object with outputs "rate" and
 		// "duration" and audio property "rate".
 		AudioObject.call(this, object, undefined, {
-			rate:     rateNode
+			rate: rateNode
 		}, {
 			rate: {
 				set: function(value, time, curve, duration) {
@@ -245,20 +249,19 @@
 				curve: 'step'
 			}
 		});
-
 	}
 
 	Clock.prototype = Object.create(AudioObject.prototype);
 
 	assign(Clock.prototype, {
-		create: function() {
-			return new Clock(this);
+		create: function(data) {
+			return new Clock(this, data);
 		}
 	});
 
 	assign(Clock, {
-		lookahead: 0.06,
-		frameDuration: 0.06
+		lookahead: 0.1,
+		frameDuration: 0.08
 	});
 
 	window.Clock = Clock;
