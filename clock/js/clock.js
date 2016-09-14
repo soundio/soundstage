@@ -37,9 +37,10 @@
 
 	// CueTimer
 
-	// Duration overrides. Magic numbers that work quite well in Chrome,
-	// FireFox and Safari.
+	// Duration override when page is not visible and setTimeout is throttled.
 	var hiddenDuration = 1.333333;
+	
+	// Duration override during elastic scrolling in Chrome.
 	var scrollDuration = 0.666667;
 
 	function CueTimer(duration, lookahead, now) {
