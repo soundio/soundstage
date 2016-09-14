@@ -35,14 +35,19 @@
 	function return0()    { return 0; }
 	function returnThis() { return this; }
 
-	// FrameTimer
+	// CueTimer
 
-	function FrameTimer(duration, lookahead, now) {
+	// Duration overrides. Magic numbers that work quite well in Chrome,
+	// FireFox and Safari.
+	var hiddenDuration = 1.333333;
+	var scrollDuration = 0.666667;
+
+	function CueTimer(duration, lookahead, now) {
 		var playing   = false;
 		var fns       = [];
-		var time;
+		var timer, time;
 
-		function fire() {
+		function fire(time) {
 			// Swap fns so that frames are not pushing new requests to the
 			// current fns list.
 			var functions = fns;
@@ -53,8 +58,6 @@
 			for (fn of functions) {
 				fn(time);
 			}
-
-			time += duration;
 		}
 
 		function frame() {
@@ -63,25 +66,79 @@
 				return;
 			}
 
-			fire();
-			setTimeout(frame, (time - duration - now() - lookahead) * 1000);
+			var t = now();
+
+			if (t > time) {
+				console.warn('CueTimer: cue dropped');
+			}
+
+			if (document.hidden) {
+				var n = t + hiddenDuration;
+				time = n > time ? n : time ;
+				fire(time);
+				// Delay should be 0, the browser will fire the timer as soon as
+				// it can. However, let's give it some value to protect against
+				// a fast timer loop. Shouldn't happen, but just in case.
+				timer = setTimeout(frame, duration);
+				return;
+			}
+
+			if (isScrolling()) {
+				var n = t + scrollDuration;
+				time = n > time ? n : time ;
+			}
+			else {
+				time += duration;
+			}
+
+			fire(time);
+			timer = setTimeout(frame, (time - now() - lookahead) * 1000);
 		}
 
 		function start() {
-			time  = now() + duration;
-			playing   = true;
+			time = now() + duration;
+			playing = true;
 			frame();
 		}
 
-		this.requestFrame = function requestFrame(fn) {
+		this.requestCue = function requestCue(fn) {
 			fns.push(fn);
 			if (!playing) { start(); }
 		};
 
-		// Todo: cancel frame should cancel specific fns.
-		this.cancelFrame = function stop() {
-			fns.length = 0;
+		this.cancelCue = function cancelCue(fn) {
+			var i = fns.indexOf(fn);
+			if (i > -1) { fns.splice(i, 1); }
 		};
+
+		var mousewheelTime = -Infinity;
+
+		function isScrolling() {
+			return now() < mousewheelTime + scrollDuration * 0.666667 ;
+		}
+
+		// Elastic scrolling in Chrome causes delays in setTimeout. Scroll
+		// events don't necessarily fire so use wheel.
+		// Todo: we don't appear to need this for FF or Safari.
+		document.addEventListener('wheel', function(e) {
+			graph.drawBar(now(), 'rgba(220,20,20,0.1)', '');
+
+			// During a scroll use these mousewheel events as a timer, as
+			// setTimeout becomes unreliable.
+			if (!isScrolling()) {
+				graph.drawBar(now(), 'red');
+				mousewheelTime = now();
+				clearTimeout(timer);
+				frame();
+			}
+		});
+
+		document.addEventListener('visibilitychange', function(e) {
+			if (document.hidden) {
+				clearTimeout(timer);
+				frame();
+			}
+		});
 	}
 
 
@@ -193,9 +250,9 @@
 			// Create a frame timer wrapper for the audio context
 
 			getTime = function() { return object.currentTime; };
-			timer = new FrameTimer(Clock.frameDuration, Clock.lookahead, getTime);
-			this.requestCue = timer.requestFrame;
-			this.cancelCue = timer.cancelFrame;
+			timer = new CueTimer(Clock.frameDuration, Clock.lookahead, getTime);
+			this.requestCue = timer.requestCue;
+			this.cancelCue = timer.cancelCue;
 			this.beatToTime = beatToTime;
 			this.timeToBeat = timeToBeat;
 		}
@@ -260,7 +317,7 @@
 	});
 
 	assign(Clock, {
-		lookahead: 0.1,
+		lookahead: 0.06,
 		frameDuration: 0.08
 	});
 

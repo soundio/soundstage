@@ -7,7 +7,7 @@
 	// Ignore any notes that have a region gain less than -60dB. This does not
 	// stop you from playing soft – region gain is multiplied by velocity gain –
 	// it's just a cut-off to avoid creating inaudible buffer nodes.
-	var minGain = 1/2/2/2/2/2/2/2/2/2/2;
+	var minGain = 0.0009765625; // -60dB
 
 	var defaults = {
 		"sample-map": "Gretsch Kit"

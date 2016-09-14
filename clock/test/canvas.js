@@ -12,14 +12,14 @@
 	var warningColor = 'red';
 
 	function toX(seconds) {
-		return seconds * 480;
+		return seconds * 240;
 	}
 
 	function drawLabel(x, text, color) {
 		canvas.font = "14px sans-serif";
 		canvas.textBaseline = "hanging";
 		canvas.fillStyle = color;
-		canvas.fillText(text, x + 2, 0, 300);
+		canvas.fillText(text, x + 3, 3, 300);
 	}
 
 	function drawBar(x, y, color) {
@@ -113,9 +113,9 @@
 			drawLine(toX(s1), toX(s2),   n * 4 + frameY, 'rgb(' + c.r + ',' + c.g + ',' + c.b + ')');
 		},
 
-		drawBar: function(seconds) {
-			drawBar(toX(seconds), 0, 'blue');
-			drawLabel(toX(seconds), seconds.toFixed(3) + 's', 'blue');
+		drawBar: function(seconds, color, text) {
+			drawBar(toX(seconds), 0, color || 'blue');
+			drawLabel(toX(seconds), Fn.isDefined(text) ? text : seconds.toFixed(3) + 's', color || 'blue');
 		},
 
 		drawEvent: function(s1, s2, value) {
