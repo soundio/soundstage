@@ -11,7 +11,9 @@
 <script src="../modules/audio-object/js/audio-object.js"></script>
 <script src="../modules/audio-object/js/audio-object-oscillator.js"></script>
 <script src="js/clock.js"></script>
+<script src="js/head.js"></script>
 
+<script src="test/data.js"></script>
 <script src="test/canvas.js"></script>
 
 <style>
@@ -43,238 +45,6 @@
 	var output = AudioObject.getOutput(oscillator);
 	output.connect(audio.destination);
 
-	var sequence_ = [
-		[0,        'rate', 1],
-
-		[0,        'note', 48, 1, 0.125],
-		[0.5,      'note', 48, 1, 0.125],
-		[1,        'note', 48, 1, 0.125],
-		[1.5,      'note', 48, 1, 0.125],
-		[2,        'note', 48, 1, 0.125],
-		[2.5,      'note', 48, 1, 0.125],
-		[3,        'note', 48, 1, 0.125],
-		[3.5,      'note', 48, 1, 0.125],
-		[4,        'note', 48, 1, 0.125],
-		[4.5,      'note', 48, 1, 0.125],
-		[5,        'note', 48, 1, 0.125],
-		[5.5,      'note', 48, 1, 0.125],
-		[6,        'note', 48, 1, 0.125],
-		[6.5,      'note', 48, 1, 0.125],
-		[7,        'note', 48, 1, 0.125],
-		[7.5,      'note', 48, 1, 0.125],
-
-
-		[0,        'note', 62, 1, 0.0625],
-		[0.125,    'note', 64, 1, 0.0625],
-		[0.25,     'note', 66, 1, 0.0625],
-		[0.375,    'note', 68, 1, 0.0625],
-		[0.5,      'note', 60, 1, 0.0625],
-		[0.625,    'note', 62, 1, 0.0625],
-		[0.75,     'note', 64, 1, 0.0625],
-		[1,        'note', 62, 1, 0.0625],
-		[1.125,    'note', 64, 1, 0.0625],
-		[1.25,     'note', 66, 1, 0.0625],
-		[1.375,    'note', 68, 1, 0.0625],
-		[1.5,      'note', 60, 1, 0.0625],
-		[1.625,    'note', 62, 1, 0.0625],
-		[1.75,     'note', 64, 1, 0.0625],
-		[2,        'note', 62, 1, 0.0625],
-		[2.125,    'note', 64, 1, 0.0625],
-		[2.25,     'note', 66, 1, 0.0625],
-		[2.375,    'note', 68, 1, 0.0625],
-		[2.5,      'note', 60, 1, 0.0625],
-		[2.625,    'note', 62, 1, 0.0625],
-		[2.75,     'note', 64, 1, 0.0625],
-		[3,        'note', 62, 1, 0.0625],
-		[3.125,    'note', 64, 1, 0.0625],
-		[3.25,     'note', 66, 1, 0.0625],
-		[3.375,    'note', 68, 1, 0.0625],
-		[3.5,      'note', 60, 1, 0.0625],
-		[3.625,    'note', 62, 1, 0.0625],
-		[3.75,     'note', 64, 1, 0.0625],
-	];
-
-	var sequence = [
-		// 160bpm
-		[0,        'rate', 0.3],
-		[0,        'note', 12, 1, 0.0625],
-		[0.041667, 'note', 14, 1, 0.0625],
-		[0.083333, 'note', 16, 1, 0.0625],
-		[0.125,    'note', 18, 1, 0.0625],
-		[0.166667, 'note', 20, 1, 0.0625],
-		[0.208333, 'note', 22, 1, 0.0625],
-		[0.25,     'note', 24, 1, 0.0625],
-		[0.5,      'note', 24, 1, 0.0625],
-		[0.5, 'sequence', [
-			[0,        'rate', 2],
-			[0,        'note', 32, 1, 0.0625],
-			[0.041667, 'note', 34, 1, 0.0625],
-			[0.083333, 'note', 36, 1, 0.0625],
-			[0.125,    'note', 38, 1, 0.0625],
-			[0.166667, 'note', 40, 1, 0.0625],
-			[0.208333, 'note', 42, 1, 0.0625],
-			[0.25,     'note', 44, 1, 0.0625],
-			[0.5,      'note', 44, 1, 0.0625],
-			[0.75,     'note', 44, 1, 0.0625],
-			[1,        'note', 44, 1, 0.0625],
-			[1.25,     'note', 44, 1, 0.0625],
-			[1.5,      'note', 44, 1, 0.0625],
-			[1.75,     'note', 44, 1, 0.0625],
-			[2,        'note', 44, 1, 0.0625],
-			[2.25,     'note', 44, 1, 0.0625],
-			[2.5,      'note', 44, 1, 0.0625],
-			[2.75,     'note', 44, 1, 0.0625],
-			[3,        'note', 44, 1, 0.0625],
-			[3, 'sequence', [
-				[0,        'rate', 1.5],
-				[0, 'sequence', [
-					[0,        'rate', 1.33333333],
-					[0,        'note', 72, 1, 0.0625],
-					[0.041667, 'note', 74, 1, 0.0625],
-					[0.083333, 'note', 76, 1, 0.0625],
-					[0.125,    'note', 78, 1, 0.0625],
-					[0.166667, 'note', 80, 1, 0.0625],
-					[0.208333, 'note', 82, 1, 0.0625],
-					[0.25,     'note', 84, 1, 0.0625],
-					[0.5,      'note', 84, 1, 0.0625],
-					[0.75,     'note', 84, 1, 0.0625],
-					[1,        'note', 84, 1, 0.0625],
-					[1.25,     'note', 84, 1, 0.0625],
-					[1.5,      'note', 84, 1, 0.0625],
-					[1.75,     'note', 84, 1, 0.0625],
-					[2,        'note', 84, 1, 0.0625],
-					[2.25,     'note', 84, 1, 0.0625],
-					[2.5,      'note', 84, 1, 0.0625],
-					[2.75,     'note', 84, 1, 0.0625],
-					[3,        'note', 84, 1, 0.0625],
-					[3.25,     'note', 84, 1, 0.0625],
-					[3.5,      'note', 84, 1, 0.0625],
-					[3.75,     'note', 84, 1, 0.0625],
-				]],
-				[0,        'note', 52, 1, 0.0625],
-				[0.041667, 'note', 54, 1, 0.0625],
-				[0.083333, 'note', 56, 1, 0.0625],
-				[0.125,    'note', 58, 1, 0.0625],
-				[0.166667, 'note', 60, 1, 0.0625],
-				[0.208333, 'note', 62, 1, 0.0625],
-				[0.25,     'note', 64, 1, 0.0625],
-				[0.5,      'note', 64, 1, 0.0625],
-				[0.75,     'note', 64, 1, 0.0625],
-				[1,        'note', 64, 1, 0.0625],
-				[1.25,     'note', 64, 1, 0.0625],
-				[1.5,      'note', 64, 1, 0.0625],
-				[1.75,     'note', 64, 1, 0.0625],
-				[2,        'note', 64, 1, 0.0625],
-				[2.25,     'note', 64, 1, 0.0625],
-				[2.5,      'note', 64, 1, 0.0625],
-				[2.75,     'note', 64, 1, 0.0625],
-				[3,        'note', 64, 1, 0.0625],
-				[3.25,     'note', 64, 1, 0.0625],
-				[3.5,      'note', 64, 1, 0.0625],
-				[3.75,     'note', 64, 1, 0.0625],
-			]],
-			[3.25,     'note', 44, 1, 0.0625],
-			[3.5,      'rate', 1],
-			[3.5,      'note', 44, 1, 0.0625],
-			[3.75,     'note', 44, 1, 0.0625],
-			[4,        'rate', 2],
-			[4,        'note', 44, 1, 0.0625],
-			[4.25,     'note', 44, 1, 0.0625],
-			[4.5,      'note', 44, 1, 0.0625],
-			[4.75,     'note', 44, 1, 0.0625],
-			[5,        'note', 44, 1, 0.0625],
-			[5.25,     'note', 44, 1, 0.0625],
-			[5.5,      'note', 44, 1, 0.0625],
-			[5.75,     'note', 44, 1, 0.0625],
-		]],
-		[0.5, 'sequence', [
-			[0,        'rate', 3],
-			[0,        'note', 52, 1, 0.0625],
-			[0.041667, 'note', 54, 1, 0.0625],
-			[0.083333, 'note', 56, 1, 0.0625],
-			[0.125,    'note', 58, 1, 0.0625],
-			[0.166667, 'note', 60, 1, 0.0625],
-			[0.208333, 'note', 62, 1, 0.0625],
-			[0.25,     'note', 64, 1, 0.0625],
-			[0.5,      'note', 64, 1, 0.0625],
-			[0.75,     'note', 64, 1, 0.0625],
-			[1,        'note', 64, 1, 0.0625],
-			[1.25,     'note', 64, 1, 0.0625],
-			[1.5,      'note', 64, 1, 0.0625],
-			[1.75,     'note', 64, 1, 0.0625],
-			[2,        'note', 64, 1, 0.0625],
-			[2.25,     'note', 64, 1, 0.0625],
-			[2.5,      'note', 64, 1, 0.0625],
-			[2.75,     'note', 64, 1, 0.0625],
-			[3,        'note', 64, 1, 0.0625],
-			[3.25,     'note', 64, 1, 0.0625],
-			[3.5,      'note', 64, 1, 0.0625],
-			[3.75,     'note', 64, 1, 0.0625],
-		]],
-		[0.5, 'sequence', [
-			[0,        'rate', 4],
-			[0,        'note', 72, 1, 0.0625],
-			[0.041667, 'note', 74, 1, 0.0625],
-			[0.083333, 'note', 76, 1, 0.0625],
-			[0.125,    'note', 78, 1, 0.0625],
-			[0.166667, 'note', 80, 1, 0.0625],
-			[0.208333, 'note', 82, 1, 0.0625],
-			[0.25,     'note', 84, 1, 0.0625],
-			[0.5,      'note', 84, 1, 0.0625],
-			[0.75,     'note', 84, 1, 0.0625],
-			[1,        'note', 84, 1, 0.0625],
-			[1.25,     'note', 84, 1, 0.0625],
-			[1.5,      'note', 84, 1, 0.0625],
-			[1.75,     'note', 84, 1, 0.0625],
-			[2,        'note', 84, 1, 0.0625],
-			[2.25,     'note', 84, 1, 0.0625],
-			[2.5,      'note', 84, 1, 0.0625],
-			[2.75,     'note', 84, 1, 0.0625],
-			[3,        'note', 84, 1, 0.0625],
-			[3.25,     'note', 84, 1, 0.0625],
-			[3.5,      'note', 84, 1, 0.0625],
-			[3.75,     'note', 84, 1, 0.0625],
-		]],
-		[0.5, 'sequence', [
-			[0,        'rate', 6],
-			[0,        'note', 92, 1, 0.0625],
-			[0.041667, 'note', 94, 1, 0.0625],
-			[0.083333, 'note', 96, 1, 0.0625],
-			[0.125,    'note', 98, 1, 0.0625],
-			[0.166667, 'note', 100, 1, 0.0625],
-			[0.208333, 'note', 102, 1, 0.0625],
-			[0.25,     'note', 104, 1, 0.0625],
-			[0.5,      'note', 104, 1, 0.0625],
-			[0.75,     'note', 104, 1, 0.0625],
-			[1,        'note', 104, 1, 0.0625],
-			[1.25,     'note', 104, 1, 0.0625],
-			[1.5,      'note', 104, 1, 0.0625],
-			[1.75,     'note', 104, 1, 0.0625],
-			[2,        'note', 104, 1, 0.0625],
-			[2.25,     'note', 104, 1, 0.0625],
-			[2.5,      'note', 104, 1, 0.0625],
-			[2.75,     'note', 104, 1, 0.0625],
-			[3,        'note', 104, 1, 0.0625],
-			[3.25,     'note', 104, 1, 0.0625],
-			[3.5,      'note', 104, 1, 0.0625],
-			[3.75,     'note', 104, 1, 0.0625],
-		]],
-		[0.75,     'note', 24, 1, 0.0625],
-		[1,        'rate', 2],
-		[1,        'note', 24, 1, 0.0625],
-		[1.25,     'note', 24, 1, 0.0625],
-		[1.5,      'note', 24, 1, 0.0625],
-		[1.75,     'note', 24, 1, 0.0625],
-		[2,        'note', 24, 1, 0.0625],
-		[2.25,     'note', 24, 1, 0.0625],
-		[2.5,      'note', 24, 1, 0.0625],
-		[2.75,     'note', 24, 1, 0.0625],
-		[3,        'note', 24, 1, 0.0625],
-		[3.25,     'note', 24, 1, 0.0625],
-		[3.5,      'note', 24, 1, 0.0625],
-		[3.75,     'note', 24, 1, 0.0625],
-	];
-
 	var clock = new Clock(audio, sequence);
 	var n = 0;
 
@@ -284,88 +54,22 @@
 		graph.drawCue(audio.currentTime, time);
 		clock.requestCue(cue);
 	});
-	
+
 	document.addEventListener('visibilitychange', function(e) {
 		graph.drawBar(audio.currentTime, '#cc6622');
 	});
 
-	function makeData(clock, sequence) {
-		return Fn(sequence)
-		.filter(function(event) {
-			// Filter events by type
-			return event[1] !== 'rate';
-		})
-		.map(function toTime(event) {
-			var result = event.slice();
-			result[0] = clock.beatToTime(event[0]);
-			return result;
-		});
-	}
-
-	function launchSequence(event, clock, cuetime) {
-		var subclock = clock.create(event[2]);
-		var prevtime = event[0];
-
-		subclock.start(event[0]);
-
-		// Schedule the first cue load of events
-		var data = makeData(subclock, event[2]);
-		scheduleEvents(subclock, data, prevtime, cuetime);
-		prevtime = cuetime;
-
-		// Request the first cue
-		subclock.requestCue(function cue(time) {
-			var data = makeData(subclock, event[2]);
-			scheduleEvents(subclock, data, prevtime, time);
-			prevtime = time;
-			subclock.requestCue(cue);
-		});
-	}
-
-	function scheduleEvents(clock, data, t1, t2) {
-		//console.log('Frame ' + n, t1, t2);
-
-		data
-		.filter(Fn.compose(function(t) {
-			// Filter events in this frame
-			return t1 <= t && t < t2;
-		}, Fn.get(0)))
-		.each(function(event) {
-			if (event[1] === 'sequence') {
-				launchSequence(event, clock, t2);
-			}
-			else if (event[1] === 'note') {
-				oscillator.schedule(event);
-			}
-
-			// Schedule the events to play (or draw them!)
-			graph.drawEvent(audio.currentTime, event[0], event[2]);
-		});
-
-		++n;
-	}
+	var head = Head(clock, sequence);
 
 	setTimeout(function() {
 		clock.start();
+		graph.drawBar(clock.beatToTime(0));
+
+		setTimeout(function() {
+			head.start(audio.currentTime);
+			graph.drawBar(audio.currentTime);
+		}, 400);
 		
-		var prevtime = clock.beatToTime(0);
-		graph.drawBar(prevtime);
-
-		// Schedule the first 80ms of events
-		var data = makeData(clock, sequence);
-		scheduleEvents(clock, data, prevtime, prevtime + Clock.frameDuration + Clock.lookahead);
-		prevtime = prevtime + Clock.frameDuration + Clock.lookahead;
-
-		// Request the first cue
-		clock.requestCue(function cue(time) {
-			// Make the test run for 3 seconds only
-			if (audio.currentTime > 6) { return; }
-
-			var data = makeData(clock, sequence);
-			scheduleEvents(clock, data, prevtime, time);
-			prevtime = time;
-			clock.requestCue(cue);
-		});
-	}, 500);
+	}, 400);
 
 </script>

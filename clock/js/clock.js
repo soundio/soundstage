@@ -4,8 +4,10 @@
 	var assign           = Object.assign;
 	var defineProperties = Object.defineProperties;
 
+	var Fn               = window.Fn;
 	var AudioObject      = window.AudioObject;
 	var isAudioContext   = AudioObject.isAudioContext;
+	var isDefined        = Fn.isDefined;
 
 	function call(fn) {
 		fn();
