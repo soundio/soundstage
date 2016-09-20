@@ -45,31 +45,48 @@
 	var output = AudioObject.getOutput(oscillator);
 	output.connect(audio.destination);
 
-	var clock = new Clock(audio, sequence);
+	var timer = new CueTimer(Clock.frameDuration, Clock.lookahead, function() {
+		return audio.currentTime;
+	});
+
+	var clock = new Clock(timer, audio, []);
+
 	var n = 0;
 
-	clock.requestCue(function cue(time) {
+	timer.requestCue(function cue(time) {
 		// Make the test run for 3 seconds only
-		if (audio.currentTime > 6) { return; }
+		if (audio.currentTime > 6) {
+			head.stop();
+			return;
+		}
+
 		graph.drawCue(audio.currentTime, time);
-		clock.requestCue(cue);
+		timer.requestCue(cue);
 	});
 
 	document.addEventListener('visibilitychange', function(e) {
 		graph.drawBar(audio.currentTime, '#cc6622');
 	});
 
-	var head = Head(clock, sequence);
+	//var sequence = [
+	//	[0, 'note', 50, 1, 1]
+	//];
+
+	var head = Head(timer, clock, sequence, function(event) {
+		oscillator.schedule(event);
+		graph.drawEvent(audio.currentTime, event[0], event[2]);
+	});
 
 	setTimeout(function() {
+		graph.drawBar(audio.currentTime);
 		clock.start();
-		graph.drawBar(clock.beatToTime(0));
+		console.log('CLOCK', clock.now().toFixed(4));
 
 		setTimeout(function() {
-			head.start(audio.currentTime);
 			graph.drawBar(audio.currentTime);
+			console.log('CLOCK', clock.now().toFixed(4));
+			head.start();
 		}, 400);
-		
 	}, 400);
 
 </script>

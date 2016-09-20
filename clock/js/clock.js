@@ -33,8 +33,6 @@
 	var cues = Fn.BufferStream();
 	cues.each(call);
 
-
-	function return0()    { return 0; }
 	function returnThis() { return this; }
 
 	// CueTimer
@@ -48,6 +46,7 @@
 	function CueTimer(duration, lookahead, now) {
 		var playing   = false;
 		var fns       = [];
+		var cuetimer  = this;
 		var timer, time;
 
 		function fire(time) {
@@ -57,6 +56,9 @@
 			var fn;
 
 			fns = [];
+
+			// Do we need this? It's exposed for immediate scheduling...
+			cuetimer.lastCueTime = time;
 
 			for (fn of functions) {
 				fn(time);
@@ -103,6 +105,8 @@
 			playing = true;
 			frame();
 		}
+
+		this.now = now;
 
 		this.requestCue = function requestCue(fn) {
 			fns.push(fn);
@@ -189,10 +193,10 @@
 		return startTime + t + (beat - b) /r;
 	}
 
-	function Clock(object, data) {
+	function Clock(timer, audio, data) {
 		// Support using constructor without the `new` keyword
 		if (!Clock.prototype.isPrototypeOf(this)) {
-			return new Clock(object, data);
+			return new Clock(timer, audio, data);
 		}
 
 		var clock = this;
@@ -224,56 +228,31 @@
 			});
 
 			prevTime = time;
-			clock.requestCue(cue);
+			timer.requestCue(cue);
 		}
 
-		function start(time) {
-			prevTime = startTime = Fn.isDefined(time) ?
-				isAudioContext(object) ?
-					timeToBeat(time) :
-					object.timeToBeat(time) :
-				getTime() ;
+		this.now        = Fn.compose(timeToBeat, timer.now);
+		this.beatToTime = beatToTime;
+		this.timeToBeat = timeToBeat;
 
-			this.now = now;
+		this.start = function start(time) {
+			prevTime = startTime = Fn.isDefined(time) ?
+				timeToBeat(time) :
+				timer.now() ;
+
 			this.stop = stop;
 
-			clock.requestCue(cue);
+			timer.requestCue(cue);
 
 			return this;
-		}
+		};
 
-		function stop() {
+		this.stop = function stop() {
 			var beat = now();
 			this.now = function() { return beat; };
 			this.stop = returnThis;
 			return this;
-		}
-
-		if (isAudioContext(object)) {
-			// Create a frame timer wrapper for the audio context
-
-			getTime = function() { return object.currentTime; };
-			timer = new CueTimer(Clock.frameDuration, Clock.lookahead, getTime);
-			this.requestCue = timer.requestCue;
-			this.cancelCue = timer.cancelCue;
-			this.beatToTime = beatToTime;
-			this.timeToBeat = timeToBeat;
-		}
-		else {
-			getTime = function() { return object.now(); };
-			this.requestCue = object.requestCue;
-			this.cancelCue = object.cancelCue;
-			this.beatToTime = Fn.compose(object.beatToTime, beatToTime);
-			this.timeToBeat = Fn.compose(timeToBeat, object.timeToBeat);
-		}
-
-		now = Fn.compose(timeToBeat, getTime);
-
-		this.now = return0;
-		this.start = start;
-		this.stop = returnThis;
-
-
+		};
 
 
 
@@ -289,7 +268,7 @@
 
 		// Set up clock as an audio object with outputs "rate" and
 		// "duration" and audio property "rate".
-		AudioObject.call(this, object, undefined, {
+		AudioObject.call(this, audio, undefined, {
 			rate: rateNode
 		}, {
 			rate: {
@@ -324,5 +303,6 @@
 		frameDuration: 0.08
 	});
 
+	window.CueTimer = CueTimer;
 	window.Clock = Clock;
 })(this);
