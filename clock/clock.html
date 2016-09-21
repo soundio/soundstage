@@ -72,10 +72,15 @@
 	//	[0, 'note', 50, 1, 1]
 	//];
 
-	var head = Head(timer, clock, sequence, function(event) {
+	var head = Head(timer, clock, sequence, Fn.id, function(event) {
 		oscillator.schedule(event);
-		graph.drawEvent(audio.currentTime, event[0], event[2]);
+		graph.drawEvent(audio.currentTime, event);
 	});
+
+	//head.stream.each(function(event) {
+	//	oscillator.schedule(event);
+	//	graph.drawEvent(audio.currentTime, event[0], event[2]);
+	//});
 
 	setTimeout(function() {
 		graph.drawBar(audio.currentTime);

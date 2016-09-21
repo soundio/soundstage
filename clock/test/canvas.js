@@ -55,7 +55,7 @@
 		canvas.stroke();
 	}
 
-	function drawEvent(x1, x2, y, color) {
+	function drawNoteEvent(x1, x2, y, color) {
 		canvas.strokeStyle = color;
 		canvas.lineWidth = 1;
 		canvas.beginPath();
@@ -66,7 +66,24 @@
 		
 		canvas.fillStyle = color;
 		canvas.beginPath();
-		canvas.arc(x2, y, 3, 0, 2 * Math.PI, false);
+		canvas.fillRect(x2, y - 3, 4, 6);
+		//canvas.arc(x2, y, 3, 0, 2 * Math.PI, false);
+		canvas.closePath();
+		canvas.fill();
+	}
+
+	function drawParamEvent(x1, x2, y, color) {
+		canvas.strokeStyle = color;
+		canvas.lineWidth = 1;
+		canvas.beginPath();
+		canvas.moveTo(x1, y);
+		canvas.lineTo(x2, y);
+		canvas.closePath();
+		canvas.stroke();
+		
+		canvas.fillStyle = color;
+		canvas.beginPath();
+		canvas.arc(x2, y, 5, 0, 2 * Math.PI, false);
 		canvas.closePath();
 		canvas.fill();
 	}
@@ -118,8 +135,19 @@
 			drawLabel(toX(seconds), Fn.isDefined(text) ? text : seconds.toFixed(3) + 's', color || 'blue');
 		},
 
-		drawEvent: function(s1, s2, value) {
-			drawEvent(toX(s1), toX(s2), (128 - value) * 2, s2 < s1 ? warningColor : 'rgb(' + c.r + ',' + c.g + ',' + c.b + ')');
+		drawEvent: function(s1, event) {
+			var s2 = event[0];
+			var type = event[1];
+			var value;
+
+			if (type === "param") {
+				value = event[3];
+				drawParamEvent(toX(s1), toX(s2), 256 * (1 - value), s2 < s1 ? warningColor : 'rgb(' + c.r + ',' + c.g + ',' + c.b + ')');
+			}
+			else {
+				value = event[2];
+				drawNoteEvent(toX(s1), toX(s2), (128 - value) * 2, s2 < s1 ? warningColor : 'rgb(' + c.r + ',' + c.g + ',' + c.b + ')');
+			}
 		}
 	};
 })(this);
