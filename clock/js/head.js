@@ -33,23 +33,53 @@
 		return b + (time - startTime - t) * r;
 	}
 
+	function nthRoot(n, x) {
+		return Math.pow(x, 1/n);
+	}
+
+	function exponentialTimeAtBeat(r0, r1, beats, b) {
+		// r0 = start rate
+		// r1 = end rate
+		// b  = current beat
+		var a = nthRoot(beats, r1 / r0);
+		return (1 - Math.pow(a, -b)) / (Math.log(a) * r0);
+	}
+
+	function stepTimeAtBeat(r0, b) {
+		// r0 = start rate
+		// b  = current beat
+		return b / r0;
+	}
+
+	function timeAtBeat(e0, e1, beat) {
+		var curve = e1[3];
+		var b     = beat - e0[0];
+		return curve === "exponential" ?
+			exponentialTimeAtBeat(e0[2], e1[2], e1[0] - e0[0], b) :
+			stepTimeAtBeat(e0[2], b) ;
+	}
+
 	function toTime(beat, startTime, stream) {
-		var b = 0;
-		var r = 1;
+		var e0 = [0, "rate", 1];
 		var t = 0;
+		var n = 1;
 
 		stream
 		.clone()
 		.filter(function(event) {
-			return event[0] < beat;
+			// n lets one more through
+			return event[0] < beat || n-- > 0;
 		})
-		.each(function(event) {
-			t += (event[0] - b) / r;
-			b = event[0];
-			r = event[2];
+		.each(function(e1) {
+			t += timeAtBeat(e0, e1, e1[0] > beat ? beat : e1[0]);
+			e0 = e1;
 		});
 
-		return startTime + t + (beat - b) /r;
+		if (beat > e0[0]) {
+			t += stepTimeAtBeat(e0[2], beat - e0[0]);
+		}
+
+		return startTime + t;
 	}
 
 
@@ -57,6 +87,7 @@
 
 	// Event types
 	//
+	// [time, "rate", number, curve]
 	// [time, "note", number, velocity, duration]
 	// [time, "noteon", number, velocity]
 	// [time, "noteoff", number]
@@ -194,11 +225,11 @@
 
 						heads
 						.push(new Head(timer, head, data, Fn.compose(transform, function transform(event) {
-							if (event[1] === "note") {
-								var e = event.slice();
-								e[2] = event[2] + 1;
-								return e;
-							}
+							//if (event[1] === "note") {
+							//	var e = event.slice();
+							//	e[2] = event[2] + 1;
+							//	return e;
+							//}
 					
 							return event;
 						}), target, find)

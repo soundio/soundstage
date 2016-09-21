@@ -13,7 +13,7 @@
 <script src="js/clock.js"></script>
 <script src="js/head.js"></script>
 
-<script src="test/data-major-scale.js"></script>
+<script src="test/data-accel.js"></script>
 <script src="test/canvas.js"></script>
 
 <style>
@@ -72,18 +72,21 @@
 	//	[0, 'note', 50, 1, 1]
 	//];
 
-	var head = Head(timer, clock, sequence, function transform(event) {
-		if (event[1] === "note") {
-			var e = event.slice();
-			e[2] = event[2] + 1;
-			return e;
-		}
-
-		return event;
-	}, function trigger(event) {
+	var head = Head(timer, clock, sequence,
+	Fn.id,
+//	function transform(event) {
+//		if (event[1] === "note") {
+//		  var e = event.slice();
+//		  e[2] = event[2] + 16;
+//		  return e;
+//		}
+//		return event;
+//	},
+	function trigger(event) {
 		oscillator.schedule(event);
 		graph.drawEvent(audio.currentTime, event);
-	}, function find(name) {
+	},
+	function find(name) {
 		return sequence;
 	});
 

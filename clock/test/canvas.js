@@ -66,8 +66,24 @@
 		
 		canvas.fillStyle = color;
 		canvas.beginPath();
-		canvas.fillRect(x2, y - 3, 4, 6);
+		canvas.fillRect(x2, y - 3, 6, 6);
 		//canvas.arc(x2, y, 3, 0, 2 * Math.PI, false);
+		canvas.closePath();
+		canvas.fill();
+	}
+
+	function drawNoteOffEvent(x1, x2, y, color) {
+		canvas.strokeStyle = color;
+		canvas.lineWidth = 1;
+		canvas.beginPath();
+		canvas.moveTo(x1, y);
+		canvas.lineTo(x2, y);
+		canvas.closePath();
+		canvas.stroke();
+		
+		canvas.fillStyle = color;
+		canvas.beginPath();
+		canvas.strokeRect(x2, y - 3, 6, 6);
 		canvas.closePath();
 		canvas.fill();
 	}
@@ -143,6 +159,10 @@
 			if (type === "param") {
 				value = event[3];
 				drawParamEvent(toX(s1), toX(s2), 256 * (1 - value), s2 < s1 ? warningColor : 'rgb(' + c.r + ',' + c.g + ',' + c.b + ')');
+			}
+			else if (type === "noteoff") {
+				value = event[2];
+				drawNoteOffEvent(toX(s1), toX(s2), (128 - value) * 2, s2 < s1 ? warningColor : 'rgb(' + c.r + ',' + c.g + ',' + c.b + ')');
 			}
 			else {
 				value = event[2];
