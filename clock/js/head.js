@@ -12,14 +12,13 @@
 
 	// From clock -------------------------------
 	
-	function toBeat(time, startTime, data) {
+	function toBeat(time, startTime, stream) {
 		var b = 0;
 		var r = 1;
 		var t = 0;
 
-		Fn(data)
-		.filter(function(event) { return event[1] === 'rate'; })
-		.sort(Fn.by(0))
+		stream
+		.clone()
 		.filter(function(event) {
 			var temp = t + (event[0] - b) / r;
 			if (temp > (time - startTime)) { return false; }
@@ -34,14 +33,13 @@
 		return b + (time - startTime - t) * r;
 	}
 
-	function toTime(beat, startTime, data) {
+	function toTime(beat, startTime, stream) {
 		var b = 0;
 		var r = 1;
 		var t = 0;
 
-		Fn(data)
-		.filter(Fn.compose(Fn.is('rate'), Fn.get(1)))
-		.sort(Fn.by(0))
+		stream
+		.clone()
 		.filter(function(event) {
 			return event[0] < beat;
 		})
@@ -84,28 +82,28 @@
 		return event[4] === 'exponential' || event[4] === 'linear';
 	}
 
-	var toAbsoluteTimeEvent = Fn.curry(function(head, event) {
+	var toAbsoluteTimeEvent = Fn.curry(function(beatToTime, event) {
 		// Convert relative time to absolute time
 		var e2 = event.slice();
-		e2[0] = head.beatToTime(event[0]);
+		e2[0] = beatToTime(event[0]);
 		return e2;
 	});
 
-	function Head(timer, clock, sequence, transform, target) {
+	function Head(timer, clock, sequence, transform, target, find) {
 		if (!Head.prototype.isPrototypeOf(this)) {
-			return new Head(timer, clock, sequence, transform, target);
+			return new Head(timer, clock, sequence, transform, target, find);
 		}
 
-		var head = this;
-		var b0 = 0;
+		var head  = this;
+		var b0    = 0;
 		var heads = [];
 
 		function timeToBeat(time) {
-			return toBeat(time, b0, sequence);
+			return toBeat(time, b0, rateStream);
 		}
 
 		function beatToTime(beat) {
-			return toTime(beat, b0, sequence);
+			return toTime(beat, b0, rateStream);
 		}
 
 		this.now        = Fn.compose(timeToBeat, clock.now);
@@ -114,20 +112,23 @@
 
 		// Horrible. Smelly. Syphon? Is there precedent for this?
 
-		var toAbsoluteTime = toAbsoluteTimeEvent(this);
+
+		var toAbsoluteTime = toAbsoluteTimeEvent(this.beatToTime);
 
 		var stream = Fn(sequence);
 
 		var rateStream = stream
-			.syphon(Fn.pipe(Fn.get(1), Fn.is('rate')));
+			.syphon(Fn.pipe(Fn.get(1), Fn.is('rate')))
+			.sort(Fn.by(0));
 
 		var paramStream = stream
 			.syphon(Fn.pipe(Fn.get(1), Fn.is('param')))
 			.map(transform);
 
 		var eventStream = stream
-			//.chain(toNoteOnOffEvent)
 			.map(transform)
+			.chain(toNoteOnOffEvent)
+			.sort(Fn.by(0))
 			.map(toAbsoluteTime);
 
 		this.stream = Fn.Stream(function setup(notify) {
@@ -158,24 +159,24 @@
 
 					// Cue up all params in the current cue frame
 					while (param && t1 <= param[0] && param[0] < t2) {
-						if (param.length !== 1) { buffer.push(param); }
+						if (param.length > 1) { buffer.push(param); }
 						param = paramStream.shift();
 					}
 
 					// If the next param is new (param !== params[i]) and is a
 					// transitioning param, cue it up now
-					if (param && param !== params[i] && isTransitionEvent(param)) {
+					if (param && param.length > 1 && isTransitionEvent(param)) {
 						buffer.push(param);
 						
 						// Mark the cached next param as a dummy: it has already
 						// been queued, but it needs to be read again in it's
-						// own cue frame in order for the next one to be cued...
+						// own cue frame in order for the next one to be cued if
+						// that is also a transition event.
 						param = param.slice();
 						param.length = 1;
 					}
 
 					params[i] = param;
-
 					return buffer;
 				})
 				.reduce(Fn.concat, []);
@@ -186,8 +187,21 @@
 				eventBuffer.length = 0;
 
 				while (event && t1 <= event[0] && event[0] < t2) {
-					if (event[1] === 'sequence') {						
-						heads.push(new Head(timer, head, event[2], transform, target)
+					if (event[1] === 'sequence') {
+						var data = typeof event[2] === 'string' ?
+							find(event[2]) :
+							event[2] ;
+
+						heads
+						.push(new Head(timer, head, data, Fn.compose(transform, function transform(event) {
+							if (event[1] === "note") {
+								var e = event.slice();
+								e[2] = event[2] + 1;
+								return e;
+							}
+					
+							return event;
+						}), target, find)
 						.start(event[0]));
 					}
 					else {
@@ -218,7 +232,7 @@
 					t2 = !isDefined(time) ? audio.currentTime : time ;
 					b0 = clock.timeToBeat(t2);
 
-					// Seed events
+					// Seed event cues
 					params = paramStreams.map(function(stream) { return stream.shift(); });
 					event = eventStream.shift();
 					cue(timer.lastCueTime);
