@@ -74,7 +74,7 @@
 			var t = now();
 
 			if (t > time) {
-				console.warn('CueTimer: cue dropped');
+				console.warn('CueTimer: cue dropped at', t);
 			}
 
 			if (document.hidden) {
@@ -299,8 +299,8 @@
 	});
 
 	assign(Clock, {
-		lookahead: 0.06,
-		frameDuration: 0.08
+		lookahead: 0.1,
+		frameDuration: 0.2
 	});
 
 	window.CueTimer = CueTimer;

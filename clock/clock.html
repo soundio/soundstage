@@ -1,5 +1,5 @@
 
-<canvas id="canvas-0" width="1440" height="256"></canvas>
+<canvas id="canvas-0" width="7200" height="256"></canvas>
 
 <script src="../js/window.audiocontext.js"></script>
 <script src="../js/navigator.getusermedia.js"></script>
@@ -33,7 +33,7 @@
 
 	canvas {
 		display: block;
-		width: 1440px;
+		width: 7200px;
 	}
 </style>
 
@@ -63,7 +63,7 @@
 
 	timer.requestCue(function cue(time) {
 		// Make the test run for 3 seconds only
-		if (audio.currentTime > 6) {
+		if (audio.currentTime > 30) {
 			head.stop();
 			return;
 		}
@@ -95,9 +95,7 @@
 		sampler.schedule(event);
 		graph.drawEvent(audio.currentTime, event);
 	},
-	function find(name) {
-		return sequence;
-	});
+	findSequence);
 
 	setTimeout(function() {
 		graph.drawBar(audio.currentTime);

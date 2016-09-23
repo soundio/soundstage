@@ -105,14 +105,14 @@
 	}
 
 	function drawDeciSeconds() {
-		var n = 100;
+		var n = 300;
 		while (n--) {
 			drawBar(toX(n) / 10, 0, '#eaeaea');
 		}
 	}
 
 	function drawSeconds() {
-		var n = 10;
+		var n = 30;
 		while (n--) {
 			drawBar(toX(n), 0, '#bbbbbb');
 			drawLabel(toX(n), n + 's', '#bbbbbb');
@@ -120,7 +120,7 @@
 	}
 
 	// Change the dimensions of our canvas
-	node.width = 1440;
+	node.width = 7200;
 	node.height = 256;
 
 	// Set colours and everything

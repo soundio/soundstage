@@ -11,37 +11,68 @@
 
 
 	// From clock -------------------------------
-	
+
+	var startRateEvent = [0, "rate", 1];
+
+	function log(n, x) { return Math.log(x) / Math.log(n); }
+
+	function root(n, x) { return Math.pow(x, 1/n); }
+
+	function exponentialBeatAtTime(r0, r1, n, t) {
+		// r0 = rate at start
+		// r1 = rate at end
+		// n  = beat count from start to end
+		// t  = current time
+		var a = root(n, r1 / r0);
+		return -1 * log(a, (1 - t * Math.log(a)));
+	}
+
+	function stepBeatAtTime(r0, t) {
+		// r0 = start rate
+		// t  = current time
+		return t * r0;
+	}
+
+	function beatAtTime(e0, e1, t0, time) {
+		var curve = e1[3];
+		var t     = time - t0;
+		return curve === "exponential" ?
+			exponentialBeatAtTime(e0[2], e1[2], e1[0] - e0[0], t) :
+			stepBeatAtTime(e0[2], t) ;
+	}
+
 	function toBeat(time, startTime, stream) {
-		var b = 0;
-		var r = 1;
-		var t = 0;
+		var e0   = startRateEvent;
+		var t0   = 0;
+		var beat = 0;
+
+		time = time - startTime;
 
 		stream
 		.clone()
-		.filter(function(event) {
-			var temp = t + (event[0] - b) / r;
-			if (temp > (time - startTime)) { return false; }
-			t = temp;
-			return true;
+		.filter(function(e1) {
+			return t0 < time;
 		})
-		.each(function(event) {
-			b = event[0];
-			r = event[2];
+		.each(function(e1) {
+			var t1 = t0 + timeAtBeat(e0, e1, e1[0]);
+			beat += beatAtTime(e0, e1, t0, t1 > time ? time : t1);
+			t0 = t1;
+			e0 = e1;
 		});
 
-		return b + (time - startTime - t) * r;
+		if (time > t0) {
+			beat += stepBeatAtTime(e0[2], time - t0);
+		}
+
+		return beat;
 	}
 
-	function nthRoot(n, x) {
-		return Math.pow(x, 1/n);
-	}
-
-	function exponentialTimeAtBeat(r0, r1, beats, b) {
-		// r0 = start rate
-		// r1 = end rate
+	function exponentialTimeAtBeat(r0, r1, n, b) {
+		// r0 = rate at start
+		// r1 = rate at end
+		// n  = beat count from start to end
 		// b  = current beat
-		var a = nthRoot(beats, r1 / r0);
+		var a = root(n, r1 / r0);
 		return (1 - Math.pow(a, -b)) / (Math.log(a) * r0);
 	}
 
@@ -60,26 +91,24 @@
 	}
 
 	function toTime(beat, startTime, stream) {
-		var e0 = [0, "rate", 1];
-		var t = 0;
-		var n = 1;
+		var e0   = startRateEvent;
+		var time = 0;
 
 		stream
 		.clone()
-		.filter(function(event) {
-			// n lets one more through
-			return event[0] < beat || n-- > 0;
+		.filter(function(e1) {
+			return e0[0] < beat;
 		})
 		.each(function(e1) {
-			t += timeAtBeat(e0, e1, e1[0] > beat ? beat : e1[0]);
+			time += timeAtBeat(e0, e1, e1[0] > beat ? beat : e1[0]);
 			e0 = e1;
 		});
 
 		if (beat > e0[0]) {
-			t += stepTimeAtBeat(e0[2], beat - e0[0]);
+			time += stepTimeAtBeat(e0[2], beat - e0[0]);
 		}
 
-		return startTime + t;
+		return startTime + time;
 	}
 
 
