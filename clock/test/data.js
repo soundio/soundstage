@@ -8,9 +8,15 @@
 	// [time, "chord", root, mode, duration]
 	// [time, "sequence", data || name, rate, startBeat, duration, address]
 
+
+	function findSequence(name) {
+		console.log('findSequence', name)
+		return [];
+	}
+
 	var sequence = [
 		// 160bpm
-		[0,        'rate', 0.75],
+		[0,        'rate', 0.5],
 		[0,        'note', 12, 1, 0.025],
 		[0.041667, 'note', 14, 1, 0.025],
 		[0.083333, 'note', 16, 1, 0.025],

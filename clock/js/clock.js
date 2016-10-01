@@ -204,11 +204,11 @@
 		var prevTime = 0;
 		var now, getTime, timer;
 
-		function timeToBeat(time) {
+		function beatAtTime(time) {
 			return toBeat(time, startTime, data);
 		}
 
-		function beatToTime(beat) {
+		function timeAtBeat(beat) {
 			return toTime(beat, startTime, data);
 		}
 
@@ -217,7 +217,7 @@
 			.filter(Fn.compose(Fn.equals('rate'), Fn.get(1)))
 			.map(function toTime(event) {
 				var result = event.slice();
-				result[0] = clock.beatToTime(event[0]);
+				result[0] = clock.timeAtBeat(event[0]);
 				return result;
 			})
 			.filter(Fn.compose(function(t) {
@@ -231,13 +231,13 @@
 			timer.requestCue(cue);
 		}
 
-		this.now        = Fn.compose(timeToBeat, timer.now);
-		this.beatToTime = beatToTime;
-		this.timeToBeat = timeToBeat;
+		this.now        = Fn.compose(beatAtTime, timer.now);
+		this.timeAtBeat = timeAtBeat;
+		this.beatAtTime = beatAtTime;
 
 		this.start = function start(time) {
 			prevTime = startTime = Fn.isDefined(time) ?
-				timeToBeat(time) :
+				beatAtTime(time) :
 				timer.now() ;
 
 			this.stop = stop;

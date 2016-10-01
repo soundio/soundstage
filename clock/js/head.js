@@ -2,6 +2,7 @@
 	"use strict";
 
 	var assign = Object.assign;
+	var freeze = Object.freeze;
 	var defineProperties = Object.defineProperties;
 
 	var Fn               = window.Fn;
@@ -12,7 +13,7 @@
 
 	// From clock -------------------------------
 
-	var startRateEvent = [0, "rate", 1];
+	const startRateEvent = freeze([0, "rate", 1]);
 
 	function log(n, x) { return Math.log(x) / Math.log(n); }
 
@@ -33,38 +34,11 @@
 		return t * r0;
 	}
 
-	function beatAtTime(e0, e1, t0, time) {
-		var curve = e1[3];
-		var t     = time - t0;
-		return curve === "exponential" ?
-			exponentialBeatAtTime(e0[2], e1[2], e1[0] - e0[0], t) :
-			stepBeatAtTime(e0[2], t) ;
-	}
-
-	function toBeat(time, startTime, stream) {
-		var e0   = startRateEvent;
-		var t0   = 0;
-		var beat = 0;
-
-		time = time - startTime;
-
-		stream
-		.clone()
-		.filter(function(e1) {
-			return t0 < time;
-		})
-		.each(function(e1) {
-			var t1 = t0 + timeAtBeat(e0, e1, e1[0]);
-			beat += beatAtTime(e0, e1, t0, t1 > time ? time : t1);
-			t0 = t1;
-			e0 = e1;
-		});
-
-		if (time > t0) {
-			beat += stepBeatAtTime(e0[2], time - t0);
-		}
-
-		return beat;
+	function beatAtTime(e0, e1, time) {
+		// Returns beat relative to e0 beat
+		return e1 && e1[3] === "exponential" ?
+			exponentialBeatAtTime(e0[2], e1[2], e1[0] - e0[0], time) :
+			stepBeatAtTime(e0[2], time) ;
 	}
 
 	function exponentialTimeAtBeat(r0, r1, n, b) {
@@ -83,34 +57,44 @@
 	}
 
 	function timeAtBeat(e0, e1, beat) {
-		var curve = e1[3];
-		var b     = beat - e0[0];
-		return curve === "exponential" ?
-			exponentialTimeAtBeat(e0[2], e1[2], e1[0] - e0[0], b) :
-			stepTimeAtBeat(e0[2], b) ;
+		// Returns time relative to e0 time
+		return e1 && e1[3] === "exponential" ?
+			exponentialTimeAtBeat(e0[2], e1[2], e1[0] - e0[0], beat) :
+			stepTimeAtBeat(e0[2], beat) ;
 	}
 
-	function toTime(beat, startTime, stream) {
-		var e0   = startRateEvent;
-		var time = 0;
+	var eventToData = Fn.curry(function eventToData(rates, e1) {
+		var n0 = rates[rates.length - 1];
+		var t0 = n0[0];
+		var e0 = n0[1];
+		var n1 = [t0 + timeAtBeat(e0, e1, e1[0]), e1];
+		rates.push(n1);
+		return n1;
+	});
 
-		stream
-		.clone()
-		.filter(function(e1) {
-			return e0[0] < beat;
-		})
-		.each(function(e1) {
-			time += timeAtBeat(e0, e1, e1[0] > beat ? beat : e1[0]);
-			e0 = e1;
-		});
-
-		if (beat > e0[0]) {
-			time += stepTimeAtBeat(e0[2], beat - e0[0]);
-		}
-
-		return startTime + time;
+	function beatAtTimeStream(rates, stream, time) {
+		var n = 0;
+		var t0 = rates[n][0];
+		var e0 = rates[n][1];
+		while ((rates[++n] || stream.shift()) && time > rates[n][0]) {
+			t0 = rates[n][0];
+			e0 = rates[n][1];
+		};
+		var e1 = rates[n] ? rates[n][1] : stream.shift();
+		return e0[0] + beatAtTime(e0, e1, time - t0);
 	}
 
+	function timeAtBeatStream(rates, stream, beat) {
+		var n = 0;
+		var t0 = rates[n][0];
+		var e0 = rates[n][1];
+		while ((rates[++n] || stream.shift()) && rates[n] && beat > rates[n][1][0]) {
+			t0 = rates[n][0];
+			e0 = rates[n][1];
+		};
+		var e1 = rates[n] ? rates[n][1] : stream.shift();
+		return t0 + timeAtBeat(e0, e1, beat - e0[0]);
+	}
 
 	// ----------------------------------------
 
@@ -142,10 +126,10 @@
 		return event[4] === 'exponential' || event[4] === 'linear';
 	}
 
-	var toAbsoluteTimeEvent = Fn.curry(function(beatToTime, event) {
+	var toAbsoluteTimeEvent = Fn.curry(function(timeAtBeat, event) {
 		// Convert relative time to absolute time
 		var e2 = event.slice();
-		e2[0] = beatToTime(event[0]);
+		e2[0] = timeAtBeat(event[0]);
 		return e2;
 	});
 
@@ -157,29 +141,28 @@
 		var head  = this;
 		var b0    = 0;
 		var heads = [];
+		var rates = [[0, startRateEvent]];
 
-		function timeToBeat(time) {
-			return toBeat(time, b0, rateStream);
+		function beatAtTime(time) {
+			return beatAtTimeStream(rates, rateStream, time - b0);
 		}
 
-		function beatToTime(beat) {
-			return toTime(beat, b0, rateStream);
+		function timeAtBeat(beat) {
+			return b0 + timeAtBeatStream(rates, rateStream, beat);
 		}
 
-		this.now        = Fn.compose(timeToBeat, clock.now);
-		this.beatToTime = Fn.compose(clock.beatToTime, beatToTime);
-		this.timeToBeat = Fn.compose(timeToBeat, clock.timeToBeat);
+		this.now        = Fn.compose(beatAtTime, clock.now);
+		this.timeAtBeat = Fn.compose(clock.timeAtBeat, timeAtBeat);
+		this.beatAtTime = Fn.compose(beatAtTime, clock.beatAtTime);
 
-		// Horrible. Smelly. Syphon? Is there precedent for this?
-
-
-		var toAbsoluteTime = toAbsoluteTimeEvent(this.beatToTime);
-
+		var toAbsoluteTime = toAbsoluteTimeEvent(this.timeAtBeat);
 		var stream = Fn(sequence);
 
+		// Horrible. Smelly. Syphon? Is there precedent for this?
 		var rateStream = stream
 			.syphon(Fn.pipe(Fn.get(1), Fn.is('rate')))
-			.sort(Fn.by(0));
+			.sort(Fn.by(0))
+			.map(eventToData(rates));
 
 		var paramStream = stream
 			.syphon(Fn.pipe(Fn.get(1), Fn.is('param')))
@@ -289,9 +272,8 @@
 				},
 
 				start: function(time) {
-					t2 = !isDefined(time) ? audio.currentTime : time ;
-					b0 = clock.timeToBeat(t2);
-
+					t2 = isDefined(time) ? time : audio.currentTime ;
+					b0 = clock.beatAtTime(t2);
 					// Seed event cues
 					params = paramStreams.map(function(stream) { return stream.shift(); });
 					event = eventStream.shift();
