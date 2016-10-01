@@ -62,7 +62,7 @@
 	var n = 0;
 
 	timer.requestCue(function cue(time) {
-		// Make the test run for 3 seconds only
+		// Make the test run for 30 seconds only
 		if (audio.currentTime > 30) {
 			head.stop();
 			return;
@@ -81,18 +81,17 @@
 	//];
 
 	var head = Head(timer, clock, sequence,
-	Fn.id,
-//	function transform(event) {
-//		if (event[1] === "note") {
-//		  var e = event.slice();
-//		  e[2] = event[2] + 16;
-//		  return e;
-//		}
-//		return event;
-//	},
+	function transform(event) {
+		if (event[1] === "note") {
+		  var e = event.slice();
+		  e[2] = event[2] + 32;
+		  return e;
+		}
+		return event;
+	},
 	function trigger(event) {
-		//oscillator.schedule(event);
-		sampler.schedule(event);
+		oscillator.schedule(event);
+		//sampler.schedule(event);
 		graph.drawEvent(audio.currentTime, event);
 	},
 	findSequence);
