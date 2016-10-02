@@ -7,15 +7,20 @@
 
 <script src="../modules/object.assign/object.assign.js"></script>
 <script src="../modules/fn/js/fn.js"></script>
-
 <script src="../modules/fn/js/events.js"></script>
 <script src="../modules/collection/js/observe.js"></script>
 <script src="../modules/collection/js/collection.js"></script>
+
+<script title="config">
+	Fn.debug = true;
+</script>
 
 <script src="../modules/audio-object/js/audio-object.js"></script>
 <script src="../modules/audio-object/js/ao-oscillator.js"></script>
 <script src="../modules/audio-object/js/ao-sampler.js"></script>
 <script src="../modules/audio-object/js/ao-sampler-presets-gretsch-kit.js"></script>
+<script src="../modules/audio-object/js/ao-sampler-presets-mis-piano.js"></script>
+<script src="../modules/audio-object/js/ao-sampler-presets-fender-rhodes-mark-ii.js"></script>
 
 <script src="js/clock.js"></script>
 <script src="js/head.js"></script>
@@ -52,6 +57,7 @@
 	var sampler = new AudioObject.Sampler(audio, {}, {}, AudioObject.presets);
 	var output = AudioObject.getOutput(sampler);
 	output.connect(audio.destination);
+	//sampler['sample-map'] = "Fender Rhodes Mark II";
 
 	var timer = new CueTimer(Clock.frameDuration, Clock.lookahead, function() {
 		return audio.currentTime;
@@ -82,16 +88,16 @@
 
 	var head = Head(timer, clock, sequence,
 	function transform(event) {
-		if (event[1] === "note") {
-		  var e = event.slice();
-		  e[2] = event[2] + 32;
-		  return e;
-		}
+		//if (event[1] === "note") {
+		//  var e = event.slice();
+		//  e[2] = event[2] + 32;
+		//  return e;
+		//}
 		return event;
 	},
 	function trigger(event) {
-		oscillator.schedule(event);
-		//sampler.schedule(event);
+		//oscillator.schedule(event);
+		sampler.schedule(event);
 		graph.drawEvent(audio.currentTime, event);
 	},
 	findSequence);
