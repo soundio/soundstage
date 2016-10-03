@@ -194,6 +194,8 @@
 
 				// Params
 
+				// Todo: Something in here is causing memory to be eaten
+
 				paramBuffer = paramStreams.map(function(paramStream, i) {
 					var param = params[i];
 					var buffer = paramBuffers[i] || (paramBuffers[i] = []);
@@ -210,7 +212,7 @@
 					// transitioning param, cue it up now
 					if (param && param.length > 1 && isTransitionEvent(param)) {
 						buffer.push(param);
-						
+
 						// Mark the cached next param as a dummy: it has already
 						// been queued, but it needs to be read again in it's
 						// own cue frame in order for the next one to be cued if
@@ -218,7 +220,7 @@
 						param = param.slice();
 						param.length = 1;
 					}
-
+					
 					params[i] = param;
 					return buffer;
 				})
@@ -228,6 +230,8 @@
 				// Other events
 
 				eventBuffer.length = 0;
+
+				// Todo: Something in here is causing memory to be eaten
 
 				while (event && t1 <= event[0] && event[0] < t2) {
 					if (event[1] === 'sequence') {
@@ -295,13 +299,7 @@
 		this.stop       = this.stream.stop;
 	}
 
-	Head.prototype = Object.create(Fn.Stream.prototype);
+	Head.prototype = Object.create(AudioObject.prototype);
 
-	assign(Head.prototype, {});
-
-	defineProperties(Head.prototype, {});
-
-	assign(Head, {});
-	
 	window.Head = Head;
 })(this);

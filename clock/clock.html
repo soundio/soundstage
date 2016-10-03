@@ -22,10 +22,11 @@
 <script src="../modules/audio-object/js/ao-sampler-presets-mis-piano.js"></script>
 <script src="../modules/audio-object/js/ao-sampler-presets-fender-rhodes-mark-ii.js"></script>
 
-<script src="js/clock.js"></script>
+<script src="js/cuetimer.js"></script>
 <script src="js/head.js"></script>
+<script src="js/clock.js"></script>
 
-<script src="test/data-accel.js"></script>
+<script src="test/data-bebop-major-2-octaves.js"></script>
 <script src="test/canvas.js"></script>
 
 <style>
@@ -51,67 +52,47 @@
 		waveform: 'sine',
 		gain: 0.0625
 	});
+
 	var output = AudioObject.getOutput(oscillator);
 	output.connect(audio.destination);
 
 	var sampler = new AudioObject.Sampler(audio, {}, {}, AudioObject.presets);
 	var output = AudioObject.getOutput(sampler);
 	output.connect(audio.destination);
-	//sampler['sample-map'] = "Fender Rhodes Mark II";
+	sampler['sample-map'] = "MIS Piano";
 
-	var timer = new CueTimer(Clock.frameDuration, Clock.lookahead, function() {
-		return audio.currentTime;
-	});
+	var clock = new Clock(audio, [], findSequence);
 
-	var clock = new Clock(timer, audio, []);
-
-	var n = 0;
-
-	timer.requestCue(function cue(time) {
+	clock.requestCue(function cue(time) {
 		// Make the test run for 30 seconds only
 		if (audio.currentTime > 30) {
-			head.stop();
+			clock.stop();
 			return;
 		}
 
 		graph.drawCue(audio.currentTime, time);
-		timer.requestCue(cue);
+		clock.requestCue(cue);
 	});
 
 	document.addEventListener('visibilitychange', function(e) {
 		graph.drawBar(audio.currentTime, '#cc6622');
 	});
 
-	//var sequence = [
-	//	[0, 'note', 50, 1, 1]
-	//];
+	//setTimeout(function() {
+		clock.start(Math.ceil(audio.currentTime));
 
-	var head = Head(timer, clock, sequence,
-	function transform(event) {
-		//if (event[1] === "note") {
-		//  var e = event.slice();
-		//  e[2] = event[2] + 32;
-		//  return e;
-		//}
-		return event;
-	},
-	function trigger(event) {
-		//oscillator.schedule(event);
-		sampler.schedule(event);
-		graph.drawEvent(audio.currentTime, event);
-	},
-	findSequence);
-
-	setTimeout(function() {
 		graph.drawBar(audio.currentTime);
-		clock.start();
 		console.log('CLOCK', clock.now().toFixed(4));
 
-		setTimeout(function() {
-			graph.drawBar(audio.currentTime);
-			console.log('CLOCK', clock.now().toFixed(4));
-			head.start();
-		}, 400);
-	}, 400);
+		clock.play(
+			clock.now(),
+			sequence,
+			function trigger(event) {
+				//oscillator.schedule(event);
+				sampler.schedule(event);
+				graph.drawEvent(audio.currentTime, event);
+			}
+		);
+	//}, 400);
 
 </script>
