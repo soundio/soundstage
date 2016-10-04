@@ -26,7 +26,7 @@
 <script src="js/head.js"></script>
 <script src="js/clock.js"></script>
 
-<script src="test/data-bebop-major-2-octaves.js"></script>
+<script src="test/data-tune.js"></script>
 <script src="test/canvas.js"></script>
 
 <style>
@@ -78,21 +78,33 @@
 		graph.drawBar(audio.currentTime, '#cc6622');
 	});
 
-	//setTimeout(function() {
-		clock.start(Math.ceil(audio.currentTime));
+	clock.start(Math.ceil(audio.currentTime));
 
-		graph.drawBar(audio.currentTime);
-		console.log('CLOCK', clock.now().toFixed(4));
+	graph.drawBar(audio.currentTime);
+	console.log('CLOCK', clock.now().toFixed(4));
 
-		clock.play(
-			clock.now(),
-			sequence,
-			function trigger(event) {
-				//oscillator.schedule(event);
-				sampler.schedule(event);
-				graph.drawEvent(audio.currentTime, event);
-			}
-		);
-	//}, 400);
+	var beat = 0;
+
+//	clock.play(
+//		Math.ceil(clock.now()),
+//		function() {
+//			return [beat++, "note", 60, 1, 0.125];
+//		},
+//		function trigger(event) {
+//			//oscillator.schedule(event);
+//			sampler.schedule(event);
+//			graph.drawEvent(audio.currentTime, event);
+//		}
+//	);
+
+	clock.play(
+		Math.ceil(clock.now()),
+		sequence,
+		function trigger(event) {
+			//oscillator.schedule(event);
+			sampler.schedule(event);
+			graph.drawEvent(audio.currentTime, event);
+		}
+	);
 
 </script>

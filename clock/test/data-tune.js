@@ -8,6 +8,10 @@
 	// [time, "chord", root, mode, duration]
 	// [time, "sequence", data || name, rate, startBeat, duration, address]
 
+	function findSequence(name) {
+		return [];
+	}
+
 	var sequence = [
 		// 120bpm
 		[0, 'rate', 6],
