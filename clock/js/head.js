@@ -157,22 +157,35 @@
 
 		var toAbsoluteTime = toAbsoluteTimeEvent(this.timeAtBeat);
 		var stream = Fn(sequence);
+		var rateStream, paramStream, eventStream;
 
-		// Horrible. Smelly. Syphon? Is there precedent for this?
-		var rateStream = stream
+		if (typeof sequence === "function") {
+			// Todo: Don't know what to do with these right now
+			rateStream  = Fn();
+			paramStream = Fn();
+
+			eventStream = stream
+			.map(transform)
+			.chain(toNoteOnOffEvent)
+			.map(toAbsoluteTime);
+		}
+		else {
+			// Horrible. Smelly. Syphon? Is there precedent for this?
+			rateStream = stream
 			.syphon(Fn.pipe(Fn.get(1), Fn.is('rate')))
 			.sort(Fn.by(0))
 			.map(eventToData(rates));
-
-		var paramStream = stream
+	
+			paramStream = stream
 			.syphon(Fn.pipe(Fn.get(1), Fn.is('param')))
 			.map(transform);
-
-		var eventStream = stream
+	
+			eventStream = stream
 			.map(transform)
 			.chain(toNoteOnOffEvent)
 			.sort(Fn.by(0))
 			.map(toAbsoluteTime);
+		}
 
 		this.stream = Fn.Stream(function setup(notify) {
 			var eventBuffer  = [];

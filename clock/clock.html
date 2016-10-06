@@ -83,22 +83,36 @@
 	graph.drawBar(audio.currentTime);
 	console.log('CLOCK', clock.now().toFixed(4));
 
-	var beat = 0;
-
-//	clock.play(
-//		Math.ceil(clock.now()),
-//		function() {
-//			return [beat++, "note", 60, 1, 0.125];
-//		},
-//		function trigger(event) {
-//			//oscillator.schedule(event);
-//			sampler.schedule(event);
-//			graph.drawEvent(audio.currentTime, event);
-//		}
-//	);
+	var beat1 = 0;
 
 	clock.play(
 		Math.ceil(clock.now()),
+		function() {
+			return [beat1++, "note", 60, 1, 0.125];
+		},
+		function trigger(event) {
+			//oscillator.schedule(event);
+			sampler.schedule(event);
+			graph.drawEvent(audio.currentTime, event);
+		}
+	);
+
+	var beat2 = 0;
+
+	clock.play(
+		Math.ceil(clock.now()),
+		function() {
+			return [beat2++ * 0.666666667, "note", 64, 1, 0.125];
+		},
+		function trigger(event) {
+			//oscillator.schedule(event);
+			sampler.schedule(event);
+			graph.drawEvent(audio.currentTime, event);
+		}
+	);
+
+	clock.play(
+		1,
 		sequence,
 		function trigger(event) {
 			//oscillator.schedule(event);

@@ -46,8 +46,9 @@
 
 
 		// Set up audio object params
-		var unityNode    = AudioObject.UnityNode(audio);
-		var rateNode     = audio.createGain();
+		var unityNode = AudioObject.UnityNode(audio);
+		var rateNode  = audio.createGain();
+		var rate      = 1;
 
 		rateNode.channelCount = 1;
 		//rateNode.gain.setValueAtTime(1, startTime);
@@ -60,6 +61,13 @@
 		}, {
 			rate: {
 				set: function(value, time, curve, duration) {
+					console.log('rate', value, time, curve);
+
+					// Todo: Hmmmmmmmmmm...
+					var beat = (time - startTime) * rate;
+					rate = value;
+					startTime = time - beat / rate;
+
 					// For the time being, only support step changes to tempo
 					if (curve !== 'step') { throw new Error('Clock: currently only supports "step" automations of rate.'); }
 
