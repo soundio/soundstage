@@ -77,6 +77,13 @@
 					[0, "note", 11, 1, 1],
 				]
 			}, {
+				slug: 'drums-rise',
+				events: [
+					// kick
+					[0,  'param', 'filter-frequency', 360],
+					[32, 'param', 'filter-frequency', 6600, 'exponential'],
+				]
+			}, {
 				slug: 'drums-1',
 				events: [
 					// kick
@@ -111,15 +118,22 @@
 
 		events: [
 			[00, "rate", 3],
+			[00, "sequence", "drums-rise", "drums"],
 			[00, "sequence", "drums-1", "drums"],
 			[08, "sequence", "drums-1", "drums"],
 			[16, "sequence", "drums-1", "drums"],
 			[24, "sequence", "drums-1", "drums"],
-			
+			[32, "sequence", "drums-1", "drums"],
+			[40, "sequence", "drums-1", "drums"],
+			[48, "sequence", "drums-1", "drums"],
+			[56, "sequence", "drums-1", "drums"],
+
 			[00, "sequence", "piano-1", "piano"],
 			[08, "sequence", "piano-1", "piano"],
 			[16, "sequence", "piano-1", "piano"],
 			[24, "sequence", "piano-1", "piano"],
+			[32, "sequence", "maj7",    "piano", 1, "transpose", 50, "rate", 1/8],
+			[40, "sequence", "maj7",    "piano", 1, "transpose", 49, "rate", 1/8],
 
 			//[03, "sequence", "chromatic", "transpose", 36, "quantize", null, 1, "rate", 4],
 			//[06, "sequence", "chromatic", "piano", 1, "transpose", 48, "quantize", null, 1, "rate", 4],

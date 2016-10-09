@@ -77,10 +77,10 @@
 	AudioObject.getOutput(objects.piano).connect(audio.destination);
 	AudioObject.getOutput(objects.drums).connect(audio.destination);
 
-	var cue = Schedule(function findEvents(slug) {
+	var cue = Schedule(function findSequence(slug) {
 			var type = Fn.toStringType(slug);
-			var stream;
 			var bySlug = Fn.compose(Fn.is(slug), Fn.get('slug'));
+			var sequence, stream;
 
 			// Find sequence via URL
 			if (type === 'url') {
@@ -95,10 +95,11 @@
 
 			// Find sequence via slug
 			else {
-				stream = sequence.sequences.find(bySlug);
+				sequence = window.sequence.sequences.find(bySlug);
+				stream = Fn.get('events', sequence);
 			}
 
-			return Fn.get('events', stream);
+			return stream;
 		}, function findAudioObject(id) {
 			var object = objects[id];
 
