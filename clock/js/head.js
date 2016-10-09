@@ -1,14 +1,10 @@
 (function(window) {
 	"use strict";
 
-	var assign = Object.assign;
 	var freeze = Object.freeze;
-	var defineProperties = Object.defineProperties;
 
 	var Fn               = window.Fn;
 	var AudioObject      = window.AudioObject;
-	var isAudioContext   = AudioObject.isAudioContext;
-	var isDefined        = Fn.isDefined;
 
 
 	// From clock -------------------------------
@@ -35,7 +31,7 @@
 	}
 
 	function beatAtTime(e0, e1, time) {
-		// Returns beat relative to e0 beat
+		// Returns beat relative to e0[0], where time is time from e0 time
 		return e1 && e1[3] === "exponential" ?
 			exponentialBeatAtTime(e0[2], e1[2], e1[0] - e0[0], time) :
 			stepBeatAtTime(e0[2], time) ;
@@ -57,7 +53,7 @@
 	}
 
 	function timeAtBeat(e0, e1, beat) {
-		// Returns time relative to e0 time
+		// Returns time relative to e0 time, where beat is beat from e0[0]
 		return e1 && e1[3] === "exponential" ?
 			exponentialTimeAtBeat(e0[2], e1[2], e1[0] - e0[0], beat) :
 			stepTimeAtBeat(e0[2], beat) ;
@@ -67,7 +63,7 @@
 		var n0 = rates[rates.length - 1];
 		var t0 = n0[0];
 		var e0 = n0[1];
-		var n1 = [t0 + timeAtBeat(e0, e1, e1[0]), e1];
+		var n1 = [t0 + timeAtBeat(e0, e1, e1[0] - e0[0]), e1];
 		rates.push(n1);
 		return n1;
 	});
@@ -79,7 +75,7 @@
 		while ((rates[++n] || stream.shift()) && time > rates[n][0]) {
 			t0 = rates[n][0];
 			e0 = rates[n][1];
-		};
+		}
 		var e1 = rates[n] ? rates[n][1] : stream.shift();
 		return e0[0] + beatAtTime(e0, e1, time - t0);
 	}
@@ -88,11 +84,15 @@
 		var n = 0;
 		var t0 = rates[n][0];
 		var e0 = rates[n][1];
+
 		while ((rates[++n] || stream.shift()) && rates[n] && beat > rates[n][1][0]) {
 			t0 = rates[n][0];
 			e0 = rates[n][1];
-		};
+		}
 		var e1 = rates[n] ? rates[n][1] : stream.shift();
+
+//console.log('timeAtBeatStream', 't0:', t0, 'e0:', e0, 'e1:', e1, 'beat:', beat, 'time:', timeAtBeat(e0, e1, beat - e0[0]));
+
 		return t0 + timeAtBeat(e0, e1, beat - e0[0]);
 	}
 
@@ -148,7 +148,8 @@
 		}
 
 		function timeAtBeat(beat) {
-			return b0 + timeAtBeatStream(rates, rateStream, beat);
+			var t = b0 + timeAtBeatStream(rates, rateStream, beat);
+			return t;
 		}
 
 		this.now        = Fn.compose(beatAtTime, clock.now);
@@ -245,10 +246,11 @@
 				eventBuffer.length = 0;
 
 				// Todo: Something in here is causing memory to be eaten
+				var data;
 
 				while (event && t1 <= event[0] && event[0] < t2) {
 					if (event[1] === 'sequence') {
-						var data = typeof event[2] === 'string' ?
+						data = typeof event[2] === 'string' ?
 							find(event[2]) :
 							event[2] ;
 
@@ -289,7 +291,7 @@
 				},
 
 				start: function(time) {
-					t2 = isDefined(time) ? time : audio.currentTime ;
+					t2 = time;
 					b0 = clock.beatAtTime(t2);
 					// Seed event cues
 					params = paramStreams.map(function(stream) { return stream.shift(); });

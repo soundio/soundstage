@@ -40,13 +40,14 @@
 			}
 
 			var t = now();
+			var n;
 
 			if (t > time) {
 				console.warn('CueTimer: cue dropped at', t);
 			}
 
 			if (document.hidden) {
-				var n = t + hiddenDuration;
+				n = t + hiddenDuration;
 				time = n > time ? n : time ;
 				fire(time);
 				// Delay should be 0, the browser will fire the timer as soon as
@@ -57,7 +58,7 @@
 			}
 
 			if (isScrolling()) {
-				var n = t + scrollDuration;
+				n = t + scrollDuration;
 				time = n > time ? n : time ;
 			}
 			else {
@@ -96,23 +97,18 @@
 		// events don't necessarily fire so use wheel.
 		// Todo: we don't appear to need this for FF or Safari.
 		document.addEventListener('wheel', function(e) {
-			graph.drawBar(now(), 'rgba(220,20,20,0.1)', '');
-
 			// During a scroll use these mousewheel events as a timer, as
 			// setTimeout becomes unreliable.
-			if (!isScrolling()) {
-				graph.drawBar(now(), 'red');
-				mousewheelTime = now();
-				clearTimeout(timer);
-				frame();
-			}
+			if (isScrolling()) { return; }
+			mousewheelTime = now();
+			clearTimeout(timer);
+			frame();
 		});
 
 		document.addEventListener('visibilitychange', function(e) {
-			if (document.hidden) {
-				clearTimeout(timer);
-				frame();
-			}
+			if (!document.hidden) { return; }
+			clearTimeout(timer);
+			frame();
 		});
 	}
 

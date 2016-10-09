@@ -27,7 +27,7 @@
 <script src="js/head.js"></script>
 <script src="js/clock.js"></script>
 
-<script src="test/data-bebop-major-2-octaves.js"></script>
+<script src="test/data.js"></script>
 <script src="test/canvas.js"></script>
 
 <style>
@@ -64,25 +64,7 @@
 
 	var clock = new Clock(audio, [], findSequence);
 
-	clock.requestCue(function cue(time) {
-		// Make the test run for 30 seconds only
-		if (audio.currentTime > 30) {
-			clock.stop();
-			return;
-		}
-
-		graph.drawCue(audio.currentTime, time);
-		clock.requestCue(cue);
-	});
-
-	document.addEventListener('visibilitychange', function(e) {
-		graph.drawBar(audio.currentTime, '#cc6622');
-	});
-
 	clock.start(Math.ceil(audio.currentTime));
-
-	graph.drawBar(audio.currentTime);
-	console.log('CLOCK', clock.now().toFixed(4));
 
 //	var beat1 = 0;
 //
@@ -113,13 +95,58 @@
 //	);
 
 	clock.play(
-		5,
+		4,
 		sequence,
 		function trigger(event) {
-			//oscillator.schedule(event);
+			console.log(event[0].toFixed(3), event[1], event[2], event[3]);
 			sampler.schedule(event);
 			graph.drawEvent(audio.currentTime, event);
 		}
 	);
+
+
+
+
+
+	// Draw the graph -----------------------------------------------
+
+	clock.requestCue(function cue(time) {
+		// Make the test run for 30 seconds only
+		if (audio.currentTime > 30) {
+			clock.stop();
+			return;
+		}
+
+		graph.drawCue(audio.currentTime, time);
+		clock.requestCue(cue);
+	});
+
+	var scrollDuration = 0.666667;
+	var mousewheelTime = -Infinity;
+
+	function isScrolling() {
+		return audio.currentTime < mousewheelTime + scrollDuration * 0.666667 ;
+	}
+
+	// Elastic scrolling in Chrome causes delays in setTimeout. Scroll
+	// events don't necessarily fire so use wheel.
+	// Todo: we don't appear to need this for FF or Safari.
+	document.addEventListener('wheel', function(e) {
+		graph.drawBar(audio.currentTime, 'rgba(220,20,20,0.1)', '');
+
+		// During a scroll use these mousewheel events as a timer, as
+		// setTimeout becomes unreliable.
+		if (!isScrolling()) {
+			graph.drawBar(audio.currentTime, 'red');
+			mousewheelTime = audio.currentTime;
+		}
+	});
+
+	document.addEventListener('visibilitychange', function(e) {
+		graph.drawBar(audio.currentTime, '#cc6622');
+	});
+
+	graph.drawBar(audio.currentTime);
+	console.log('CLOCK', clock.now().toFixed(4));
 
 </script>

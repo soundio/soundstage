@@ -1,12 +1,11 @@
 (function(window) {
 	"use strict";
 
-	var assign           = Object.assign;
-	var defineProperties = Object.defineProperties;
-
-	var Fn               = window.Fn;
-	var AudioObject      = window.AudioObject;
-	var Head             = window.Head;
+	var assign      = Object.assign;
+	var Fn          = window.Fn;
+	var AudioObject = window.AudioObject;
+	var Head        = window.Head;
+	var CueTimer    = window.CueTimer;
 
 	var createCueTimer = Fn.cache(function createCueTimer(audio) {
 		return new CueTimer(function() {

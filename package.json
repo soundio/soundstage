@@ -29,6 +29,7 @@
     "audio-object": "latest"
   },
   "devDependencies": {
+    "eslint": "^3.6.1",
     "gulp": "latest",
     "gulp-concat": "^2.6.0",
     "gulp-eslint": "^1.1.0",
@@ -86,5 +87,8 @@
     "test/test-connections.js",
     "test/test-sequence.js",
     "test/test-audio-objects.js"
-  ]
+  ],
+  "scripts": {
+    "lint": "eslint modules/audio-object/js/*.js modules/fn/js/*.js clock/js/*.js"
+  }
 }
