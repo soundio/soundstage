@@ -6,10 +6,8 @@
 	var Fn               = window.Fn;
 	var AudioObject      = window.AudioObject;
 
+	var startRateEvent = freeze([0, "rate", 1]);
 
-	// From clock -------------------------------
-
-	const startRateEvent = freeze([0, "rate", 1]);
 
 	function log(n, x) { return Math.log(x) / Math.log(n); }
 
@@ -90,13 +88,9 @@
 			e0 = rates[n][1];
 		}
 		var e1 = rates[n] ? rates[n][1] : stream.shift();
-
-//console.log('timeAtBeatStream', 't0:', t0, 'e0:', e0, 'e1:', e1, 'beat:', beat, 'time:', timeAtBeat(e0, e1, beat - e0[0]));
-
 		return t0 + timeAtBeat(e0, e1, beat - e0[0]);
 	}
 
-	// ----------------------------------------
 
 	// Event types
 	//
@@ -107,7 +101,7 @@
 	// [time, "param", name, value, curve]
 	// [time, "pitch", semitones]
 	// [time, "chord", root, mode, duration]
-	// [time, "sequence", data || name, rate, startBeat, duration, address]
+	// [time, "sequence", name || events, target, duration, transforms...]
 
 	function toNoteOnOffEvent(event) {
 		// [time, "note", number, velocity, duration]
@@ -133,7 +127,7 @@
 		return e2;
 	});
 
-	function Head(timer, clock, sequence, transform, target, find) {
+	function Head(timer, clock, sequence, transform, target) {
 		if (!Head.prototype.isPrototypeOf(this)) {
 			return new Head(timer, clock, sequence, transform, target, find);
 		}
@@ -245,31 +239,11 @@
 
 				eventBuffer.length = 0;
 
-				// Todo: Something in here is causing memory to be eaten
+				// Todo: Something in here is causing memory to be eaten. I think.
 				var data;
 
 				while (event && t1 <= event[0] && event[0] < t2) {
-					if (event[1] === 'sequence') {
-						data = typeof event[2] === 'string' ?
-							find(event[2]) :
-							event[2] ;
-
-						heads
-						.push(new Head(timer, head, data, Fn.compose(transform, function transform(event) {
-							//if (event[1] === "note") {
-							//	var e = event.slice();
-							//	e[2] = event[2] + 1;
-							//	return e;
-							//}
-					
-							return event;
-						}), target, find)
-						.start(event[0]));
-					}
-					else {
-						eventBuffer.push(event);
-					}
-
+					eventBuffer.push(event);
 					event = eventStream.shift();
 				}
 
@@ -308,10 +282,17 @@
 			};
 		})
 		.join()
-		.each(target);
+		.each(function(event) {
+			target(event, head);
+		});
 
-		this.start      = this.stream.start;
-		this.stop       = this.stream.stop;
+		this.start  = this.stream.start;
+		this.stop   = this.stream.stop;
+		this.play = function(time, sequence, target) {
+			var head = new Head(timer, this, sequence, Fn.id, target);
+			head.start(time);
+			return head;
+		};
 	}
 
 	Head.prototype = Object.create(AudioObject.prototype);

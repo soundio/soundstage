@@ -151,21 +151,14 @@
 			drawLabel(toX(seconds), Fn.isDefined(text) ? text : seconds.toFixed(3) + 's', color || 'blue');
 		},
 
-		drawEvent: function(s1, event) {
-			var s2 = event[0];
-			var type = event[1];
-			var value;
-
+		drawEvent: function(s1, s2, type, value) {
 			if (type === "param") {
-				value = event[3];
 				drawParamEvent(toX(s1), toX(s2), 256 * (1 - value), s2 < s1 ? warningColor : 'rgb(' + c.r + ',' + c.g + ',' + c.b + ')');
 			}
 			else if (type === "noteoff") {
-				value = event[2];
 				drawNoteOffEvent(toX(s1), toX(s2), (128 - value) * 2, s2 < s1 ? warningColor : 'rgb(' + c.r + ',' + c.g + ',' + c.b + ')');
 			}
 			else {
-				value = event[2];
 				drawNoteEvent(toX(s1), toX(s2), (128 - value) * 2, s2 < s1 ? warningColor : 'rgb(' + c.r + ',' + c.g + ',' + c.b + ')');
 			}
 		}

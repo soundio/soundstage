@@ -26,9 +26,11 @@
 <script src="js/cuetimer.js"></script>
 <script src="js/head.js"></script>
 <script src="js/clock.js"></script>
+<script src="js/schedule.js"></script>
+<script src="test/timeline.js"></script>
 
-<script src="test/data.js"></script>
-<script src="test/canvas.js"></script>
+<script src="test/data-chromatic.js"></script>
+
 
 <style>
 	html,
@@ -45,66 +47,82 @@
 </style>
 
 <script>
+
+
 	var Clock = window.Clock;
 	var audio = new window.AudioContext();
+	var clock = new Clock(audio, []);
 
-	var oscillator = new AudioObject.Oscillator(audio, {
-		frequency: 200,
-		waveform: 'sine',
-		gain: 0.0625
-	});
+	var objects = {
+		"piano": new AudioObject.Sampler(audio, {
+			"sample-map": "MIS Piano",
+			"filter-type": "off"
+		}, AudioObject.presets),
 
-	var output = AudioObject.getOutput(oscillator);
-	output.connect(audio.destination);
+		"drums": new AudioObject.Sampler(audio, {
+			"sample-map": "Gretsch Kit",
+			"filter-type": "lowpass",
+			"filter-frequency": 5200,
+			"filter-frequency-from-note": 0
+		}, AudioObject.presets),
 
-	var sampler = new AudioObject.Sampler(audio, {}, {}, AudioObject.presets);
-	var output = AudioObject.getOutput(sampler);
-	output.connect(audio.destination);
-	sampler['sample-map'] = "MIS Piano";
+		"oscillator": new AudioObject.Oscillator(audio, {
+			"frequency": 200,
+			"waveform": "sine",
+			"gain": 0.0625
+		})
+	};
 
-	var clock = new Clock(audio, [], findSequence);
+	AudioObject.getOutput(objects.oscillator).connect(audio.destination);
+	AudioObject.getOutput(objects.piano).connect(audio.destination);
+	AudioObject.getOutput(objects.drums).connect(audio.destination);
+
+	var cue = Schedule(function findEvents(slug) {
+			var type = Fn.toStringType(slug);
+			var stream;
+			var bySlug = Fn.compose(Fn.is(slug), Fn.get('slug'));
+
+			// Find sequence via URL
+			if (type === 'url') {
+				stream = Fn.Stream.of();
+
+				Soundstage
+				.fetchSequence()
+				.then(function(sequence) {
+					stream.push.apply(stream, sequence.events);
+				});
+			}
+
+			// Find sequence via slug
+			else {
+				stream = sequence.sequences.find(bySlug);
+			}
+
+			return Fn.get('events', stream);
+		}, function findAudioObject(id) {
+			var object = objects[id];
+
+			// Proxy the audio object to draw events on the graph
+			return {
+				start: function(time, number) {
+					object.start.apply(object, arguments);
+					graph.drawEvent(audio.currentTime, time, 'noteon', number);
+				},
+
+				stop: function(time, number) {
+					object.stop.apply(object, arguments);
+					graph.drawEvent(audio.currentTime, time, 'noteoff', number);
+				},
+
+				automate: function(time, param) {
+					object.automate.apply(object, arguments);
+					graph.drawEvent(audio.currentTime, time, 'param', param);
+				}
+			};
+		});
 
 	clock.start(Math.ceil(audio.currentTime));
-
-//	var beat1 = 0;
-//
-//	clock.play(
-//		Math.ceil(clock.now()),
-//		function() {
-//			return [beat1++, "note", 60, 1, 0.125];
-//		},
-//		function trigger(event) {
-//			//oscillator.schedule(event);
-//			sampler.schedule(event);
-//			graph.drawEvent(audio.currentTime, event);
-//		}
-//	);
-//
-//	var beat2 = 0;
-//
-//	clock.play(
-//		Math.ceil(clock.now()),
-//		function() {
-//			return [beat2++ * 0.666666667, "note", 64, 1, 0.125];
-//		},
-//		function trigger(event) {
-//			//oscillator.schedule(event);
-//			sampler.schedule(event);
-//			graph.drawEvent(audio.currentTime, event);
-//		}
-//	);
-
-	clock.play(
-		4,
-		sequence,
-		function trigger(event) {
-			console.log(event[0].toFixed(3), event[1], event[2], event[3]);
-			sampler.schedule(event);
-			graph.drawEvent(audio.currentTime, event);
-		}
-	);
-
-
+	clock.play(5, sequence.events, cue);
 
 
 
