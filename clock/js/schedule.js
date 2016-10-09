@@ -128,6 +128,11 @@
 					.split(isString)
 					.map(function(def) {
 						var name = def[0];
+
+						if (!transforms[name]) {
+							if (AudioObject.debug) { console.log('Schedule: transform"' + name + '" not a supported transformation'); }
+						}
+
 						return transforms[name].apply(null, def.slice(1));
 					})
 					.toArray()

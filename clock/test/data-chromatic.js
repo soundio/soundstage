@@ -9,7 +9,7 @@
 	// [time, "sequence", data || name, rate, startBeat, duration, address]
 
 	var sequence = {
-		sequences: [
+		sequences: Music.Chords(16, 4, 0.8, 0.12).concat([
 			{
 				slug: 'chromatic',
 				events: [
@@ -114,31 +114,91 @@
 					[06, "sequence", "maj7",    "piano", 1, "transpose", 51],
 				]
 			}
-		],
+		]),
 
 		events: [
 			[00, "rate", 3],
-			[00, "sequence", "drums-rise", "drums"],
-			[00, "sequence", "drums-1", "drums"],
-			[08, "sequence", "drums-1", "drums"],
-			[16, "sequence", "drums-1", "drums"],
-			[24, "sequence", "drums-1", "drums"],
-			[32, "sequence", "drums-1", "drums"],
-			[40, "sequence", "drums-1", "drums"],
-			[48, "sequence", "drums-1", "drums"],
-			[56, "sequence", "drums-1", "drums"],
-
-			[00, "sequence", "piano-1", "piano"],
-			[08, "sequence", "piano-1", "piano"],
-			[16, "sequence", "piano-1", "piano"],
-			[24, "sequence", "piano-1", "piano"],
-			[32, "sequence", "maj7",    "piano", 1, "transpose", 50, "rate", 1/8],
-			[40, "sequence", "maj7",    "piano", 1, "transpose", 49, "rate", 1/8],
-
-			//[03, "sequence", "chromatic", "transpose", 36, "quantize", null, 1, "rate", 4],
-			//[06, "sequence", "chromatic", "piano", 1, "transpose", 48, "quantize", null, 1, "rate", 4],
-			//[09, "sequence", "chromatic", "piano", 1, "transpose", 60, "quantize", null, 1, "rate", 4],
-			//[12, "sequence", "chromatic", "piano", 1, "transpose", 72, "quantize", null, 1, "rate", 4],
-			//[15, "sequence", "chromatic", "piano", 1, "transpose", 84, "quantize", null, 1, "rate", 4],
 		]
+		//	[00, "sequence", "drums-rise", "drums"],
+		//	[00, "sequence", "drums-1", "drums"],
+		//	[08, "sequence", "drums-1", "drums"],
+		//	[16, "sequence", "drums-1", "drums"],
+		//	[24, "sequence", "drums-1", "drums"],
+		//	[32, "sequence", "drums-1", "drums"],
+		//	[40, "sequence", "drums-1", "drums"],
+		//	[48, "sequence", "drums-1", "drums"],
+		//	[56, "sequence", "drums-1", "drums"],
+		//
+		//	[00, "sequence", "piano-1", "piano"],
+		//	[08, "sequence", "piano-1", "piano"],
+		//	[16, "sequence", "piano-1", "piano"],
+		//	[24, "sequence", "piano-1", "piano"],
+		//	[32, "sequence", "maj7",    "piano", 1, "transpose", 50, "rate", 1/8],
+		//	[40, "sequence", "maj7",    "piano", 1, "transpose", 49, "rate", 1/8],
+		//
+		//	//[03, "sequence", "chromatic", "transpose", 36, "quantize", null, 1, "rate", 4],
+		//	//[06, "sequence", "chromatic", "piano", 1, "transpose", 48, "quantize", null, 1, "rate", 4],
+		//	//[09, "sequence", "chromatic", "piano", 1, "transpose", 60, "quantize", null, 1, "rate", 4],
+		//	//[12, "sequence", "chromatic", "piano", 1, "transpose", 72, "quantize", null, 1, "rate", 4],
+		//	//[15, "sequence", "chromatic", "piano", 1, "transpose", 84, "quantize", null, 1, "rate", 4],
+		//]
 	};
+
+	var sequences = sequence.sequences;
+	var events    = sequence.events;
+
+	var n = 0;
+
+	var state = {
+		chord: sequences[0],
+		root: 50,
+		t: 0
+	};
+
+	var getNumber = Fn.get(2);
+
+
+	function nextChord(chord1) {
+		if (chord1.length < 4) {
+			var chord2 = sequences[Math.floor(Math.random() * sequences.length)];
+			return (chord2.consonance && chord2.consonance > 0.12) ?
+				chord2 :
+				nextChord(chord1) ;
+		}
+
+		var p0 = 0;
+		var t  = 0;
+		var p  = [];
+		var p1 = 0;
+		var t0 = 0;
+
+		while (p0 < 0.55) {
+			chord2 = sequences[Math.floor(Math.random() * sequences.length)];
+			
+
+			if (chord2.length < 4) { continue; }
+
+			t = -5;
+
+			while (++t < 5) {
+				p1 = Music.contraryParallelism(chord1.events.map(getNumber), chord2.events.map(getNumber));
+				if (p1 > p0) {
+					p0 = p1;
+					t0 = t;
+				}
+			}
+
+			state.t = t0;
+		}
+		
+		return chord2;
+	}
+
+	events.push.apply(events, Fn(function() {
+		if (++n > 360) { return; }
+		state.chord = nextChord(state.chord);
+		state.root  = state.root + state.t;
+		if (state.root < 32) { state.root = state.root + 24; }
+		return [n * 2, "sequence", state.chord.events, "piano", 1, "transpose", state.root, "rate", 0.5];
+	}).toArray());
+

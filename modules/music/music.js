@@ -395,7 +395,7 @@
 		// Get all possible chromatic groups
 		groups = chromaticGroups(arr1, arr2);
 		l = groups.length;
-		
+
 		while (l--) {
 			group = groups[l];
 			rate1 = group.array.length / arr1.length;
@@ -409,11 +409,11 @@
 	
 			// subtract this group from both arrays, and then use those difference
 			// arrays to get the leftover parallels.
-			diff1 = diff(arr1, group.array);
-			diff2 = diff(arr2, group.array.map(fnAdd(group.trans)));
-			obj = findParallels(diff1, diff2);
+			diff1 = Fn.diff(arr1, group.array);
+			diff2 = Fn.diff(arr2, group.array.map(Fn.add(group.trans)));
+			obj   = findParallels(diff1, diff2);
 			rate2 = obj.rating * (1 - rate1);
-	
+
 			// Use the output object given by the bottom level recursion. In the
 			// case where a group is giving an identical rating to a previous one,
 			// use the group that requires less transposition.
@@ -513,11 +513,36 @@
 		return intervalNames[n];
 	}
 
+
+
+
+
+	function build(maxvalue, maxlength, seed, array) {
+		if (seed.length > maxlength) { return; }
+		array.push(seed);
+
+		var n = seed[seed.length - 1];
+		var arr;
+
+		while (n++ < maxvalue) {
+			arr = seed.slice();
+			arr.push(n);
+			build(maxvalue, maxlength, arr, array);
+		}
+
+		return array;
+	}
+
+	function numberToNoteEvent(number) {
+		return [0, "note", number, 1, 1];
+	}
+
 	window.Music = {
 		tuning:              440,
 		modes:               modes,
 
 		noteToNumber:        noteToNumber,
+		frequencyToNumber:   frequencyToNumber,
 		numberToNote:        numberToNote,
 		numberToOctave:      numberToOctave,
 		numberToFrequency:   numberToFrequency,
@@ -531,8 +556,37 @@
 		consonance:          consonance,
 		density:             density,
 		range:               range,
+		
+		// Harmonic motion
 		chromaticism:        chromaticism,
 		parallelism:         parallelism,
-		contraryParallelism: contraryParallelism
+		contraryParallelism: contraryParallelism,
+
+		Chords: function(maxRange, maxCount, maxDensity, minConsonance) {
+			minConsonance = minConsonance || 0.1;
+			maxDensity = maxDensity || 0.7;
+
+			return Fn(build(maxRange, maxCount, [0], []))
+			.map(function(array) { return { notes: array } })
+			.map(function(data) {
+				data.length  = data.notes.length;
+				data.density = density(data.notes);
+				return data;
+			})
+			.filter(function(data) {
+				return data.length < 3 || data.density < maxDensity;
+			})
+			.map(function(data) {
+				data.consonance = consonance(data.notes);
+				return data;
+			})
+			.filter(Fn.compose(Fn.isGreater(minConsonance), Fn.get('consonance')))
+			.map(function(data) {
+				data.slug   = data.notes + '';
+				data.events = data.notes.map(numberToNoteEvent)
+				return data;
+			})
+			.toArray()
+		}
 	};
 })(window);
