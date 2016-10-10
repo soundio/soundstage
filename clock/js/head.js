@@ -286,9 +286,9 @@
 			target(event, head);
 		});
 
-		this.start  = this.stream.start;
-		this.stop   = this.stream.stop;
-		this.play = function(time, sequence, target) {
+		this.start = this.stream.start;
+		this.stop  = this.stream.stop;
+		this.play  = function(time, sequence, target) {
 			var head = new Head(timer, this, sequence, Fn.id, target);
 			head.start(time);
 			return head;
