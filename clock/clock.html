@@ -29,7 +29,7 @@
 <script src="js/schedule.js"></script>
 <script src="test/timeline.js"></script>
 
-<script src="test/data-chromatic.js"></script>
+<script src="test/data-major-scale.js"></script>
 
 
 <style>
@@ -59,23 +59,23 @@
 			"filter-type": "off"
 		}, AudioObject.presets),
 
-		"drums": new AudioObject.Sampler(audio, {
-			"sample-map": "Gretsch Kit",
-			"filter-type": "lowpass",
-			"filter-frequency": 5200,
-			"filter-frequency-from-note": 0
-		}, AudioObject.presets),
+		//"drums": new AudioObject.Sampler(audio, {
+		//   "sample-map": "Gretsch Kit",
+		//   "filter-type": "lowpass",
+		//   "filter-frequency": 5200,
+		//   "filter-frequency-from-note": 0
+		//}, AudioObject.presets),
 
-		"oscillator": new AudioObject.Oscillator(audio, {
-			"frequency": 200,
-			"waveform": "sine",
-			"gain": 0.0625
-		})
+		//"oscillator": new AudioObject.Oscillator(audio, {
+		//	"frequency": 200,
+		//	"waveform": "sine",
+		//	"gain": 0.0625
+		//})
 	};
 
-	AudioObject.getOutput(objects.oscillator).connect(audio.destination);
+	//AudioObject.getOutput(objects.oscillator).connect(audio.destination);
 	AudioObject.getOutput(objects.piano).connect(audio.destination);
-	AudioObject.getOutput(objects.drums).connect(audio.destination);
+	//AudioObject.getOutput(objects.drums).connect(audio.destination);
 
 	var cue = Schedule(function findSequence(slug) {
 			var type = Fn.toStringType(slug);

@@ -16,6 +16,10 @@
 	// [time, "chord", root, mode, duration]
 	// [time, "sequence", name || events, target, duration, transforms...]
 
+	function warnEvent(object, event) {
+		console.warn('Schedule: Event dropped. Target audio object is', object, '. Event:', event);
+	}
+
 	var scheduleAudioObject = (function(types) {
 		return function(object, event) {
 			var time = event[0];
@@ -148,7 +152,10 @@
 		function schedule(event, head) {
 			return event[1] === "sequence" ?
 				scheduleSequence(head, event) :
-				scheduleAudioObject(object, event) ;
+				// If object, direct
+				object ?
+					scheduleAudioObject(object, event) :
+					AudioObject.debug && warnEvent(object, event);
 		}
 
 		return schedule;
