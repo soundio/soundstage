@@ -14,8 +14,9 @@
 			[0,  'rate', 4],
 			[8,  'rate', 8, "exponential"],
 			[16, 'rate', 4, "exponential"],
+			[16, 'sequence', 'scale', 'piano'],
 		],
-		
+
 		sequences: [{
 			slug: 'scale',
 			events: [
@@ -38,7 +39,7 @@
 				[14, 'note', 52, 1, 1],
 				[15, 'note', 50, 1, 1],
 				[16, 'param', 'gain', 0.125, 'exponential'],
-				[16, 'note', 48, 1, 1]
+				//[16, 'note', 48, 1, 1]
 			]
 		}]
 	};
