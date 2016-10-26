@@ -58,19 +58,7 @@
 
 	// Delay Audio object
 
-	function DelayAudioObject(audio, settings, clock) {
-		var options = assign({ maxDelay: 1, delay: 0 }, settings);
-		var node = audio.createDelay(options.maxDelay);
-
-		node.delayTime.setValueAtTime(options.delay, 0);
-
-		AudioObject.call(this, audio, node, node, {
-			delay: node.delayTime
-		});
-	}
-
-	assign(DelayAudioObject.prototype, AudioObject.prototype);
-	Soundstage.register('delay', DelayAudioObject, {
+	Soundstage.register('delay', AudioObject.Delay, {
 		delay: { min: 0, max: 2, transform: 'linear', value: 0.020 }
 	});
 
@@ -306,38 +294,7 @@
 		return object;
 	}, {});
 
-	Soundstage.register('pan', function StereoPannerObject(audio, settings) {
-		var options = assign({}, defaults, settings);
-		var node;
-
-		if (audio.createStereoPanner) {
-			node  = audio.createStereoPanner();
-			node.pan.value = options.angle;
-		}
-		else {
-			node  = audio.createPanner();
-			node.panningModel = 'equalpower';
-		}
-
-		AudioObject.call(this, audio, node, node, {
-			angle: audio.createStereoPanner ?
-				node.pan :
-				{
-					set: function(value) {
-						var angle = value > 90 ? 90 : value < -90 ? -90 : value ;
-						var x = Math.sin(angle * pi / 180);
-						var y = 0;
-						var z = Math.cos(angle * pi / 180);
-						pan.setPosition(x, y, z);
-					},
-
-					value: options.angle,
-					duration: 0
-				},
-		});
-
-		return object;
-	}, {
+	Soundstage.register('pan', AudioObject.Pan, {
 		angle: { min: -1, max: 1, transform: 'linear' , value: 0 }
 	});
 

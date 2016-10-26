@@ -28,9 +28,10 @@
 <script src="js/head.js"></script>
 <script src="js/clock.js"></script>
 <script src="js/schedule.js"></script>
+<script src="js/metronome.js"></script>
 <script src="test/timeline.js"></script>
 
-<script src="test/data-chromatic.js"></script>
+<script src="test/data-metronome.js"></script>
 
 
 <style>
@@ -79,52 +80,57 @@
 	//AudioObject.getOutput(objects.drums).connect(audio.destination);
 
 	var cue = Schedule(function findSequence(slug) {
-			var type = Fn.toStringType(slug);
-			var bySlug = Fn.compose(Fn.is(slug), Fn.get('slug'));
-			var sequence, stream;
+		var type = Fn.toStringType(slug);
+		var bySlug = Fn.compose(Fn.is(slug), Fn.get('slug'));
+		var sequence, stream;
 
-			// Find sequence via URL
-			if (type === 'url') {
-				stream = Fn.Stream.of();
+		// Find sequence via URL
+		if (type === 'url') {
+			stream = Fn.Stream.of();
 
-				Soundstage
-				.fetchSequence()
-				.then(function(sequence) {
-					stream.push.apply(stream, sequence.events);
-				});
+			Soundstage
+			.fetchSequence()
+			.then(function(sequence) {
+				stream.push.apply(stream, sequence.events);
+			});
+		}
+
+		// Find sequence via slug
+		else {
+			sequence = window.sequence.sequences.find(bySlug);
+			stream = Fn.get('events', sequence);
+		}
+
+		return stream;
+	}, function findAudioObject(id) {
+		var object = objects[id];
+
+		// Proxy the audio object to draw events on the graph
+		return {
+			start: function(time, number) {
+				object.start.apply(object, arguments);
+				graph.drawEvent(audio.currentTime, time, 'noteon', number);
+			},
+
+			stop: function(time, number) {
+				object.stop.apply(object, arguments);
+				graph.drawEvent(audio.currentTime, time, 'noteoff', number);
+			},
+
+			automate: function(time, param) {
+				object.automate.apply(object, arguments);
+				graph.drawEvent(audio.currentTime, time, 'param', param);
 			}
-
-			// Find sequence via slug
-			else {
-				sequence = window.sequence.sequences.find(bySlug);
-				stream = Fn.get('events', sequence);
-			}
-
-			return stream;
-		}, function findAudioObject(id) {
-			var object = objects[id];
-
-			// Proxy the audio object to draw events on the graph
-			return {
-				start: function(time, number) {
-					object.start.apply(object, arguments);
-					graph.drawEvent(audio.currentTime, time, 'noteon', number);
-				},
-
-				stop: function(time, number) {
-					object.stop.apply(object, arguments);
-					graph.drawEvent(audio.currentTime, time, 'noteoff', number);
-				},
-
-				automate: function(time, param) {
-					object.automate.apply(object, arguments);
-					graph.drawEvent(audio.currentTime, time, 'param', param);
-				}
-			};
-		});
+		};
+	});
 
 	clock.start(Math.ceil(audio.currentTime));
-	clock.play(5, sequence.events, cue);
+	//clock.play(5, sequence.events, cue);
+
+	var metronome = AudioObject.Metronome(audio, clock);
+	AudioObject.getOutput(metronome).connect(audio.destination);
+	metronome.start(2);
+
 
 
 
