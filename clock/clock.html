@@ -18,6 +18,7 @@
 <script src="../modules/music/music.js"></script>
 <script src="../modules/music/music-stream.js"></script>
 <script src="../modules/audio-object/js/audio-object.js"></script>
+<script src="../modules/audio-object/js/ao-tick.js"></script>
 <script src="../modules/audio-object/js/ao-oscillator.js"></script>
 <script src="../modules/audio-object/js/ao-sampler.js"></script>
 <script src="../modules/audio-object/js/ao-sampler-presets-gretsch-kit.js"></script>
@@ -31,7 +32,7 @@
 <script src="js/metronome.js"></script>
 <script src="test/timeline.js"></script>
 
-<script src="test/data-metronome.js"></script>
+<script src="test/data-chromatic.js"></script>
 
 
 <style>
@@ -50,10 +51,9 @@
 
 <script>
 
-
 	var Clock = window.Clock;
 	var audio = new window.AudioContext();
-	var clock = new Clock(audio, []);
+	var clock = new Clock(audio, [[0, "rate", 2]]);
 
 	var objects = {
 		"piano": new AudioObject.Sampler(audio, {
@@ -125,10 +125,9 @@
 	});
 
 	clock.start(Math.ceil(audio.currentTime));
-	//clock.play(5, sequence.events, cue);
+	clock.play(5, sequence.events, cue);
 
-	var metronome = AudioObject.Metronome(audio, clock);
-	AudioObject.getOutput(metronome).connect(audio.destination);
+	var metronome = new Metronome(audio, clock);
 	metronome.start(2);
 
 

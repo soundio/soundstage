@@ -1,9 +1,18 @@
 (function(window) {
 	"use strict";
 
+	// Import
+
 	var Fn        = window.Fn;
+
+	// Define
+
+	var debug     = true;
 	var isDefined = Fn.isDefined;
 
+	function warnEvent(object, event) {
+		console.warn('Schedule: Event dropped. Target audio object is', object, '. Event:', event);
+	}
 
 	// Event types
 	//
@@ -16,10 +25,6 @@
 	// [time, "chord", root, mode, duration]
 	// [time, "sequence", name || events, target, duration, transforms...]
 
-	function warnEvent(object, event) {
-		console.warn('Schedule: Event dropped. Target audio object is', object, '. Event:', event);
-	}
-
 	var scheduleAudioObject = (function(types) {
 		return function(object, event) {
 			var time = event[0];
@@ -27,7 +32,7 @@
 			var fn = types[type];
 
 			if (!fn) {
-				if (AudioObject.debug) { console.log('Schedule: cant schedule event:', event); }
+				if (debug) { console.log('Schedule: cant schedule event:', event); }
 				return;
 			}
 
@@ -81,8 +86,10 @@
 		"transpose": function(n) {
 			var add = Fn.add(n);
 			return function transpose(event) {
+				var e;
+
 				if (event[1] === "note") {
-					var e = event.slice();
+					e = event.slice();
 					e[2] = add(event[2]);
 					return e;
 				}
@@ -103,7 +110,7 @@
 		"quantize": function(name, strength, jitter) {
 			return function quantize(event) {
 				var e = event.slice();
-				var t = Math.round(event[0]);
+				//var t = Math.round(event[0]);
 				var diff = event[0] - Math.round(event[0]);
 				e[0] = event[0] - strength * diff;
 				//if (event[1] === "note") {
@@ -122,7 +129,7 @@
 				event[2] ;
 
 			if (!events) {
-				if (AudioObject.debug) { console.log('Schedule: events not found for event', event, events); }
+				if (debug) { console.log('Schedule: events not found for event', event, events); }
 			}
 
 			var transform = event.length < 6 ?
@@ -134,7 +141,7 @@
 						var name = def[0];
 
 						if (!transforms[name]) {
-							if (AudioObject.debug) { console.log('Schedule: transform"' + name + '" not a supported transformation'); }
+							if (debug) { console.log('Schedule: transform"' + name + '" not a supported transformation'); }
 						}
 
 						return transforms[name].apply(null, def.slice(1));
@@ -155,11 +162,11 @@
 				// If object, direct
 				object ?
 					scheduleAudioObject(object, event) :
-					AudioObject.debug && warnEvent(object, event);
+					debug && warnEvent(object, event);
 		}
 
 		return schedule;
-	};
+	}
 
 	window.Schedule = Schedule;
 })(this);

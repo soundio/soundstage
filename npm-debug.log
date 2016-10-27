@@ -10,7 +10,7 @@
 6 silly lifecycle soundstage@0.5.0~prelint: no script for prelint, continuing
 7 info lifecycle soundstage@0.5.0~lint: soundstage@0.5.0
 8 verbose lifecycle soundstage@0.5.0~lint: unsafe-perm in lifecycle true
-9 verbose lifecycle soundstage@0.5.0~lint: PATH: /usr/local/lib/node_modules/npm/bin/node-gyp-bin:/Users/stephband/Sites/soundstage/node_modules/.bin:/usr/local/Cellar/node/6.7.0/bin:/Users/stephband/Sites/swisstypefaces/.venv/bin:/usr/local/sbin:/usr/local/bin:/Users/stephband/.rbenv/shims:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/opt/X11/bin:/Users/stephband/.rbenv/shims:/Users/stephband/.rbenv/bin:/usr/local/share/python:/usr/local/bin:/usr/local/share/npm/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/opt/X11/bin
+9 verbose lifecycle soundstage@0.5.0~lint: PATH: /usr/local/lib/node_modules/npm/bin/node-gyp-bin:/Users/stephband/Sites/soundstage/node_modules/.bin:/usr/local/Cellar/node/6.7.0/bin:/usr/local/sbin:/usr/local/bin:/Users/stephband/.rbenv/shims:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/opt/X11/bin:/Users/stephband/.rbenv/shims:/Users/stephband/.rbenv/bin:/usr/local/share/python:/usr/local/bin:/usr/local/share/npm/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/opt/X11/bin
 10 verbose lifecycle soundstage@0.5.0~lint: CWD: /Users/stephband/Sites/soundstage
 11 silly lifecycle soundstage@0.5.0~lint: Args: [ '-c',
 11 silly lifecycle   'eslint modules/audio-object/js/*.js modules/fn/js/*.js clock/js/*.js' ]

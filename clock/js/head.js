@@ -6,7 +6,6 @@
 
 	var Fn          = window.Fn;
 	var AudioObject = window.AudioObject;
-	var assign      = Object.assign;
 
 
 	// Declare
@@ -270,7 +269,6 @@
 			eventBuffer.length = 0;
 
 			// Todo: Something in here is causing memory to be eaten. I think.
-			var data;
 
 			while (event && t1 <= event[0] && event[0] < t2) {
 				eventBuffer.push(event);
