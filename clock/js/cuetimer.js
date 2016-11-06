@@ -113,7 +113,7 @@
 	}
 
 	assign(CueTimer, {
-		lookahead: 0.1,
+		lookahead: 0.16,
 		duration: 0.2
 	});
 
