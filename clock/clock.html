@@ -56,10 +56,10 @@
 	var clock = new Clock(audio, [[0, "rate", 2]]);
 
 	var objects = {
-		"piano": new AudioObject.Sampler(audio, {
-			"sample-map": "MIS Piano",
-			"filter-type": "off"
-		}, AudioObject.presets),
+		//"piano": new AudioObject.Sampler(audio, {
+		//	"sample-map": "MIS Piano",
+		//	"filter-type": "off"
+		//}, AudioObject.presets),
 
 		//"drums": new AudioObject.Sampler(audio, {
 		//   "sample-map": "Gretsch Kit",
@@ -76,7 +76,7 @@
 	};
 
 	//AudioObject.getOutput(objects.oscillator).connect(audio.destination);
-	AudioObject.getOutput(objects.piano).connect(audio.destination);
+	//AudioObject.getOutput(objects.piano).connect(audio.destination);
 	//AudioObject.getOutput(objects.drums).connect(audio.destination);
 
 	var cue = Schedule(function findSequence(slug) {
@@ -125,7 +125,7 @@
 	});
 
 	clock.start(Math.ceil(audio.currentTime));
-	clock.play(5, sequence.events, cue);
+	//clock.play(5, sequence.events, cue);
 
 	var metronome = new Metronome(audio, clock);
 	metronome.start(2);
