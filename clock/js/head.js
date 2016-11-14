@@ -158,9 +158,9 @@
 		return e2;
 	});
 
-	function Head(timer, clock, sequence, transform, target) {
-		if (!Head.prototype.isPrototypeOf(this)) {
-			return new Head(timer, clock, sequence, transform, target, find);
+	function CueHead(timer, clock, sequence, transform, target) {
+		if (!CueHead.prototype.isPrototypeOf(this)) {
+			return new CueHead(timer, clock, sequence, transform, target, find);
 		}
 
 		var head  = this;
@@ -309,9 +309,13 @@
 		};
 
 		this.play = function(time, sequence, target) {
-			var head = new Head(timer, this, sequence, Fn.id, target);
+			var head = new CueHead(timer, this, sequence, Fn.id, target);
 			head.start(time);
 			return head;
+		};
+
+		this.push = function(event) {
+			cuestream.push(event);
 		};
 
 		cuestream
@@ -321,7 +325,7 @@
 		});
 	}
 
-	Head.prototype = Object.create(AudioObject.prototype);
+	CueHead.prototype = Object.create(AudioObject.prototype);
 
-	window.Head = Head;
+	window.CueHead = CueHead;
 })(this);

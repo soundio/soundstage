@@ -4,7 +4,7 @@
 	var assign      = Object.assign;
 	var Fn          = window.Fn;
 	var AudioObject = window.AudioObject;
-	var Head        = window.Head;
+	var CueHead     = window.CueHead;
 	var CueTimer    = window.CueTimer;
 
 	var createCueTimer = Fn.cache(function createCueTimer(audio) {
@@ -31,7 +31,7 @@
 		// Set up sequence reader
 		var startTime;
 
-		Head.call(this, timer, {
+		CueHead.call(this, timer, {
 			now: function() { return audio.currentTime; },
 			beatAtTime: function(time) { return time - startTime; },
 			timeAtBeat: function(beat) { return startTime + beat; }
@@ -83,13 +83,13 @@
 		});
 
 		this.play = function(time, sequence, target) {
-			var head = Head(timer, this, sequence, Fn.id, target, find);
+			var head = CueHead(timer, this, sequence, Fn.id, target, find);
 			head.start(time);
 			return head;
 		};
 	}
 
-	Clock.prototype = Object.create(Head.prototype);
+	Clock.prototype = Object.create(CueHead.prototype);
 
 	assign(Clock.prototype, {});
 
