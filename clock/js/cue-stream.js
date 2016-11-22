@@ -158,9 +158,9 @@
 		return e2;
 	});
 
-	function CueHead(timer, clock, sequence, transform, target) {
-		if (!CueHead.prototype.isPrototypeOf(this)) {
-			return new CueHead(timer, clock, sequence, transform, target, find);
+	function CueStream(timer, clock, sequence, transform, target) {
+		if (!CueStream.prototype.isPrototypeOf(this)) {
+			return new CueStream(timer, clock, sequence, transform, target, find);
 		}
 
 		var head  = this;
@@ -309,7 +309,7 @@
 		};
 
 		this.play = function(time, sequence, target) {
-			var head = new CueHead(timer, this, sequence, Fn.id, target);
+			var head = new CueStream(timer, this, sequence, Fn.id, target);
 			head.start(time);
 			return head;
 		};
@@ -325,7 +325,7 @@
 		});
 	}
 
-	CueHead.prototype = Object.create(AudioObject.prototype);
+	CueStream.prototype = Object.create(AudioObject.prototype);
 
-	window.CueHead = CueHead;
+	window.CueStream = CueStream;
 })(this);
