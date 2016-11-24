@@ -123,26 +123,33 @@
 		var buffer = [];
 		var e;
 
-		return source.create(function splitNotes() {
-			var event;
+		return Object.create(source, {
+			shift: {
+				value: function splitNotes() {
+					var event;
+					
+					if (e) {
+						event = e;
+						e = undefined;
+					}
+					else {
+						event = source.shift();
+						if (event && event[1] === 'note') {
+							spliceByTime(buffer, [event[0] + event[4], 'noteoff', event[2]]);
+							event = [event[0], 'noteon', event[2], event[3]];
+						}
+					}
+					
+					return buffer.length ?
+						event && event[0] < buffer[0][0] ?
+							event :
+							(e = event, buffer.shift()) :
+						event ;
+				},
 
-			if (e) {
-				event = e;
-				e = undefined;
+				enumerable: true,
+				writable:  true
 			}
-			else {
-				event = source.shift();
-				if (event && event[1] === 'note') {
-					spliceByTime(buffer, [event[0] + event[4], 'noteoff', event[2]]);
-					event = [event[0], 'noteon', event[2], event[3]];
-				}
-			}
-
-			return buffer.length ?
-				event && event[0] < buffer[0][0] ?
-					event :
-					(e = event, buffer.shift()) :
-				event ;
 		});
 	}
 
@@ -160,7 +167,7 @@
 
 	function CueStream(timer, clock, sequence, transform, target) {
 		if (!CueStream.prototype.isPrototypeOf(this)) {
-			return new CueStream(timer, clock, sequence, transform, target, find);
+			return new CueStream(timer, clock, sequence, transform, target);
 		}
 
 		var head  = this;
@@ -283,7 +290,7 @@
 			timer.requestCue(cue);
 		}
 
-		var cuestream = Fn.Stream.call(this, function cue() {
+		var cuestream = Fn.Stream(function cue() {
 			var buffer = eventBuffer.concat(paramBuffer);
 			if (!buffer.length) { return; }
 			var fn = Fn(buffer);
@@ -308,14 +315,12 @@
 			return this;
 		};
 
-		this.play = function(time, sequence, target) {
-			var head = new CueStream(timer, this, sequence, Fn.id, target);
-			head.start(time);
-			return head;
-		};
-
 		this.push = function(event) {
 			cuestream.push(event);
+		};
+
+		this.create = function(sequence, target) {
+			return new CueStream(timer, this, sequence, Fn.id, target);
 		};
 
 		cuestream

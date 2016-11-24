@@ -32,17 +32,22 @@
 		var startTime;
 
 		CueStream.call(this, timer, {
-			now: function() { return audio.currentTime; },
+			now:        function()     { return audio.currentTime; },
 			beatAtTime: function(time) { return time - startTime; },
 			timeAtBeat: function(beat) { return startTime + beat; }
-		}, data, Fn.id, Fn.noop, find);
+		}, data, Fn.id, Fn.noop);
 
 		var start = this.start;
 		this.start = function(time) {
 			startTime = time || audio.currentTime ;
+console.log('CLOCK START', startTime);
 			return start(time);
 		};
 
+		var stop = this.stop;
+		this.stop = function(time) {
+			return stop(time || audio.currentTime);
+		};
 
 		// Set up audio object params
 		var unityNode = AudioObject.UnityNode(audio);
@@ -82,11 +87,10 @@
 			}
 		});
 
-		this.play = function(time, sequence, target) {
-			var head = CueStream(timer, this, sequence, Fn.id, target, find);
-			head.start(time);
-			return head;
-		};
+		//this.play = function(time, sequence, target) {
+		//	var head = CueStream(timer, this, sequence, Fn.id, target);
+		//	return head.start(time);
+		//};
 	}
 
 	Clock.prototype = Object.create(CueStream.prototype);

@@ -46,7 +46,7 @@
 	function Metronome(audio, clock, options) {
 		var metronome = this;
 		var settings  = assign({}, defaults, options);
-		var source    = new AudioObject.Tick(audio, settings.synth);
+		var source    = AudioObject.Tick(audio, settings.synth);
 		var playing   = false;
 		var ticks, cuehead;
 
@@ -78,31 +78,49 @@
 
 			tick: {
 				get: function() {
-					var event = cuehead.eventAtTime(clock.now(), 'meter');
-					return event[2];
+					if (cuehead) {
+						var event = cuehead.eventAtTime(clock.now(), 'meter');
+						return event[2];
+					}
+
+					return this.events[0][2];
 				},
 				set: function(n) {
-					cuehead.push([
-						Math.ceil(clock.now()),
-						"meter",
-						n,
-						this.tock
-					]);
+					if (cuehead) {
+						cuehead.push([
+							Math.ceil(clock.now()),
+							"meter",
+							n,
+							this.tock
+						]);
+					}
+					else {
+						this.events[0][2] = n;
+					}
 				}
 			},
 
 			tock: {
 				get: function() {
-					var event = cuehead.eventAtTime(clock.now(), 'meter');
-					return event[3];
+					if (cuehead) {
+						var event = cuehead.eventAtTime(clock.now(), 'meter');
+						return event[3];
+					}
+					
+					return this.events[0][3];
 				},
 				set: function(n) {
-					cuehead.push([
-						Math.ceil(clock.now()),
-						"meter",
-						this.tick,
-						n
-					]);
+					if (cuehead) {
+						cuehead.push([
+							Math.ceil(clock.now()),
+							"meter",
+							this.tick,
+							n
+						]);
+					}
+					else {
+						this.events[0][3] = n;
+					}
 				}
 			}
 		});
@@ -119,7 +137,10 @@
 			playing = true;
 
 			var meters = createMeterStream(this.events);
-			clock.play(beat, meters, schedule)
+
+			clock
+			.create(meters, schedule)
+			.start(beat);
 
 			//var stream = createTickSequence(this.tick, this.tock, this.note);
 			//stream.stop = function() { stream.status = "done"; };
