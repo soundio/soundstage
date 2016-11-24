@@ -11,10 +11,18 @@ Creates a new clock that is ready to stream a cue of `events`.
 
 Current rate of the clock.
 
+##### `state`
+
+Current state of event stream.
+
+`stopped` – 
+`started` –
+`done` –
+
 ##### `create(events, fn)`
 
-Creates a new clock that is a dependent of this clock, where `events` is
-the events to stream and `fn` is a function that receives the events on cue.
+Creates a new clock that is dependent on the time of this clock, where `events`
+is the events to stream and `fn` is a function that receives the events on cue.
 
 ##### `.start(time)`
 

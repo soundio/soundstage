@@ -6,7 +6,7 @@
 
 	var Fn          = window.Fn;
 	var AudioObject = window.AudioObject;
-
+	var notify      = window.notify;
 
 	// Declare
 
@@ -299,6 +299,14 @@
 			return fn;
 		}, Fn.noop);
 
+		var state = 'stopped';
+
+		Object.defineProperties(this, {
+			state: {
+				get: function() { return state; }
+			}
+		});
+
 		this.start = function(time) {
 			t2 = time;
 			b0 = clock.beatAtTime(t2);
@@ -306,12 +314,16 @@
 			params = paramStreams.map(function(stream) { return stream.shift(); });
 			event = eventStream.shift();
 			cue(timer.lastCueTime);
+			state = 'started';
+			notify(this, 'state');
 			return this;
 		};
 
 		this.stop = function(time) {
 			timer.cancelCue(cue);
 			heads.forEach(Fn.invoke('stop', [time]));
+			state = 'stopped';
+			notify(this, 'state');
 			return this;
 		};
 

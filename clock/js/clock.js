@@ -15,10 +15,10 @@
 
 	// Clock
 
-	function Clock(audio, data, find) {
+	function Clock(audio, data, target) {
 		// Support using constructor without the `new` keyword
 		if (!Clock.prototype.isPrototypeOf(this)) {
-			return new Clock(audio, data, find);
+			return new Clock(audio, data, target);
 		}
 
 		// Set up timer
@@ -35,18 +35,19 @@
 			now:        function()     { return audio.currentTime; },
 			beatAtTime: function(time) { return time - startTime; },
 			timeAtBeat: function(beat) { return startTime + beat; }
-		}, data, Fn.id, Fn.noop);
+		}, data, Fn.id, target);
 
 		var start = this.start;
 		this.start = function(time) {
 			startTime = time || audio.currentTime ;
 console.log('CLOCK START', startTime);
-			return start(time);
+			return start.call(this, startTime);
 		};
 
 		var stop = this.stop;
 		this.stop = function(time) {
-			return stop(time || audio.currentTime);
+console.log('CLOCK STOP', time || audio.currentTime);
+			return stop.call(this, time || audio.currentTime);
 		};
 
 		// Set up audio object params
@@ -86,11 +87,6 @@ console.log('CLOCK START', startTime);
 				curve: 'step'
 			}
 		});
-
-		//this.play = function(time, sequence, target) {
-		//	var head = CueStream(timer, this, sequence, Fn.id, target);
-		//	return head.start(time);
-		//};
 	}
 
 	Clock.prototype = Object.create(CueStream.prototype);
