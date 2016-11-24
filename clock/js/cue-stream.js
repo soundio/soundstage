@@ -6,7 +6,6 @@
 
 	var Fn          = window.Fn;
 	var AudioObject = window.AudioObject;
-	var notify      = window.notify;
 
 	// Declare
 
@@ -315,7 +314,6 @@
 			event = eventStream.shift();
 			cue(timer.lastCueTime);
 			state = 'started';
-			notify(this, 'state');
 			return this;
 		};
 
@@ -323,7 +321,6 @@
 			timer.cancelCue(cue);
 			heads.forEach(Fn.invoke('stop', [time]));
 			state = 'stopped';
-			notify(this, 'state');
 			return this;
 		};
 
