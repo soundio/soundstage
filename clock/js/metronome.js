@@ -58,7 +58,7 @@
 			'meter': function(event) {
 				ticks = createTickSequence(event[2], event[3]);
 				cuehead && cuehead.stop(event[0]);
-				cuehead = clock.play(event[0], ticks, schedule);
+				cuehead = clock.create(ticks, schedule).start(event[0]);
 				console.log(cuehead);
 			}
 		};
@@ -144,7 +144,7 @@
 
 			//var stream = createTickSequence(this.tick, this.tock, this.note);
 			//stream.stop = function() { stream.status = "done"; };
-			//cuehead = clock.play(beat, stream, schedule);
+			//cuehead = clock.create(stream, schedule).start(beat);
 		};
 
 		this.stop = function(time) {

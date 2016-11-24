@@ -125,7 +125,7 @@
 	});
 
 	clock.start(Math.ceil(audio.currentTime));
-	//clock.play(5, sequence.events, cue);
+	//clock.create(sequence.events, cue).start(5);
 
 	var metronome = new Metronome(audio, clock);
 	metronome.start(1);
