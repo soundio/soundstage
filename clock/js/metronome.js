@@ -1,9 +1,11 @@
 (function(window) {
 	"use strict";
 
+	var assign      = Object.assign;
 	var Fn          = window.Fn;
 	var AudioObject = window.AudioObject;
-	var assign      = Object.assign;
+
+	var debug = true;
 
 	var defaults = {
 		tick:   4,
@@ -12,44 +14,83 @@
 		source: {}
 	};
 
-	// Event types
+	// Event types.
 	//
-	// [time, "note", number, velocity, duration]
-	// [time, "noteon", number, velocity]
-	// [time, "noteoff", number]
+	// [time, "tick"]
+	// [time, "tock"]
+
+	var types = {
+		'tick': function(event, destination, metronome, audio) {
+			// Schedule audio
+			destination.start(event[0], metronome.note + 5, 1);
+
+			// Schedule event for visual feedback 
+			setTimeout(function() {
+				metronome.trigger('tick');
+			}, (event[0] - audio.currentTime - 0.003) * 1000);
+
+			// Log in timeline
+			if (debug && window.timeline) {
+				window.timeline.drawEvent(audio.currentTime, event[0], 'tick', 72);
+			}
+		},
+
+		'tock': function(event, destination, metronome, audio) {
+			// Schedule audio
+			destination.start(event[0], metronome.note, 0.5);
+
+			// Schedule event for visual feedback 
+			setTimeout(function() {
+				metronome.trigger('tock');
+			}, (event[0] - audio.currentTime - 0.003) * 1000);
+
+			// Log in timeline
+			if (debug && window.timeline) {
+				window.timeline.drawEvent(audio.currentTime, event[0], 'tock', 60);
+			}
+		}
+	};
 
 	function createTickSequence(tick, tock) {
 		var n = -tock;
-
-		return Fn(function beat() {
-			if (this.status === "done") { return; }
-			var isTick = n % tick === 0 ;
+		var stream = Fn(function beat() {
+			if (stream.status === "done") { return; }
 			return [
-				(n = n + tock),
-				"noteon",
-				metronome.note + (isTick ? 5 : 0),
-				isTick ? 1 : 0.5
-			] ;
+				(n += tock),
+				(n % tick === 0 ? "tick" : "tock")
+			];
 		});
+		return stream;
 	}
 
 	function Metronome(audio, clock, options) {
 		var metronome = this;
 		var settings  = assign({}, defaults, options);
-		var source    = AudioObject.Tick(audio, settings.synth);
+		var source    = AudioObject.Tick(audio, settings.source);
 		var state     = 'stopped';
-		var tick, tock, cuehead;
-
-		var types = {
-			'noteon': function(event) {
-				source.start(event[0], event[2], event[3]);
-			}
-		};
+		var tick, tock, cuestream;
 
 		function schedule(event) {
 			if (state === 'stopped' || clock.state === 'stopped') { return; }
 			if (!types[event[1]]) { return; }
-			types[event[1]](event);
+			types[event[1]](event, source, metronome, audio);
+		}
+
+		function start(time, tick, tock) {
+			var ticks = createTickSequence(tick, tock);
+
+			cuestream && cuestream.stop(time);
+			state = 'started';
+
+			cuestream = clock
+			.create(ticks, schedule)
+			.start(time);
+		}
+
+		function stop(time) {
+			cuestream && cuestream.stop(time);
+			cuestream = undefined;
+			state   = 'stopped';
 		}
 
 		Object.defineProperties(this, {
@@ -60,71 +101,64 @@
 
 			tick: {
 				get: function() {
-					//if (cuehead) {
-					//	var event = cuehead.eventAtTime(clock.now(), 'meter');
-					//	return event[2];
-					//}
 					return tick;
 				},
+
 				set: function(n) {
 					if (tick === n) { return; }
 					tick = n;
 					if (state === 'stopped') { return; }
-					this.start(Math.ceil(clock.now()), tick, tock);
-				}
+					start(clock.timeAtBeat(Math.ceil(clock.beatAtTime(audio.currentTime))), tick, tock);
+				},
+
+				// Support observe via get/set
+				configurable: true
 			},
 
 			tock: {
 				get: function() {
-					//if (cuehead) {
-					//	var event = cuehead.eventAtTime(clock.now(), 'meter');
-					//	return event[3];
-					//}
 					return tock;
 				},
+
 				set: function(n) {
 					if (tock === n) { return; }
 					tock = n;
 					if (state === 'stopped') { return; }
-					this.start(Math.ceil(clock.now()), tick, tock);
-				}
+					start(clock.timeAtBeat(Math.ceil(clock.beatAtTime(audio.currentTime))), tick, tock);
+				},
+
+				// Support observe via get/set
+				configurable: true
 			}
 		});
 
-		this.start = function(beat, tick, tock) {
-			beat = beat || Math.ceil(clock.now());
-			var time = clock.timeAtBeat(beat);
-console.log('START')
-			if (clock.state === 'stopped') {
-				// Handle case where clock is not running
-			}
-
-			var ticks = createTickSequence(tick, tock);
-
-			cuehead && cuehead.stop(time);
-			state = 'started';
-
-			cuehead = clock
-			.create(ticks, schedule)
-			.start(time);
+		this.start = function(time, tick, tock) {
+			time = time || audio.currentTime;
+			start(time, tick, tock);
 		};
 
-		this.stop = function(beat) {
-			beat = beat || clock.now();
-			var time = clock.timeAtBeat(beat);
-			cuehead && cuehead.stop(time);
-			cuehead = undefined;
-			state   = 'stopped';
+		this.stop = function(time) {
+			time = time || audio.currentTime;
+			stop(time);
 		};
 
 		this.tick   = settings.tick;
 		this.tock   = settings.tock;
 		this.note   = settings.note;
+		this.source = settings.source;
 
 		// Connect source to the audio destination
 		AudioObject.getOutput(source).connect(audio.destination);
+
+		// Plot output on debug timeline if it's available
+		if (window.timeline) {
+			timeline.drawAudioFromNode(AudioObject.getOutput(source));
+		}
+
 		if (settings.state === 'started') { this.start(); }
 	}
+
+	assign(Metronome.prototype, mixin.events);
 
 	// Export
 

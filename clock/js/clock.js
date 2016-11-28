@@ -13,6 +13,7 @@
 		});
 	});
 
+
 	// Clock
 
 	function Clock(audio, data, target) {
@@ -21,34 +22,55 @@
 			return new Clock(audio, data, target);
 		}
 
-		// Set up timer
 		var timer = createCueTimer(audio);
 
-		this.requestCue = timer.requestCue;
-		this.cancelCue  = timer.cancelCue;
-
-
-		// Set up sequence reader
-		var startTime;
-
-		CueStream.call(this, timer, {
-			now:        function()     { return audio.currentTime; },
+		var fns = {
 			beatAtTime: function(time) { return time - startTime; },
 			timeAtBeat: function(beat) { return startTime + beat; }
-		}, data, Fn.id, target);
+		};
 
-		var start = this.start;
+		var startTime, stopTime, cuestream;
+
+		// Clock methods basically map CueStream methods, but where a CueStream
+		// is read-once, clock is persistent and reusable.
+
 		this.start = function(time) {
 			startTime = time || audio.currentTime ;
-console.log('CLOCK START', startTime);
-			return start.call(this, startTime);
+			cuestream = new CueStream(timer, fns, data, Fn.id, target);
+			cuestream.start(startTime);
+			return this;
 		};
 
-		var stop = this.stop;
 		this.stop = function(time) {
-console.log('CLOCK STOP', time || audio.currentTime);
-			return stop.call(this, time || audio.currentTime);
+			stopTime = time || audio.currentTime ;
+			cuestream.stop(time || audio.currentTime);
+			cuestream = undefined;
+			return this;
 		};
+
+		this.beatAtTime = function(time) {
+			return cuestream ?
+				cuestream.beatAtTime(time) :
+				0 ;
+		};
+
+		this.timeAtBeat = function(beat) {
+			return cuestream ?
+				cuestream.timeAtBeat(beat) :
+				0 ;
+		};
+
+		this.create = function(sequence, target) {
+			return new CueStream(timer, this, sequence, Fn.id, target);
+		};
+
+		Object.defineProperties(this, {
+			state: {
+				get: function() {
+					return cuestream ? cuestream.state : 'stopped' ;
+				}
+			}
+		});
 
 		// Set up audio object params
 		var unityNode = AudioObject.UnityNode(audio);
@@ -89,9 +111,7 @@ console.log('CLOCK STOP', time || audio.currentTime);
 		});
 	}
 
-	Clock.prototype = Object.create(CueStream.prototype);
-
-	assign(Clock.prototype, {});
+	Clock.prototype = Object.create(AudioObject.prototype);
 
 	assign(Clock, {
 		lookahead: 0.1,

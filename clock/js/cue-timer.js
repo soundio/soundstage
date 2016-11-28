@@ -3,6 +3,9 @@
 
 	var assign = Object.assign;
 
+	//
+	var debug = true;
+
 	// Duration override when page is not visible and setTimeout is throttled.
 	var hiddenDuration = 1.333333;
 	
@@ -30,6 +33,11 @@
 
 			for (fn of functions) {
 				fn(time);
+			}
+
+			// For debugging
+			if (debug && window.timeline) {
+				window.timeline.drawCue(audio.currentTime, time);
 			}
 		}
 

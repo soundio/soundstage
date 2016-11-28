@@ -173,6 +173,7 @@
 		var b0    = 0;
 		var heads = [];
 		var rates = [[0, startRateEvent]];
+		var state = 'stopped';
 
 		function beatAtTime(time) {
 			return beatAtTimeStream(rates, rateStream, time - b0);
@@ -183,7 +184,7 @@
 			return t;
 		}
 
-		this.now        = Fn.compose(beatAtTime, clock.now);
+		//this.now        = Fn.compose(beatAtTime, clock.now);
 		this.timeAtBeat = Fn.compose(clock.timeAtBeat, timeAtBeat);
 		this.beatAtTime = Fn.compose(beatAtTime, clock.beatAtTime);
 
@@ -229,16 +230,29 @@
 			})
 			.toArray();
 
+		var tStop = Infinity;
 		var event, params, t1, t2;
+
+		function stop(time) {
+			cuestream.stop();
+			heads.forEach(Fn.invoke('stop', [time]));
+			state = 'stopped';
+		}
 
 		function cue(time) {
 			t1 = t2;
-			t2 = time;
+			t2 = time < tStop ? time : tStop ;
+
+			// NOT NECESSARY, because we cancel cue directly in this.stop
+			// Where the end time is before the start time (because perhaps
+			// tStop has been set before the cue), do nothing
+			//if (tStop <= t1) {
+			//	stop(tStop);
+			//	return;
+			//}
 
 			// Params
-
 			// Todo: Something in here is causing memory to be eaten
-
 			paramBuffer = paramStreams.map(function(paramStream, i) {
 				var param = params[i];
 				var buffer = paramBuffers[i] || (paramBuffers[i] = []);
@@ -271,11 +285,9 @@
 
 
 			// Other events
-
 			eventBuffer.length = 0;
 
 			// Todo: Something in here is causing memory to be eaten. I think.
-
 			while (event && t1 <= event[0] && event[0] < t2) {
 				eventBuffer.push(event);
 				event = eventStream.shift();
@@ -283,10 +295,18 @@
 
 			if (eventBuffer.length || paramBuffer.length) {
 				cuestream.push();
-				//notify('push');
 			}
 
-			timer.requestCue(cue);
+			if (time < tStop) {
+				timer.requestCue(cue);
+			}
+			else {
+				stop(tStop);
+			}
+		}
+
+		function distribute(event) {
+			target(event, head);
 		}
 
 		var cuestream = Fn.Stream(function cue() {
@@ -296,9 +316,9 @@
 			paramBuffer.length = 0;
 			eventBuffer.length = 0;
 			return fn;
-		}, Fn.noop);
-
-		var state = 'stopped';
+		}, Fn.noop)
+		.join()
+		.each(distribute);
 
 		Object.defineProperties(this, {
 			state: {
@@ -309,37 +329,44 @@
 		this.start = function(time) {
 			t2 = time;
 			b0 = clock.beatAtTime(t2);
+
 			// Seed event cues
 			params = paramStreams.map(function(stream) { return stream.shift(); });
 			event = eventStream.shift();
-			cue(timer.lastCueTime);
+
+			// Update state
 			state = 'started';
+
+			// Start the cue cycle
+			cue(timer.lastCueTime || audio.currentTime);
+
+			// Log in timeline
+			if (window.timeline) {
+				window.timeline.drawBar(audio.currentTime, 'orange', 'CueStream.start ' + clock.constructor.name);
+			}
+
 			return this;
 		};
 
 		this.stop = function(time) {
-			timer.cancelCue(cue);
-			heads.forEach(Fn.invoke('stop', [time]));
-			state = 'stopped';
+			tStop = time;
+
+			if (tStop <= timer.lastCueTime) {
+				timer.cancelCue(cue);
+				stop();
+			}
+
 			return this;
 		};
 
 		this.push = function(event) {
-			cuestream.push(event);
+			cuestream && cuestream.push(event);
 		};
 
 		this.create = function(sequence, target) {
 			return new CueStream(timer, this, sequence, Fn.id, target);
 		};
-
-		cuestream
-		.join()
-		.each(function(event) {
-			target(event, head);
-		});
 	}
-
-	CueStream.prototype = Object.create(AudioObject.prototype);
 
 	window.CueStream = CueStream;
 })(this);
