@@ -52,14 +52,22 @@
 	};
 
 	function createTickSequence(tick, tock) {
-		var n = -tock;
-		var stream = Fn(function beat() {
-			if (stream.status === "done") { return; }
-			return [
-				(n += tock),
-				(n % tick === 0 ? "tick" : "tock")
-			];
-		});
+		var n = tock === 0 ? -tick : -tock ;
+
+		var stream = Fn(tock === 0 ?
+			function ticktock() {
+				if (stream.status === "done") { return; }
+				var beat = n += tick;
+				return [beat, 'tick'];
+			} :
+			function ticktock() {
+				if (stream.status === "done") { return; }
+				var beat = n += tock;
+				var type = n % tick === 0 ? "tick" : "tock" ;
+				return [beat, type];
+			}
+		);
+
 		return stream;
 	}
 

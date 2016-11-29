@@ -69,44 +69,38 @@
 				get: function() {
 					return cuestream ? cuestream.state : 'stopped' ;
 				}
+			},
+
+			tempo: {
+				get: function() { return this.rate * 60; },
+				set: function(tempo) { this.rate = tempo / 60; },
+				// Support get/set observers
+				configurable: true
 			}
 		});
 
 		// Set up audio object params
 		var unityNode = AudioObject.UnityNode(audio);
 		var rateNode  = audio.createGain();
-		var rate      = 1;
 
 		rateNode.channelCount = 1;
-		//rateNode.gain.setValueAtTime(1, startTime);
 		unityNode.connect(rateNode);
 
-		// Set up clock as an audio object with outputs "rate" and
-		// "duration" and audio property "rate".
+		// Set up clock as an audio object with output and audio property "rate"
 		AudioObject.call(this, audio, undefined, {
 			rate: rateNode
 		}, {
 			rate: {
 				set: function(value, time, curve, duration) {
-					console.log('rate', value, time, curve);
-
-					// Todo: Hmmmmmmmmmm...
-					var beat = (time - startTime) * rate;
-					rate = value;
-					startTime = time - beat / rate;
-
 					// For the time being, only support step changes to tempo
 					if (curve !== 'step') { throw new Error('Clock: currently only supports "step" automations of rate.'); }
-
-					AudioObject.automate(rateNode.gain, time, value, curve, duration);
-
-					// A tempo change must be created where rate has been set
-					// externally. Calls to addRate from within clock should
-					// first set addRate to noop to avoid this.
+					rateNode.gain.setValueAtTime(value, time);
+					cuestream && cuestream.push([clock.beatAtTime(audio.currentTime), 'rate', value]);
 				},
 
-				value: 1,
-				curve: 'step'
+				value: 2,
+				curve: 'step',
+				duration: 0
 			}
 		});
 	}

@@ -14,8 +14,13 @@
 
 	// Functions
 
-	var isRateEvent  = Fn.pipe(Fn.get(1), Fn.is('rate'));
-	var isParamEvent = Fn.pipe(Fn.get(1), Fn.is('param'));
+	var isRateEvent  = Fn.compose(Fn.is('rate'), Fn.get(1));
+	var isParamEvent = Fn.compose(Fn.is('param'), Fn.get(1));
+	var isOtherEvent = Fn.compose(function(type) {
+		return type !== 'rate' && type !== 'param';
+	}, Fn.get(1));
+
+	var sortByTime   = Fn.sort(Fn.by(0));
 
 	function log(n, x) { return Math.log(x) / Math.log(n); }
 
@@ -164,6 +169,54 @@
 		return e2;
 	});
 
+	function Rates(events, cache) {
+		var buffer = events.filter(isRateEvent);
+		sortByTime(buffer);
+
+		var fn = Fn(function shift() {
+			return buffer.shift();
+		});
+
+		fn.push = function() {
+			buffer.push.apply(buffer, arguments);
+			sortByTime(buffer);
+		};
+
+		return fn.map(eventToData(cache));
+	}
+
+	function Params(events) {
+		var buffer = events.filter(isParamEvent);
+		sortByTime(buffer);
+
+		var fn = Fn(function shift() {
+			return buffer.shift();
+		});
+
+		fn.push = function() {
+			buffer.push.apply(buffer, arguments);
+			sortByTime(buffer);
+		};
+
+		return fn;
+	}
+
+	function Events(events) {
+		var buffer = events.filter(isOtherEvent);
+		sortByTime(buffer);
+
+		var fn = Fn(function shift() {
+			return buffer.shift();
+		});
+
+		fn.push = function() {
+			buffer.push.apply(buffer, arguments);
+			sortByTime(buffer);
+		};
+
+		return fn;
+	}
+
 	function CueStream(timer, clock, sequence, transform, target) {
 		if (!CueStream.prototype.isPrototypeOf(this)) {
 			return new CueStream(timer, clock, sequence, transform, target);
@@ -172,6 +225,10 @@
 		var head  = this;
 		var b0    = 0;
 		var heads = [];
+
+		// Rates is a cache to avoid recalculating rates from the start of the
+		// sequence on every request for time position, a potentially expensive
+		// operation over exponential rate changes.
 		var rates = [[0, startRateEvent]];
 		var state = 'stopped';
 
@@ -180,45 +237,31 @@
 		}
 
 		function timeAtBeat(beat) {
-			var t = b0 + timeAtBeatStream(rates, rateStream, beat);
-			return t;
+			return b0 + timeAtBeatStream(rates, rateStream, beat);
 		}
 
-		//this.now        = Fn.compose(beatAtTime, clock.now);
 		this.timeAtBeat = Fn.compose(clock.timeAtBeat, timeAtBeat);
 		this.beatAtTime = Fn.compose(beatAtTime, clock.beatAtTime);
 
 		var toAbsoluteTime = toAbsoluteTimeEvent(this.timeAtBeat);
-		var stream = Fn(sequence);
 		var rateStream, paramStream, eventStream;
 
 		if (Fn.prototype.isPrototypeOf(sequence)) {
 			// Todo: Don't know what to do with these right now
 			rateStream  = Fn();
 			paramStream = Fn();
-
-			eventStream = stream
-			.map(transform)
-			.process(splitNotes)
-			.map(toAbsoluteTime);
+			eventStream = Fn(sequence);
 		}
 		else {
-			// Horrible. Smelly. Syphon? Is there precedent for this?
-			rateStream = stream
-			.syphon(isRateEvent)
-			//.sort(Fn.by(0))
-			.map(eventToData(rates));
-	
-			paramStream = stream
-			.syphon(isParamEvent)
-			.map(transform);
-	
-			eventStream = stream
-			.map(transform)
-			.process(splitNotes)
-			//.sort(Fn.by(0));
-			.map(toAbsoluteTime);
+			rateStream = Rates(sequence, rates);
+			paramStream = Params(sequence).map(transform);
+			eventStream = Events(sequence);
 		}
+
+		eventStream = eventStream
+		.map(transform)
+		.process(splitNotes)
+		.map(toAbsoluteTime);
 
 		var eventBuffer  = [];
 		var paramBuffer  = [];
@@ -359,8 +402,26 @@
 			return this;
 		};
 
-		this.push = function(event) {
-			cuestream && cuestream.push(event);
+		this.push = function(e) {
+			if (e[1] === 'rate') {
+				// If the new rate event is later than the last cached time
+				// just push it in
+				if (rates[rates.length - 1][0] < e[0]) {
+					rateStream.push.apply(rateStream, arguments);
+				}
+				// Otherwise destroy the cache and create a new rates functor
+				else {
+					rates = [[0, startRateEvent]];
+					rateStream = Rates(sequence, rates);
+					rateStream.push(e);
+				}
+			}
+			if (e[1] === 'param') {
+				paramStream.push.apply(paramStream, arguments);
+			}
+			else {
+				eventStream.push.apply(eventStream, arguments);
+			}
 		};
 
 		this.create = function(sequence, target) {
