@@ -7,15 +7,14 @@
 	var CueStream   = window.CueStream;
 	var CueTimer    = window.CueTimer;
 
+	var defaults = { rate: 2 };
+
 	var createCueTimer = Fn.cache(function createCueTimer(audio) {
 		return new CueTimer(function() {
 			return audio.currentTime;
 		});
 	});
 
-	var defaults = {
-		rate: 2
-	};
 
 	// Clock
 
@@ -106,7 +105,6 @@
 						cuestream.push([clock.beatAtTime(audio.currentTime), 'rate', value]);
 					}
 					else {
-						console.log('RATE', value);
 						event[2] = value;
 					}
 				},
