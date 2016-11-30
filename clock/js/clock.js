@@ -13,13 +13,16 @@
 		});
 	});
 
+	var defaults = {
+		rate: 2
+	};
 
 	// Clock
 
-	function Clock(audio, data, target) {
+	function Clock(audio, events, target) {
 		// Support using constructor without the `new` keyword
 		if (!Clock.prototype.isPrototypeOf(this)) {
-			return new Clock(audio, data, target);
+			return new Clock(audio, events, target);
 		}
 
 		var timer = createCueTimer(audio);
@@ -29,13 +32,16 @@
 			timeAtBeat: function(beat) { return startTime + beat; }
 		};
 
-		var startTime, stopTime, cuestream;
+		var event = [0, 'rate', defaults.rate];
+
+		var startTime, stopTime, cuestream, event;
 
 		// Clock methods basically map CueStream methods, but where a CueStream
-		// is read-once, clock is persistent and reusable.
+		// is read-once clock is persistent and reusable.
 
 		this.start = function(time) {
 			startTime = time || audio.currentTime ;
+			var data = [event].concat(events);
 			cuestream = new CueStream(timer, fns, data, Fn.id, target);
 			cuestream.start(startTime);
 			return this;
@@ -95,7 +101,14 @@
 					// For the time being, only support step changes to tempo
 					if (curve !== 'step') { throw new Error('Clock: currently only supports "step" automations of rate.'); }
 					rateNode.gain.setValueAtTime(value, time);
-					cuestream && cuestream.push([clock.beatAtTime(audio.currentTime), 'rate', value]);
+					
+					if (cuestream) {
+						cuestream.push([clock.beatAtTime(audio.currentTime), 'rate', value]);
+					}
+					else {
+						console.log('RATE', value);
+						event[2] = value;
+					}
 				},
 
 				value: 2,

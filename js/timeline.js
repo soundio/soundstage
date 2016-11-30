@@ -76,8 +76,8 @@
 		return seconds * 240;
 	}
 
-	function drawLabel(x, text, color) {
-		canvas.font = "14px sans-serif";
+	function drawLabel(x, text, size, color) {
+		canvas.font = (size || 14) + "px sans-serif";
 		canvas.textBaseline = "hanging";
 		canvas.fillStyle = color;
 		canvas.fillText(text, x + 3, 3, 300);
@@ -212,7 +212,7 @@
 		var n = 30;
 		while (n--) {
 			drawBar(toX(n), 0, '#bbbbbb');
-			drawLabel(toX(n), n + 's', '#bbbbbb');
+			drawLabel(toX(n), n + 's', 14, '#bbbbbb');
 		}
 	}
 
@@ -253,7 +253,7 @@
 
 		drawBar: function(seconds, color, text) {
 			drawBar(toX(seconds), 0, color || 'blue');
-			drawLabel(toX(seconds), Fn.isDefined(text) ? text : seconds.toFixed(3) + 's', color || 'blue');
+			drawLabel(toX(seconds), Fn.isDefined(text) ? text : seconds.toFixed(3) + 's', 12, color || 'blue');
 		},
 
 		drawEvent: function(s1, s2, type, value) {
