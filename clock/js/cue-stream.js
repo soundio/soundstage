@@ -224,7 +224,6 @@
 
 		var head  = this;
 		var b0    = 0;
-		var heads = [];
 
 		// Rates is a cache to avoid recalculating rates from the start of the
 		// sequence on every request for time position, a potentially expensive
@@ -278,7 +277,7 @@
 
 		function stop(time) {
 			cuestream.stop();
-			heads.forEach(Fn.invoke('stop', [time]));
+			target([time, 'stop'], head);
 			state = 'stopped';
 		}
 
@@ -358,6 +357,7 @@
 			var fn = Fn(buffer);
 			paramBuffer.length = 0;
 			eventBuffer.length = 0;
+			console.log('SHIFT', buffer, cuestream);
 			return fn;
 		}, Fn.noop)
 		.join()
@@ -416,12 +416,14 @@
 					rateStream.push(e);
 				}
 			}
-			if (e[1] === 'param') {
+			else if (e[1] === 'param') {
 				paramStream.push.apply(paramStream, arguments);
 			}
 			else {
 				eventStream.push.apply(eventStream, arguments);
 			}
+
+			return this;
 		};
 
 		this.create = function(sequence, target) {

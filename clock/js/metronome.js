@@ -48,6 +48,10 @@
 			if (debug && window.timeline) {
 				window.timeline.drawEvent(audio.currentTime, event[0], 'tock', 60);
 			}
+		},
+
+		'stop': function(event, destination, metronome, audio) {
+			destination.stop(event[0]);
 		}
 	};
 

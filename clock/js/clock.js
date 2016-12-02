@@ -102,7 +102,7 @@
 					rateNode.gain.setValueAtTime(value, time);
 					
 					if (cuestream) {
-						cuestream.push([clock.beatAtTime(audio.currentTime), 'rate', value]);
+						cuestream.push([clock.beatAtTime(time), 'rate', value]);
 					}
 					else {
 						event[2] = value;
