@@ -20,38 +20,38 @@
 	// [time, "tock"]
 
 	var types = {
-		'tick': function(event, destination, metronome, audio) {
+		'tick': function(time, event, destination, metronome, audio) {
 			// Schedule audio
-			destination.start(event[0], metronome.note + 5, 1);
+			destination.start(time, metronome.note + 5, 1);
 
 			// Schedule event for visual feedback 
 			setTimeout(function() {
 				metronome.trigger('tick');
-			}, (event[0] - audio.currentTime - 0.003) * 1000);
+			}, (time - audio.currentTime - 0.003) * 1000);
 
 			// Log in timeline
 			if (debug && window.timeline) {
-				window.timeline.drawEvent(audio.currentTime, event[0], 'tick', 72);
+				window.timeline.drawEvent(audio.currentTime, time, 'tick', 72);
 			}
 		},
 
-		'tock': function(event, destination, metronome, audio) {
+		'tock': function(time, event, destination, metronome, audio) {
 			// Schedule audio
-			destination.start(event[0], metronome.note, 0.5);
+			destination.start(time, metronome.note, 0.5);
 
 			// Schedule event for visual feedback 
 			setTimeout(function() {
 				metronome.trigger('tock');
-			}, (event[0] - audio.currentTime - 0.003) * 1000);
+			}, (time - audio.currentTime - 0.003) * 1000);
 
 			// Log in timeline
 			if (debug && window.timeline) {
-				window.timeline.drawEvent(audio.currentTime, event[0], 'tock', 60);
+				window.timeline.drawEvent(audio.currentTime, time, 'tock', 60);
 			}
 		},
 
-		'stop': function(event, destination, metronome, audio) {
-			destination.stop(event[0]);
+		'stop': function(time, event, destination, metronome, audio) {
+			destination.stop(time);
 		}
 	};
 
@@ -82,10 +82,10 @@
 		var state     = 'stopped';
 		var tick, tock, cuestream;
 
-		function schedule(event) {
+		function schedule(time, event) {
 			if (state === 'stopped' || clock.state === 'stopped') { return; }
 			if (!types[event[1]]) { return; }
-			types[event[1]](event, source, metronome, audio);
+			types[event[1]](time, event, source, metronome, audio);
 		}
 
 		function start(time, tick, tock) {
@@ -157,7 +157,7 @@
 		this.tick   = settings.tick;
 		this.tock   = settings.tock;
 		this.note   = settings.note;
-		this.source = settings.source;
+		this.source = source;
 
 		// Connect source to the audio destination
 		AudioObject.getOutput(source).connect(audio.destination);

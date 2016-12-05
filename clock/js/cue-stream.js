@@ -1,11 +1,12 @@
 (function(window) {
 	"use strict";
 
-
 	// Import
 
 	var Fn          = window.Fn;
+	var Stream      = Fn.Stream;
 	var AudioObject = window.AudioObject;
+
 
 	// Declare
 
@@ -163,10 +164,11 @@
 	}
 
 	var toAbsoluteTimeEvent = Fn.curry(function(timeAtBeat, event) {
-		// Convert relative time to absolute time
-		var e2 = event.slice();
-		e2[0] = timeAtBeat(event[0]);
-		return e2;
+		// Wrap the event in an object and attach absolute time
+		var object   = EventObject();
+		object.time  = timeAtBeat(event[0]);
+		object.event = event;
+		return object;
 	});
 
 	function Rates(events, cache) {
@@ -217,171 +219,117 @@
 		return fn;
 	}
 
-	function CueStream(timer, clock, sequence, transform, target) {
-		if (!CueStream.prototype.isPrototypeOf(this)) {
-			return new CueStream(timer, clock, sequence, transform, target);
-		}
+	var EventObject = Fn.Pool({
+		name: 'Event Object',
 
-		var head  = this;
-		var b0    = 0;
+		reset: function reset() {
+			this.idle = false;
+		},
+
+		isIdle: function isIdle(object) {
+			return !!object.idle;
+		}
+	});
+
+	function CueStream(timer, clock, sequence, transform, target) {
+		var startBeat = 0;
 
 		// Rates is a cache to avoid recalculating rates from the start of the
 		// sequence on every request for time position, a potentially expensive
 		// operation over exponential rate changes.
 		var rates = [[0, startRateEvent]];
 		var state = 'stopped';
-
-		function beatAtTime(time) {
-			return beatAtTimeStream(rates, rateStream, time - b0);
-		}
-
-		function timeAtBeat(beat) {
-			return b0 + timeAtBeatStream(rates, rateStream, beat);
-		}
-
-		this.timeAtBeat = Fn.compose(clock.timeAtBeat, timeAtBeat);
-		this.beatAtTime = Fn.compose(beatAtTime, clock.beatAtTime);
-
-		var toAbsoluteTime = toAbsoluteTimeEvent(this.timeAtBeat);
 		var rateStream, paramStream, eventStream;
+
+		var timeAtBeat = Fn.compose(clock.timeAtBeat, function(beat) {
+			return startBeat + timeAtBeatStream(rates, rateStream, beat);
+		});
+
+		var beatAtTime = Fn.compose(function(time) {
+			return beatAtTimeStream(rates, rateStream, time - startBeat);
+		}, clock.beatAtTime);
+
+		var toAbsoluteTime = toAbsoluteTimeEvent(timeAtBeat);
 
 		if (Fn.prototype.isPrototypeOf(sequence)) {
 			// Todo: Don't know what to do with these right now
 			rateStream  = Fn();
 			paramStream = Fn();
-			eventStream = Fn(sequence);
+			eventStream = sequence.filter(isOtherEvent);
 		}
 		else {
-			rateStream = Rates(sequence, rates);
-			paramStream = Params(sequence).map(transform);
+			rateStream  = Rates(sequence, rates);
+			paramStream = Params(sequence);
 			eventStream = Events(sequence);
 		}
+
+		var timerNow = function now() {
+			return timer.lastCueTime;
+		};
+
+		var paramStops = [];
 
 		eventStream = eventStream
 		.map(transform)
 		.process(splitNotes)
-		.map(toAbsoluteTime);
+		.map(toAbsoluteTime)
+		.cue(timer.requestCue, timer.cancelCue, timerNow, function test(t1, t2, object) {
+			return object.time < t2 ;
+		});
 
-		var eventBuffer  = [];
-		var paramBuffer  = [];
-		var paramBuffers = [];
-		var paramStreams = paramStream
-			.group(Fn.get(2))
-			.map(function(stream) {
-				return stream.map(toAbsoluteTime);
-			})
-			.toArray();
-
-		var tStop = Infinity;
-		var event, params, t1, t2;
-
-		function stop(time) {
-			cuestream.stop();
-			target([time, 'stop'], head);
-			state = 'stopped';
-		}
-
-		function cue(time) {
-			t1 = t2;
-			t2 = time < tStop ? time : tStop ;
-
-			// NOT NECESSARY, because we cancel cue directly in this.stop
-			// Where the end time is before the start time (because perhaps
-			// tStop has been set before the cue), do nothing
-			//if (tStop <= t1) {
-			//	stop(tStop);
-			//	return;
-			//}
-
-			// Params
-			// Todo: Something in here is causing memory to be eaten
-			paramBuffer = paramStreams.map(function(paramStream, i) {
-				var param = params[i];
-				var buffer = paramBuffers[i] || (paramBuffers[i] = []);
-
-				buffer.length = 0;
-
-				// Cue up all params in the current cue frame
-				while (param && t1 <= param[0] && param[0] < t2) {
-					if (param.length > 1) { buffer.push(param); }
-					param = paramStream.shift();
+		paramStream = paramStream
+		.map(transform)
+		.map(toAbsoluteTime)
+		.group(Fn.get(2))
+		.chain(function(stream) {
+			var time, param;
+			var types = stream
+			.cue(timer.requestCue, timer.cancelCue, timerNow, function test(t1, t2, object) {
+				// Cue up values that lie inside the frame time
+				if (t1 <= object.time && object.time < t2) {
+					param = object.event;
+					return true;
 				}
 
-				// If the next param is new (param !== params[i]) and is a
-				// transitioning param, cue it up now
-				if (param && param.length > 1 && isTransitionEvent(param)) {
-					buffer.push(param);
-
-					// Mark the cached next param as a dummy: it has already
-					// been queued, but it needs to be read again in it's
-					// own cue frame in order for the next one to be cued if
-					// that is also a transition event.
-					param = param.slice();
-					param.length = 1;
+				if (time < t2 && object.time >= t2 && isTransitionEvent(object.event)) {
+					time = object.time;
+					return true;
 				}
-				
-				params[i] = param;
-				return buffer;
-			})
-			.reduce(Fn.concat, []);
 
+				return false;
+			});
 
-			// Other events
-			eventBuffer.length = 0;
+			paramStops.push(types.stop);
+			return types;
+		});
 
-			// Todo: Something in here is causing memory to be eaten. I think.
-			while (event && t1 <= event[0] && event[0] < t2) {
-				eventBuffer.push(event);
-				event = eventStream.shift();
-			}
+		paramStream.stop = function() {
+			var n = paramStops.length;
+			while (n--) { paramStops[n](time); }
+		};
 
-			if (eventBuffer.length || paramBuffer.length) {
-				cuestream.push();
-			}
+		var cuestream = Stream.of();
 
-			if (time < tStop) {
-				timer.requestCue(cue);
-			}
-			else {
-				stop(tStop);
-			}
-		}
+		// Keep a reference to push for internal pushes.
+		var push = cuestream.push;
 
-		function distribute(event) {
-			target(event, head);
-		}
+		eventStream.each(push);
+		paramStream.each(push);
 
-		var cuestream = Fn.Stream(function cue() {
-			var buffer = eventBuffer.concat(paramBuffer);
-			if (!buffer.length) { return; }
-			var fn = Fn(buffer);
-			paramBuffer.length = 0;
-			eventBuffer.length = 0;
-			console.log('SHIFT', buffer, cuestream);
-			return fn;
-		}, Fn.noop)
-		.join()
-		.each(distribute);
-
-		Object.defineProperties(this, {
+		Object.defineProperties(cuestream, {
 			state: {
 				get: function() { return state; }
 			}
 		});
 
-		this.start = function(time) {
-			t2 = time;
-			b0 = clock.beatAtTime(t2);
-
-			// Seed event cues
-			params = paramStreams.map(function(stream) { return stream.shift(); });
-			event = eventStream.shift();
+		cuestream.start = function(time) {
+			startBeat = clock.beatAtTime(time);
 
 			// Update state
 			state = 'started';
 
-			// Start the cue cycle
-			cue(timer.lastCueTime || audio.currentTime);
+			eventStream.start(time);
+			//paramStream.start(time);
 
 			// Log in timeline
 			if (window.timeline) {
@@ -391,23 +339,20 @@
 			return this;
 		};
 
-		this.stop = function(time) {
-			tStop = time;
-
-			if (tStop <= timer.lastCueTime) {
-				timer.cancelCue(cue);
-				stop();
-			}
-
+		cuestream.stop = function(time) {
+			eventStream.stop(time);
+			paramStream.stop(time);
+			target(time, [time, 'stop'], cuestream);
+			state = 'stopped';
 			return this;
 		};
 
-		this.push = function(e) {
+		cuestream.push = function(e) {
 			if (e[1] === 'rate') {
 				// If the new rate event is later than the last cached time
 				// just push it in
 				if (rates[rates.length - 1][0] < e[0]) {
-					rateStream.push.apply(rateStream, arguments);
+					rateStream.push(e);
 				}
 				// Otherwise destroy the cache and create a new rates functor
 				else {
@@ -426,9 +371,18 @@
 			return this;
 		};
 
-		this.create = function(sequence, target) {
-			return new CueStream(timer, this, sequence, Fn.id, target);
+		cuestream.create = function(sequence, target) {
+			return new CueStream(timer, cuestream, sequence, Fn.id, target);
 		};
+
+		cuestream.timeAtBeat = timeAtBeat;
+
+		cuestream.beatAtTime = beatAtTime;
+
+		return cuestream.each(function distribute(object) {
+			target(object.time, object.event, cuestream);
+			object.idle = true;
+		});
 	}
 
 	window.CueStream = CueStream;

@@ -83,6 +83,8 @@
 			frame();
 		}
 
+		this.lastCueTime = -Infinity;
+
 		this.now = now;
 
 		this.requestCue = function requestCue(fn) {
