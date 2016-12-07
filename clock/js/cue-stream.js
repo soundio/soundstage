@@ -166,10 +166,7 @@
 
 	var toAbsoluteTimeEvent = Fn.curry(function(timeAtBeat, event) {
 		// Wrap the event in an object and attach absolute time
-		var object   = EventObject();
-		object.time  = timeAtBeat(event[0]);
-		object.event = event;
-		return object;
+		return EventObject(timeAtBeat(event[0]), event);
 	});
 
 	function Rates(events, cache) {
@@ -223,14 +220,23 @@
 	var EventObject = Fn.Pool({
 		name: 'Event Object',
 
-		reset: function reset() {
-			this.idle = false;
+		reset: function reset(time, event) {
+			this.time  = time;
+			this.event = event;
+			this.idle  = false;
 		},
 
 		isIdle: function isIdle(object) {
 			return !!object.idle;
 		}
 	});
+
+	function isInCue(t1, t2, object) {
+		// Crudely manage idle state of pooled object
+		if (object.time < t2) { return true; }
+		object.idle = true ;
+		return false;
+	}
 
 	function CueStream(timer, clock, sequence, transform, target) {
 		var startBeat = 0;
@@ -273,9 +279,7 @@
 		eventStream = eventStream
 		.map(transform)
 		.process(splitNotes)
-		.cue(timer.requestCue, timer.cancelCue, timerNow, toAbsoluteTime, function test(t1, t2, object) {
-			return object.time < t2 ;
-		});
+		.cue(timer.requestCue, timer.cancelCue, timerNow, toAbsoluteTime, isInCue);
 
 		paramStream = paramStream
 		.map(transform)
@@ -295,6 +299,8 @@
 					return true;
 				}
 
+				// Crudely manage idle state of pooled object
+				object.idle = true;
 				return false;
 			});
 
