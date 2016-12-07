@@ -273,19 +273,17 @@
 		eventStream = eventStream
 		.map(transform)
 		.process(splitNotes)
-		.map(toAbsoluteTime)
-		.cue(timer.requestCue, timer.cancelCue, timerNow, function test(t1, t2, object) {
+		.cue(timer.requestCue, timer.cancelCue, timerNow, toAbsoluteTime, function test(t1, t2, object) {
 			return object.time < t2 ;
 		});
 
 		paramStream = paramStream
 		.map(transform)
-		.map(toAbsoluteTime)
 		.group(Fn.get(2))
 		.chain(function(stream) {
 			var time, param;
 			var types = stream
-			.cue(timer.requestCue, timer.cancelCue, timerNow, function test(t1, t2, object) {
+			.cue(timer.requestCue, timer.cancelCue, timerNow, toAbsoluteTime, function test(t1, t2, object) {
 				// Cue up values that lie inside the frame time
 				if (t1 <= object.time && object.time < t2) {
 					param = object.event;

@@ -33,7 +33,7 @@
 
 		var rateEvent  = [0, 'rate', defaults.rate];
 		var meterEvent = [0, 'meter', 4, 1];
-		var startTime, stopTime, cuestream, event;
+		var startTime, stopTime, cuestream;
 
 		// Clock methods basically map CueStream methods, but where a CueStream
 		// is read-once clock is persistent and reusable.
@@ -78,7 +78,10 @@
 			state: {
 				get: function() {
 					return cuestream ? cuestream.state : 'stopped' ;
-				}
+				},
+
+				// Support get/set observers
+				configurable: true
 			},
 
 			tempo: {
@@ -107,10 +110,11 @@
 					rateNode.gain.setValueAtTime(value, time);
 					
 					if (cuestream) {
-						cuestream.push([clock.beatAtTime(time), 'rate', value]);
+						var e = [clock.beatAtTime(time), 'rate', value];
+						cuestream.push(e);
 					}
 					else {
-						event[2] = value;
+						rateEvent[2] = value;
 					}
 				},
 

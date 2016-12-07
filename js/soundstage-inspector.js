@@ -43,7 +43,7 @@
 		frameId = window.requestAnimationFrame(scrollTimeline);
 	}
 
-	dom.events.on(inspector, 'wheel', function(e) {
+	dom.events.on(inspector, 'touchstart wheel', function(e) {
 		window.cancelAnimationFrame(frameId);
 	});
 
