@@ -31,7 +31,8 @@
 			timeAtBeat: function(beat) { return startTime + beat; }
 		};
 
-		var event = [0, 'rate', defaults.rate];
+		var rateEvent  = [0, 'rate', defaults.rate];
+		var meterEvent = [0, 'meter', 4, 1];
 		var startTime, stopTime, cuestream, event;
 
 		// Clock methods basically map CueStream methods, but where a CueStream
@@ -40,8 +41,9 @@
 		this.start = function(time) {
 			startTime = time || audio.currentTime ;
 
-			if (events[0][0] !== 0) {
-				events.splice(0, 0, event);
+			if (!events[0] || events[0][0] !== 0) {
+				events.splice(0, 0, meterEvent);
+				events.splice(0, 0, rateEvent);
 			}
 
 			cuestream = new CueStream(timer, fns, events, Fn.id, target);
