@@ -113,6 +113,7 @@
 	// Event types
 	//
 	// [time, "rate", number, curve]
+	// [time, "meter", numerator, denominator]
 	// [time, "note", number, velocity, duration]
 	// [time, "noteon", number, velocity]
 	// [time, "noteoff", number]
