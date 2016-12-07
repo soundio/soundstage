@@ -32,7 +32,6 @@
 		};
 
 		var event = [0, 'rate', defaults.rate];
-
 		var startTime, stopTime, cuestream, event;
 
 		// Clock methods basically map CueStream methods, but where a CueStream
@@ -40,8 +39,12 @@
 
 		this.start = function(time) {
 			startTime = time || audio.currentTime ;
-			var data = [event].concat(events);
-			cuestream = new CueStream(timer, fns, data, Fn.id, target);
+
+			if (events[0][0] !== 0) {
+				events.splice(0, 0, event);
+			}
+
+			cuestream = new CueStream(timer, fns, events, Fn.id, target);
 			cuestream.start(startTime);
 			return this;
 		};
