@@ -5,8 +5,10 @@
 	// Import
 
 	var Fn          = window.Fn;
+	var Stream      = window.Stream;
 	var AudioObject = window.AudioObject;
 
+	var curry       = Fn.curry;
 
 	// Declare
 
@@ -66,7 +68,7 @@
 			stepTimeAtBeat(e0[2], beat) ;
 	}
 
-	var eventToData = Fn.curry(function eventToData(rates, e1) {
+	var eventToData = curry(function eventToData(rates, e1) {
 		var n0 = rates[rates.length - 1];
 		var t0 = n0[0];
 		var e0 = n0[1];
@@ -151,12 +153,113 @@
 		return event[4] === 'exponential' || event[4] === 'linear';
 	}
 
-	var toAbsoluteTimeEvent = Fn.curry(function(timeAtBeat, event) {
+	var toAbsoluteTimeEvent = curry(function(timeAtBeat, event) {
 		// Convert relative time to absolute time
 		var e2 = event.slice();
 		e2[0] = timeAtBeat(event[0]);
 		return e2;
 	});
+
+	Stream.Cue = function Cue(timer) {
+		return new Stream(function setup(notify) {
+			var eventBuffer  = [];
+			var paramBuffer  = [];
+			var paramBuffers = [];
+			var paramStreams = paramStream
+				.group(Fn.get(2))
+				.map(function(stream) {
+					return stream.map(toAbsoluteTime);
+				})
+				.toArray();
+		
+			var event, params, t1, t2;
+		
+			function cue(time) {
+				t1 = t2;
+				t2 = time;
+		
+				// Params
+		
+				// Todo: Something in here is causing memory to be eaten
+		
+				paramBuffer = paramStreams.map(function(paramStream, i) {
+					var param = params[i];
+					var buffer = paramBuffers[i] || (paramBuffers[i] = []);
+		
+					buffer.length = 0;
+		
+					// Cue up all params in the current cue frame
+					while (param && t1 <= param[0] && param[0] < t2) {
+						if (param.length > 1) { buffer.push(param); }
+						param = paramStream.shift();
+					}
+		
+					// If the next param is new (param !== params[i]) and is a
+					// transitioning param, cue it up now
+					if (param && param.length > 1 && isTransitionEvent(param)) {
+						buffer.push(param);
+		
+						// Mark the cached next param as a dummy: it has already
+						// been queued, but it needs to be read again in it's
+						// own cue frame in order for the next one to be cued if
+						// that is also a transition event.
+						param = param.slice();
+						param.length = 1;
+					}
+					
+					params[i] = param;
+					return buffer;
+				})
+				.reduce(Fn.concat, []);
+		
+		
+				// Other events
+		
+				eventBuffer.length = 0;
+		
+				// Todo: Something in here is causing memory to be eaten. I think.
+		
+				while (event && t1 <= event[0] && event[0] < t2) {
+					eventBuffer.push(event);
+					event = eventStream.shift();
+				}
+		
+				if (eventBuffer.length || paramBuffer.length) {
+					cuestream.push();
+					//notify('push');
+				}
+		
+				timer.requestCue(cue);
+			}
+
+			return {
+				shift: function cue() {
+					var buffer = eventBuffer.concat(paramBuffer);
+					if (!buffer.length) { return; }
+					var fn = Fn(buffer);
+					paramBuffer.length = 0;
+					eventBuffer.length = 0;
+					return fn;
+				},
+
+				start: function(time) {
+					t2 = time;
+					b0 = clock.beatAtTime(t2);
+					// Seed event cues
+					params = paramStreams.map(function(stream) { return stream.shift(); });
+					event = eventStream.shift();
+					cue(timer.lastCueTime);
+					return this;
+				},
+
+				stop: function(time) {
+					timer.cancelCue(cue);
+					heads.forEach(Fn.invoke('stop', [time]));
+					return this;
+				}
+			};
+		});
+	};
 
 	function CueStream(timer, clock, sequence, transform, target) {
 		if (!CueStream.prototype.isPrototypeOf(this)) {
@@ -213,100 +316,7 @@
 			.map(toAbsoluteTime);
 		}
 
-		var eventBuffer  = [];
-		var paramBuffer  = [];
-		var paramBuffers = [];
-		var paramStreams = paramStream
-			.group(Fn.get(2))
-			.map(function(stream) {
-				return stream.map(toAbsoluteTime);
-			})
-			.toArray();
-
-		var event, params, t1, t2;
-
-		function cue(time) {
-			t1 = t2;
-			t2 = time;
-
-			// Params
-
-			// Todo: Something in here is causing memory to be eaten
-
-			paramBuffer = paramStreams.map(function(paramStream, i) {
-				var param = params[i];
-				var buffer = paramBuffers[i] || (paramBuffers[i] = []);
-
-				buffer.length = 0;
-
-				// Cue up all params in the current cue frame
-				while (param && t1 <= param[0] && param[0] < t2) {
-					if (param.length > 1) { buffer.push(param); }
-					param = paramStream.shift();
-				}
-
-				// If the next param is new (param !== params[i]) and is a
-				// transitioning param, cue it up now
-				if (param && param.length > 1 && isTransitionEvent(param)) {
-					buffer.push(param);
-
-					// Mark the cached next param as a dummy: it has already
-					// been queued, but it needs to be read again in it's
-					// own cue frame in order for the next one to be cued if
-					// that is also a transition event.
-					param = param.slice();
-					param.length = 1;
-				}
-				
-				params[i] = param;
-				return buffer;
-			})
-			.reduce(Fn.concat, []);
-
-
-			// Other events
-
-			eventBuffer.length = 0;
-
-			// Todo: Something in here is causing memory to be eaten. I think.
-
-			while (event && t1 <= event[0] && event[0] < t2) {
-				eventBuffer.push(event);
-				event = eventStream.shift();
-			}
-
-			if (eventBuffer.length || paramBuffer.length) {
-				cuestream.push();
-				//notify('push');
-			}
-
-			timer.requestCue(cue);
-		}
-
-		var cuestream = Fn.Stream.call(this, function cue() {
-			var buffer = eventBuffer.concat(paramBuffer);
-			if (!buffer.length) { return; }
-			var fn = Fn(buffer);
-			paramBuffer.length = 0;
-			eventBuffer.length = 0;
-			return fn;
-		}, Fn.noop);
-
-		this.start = function(time) {
-			t2 = time;
-			b0 = clock.beatAtTime(t2);
-			// Seed event cues
-			params = paramStreams.map(function(stream) { return stream.shift(); });
-			event = eventStream.shift();
-			cue(timer.lastCueTime);
-			return this;
-		};
-
-		this.stop = function(time) {
-			timer.cancelCue(cue);
-			heads.forEach(Fn.invoke('stop', [time]));
-			return this;
-		};
+		var cuestream = Stream.Cue(toAbsoluteTime);
 
 		this.play = function(time, sequence, target) {
 			var head = new CueStream(timer, this, sequence, Fn.id, target);
