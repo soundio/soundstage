@@ -238,6 +238,72 @@
 		return false;
 	}
 
+
+	// Todo: make this part of the CueStream constructor...
+	Fn.prototype.cue = function(request, cancel, cuetime, map, test) {
+		var source    = this;
+		var cuestream = Stream.of();
+		var startTime = -Infinity;
+		var stopTime  = Infinity;
+		var t1        = startTime;
+		var value, mappedValue;
+
+		function cue(time) {
+			var t2 = time >= stopTime ? stopTime : time ;
+
+			if (value === undefined) {
+				while ((value = source.shift()) !== undefined && (mappedValue = map(value)) !== undefined && test(t1, t2, mappedValue)) {
+					cuestream.push(mappedValue);
+					value = undefined;
+				}
+			}
+			else {
+				mappedValue = map(value);
+
+				if (mappedValue !== undefined && test(t1, t2, mappedValue)) {
+					cuestream.push(mappedValue);
+
+					while ((value = source.shift()) !== undefined && (mappedValue = map(value)) !== undefined && test(t1, t2, mappedValue)) {
+						cuestream.push(mappedValue);
+						value = undefined;
+					}
+				}
+			}
+
+			if (source.status === 'done') { return; }
+			if (time === stopTime) { return; }
+
+			t1 = startTime > time ? startTime : time ;
+			request(cue);
+		}
+
+		cuestream.stop = function stop(time) {
+			stopTime = time;
+			if (stopTime <= t1) { cancel(cue); }
+			return this;
+		};
+
+		cuestream.start = function start(time) {
+			startTime = time;
+			t1 = startTime;
+
+			if (startTime >= cuetime()) {
+				// This is ok even when cuetime() is -Infinity, because the
+				// first request() goes through the timer synchronously, ie
+				// immediately
+				request(cue);
+			}
+			else {
+				cue(cuetime());
+			}
+
+			return this;
+		};
+
+		return cuestream;
+	};
+
+
 	function CueStream(timer, clock, sequence, transform, target) {
 		var startBeat = 0;
 
