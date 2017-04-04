@@ -3,7 +3,7 @@
 
 	var Stream = window.Stream;
 
-	Stream.Cue = function(request, cancel, cuetime, map, test, source) {
+	Stream.Cue = function(timer, map, test, source) {
 		return new Stream(function start(notify, stop) {
 			var startTime = -Infinity;
 			var stopTime  = Infinity;
@@ -38,7 +38,7 @@
 				if (time === stopTime) { return; }
 			
 				t1 = startTime > time ? startTime : time ;
-				request(cue);
+				timer.request(cue);
 			}
 
 			return {
@@ -50,23 +50,27 @@
 					startTime = time;
 					t1 = time;
 
-					if (startTime >= cuetime()) {
-						// This is ok even when cuetime() is -Infinity, because the
+					if (startTime >= timer.time) {
+						// This is ok even when timer.time is -Infinity, because the
 						// first request() goes through the timer synchronously, ie
 						// immediately
-						request(cue);
+						timer.request(cue);
 					}
 					else {
-						cue(cuetime());
+						cue(timer.time);
 					}
 				},
 
 				stop: function(time) {
 					stopTime = time;
-					if (stopTime <= t1) { cancel(cue); }
+					if (stopTime <= t1) { timer.cancel(cue); }
 					return this;
 				}
 			};
 		});
+	};
+
+	Stream.prototype.cue = function(timer, map, test) {
+		return Stream.Cue(timer, map, test, this);
 	};
 })(this);

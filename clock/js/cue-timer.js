@@ -83,16 +83,16 @@
 			frame();
 		}
 
-		this.lastCueTime = -Infinity;
+		this.time = -Infinity;
 
 		this.now = now;
 
-		this.requestCue = function requestCue(fn) {
+		this.request = function requestCue(fn) {
 			fns.push(fn);
 			if (!playing) { start(); }
 		};
 
-		this.cancelCue = function cancelCue(fn) {
+		this.cancel = function cancelCue(fn) {
 			var i = fns.indexOf(fn);
 			if (i > -1) { fns.splice(i, 1); }
 		};
