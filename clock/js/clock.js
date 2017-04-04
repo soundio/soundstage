@@ -7,91 +7,125 @@
 	var CueStream   = window.CueStream;
 	var CueTimer    = window.CueTimer;
 
+	var defaults = { rate: 2 };
+
 	var createCueTimer = Fn.cache(function createCueTimer(audio) {
 		return new CueTimer(function() {
 			return audio.currentTime;
 		});
 	});
 
+
 	// Clock
 
-	function Clock(audio, data, find) {
+	function Clock(audio, events, target) {
 		// Support using constructor without the `new` keyword
 		if (!Clock.prototype.isPrototypeOf(this)) {
-			return new Clock(audio, data, find);
+			return new Clock(audio, events, target);
 		}
 
-		// Set up timer
 		var timer = createCueTimer(audio);
 
-		this.requestCue = timer.requestCue;
-		this.cancelCue  = timer.cancelCue;
-
-
-		// Set up sequence reader
-		var startTime;
-
-		CueStream.call(this, timer, {
-			now: function() { return audio.currentTime; },
+		var fns = {
 			beatAtTime: function(time) { return time - startTime; },
 			timeAtBeat: function(beat) { return startTime + beat; }
-		}, data, Fn.id, Fn.noop, find);
-
-		var start = this.start;
-		this.start = function(time) {
-			startTime = time || audio.currentTime ;
-			return start(time);
 		};
 
+		var rateEvent  = [0, 'rate', defaults.rate];
+		var meterEvent = [0, 'meter', 4, 1];
+		var startTime, stopTime, cuestream;
+
+		// Clock methods basically map CueStream methods, but where a CueStream
+		// is read-once clock is persistent and reusable.
+
+		this.start = function(time) {
+			startTime = time || audio.currentTime ;
+
+			if (!events[0] || events[0][0] !== 0) {
+				events.splice(0, 0, meterEvent);
+				events.splice(0, 0, rateEvent);
+			}
+
+			cuestream = new CueStream(timer, fns, events, Fn.id, target);
+			cuestream.start(startTime);
+			return this;
+		};
+
+		this.stop = function(time) {
+			stopTime = time || audio.currentTime ;
+			cuestream.stop(time || audio.currentTime);
+			cuestream = undefined;
+			return this;
+		};
+
+		this.beatAtTime = function(time) {
+			return cuestream ?
+				cuestream.beatAtTime(time) :
+				0 ;
+		};
+
+		this.timeAtBeat = function(beat) {
+			return cuestream ?
+				cuestream.timeAtBeat(beat) :
+				0 ;
+		};
+
+		this.create = function(sequence, target) {
+			return new CueStream(timer, this, sequence, Fn.id, target);
+		};
+
+		Object.defineProperties(this, {
+			state: {
+				get: function() {
+					return cuestream ? cuestream.state : 'stopped' ;
+				},
+
+				// Support get/set observers
+				configurable: true
+			},
+
+			tempo: {
+				get: function() { return this.rate * 60; },
+				set: function(tempo) { this.rate = tempo / 60; },
+				// Support get/set observers
+				configurable: true
+			}
+		});
 
 		// Set up audio object params
 		var unityNode = AudioObject.UnityNode(audio);
 		var rateNode  = audio.createGain();
-		var rate      = 1;
 
 		rateNode.channelCount = 1;
-		//rateNode.gain.setValueAtTime(1, startTime);
 		unityNode.connect(rateNode);
 
-		// Set up clock as an audio object with outputs "rate" and
-		// "duration" and audio property "rate".
+		// Set up clock as an audio object with output and audio property "rate"
 		AudioObject.call(this, audio, undefined, {
 			rate: rateNode
 		}, {
 			rate: {
 				set: function(value, time, curve, duration) {
-					console.log('rate', value, time, curve);
-
-					// Todo: Hmmmmmmmmmm...
-					var beat = (time - startTime) * rate;
-					rate = value;
-					startTime = time - beat / rate;
-
 					// For the time being, only support step changes to tempo
 					if (curve !== 'step') { throw new Error('Clock: currently only supports "step" automations of rate.'); }
-
-					AudioObject.automate(rateNode.gain, time, value, curve, duration);
-
-					// A tempo change must be created where rate has been set
-					// externally. Calls to addRate from within clock should
-					// first set addRate to noop to avoid this.
+					rateNode.gain.setValueAtTime(value, time);
+					
+					if (cuestream) {
+						var e = [clock.beatAtTime(time), 'rate', value];
+						cuestream.push(e);
+					}
+					else {
+						rateEvent[2] = value;
+					}
 				},
 
-				value: 1,
-				curve: 'step'
+				value: 2,
+				curve: 'step',
+				duration: 0
 			}
 		});
-
-		this.play = function(time, sequence, target) {
-			var head = CueStream(timer, this, sequence, Fn.id, target, find);
-			head.start(time);
-			return head;
-		};
 	}
 
-	Clock.prototype = Object.create(CueStream.prototype);
-
-	assign(Clock.prototype, {});
+	Clock.prototype = Object.create(AudioObject.prototype);
 
 	assign(Clock, {
 		lookahead: 0.1,

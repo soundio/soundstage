@@ -153,7 +153,9 @@
 				Schedule(findEvents, findAudioObject, findAudioObject(event[3])) :
 				schedule ;
 
-			head.play(event[0], events.map(transform), sched);
+			head
+			.create(events.map(transform), sched)
+			.start(event[0]);
 		}
 
 		function schedule(event, head) {

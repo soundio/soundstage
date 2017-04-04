@@ -241,6 +241,8 @@
 
 
 
+
+
 	function CueStream(timer, clock, sequence, transform, target) {
 		var startBeat = 0;
 
@@ -261,146 +263,247 @@
 
 		var toAbsoluteTime = toAbsoluteTimeEvent(timeAtBeat);
 
+		if (Fn.prototype.isPrototypeOf(sequence)) {
+			// Todo: Don't know what to do with these right now
+			rateStream  = Fn();
+			paramStream = Fn();
+			eventStream = sequence.filter(isOtherEvent);
+		}
+		else {
+			rateStream  = Rates(sequence, rates);
+			paramStream = Params(sequence);
+			eventStream = Events(sequence);
+		}
+
+<<<<<<< HEAD
+		var cuestream = Stream.Cue(toAbsoluteTime);
+=======
 		var timerNow = function now() {
 			return timer.lastCueTime;
 		};
 
-		var setup = {
-			rate: function() {
-				
-			},
+		var paramStops = [];
 
-			param: function(source) {
-				var paramStops = [];
+		eventStream = eventStream
+		.map(transform)
+		.process(splitNotes)
+		.cue(timer.requestCue, timer.cancelCue, timerNow, toAbsoluteTime, isInCue);
 
-				var stream = source
-				.map(transform)
-				.group(Fn.get(2))
-				.chain(function(stream) {
-					var time, param;
-					var types = stream
-					.cue(timer.requestCue, timer.cancelCue, timerNow, toAbsoluteTime, function test(t1, t2, object) {
-						// Cue up values that lie inside the frame time
-						if (t1 <= object.time && object.time < t2) {
-							param = object.event;
-							return true;
-						}
-				
-						if (time < t2 && object.time >= t2 && isTransitionEvent(object.event)) {
-							time = object.time;
-							return true;
-						}
-				
-						// Crudely manage idle state of pooled object
-						object.idle = true;
-						return false;
-					});
-				
-					paramStops.push(types.stop);
-					return types;
-				});
-
-				stream.stop = function() {
-					var n = paramStops.length;
-					while (n--) { paramStops[n](time); }
-				};
-
-				return stream;
-			},
- 
-			event: function(stream) {
-				return stream
-				.map(transform)
-				.process(splitNotes)
-				.cue(timer.requestCue, timer.cancelCue, timerNow, toAbsoluteTime, isInCue);
-			}
-		};
-
-
-
-		var stream = Stream(function start(notify, stop) {
-			var streams = {};
-
-			var stream = Stream.from(sequence)
-			.partition(toType)
-			.map(function(stream) {
-				return streams[events.key] = setup[events.key](stream);
-			})
-			.merge()
-			.on('push', notify);
-
-			return {
-				shift: function() {
-					return stream.shift();
-				},
-
-				start: function(time) {
-					startBeat = clock.beatAtTime(time);
-				
-					// Update state
-					state = 'started';
-				
-					eventStream.start(time);
-					//paramStream.start(time);
-				
-					// Log in timeline
-					if (window.timeline) {
-						window.timeline.drawBar(audio.currentTime, 'orange', 'CueStream.start ' + clock.constructor.name);
-					}
-				
-					return this;
-				},
-				
-				stop: function(time) {
-					eventStream.stop(time);
-					paramStream.stop(time);
-					target(time, [time, 'stop'], cuestream);
-					state = 'stopped';
-					return this;
-				},
-				
-				push: function(e) {
-					if (e[1] === 'rate') {
-						// If the new rate event is later than the last cached time
-						// just push it in
-						if (rates[rates.length - 1][0] < e[0]) {
-							rateStream.push(e);
-						}
-						// Otherwise destroy the cache and create a new rates functor
-						else {
-							rates = [[0, startRateEvent]];
-							rateStream = Rates(sequence, rates);
-						}
-					}
-
-					stream.push.apply(e);
-					return this;
+		paramStream = paramStream
+		.map(transform)
+		.group(Fn.get(2))
+		.chain(function(stream) {
+			var time, param;
+			var types = stream
+			.cue(timer.requestCue, timer.cancelCue, timerNow, toAbsoluteTime, function test(t1, t2, object) {
+				// Cue up values that lie inside the frame time
+				if (t1 <= object.time && object.time < t2) {
+					param = object.event;
+					return true;
 				}
-			};
-		})
-		.each(function distribute(object) {
-			target(object.time, object.event, cuestream);
-			object.idle = true;
+
+				if (time < t2 && object.time >= t2 && isTransitionEvent(object.event)) {
+					time = object.time;
+					return true;
+				}
+
+				// Crudely manage idle state of pooled object
+				object.idle = true;
+				return false;
+			});
+
+			paramStops.push(types.stop);
+			return types;
 		});
 
-		function create(sequence, target) {
-			return new CueStream(timer, stream, sequence, Fn.id, target);
-		}
+		paramStream.stop = function() {
+			var n = paramStops.length;
+			while (n--) { paramStops[n](time); }
+		};
 
-		Object.defineProperties(stream, {
+		var cuestream = Stream.of();
+
+		// Keep a reference to push for internal pushes.
+		var push = cuestream.push;
+
+		eventStream.each(push);
+		paramStream.each(push);
+
+		Object.defineProperties(cuestream, {
 			state: {
 				get: function() { return state; }
 			}
 		});
 
-		stream.create     = create;
-		stream.timeAtBeat = timeAtBeat;
-		stream.beatAtTime = beatAtTime;
+		cuestream.start = function(time) {
+			startBeat = clock.beatAtTime(time);
 
-		return stream;
+			// Update state
+			state = 'started';
+
+			eventStream.start(time);
+			//paramStream.start(time);
+
+			// Log in timeline
+			if (window.timeline) {
+				window.timeline.drawBar(audio.currentTime, 'orange', 'CueStream.start ' + clock.constructor.name);
+			}
+
+			return this;
+		};
+
+		cuestream.stop = function(time) {
+			eventStream.stop(time);
+			paramStream.stop(time);
+			target(time, [time, 'stop'], cuestream);
+			state = 'stopped';
+			return this;
+		};
+>>>>>>> 7e142c9edfe4e6b22bc82dcc9ba2577bdf60edaf
+
+		cuestream.push = function(e) {
+			if (e[1] === 'rate') {
+				// If the new rate event is later than the last cached time
+				// just push it in
+				if (rates[rates.length - 1][0] < e[0]) {
+					rateStream.push(e);
+				}
+				// Otherwise destroy the cache and create a new rates functor
+				else {
+					rates = [[0, startRateEvent]];
+					rateStream = Rates(sequence, rates);
+					rateStream.push(e);
+				}
+			}
+			else if (e[1] === 'param') {
+				paramStream.push.apply(paramStream, arguments);
+			}
+			else {
+				eventStream.push.apply(eventStream, arguments);
+			}
+
+			return this;
+		};
+
+		cuestream.create = function(sequence, target) {
+			return new CueStream(timer, cuestream, sequence, Fn.id, target);
+		};
+
+		cuestream.timeAtBeat = timeAtBeat;
+
+		cuestream.beatAtTime = beatAtTime;
+
+		return cuestream.each(function distribute(object) {
+			target(object.time, object.event, cuestream);
+			object.idle = true;
+		});
 	}
 
 
-	window.CueStream = CueStream;
 
+
+	Stream.Cue = function Cue(timer) {
+		return new Stream(function setup(notify) {
+			var eventBuffer  = [];
+			var paramBuffer  = [];
+			var paramBuffers = [];
+			var paramStreams = paramStream
+				.group(Fn.get(2))
+				.map(function(stream) {
+					return stream.map(toAbsoluteTime);
+				})
+				.toArray();
+		
+			var event, params, t1, t2;
+		
+			function cue(time) {
+				t1 = t2;
+				t2 = time;
+		
+				// Params
+		
+				// Todo: Something in here is causing memory to be eaten
+		
+				paramBuffer = paramStreams.map(function(paramStream, i) {
+					var param = params[i];
+					var buffer = paramBuffers[i] || (paramBuffers[i] = []);
+		
+					buffer.length = 0;
+		
+					// Cue up all params in the current cue frame
+					while (param && t1 <= param[0] && param[0] < t2) {
+						if (param.length > 1) { buffer.push(param); }
+						param = paramStream.shift();
+					}
+		
+					// If the next param is new (param !== params[i]) and is a
+					// transitioning param, cue it up now
+					if (param && param.length > 1 && isTransitionEvent(param)) {
+						buffer.push(param);
+		
+						// Mark the cached next param as a dummy: it has already
+						// been queued, but it needs to be read again in it's
+						// own cue frame in order for the next one to be cued if
+						// that is also a transition event.
+						param = param.slice();
+						param.length = 1;
+					}
+					
+					params[i] = param;
+					return buffer;
+				})
+				.reduce(Fn.concat, []);
+		
+		
+				// Other events
+		
+				eventBuffer.length = 0;
+		
+				// Todo: Something in here is causing memory to be eaten. I think.
+		
+				while (event && t1 <= event[0] && event[0] < t2) {
+					eventBuffer.push(event);
+					event = eventStream.shift();
+				}
+		
+				if (eventBuffer.length || paramBuffer.length) {
+					cuestream.push();
+					//notify('push');
+				}
+		
+				timer.requestCue(cue);
+			}
+
+			return {
+				shift: function cue() {
+					var buffer = eventBuffer.concat(paramBuffer);
+					if (!buffer.length) { return; }
+					var fn = Fn(buffer);
+					paramBuffer.length = 0;
+					eventBuffer.length = 0;
+					return fn;
+				},
+
+				start: function(time) {
+					t2 = time;
+					b0 = clock.beatAtTime(t2);
+					// Seed event cues
+					params = paramStreams.map(function(stream) { return stream.shift(); });
+					event = eventStream.shift();
+					cue(timer.lastCueTime);
+					return this;
+				},
+
+				stop: function(time) {
+					timer.cancelCue(cue);
+					heads.forEach(Fn.invoke('stop', [time]));
+					return this;
+				}
+			};
+		});
+	};
+
+
+
+	window.CueStream = CueStream;
 })(this);
