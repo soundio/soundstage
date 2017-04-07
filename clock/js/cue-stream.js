@@ -4,10 +4,15 @@
 	// Import
 
 	var Fn          = window.Fn;
+	var Pool        = window.Pool;
 	var Stream      = window.Stream;
 	var AudioObject = window.AudioObject;
 
+	var by          = Fn.by;
 	var curry       = Fn.curry;
+	var compose     = Fn.compose;
+	var get         = Fn.get;
+
 
 	// Declare
 
@@ -16,15 +21,11 @@
 
 	// Functions
 
-	var isRateEvent  = Fn.compose(Fn.is('rate'), Fn.get(1));
-	var isParamEvent = Fn.compose(Fn.is('param'), Fn.get(1));
-	var isOtherEvent = Fn.compose(function(type) {
+	var isRateEvent  = compose(Fn.is('rate'), Fn.get(1));
+	var isParamEvent = compose(Fn.is('param'), Fn.get(1));
+	var isOtherEvent = compose(function(type) {
 		return type !== 'rate' && type !== 'param';
 	}, Fn.get(1));
-
-	var by0          = Fn.by(0);
-	var sortByTime   = Fn.sort(by0);
-	var get2         = Fn.get(2);
 
 	function log(n, x) { return Math.log(x) / Math.log(n); }
 
@@ -125,6 +126,16 @@
 	// [time, "chord", root, mode, duration]
 	// [time, "sequence", name || events, target, duration, transforms...]
 
+	var by0        = by('0');
+	var sortByTime = Fn.sort(by0);
+	var get2       = get('2');
+
+	function byEvent0(a, b) {
+		var n = a.event[0];
+		var m = b.event[0];
+		return n > m ? 1 : n === m ? 0 : -1 ;
+	}
+
 	function splitNotes(source) {
 		// Split note events into noteon and noteoff, keeping the
 		// stream sorted by time
@@ -188,39 +199,7 @@
 		return fn.map(eventToData(cache));
 	}
 
-	function Params(events) {
-		var buffer = events.filter(isParamEvent);
-		sortByTime(buffer);
-
-		var fn = Fn(function shift() {
-			return buffer.shift();
-		});
-
-		fn.push = function() {
-			buffer.push.apply(buffer, arguments);
-			sortByTime(buffer);
-		};
-
-		return fn;
-	}
-
-	function Events(events) {
-		var buffer = events.filter(isOtherEvent);
-		sortByTime(buffer);
-
-		var fn = Fn(function shift() {
-			return buffer.shift();
-		});
-
-		fn.push = function() {
-			buffer.push.apply(buffer, arguments);
-			sortByTime(buffer);
-		};
-
-		return fn;
-	}
-
-	var EventObject = Fn.Pool({
+	var EventObject = Pool({
 		name: 'Event Object',
 
 		reset: function reset(time, event) {
@@ -234,10 +213,26 @@
 		}
 	});
 
-	function isInCue(t1, t2, object) {
-		// Crudely manage idle state of pooled object
+	function eventIsInCue(t1, t2, object) {
 		if (object.time < t2) { return true; }
-		object.idle = true ;
+
+		// Crudely manage idle state of pooled object
+		object.idle = true;
+		return false;
+	}
+
+	function paramIsInCue(t1, t2, object, t3) {
+		// Cue up values that lie inside the frame time
+		if (t1 <= object.time && object.time < t2) {
+			return true;
+		}
+
+		if (t3 < t2 && object.time >= t2 && isTransitionEvent(object.event)) {
+			return true;
+		}
+
+		// Crudely manage idle state of pooled object
+		object.idle = true;
 		return false;
 	}
 
@@ -265,91 +260,119 @@
 		return events;
 	}
 
+	function fill(buffer, test, t1, t2, source, t3) {
+		var object;
+
+		while ((object = source.shift()) !== undefined) {
+			if (test(t1, t2, object, t3)) {
+				// Add the object to buffer and keep note of time
+				buffer.push(object);
+				t3 = object.time;
+			}
+			else {
+				// Push the event back into source for reprocessing on the
+				// next cue.
+				source.unshift(object.event);
+
+				// Crudely manage idle state of pooled object
+				object.isIdle = true;
+				return t3;
+			}
+		}
+	}
+
 	function CueStream(timer, clock, sequence, transform, target) {
+		var events = setupEvents(sequence);
+
 		// Rates is a cache to avoid recalculating rates from the start of the
 		// sequence on every request for time position, a potentially expensive
 		// operation over exponential rate changes.
 		var rates = [[0, startRateEvent]];
 
-		var timeAtBeat = Fn.compose(clock.timeAtBeat, function(beat) {
-			return startBeat + timeAtBeatStream(rates, rateStream, beat);
+		var streams = {
+			rate: Stream.from(events.rate).map(eventToData(rates))
+		};
+
+		var startBeat = 0;
+
+		var timeAtBeat = compose(clock.timeAtBeat, function(beat) {
+			return startBeat + timeAtBeatStream(rates, streams.rate, beat);
 		});
 
-		var beatAtTime = Fn.compose(function(time) {
-			return beatAtTimeStream(rates, rateStream, time - startBeat);
+		var beatAtTime = compose(function(time) {
+			return beatAtTimeStream(rates, streams.rate, time - startBeat);
 		}, clock.beatAtTime);
 
 		var toAbsoluteTime = toAbsoluteTimeEvent(timeAtBeat);
 
 		var stream = Stream(function start(notify, stop) {
 
-			// Event streams
+			// Input streams
 
-			var events = setupEvents(sequence);
-			var paramStops = [];
+			streams.param = Stream(function() { return events.param; })
+			.map(transform)
+			.partition(get2)
+			.map(function(events) {
+				var time = -Infinity;
+				return events
+				.buffer()
+				.map(toAbsoluteTime);
+			});
 
-			function cueParams(paramStops, stream) {
-				var time, param;
-				var types = stream
-				.cue(timer, toAbsoluteTime, function test(t1, t2, object) {
-					// Cue up values that lie inside the frame time
-					if (t1 <= object.time && object.time < t2) {
-						param = object.event;
-						return true;
-					}
-			
-					if (time < t2 && object.time >= t2 && isTransitionEvent(object.event)) {
-						time = object.time;
-						return true;
-					}
-			
-					// Crudely manage idle state of pooled object
-					object.idle = true;
-					return false;
-				});
-			
-				paramStops.push(types.stop);
-				return types;
-			}
-
-			var streams = {
-				rate: Stream.from(events.rate)
-					.map(eventToData(cache)),
-
-				param: Stream(function() { return events.param; })
-					.map(transform)
-					.partition(get2)
-					.chain(cueParams),
-
-				default: Stream(function() { return events.default; })
-					.map(transform)
-					.process(splitNotes)
-					.cue(timer, toAbsoluteTime, isInCue)
-			};
+			streams.default = Stream(function() { return events.default; })
+			.map(transform)
+			.process(splitNotes)
+			.buffer()
+			.map(toAbsoluteTime)
 
 			// Output stream
 
-			var startBeat = 0;
-			var state = 'stopped';
-			var buffer = [];
+			//var state     = 'stopped';
+			var buffer    = [];
+			var startTime = -Infinity;
+			var stopTime  = Infinity;
+			var t1        = 0;
+			var params    = [];
+			var cache     = {};
 
 			function cue(time) {
 				var value;
+				var t2 = time >= stopTime ? stopTime : time ;
 
-				while((value = streams.param.shift()) !== undefined) {
-					buffer.push(value);
+				// Fill from event streams
+				fill(buffer, eventIsInCue, t1, t2, streams.default);
+
+				// Fill from param streams
+				var param;
+				while ((param = streams.param.shift()) !== undefined) {
+					params.push(param);
 				}
 
-				while((value = streams.default.shift()) !== undefined) {
-					buffer.push(value);
+				var n = params.length;
+				var name;
+				while (n--) {
+					name = params[n][2];
+					cache[name] = fill(buffer, paramIsInCue, t1, t2, params[n], cache[name]);
 				}
 
-				notify('push');
+				// Sort the buffer
+				buffer.sort(byEvent0);
+
+//console.log('CUE buffer:', JSON.stringify(buffer.map(Fn.get('event'))));
+
+				// Update locals
+				t1 = startTime > t2 ? startTime : t2 ;
+
+				if (buffer.length) { notify('push'); }
+
+				if (time >= stopTime) {
+					stop(buffer.length);
+					//state = 'stopped';
+					return;
+				}
 
 				timer.request(cue);
 			}
-
-			Stream.Merge(streams.default, streams.param);
 
 			return {
 				shift: function() {
@@ -358,12 +381,23 @@
 
 				start: function(time) {
 					startBeat = clock.beatAtTime(time);
+					startTime = time;
+					t1 = time;
+
+					cue(0);
+
+					//if (startTime >= timer.time) {
+					//	// This is ok even when timer.time is -Infinity, because the
+					//	// first request() goes through the timer synchronously, ie
+					//	// immediately
+					//	timer.request(cue);
+					//}
+					//else {
+					//	cue(timer.time);
+					//}
 
 					// Update state
-					state = 'started';
-
-					streams.param.start(time);
-					streams.default.start(time);
+					//state = 'started';
 
 					// Log in timeline
 					if (window.timeline) {
@@ -374,10 +408,15 @@
 				},
 				
 				stop: function(time) {
-					target(time, [time, 'stop'], cuestream);
-					state = 'stopped';
-					timer.cancel(cue);
-					return this;
+					stopTime = time;
+
+					if (t1 >= stopTime) {
+						// Todo: stop event in the current cue frame?
+						stop(0);
+						//target(time, [time, 'stop'], cuestream);
+						//state = 'stopped';
+						timer.cancel(cue);
+					}
 				},
 				
 				push: function(event) {
@@ -403,20 +442,20 @@
 				}
 			};
 		})
-		.each(function distribute(object) {
-			target(object.time, object.event, cuestream);
-			object.idle = true;
-		});
+		//.each(function distribute(object) {
+		//	target(object.time, object.event, cuestream);
+		//	object.idle = true;
+		//});
 
 		function create(sequence, target) {
 			return new CueStream(timer, stream, sequence, Fn.id, target);
 		}
 
-		Object.defineProperties(stream, {
-			state: {
-				get: function() { return state; }
-			}
-		});
+		//Object.defineProperties(stream, {
+		//	state: {
+		//		get: function() { return state; }
+		//	}
+		//});
 
 		stream.create     = create;
 		stream.timeAtBeat = timeAtBeat;
