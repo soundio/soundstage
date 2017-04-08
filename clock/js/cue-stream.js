@@ -8,6 +8,7 @@
 	var Stream      = window.Stream;
 	var AudioObject = window.AudioObject;
 
+	var assign      = Object.assign;
 	var by          = Fn.by;
 	var curry       = Fn.curry;
 	var compose     = Fn.compose;
@@ -130,9 +131,9 @@
 	var sortByTime = Fn.sort(by0);
 	var get2       = get('2');
 
-	function byEvent0(a, b) {
-		var n = a.event[0];
-		var m = b.event[0];
+	function by0(a, b) {
+		var n = a[0];
+		var m = b[0];
 		return n > m ? 1 : n === m ? 0 : -1 ;
 	}
 
@@ -178,10 +179,10 @@
 		return event[4] === 'exponential' || event[4] === 'linear';
 	}
 
-	var toAbsoluteTimeEvent = Fn.curry(function(timeAtBeat, event) {
-		// Wrap the event in an object and attach absolute time
-		return EventObject(timeAtBeat(event[0]), event);
-	});
+	//var toAbsoluteTimeEvent = Fn.curry(function(timeAtBeat, event) {
+	//	// Wrap the event in an object and attach absolute time
+	//	return EventObject(timeAtBeat(event[0]), event);
+	//});
 
 	function Rates(events, cache) {
 		var buffer = events.filter(isRateEvent);
@@ -213,11 +214,12 @@
 		}
 	});
 
+	function toObject(event) {
+		return assign({ original: event }, event);
+	}
+
 	function eventIsInCue(t1, t2, object) {
 		if (object.time < t2) { return true; }
-
-		// Crudely manage idle state of pooled object
-		object.idle = true;
 		return false;
 	}
 
@@ -227,12 +229,10 @@
 			return true;
 		}
 
-		if (t3 < t2 && object.time >= t2 && isTransitionEvent(object.event)) {
+		if (t3 < t2 && object.time >= t2 && isTransitionEvent(object)) {
 			return true;
 		}
 
-		// Crudely manage idle state of pooled object
-		object.idle = true;
 		return false;
 	}
 
@@ -272,7 +272,7 @@
 			else {
 				// Push the event back into source for reprocessing on the
 				// next cue.
-				source.unshift(object.event);
+				source.unshift(object);
 
 				// Crudely manage idle state of pooled object
 				object.isIdle = true;
@@ -303,7 +303,10 @@
 			return beatAtTimeStream(rates, streams.rate, time - startBeat);
 		}, clock.beatAtTime);
 
-		var toAbsoluteTime = toAbsoluteTimeEvent(timeAtBeat);
+		function addAbsoluteTime(object) {
+			object.time = timeAtBeat(object[0]);
+			return object;
+		}
 
 		var stream = Stream(function start(notify, stop) {
 
@@ -311,19 +314,21 @@
 
 			streams.param = Stream(function() { return events.param; })
 			.map(transform)
+			.map(toObject)
 			.partition(get2)
 			.map(function(events) {
 				var time = -Infinity;
 				return events
 				.buffer()
-				.map(toAbsoluteTime);
+				.map(addAbsoluteTime);
 			});
 
 			streams.default = Stream(function() { return events.default; })
 			.map(transform)
+			.map(toObject)
 			.process(splitNotes)
 			.buffer()
-			.map(toAbsoluteTime)
+			.map(addAbsoluteTime)
 
 			// Output stream
 
@@ -334,6 +339,26 @@
 			var t1        = 0;
 			var params    = [];
 			var cache     = {};
+
+			function add(event) {
+				if (event[1] === 'rate') {
+					// If the new rate event is later than the last cached time
+					// just push it in
+					if (rates[rates.length - 1][0] < event[0]) {
+						insert(streams.rate, event);
+					}
+					// Otherwise destroy the cache and create a new rates functor
+					else {
+						rates = [[0, startRateEvent]];
+						streams.rate = Rates(sequence, rates);
+					}
+
+					return;
+				}
+
+				var queue = events[event[1]] || events.default ;
+				insert(queue, event);
+			}
 
 			function cue(time) {
 				var value;
@@ -356,7 +381,7 @@
 				}
 
 				// Sort the buffer
-				buffer.sort(byEvent0);
+				buffer.sort(by0);
 
 //console.log('CUE buffer:', JSON.stringify(buffer.map(Fn.get('event'))));
 
@@ -418,28 +443,8 @@
 						timer.cancel(cue);
 					}
 				},
-				
-				push: function(event) {
-					var queue;
 
-					if (event[1] === 'rate') {
-						// If the new rate event is later than the last cached time
-						// just push it in
-						if (rates[rates.length - 1][0] < event[0]) {
-							insert(streams.rate, event);
-						}
-						// Otherwise destroy the cache and create a new rates functor
-						else {
-							rates = [[0, startRateEvent]];
-							streams.rate = Rates(sequence, rates);
-						}
-
-						return;
-					}
-
-					queue = events[event[1]] || events.default ;
-					insert(queue, event);
-				}
+				push: add
 			};
 		})
 		//.each(function distribute(object) {

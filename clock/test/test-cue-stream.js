@@ -21,8 +21,11 @@
 	var toArray   = Fn.toArray;
 
 	function toEvent(object) {
-		var event = toArray(object.event);
-		event[0] = object.time;
+		var event = [object.time];
+		var n = 0;
+		while (object[++n] !== undefined) {
+			event[n] = object[n];
+		}
 		return event;
 	}
 
@@ -168,6 +171,114 @@
 			timer.trigger(4);
 
 			equals(2, i, 'Not enough tests were run');
+		});
+
+		test('.start() cue .push()', function(equals) {
+			var timer  = new MockTimer;
+
+			// timer, clock, events, transform, target
+			var stream = new CueStream(timer, clock, events, Fn.id)
+			.map(toEvent);
+
+			var i = 0;
+
+			stream.each(function(event) {
+				equals([i, "test", i], event);
+				++i;
+			});
+
+			stream.start(0);
+			timer.trigger(2);
+			
+			stream.push([4, "test", 4])
+			timer.trigger(4);
+
+			equals(4, i, 'Not enough tests were run');
+		});
+
+		test('.start() cue .push()', function(equals) {
+			var timer  = new MockTimer;
+
+			// timer, clock, events, transform, target
+			var stream = new CueStream(timer, clock, events, Fn.id)
+			.map(toEvent);
+
+			var i = 0;
+
+			stream.each(function(event) {
+				equals([i, "test", i], event);
+				++i;
+			});
+
+			stream.start(0);
+			timer.trigger(2);
+			
+			stream.push([4, "test", 4])
+			timer.trigger(5);
+
+			equals(5, i, 'Not enough tests were run');
+		});
+
+		test('Push after latest time', function(equals) {
+			var timer  = new MockTimer;
+
+			var events = [
+				[0, "test", 0],
+				[1, "test", 1],
+				[3, "test", 3]
+			];
+
+			// timer, clock, events, transform, target
+			var stream = new CueStream(timer, clock, events, Fn.id)
+			.map(toEvent);
+
+			var i = 0;
+
+			stream.each(function(event) {
+				equals([i, "test", i], event);
+				++i;
+			});
+
+			stream.start(0);
+			timer.trigger(2);
+			stream.push([2, "test", 2]);
+
+			equals(2, i);
+
+			timer.trigger(5);
+
+			equals(4, i, 'Not enough tests were run');
+		});
+
+		test('Push before latest time', function(equals) {
+			var timer  = new MockTimer;
+
+			var events = [
+				[0, "test", 0],
+				[1, "test", 1],
+				[3, "test", 3]
+			];
+
+			// timer, clock, events, transform, target
+			var stream = new CueStream(timer, clock, events, Fn.id)
+			.map(toEvent);
+
+			var i = 0;
+
+			stream.each(function(event) {
+				equals([i, "test", i], event);
+				++i;
+			});
+
+			stream.start(0);
+			timer.trigger(2.5);
+			stream.push([2, "test", 2]);
+
+			equals(3, i);
+
+			timer.trigger(5);
+
+			equals(4, i, 'Not enough tests were run');
 		});
 
 		log('"param" events');
