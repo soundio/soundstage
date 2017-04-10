@@ -13,7 +13,7 @@
 		if (!Fn.equals(value, expected)) {
 			console.trace('%c' +
 				(message || ('Test failed,' + ' ' + 
-				'expected: ' + typeWrap(expected) + ', ' +
+				'expected: ' + typeWrap(expected) + ' ' +
 				'received: ' + typeWrap(value))),
 				'color: #ee8833; font-weight: 700;'
 			);
