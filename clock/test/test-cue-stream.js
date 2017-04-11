@@ -14,20 +14,12 @@
 	// [time, "sequence", name || events, target, duration, transforms...]
 
 	var Fn        = window.Fn;
+	var Pool      = window.Pool;
 	var group     = window.group;
 	var MockTimer = window.MockTimer;
 	var CueStream = window.CueStream;
 
 	var toArray   = Fn.toArray;
-
-	function toEvent(object) {
-		var event = [object.time];
-		var n = 0;
-		while (object[++n] !== undefined) {
-			event[n] = object[n];
-		}
-		return event;
-	}
 
 	group('CueStream', function(test, log) {
 		var clock  = {
@@ -64,8 +56,7 @@
 			var timer  = new MockTimer;
 
 			// timer, clock, events, transform, target
-			var stream = new CueStream(timer, clock, events, Fn.id)
-			.map(toEvent);
+			var stream = new CueStream(timer, clock, events, Fn.id);
 
 			stream.shift();
 			stream.start(0);
@@ -85,14 +76,15 @@
 
 			equals([3, "test", 3], stream.shift());
 			equals(undefined, stream.shift());
+
+			stream.stop(6);
 		});
 
 		test('.start() cue .stop()', function(equals) {
 			var timer  = new MockTimer;
 
 			// timer, clock, events, transform, target
-			var stream = new CueStream(timer, clock, events, Fn.id)
-			.map(toEvent);
+			var stream = new CueStream(timer, clock, events, Fn.id);
 
 			stream.shift();
 			stream.start(0);
@@ -112,8 +104,7 @@
 			var timer  = new MockTimer;
 
 			// timer, clock, events, transform, target
-			var stream = new CueStream(timer, clock, events, Fn.id)
-			.map(toEvent);
+			var stream = new CueStream(timer, clock, events, Fn.id);
 
 			stream.shift();
 			stream.start(0);
@@ -132,8 +123,7 @@
 			var timer  = new MockTimer;
 
 			// timer, clock, events, transform, target
-			var stream = new CueStream(timer, clock, events, Fn.id)
-			.map(toEvent);
+			var stream = new CueStream(timer, clock, events, Fn.id);
 
 			var i = 0;
 
@@ -155,8 +145,7 @@
 			var timer  = new MockTimer;
 
 			// timer, clock, events, transform, target
-			var stream = new CueStream(timer, clock, events, Fn.id)
-			.map(toEvent);
+			var stream = new CueStream(timer, clock, events, Fn.id);
 
 			var i = 0;
 
@@ -177,8 +166,7 @@
 			var timer  = new MockTimer;
 
 			// timer, clock, events, transform, target
-			var stream = new CueStream(timer, clock, events, Fn.id)
-			.map(toEvent);
+			var stream = new CueStream(timer, clock, events, Fn.id);
 
 			var i = 0;
 
@@ -189,19 +177,23 @@
 
 			stream.start(0);
 			timer.trigger(2);
-			
-			stream.push([4, "test", 4])
-			timer.trigger(4);
+			equals(2, i, 'Not enough tests were run');
 
+			stream.push([4, "test", 4]);
+			timer.trigger(4);
 			equals(4, i, 'Not enough tests were run');
+
+			stream.stop(4);
+			timer.trigger(6);
+			equals(4, i, 'Not enough tests were run');
+			
 		});
 
 		test('.start() cue .push()', function(equals) {
 			var timer  = new MockTimer;
 
 			// timer, clock, events, transform, target
-			var stream = new CueStream(timer, clock, events, Fn.id)
-			.map(toEvent);
+			var stream = new CueStream(timer, clock, events, Fn.id);
 
 			var i = 0;
 
@@ -229,8 +221,7 @@
 			];
 
 			// timer, clock, events, transform, target
-			var stream = new CueStream(timer, clock, events, Fn.id)
-			.map(toEvent);
+			var stream = new CueStream(timer, clock, events, Fn.id);
 
 			var i = 0;
 
@@ -260,8 +251,7 @@
 			];
 
 			// timer, clock, events, transform, target
-			var stream = new CueStream(timer, clock, events, Fn.id)
-			.map(toEvent);
+			var stream = new CueStream(timer, clock, events, Fn.id);
 
 			stream.shift();
 			stream.start(0);
@@ -277,6 +267,176 @@
 			timer.trigger(5);
 			equals([3, "test", 3], stream.shift());
 			equals(undefined, stream.shift());
+		});
+
+		test('.start(10) cue', function(equals) {
+			var timer  = new MockTimer;
+
+			var params = [
+				[0,   "test", 0],
+				[1,   "test", 0],
+				[2,   "test", 0],
+				[3,   "test", 0],
+				[4,   "test", 0],
+			];
+
+			var output = [
+				// timer.trigger(12)
+				[10,  "test", 0],
+				[11,  "test", 0],
+
+				// timer.trigger(13)
+				[12,  "test", 0],
+
+				// timer.trigger(14)
+				[13,  "test", 0],
+			];
+
+			var n = -1;
+
+			// timer, clock, events, transform, target
+			var stream = new CueStream(timer, clock, params, Fn.id)
+			.each(function(event) {
+				equals(output[++n], event);
+			});
+
+			stream.start(10);
+
+			timer.trigger(2);
+			equals(0, n + 1, 'Expected 0 events but received ' + (n + 1));
+
+			timer.trigger(10);
+			equals(0, n + 1, 'Expected 0 events but received ' + (n + 1));
+
+			timer.trigger(12);
+			equals(2, n + 1, 'Expected 2 events but received ' + (n + 1));
+
+			stream.stop(14);
+			equals(2, n + 1, 'Expected 2 events but received ' + (n + 1));
+
+			timer.trigger(13);
+			equals(3, n + 1, 'Expected 3 events but received ' + (n + 1));
+
+			timer.trigger(14);
+			equals(4, n + 1, 'Expected 4 events but received ' + (n + 1));
+
+			timer.trigger(15);
+			equals(4, n + 1, 'Expected 4 events but received ' + (n + 1));
+		});
+
+		test('.start(10) cue', function(equals) {
+			var timer  = new MockTimer;
+
+			var params = [
+				[0, "rate", 2, "step"],
+				[0, "test", 0],
+				[1, "test", 0],
+				[2, "test", 0],
+				[3, "test", 0],
+				[4, "test", 0],
+			];
+
+			var output = [
+				// timer.trigger(11)
+				[10,   "test", 0],
+				[10.5, "test", 0],
+
+				// timer.trigger(11.5)
+				[11,   "test", 0],
+
+				// timer.trigger(12)
+				[11.5, "test", 0],
+			];
+
+			var n = -1;
+
+			// timer, clock, events, transform, target
+			var stream = new CueStream(timer, clock, params, Fn.id)
+			.each(function(event) {
+				equals(output[++n], event);
+			});
+
+			stream.start(10);
+
+			timer.trigger(2);
+			equals(0, n + 1, 'Expected 0 events but received ' + (n + 1));
+
+			timer.trigger(10);
+			equals(0, n + 1, 'Expected 0 events but received ' + (n + 1));
+
+			timer.trigger(11);
+			equals(2, n + 1, 'Expected 2 events but received ' + (n + 1));
+
+			stream.stop(12);
+			equals(2, n + 1, 'Expected 2 events but received ' + (n + 1));
+
+			timer.trigger(11.5);
+			equals(3, n + 1, 'Expected 3 events but received ' + (n + 1));
+
+			timer.trigger(12);
+			equals(4, n + 1, 'Expected 4 events but received ' + (n + 1));
+
+			timer.trigger(12.5);
+			equals(4, n + 1, 'Expected 4 events but received ' + (n + 1));
+		});
+
+		test('.start(10) cue', function(equals) {
+			var timer  = new MockTimer;
+
+			var params = [
+				[0, "rate", 2, "step"],
+				[0, "test", 0],
+				[1, "test", 0],
+				[2, "rate", 4, "step"],
+				[2, "test", 0],
+				[3, "test", 0],
+				[4, "test", 0],
+				[6, "test", 0],
+			];
+
+			var output = [
+				// timer.trigger(11)
+				[10,    "test", 0],
+				[10.5,  "test", 0],
+
+				// timer.trigger(11.5)
+				[11,    "test", 0],
+				[11.25, "test", 0],
+				
+				// timer.trigger(12)
+				[11.5,  "test", 0],
+			];
+
+			var n = -1;
+
+			// timer, clock, events, transform, target
+			var stream = new CueStream(timer, clock, params, Fn.id)
+			.each(function(event) {
+				equals(output[++n], event);
+			});
+
+			stream.start(10);
+
+			timer.trigger(2);
+			equals(0, n + 1, 'Expected 0 events but received ' + (n + 1));
+
+			timer.trigger(10);
+			equals(0, n + 1, 'Expected 0 events but received ' + (n + 1));
+
+			timer.trigger(11);
+			equals(2, n + 1, 'Expected 2 events but received ' + (n + 1));
+
+			stream.stop(12);
+			equals(2, n + 1, 'Expected 2 events but received ' + (n + 1));
+
+			timer.trigger(11.5);
+			equals(4, n + 1, 'Expected 3 events but received ' + (n + 1));
+
+			timer.trigger(12);
+			equals(5, n + 1, 'Expected 4 events but received ' + (n + 1));
+
+			timer.trigger(12.5);
+			equals(5, n + 1, 'Expected 4 events but received ' + (n + 1));
 		});
 
 		log('"param" events');
@@ -296,8 +456,7 @@
 			];
 
 			// timer, clock, events, transform, target
-			var stream = new CueStream(timer, clock, params, Fn.id)
-			.map(toEvent);
+			var stream = new CueStream(timer, clock, params, Fn.id);
 
 			equals(undefined, stream.shift());
 
@@ -355,7 +514,6 @@
 
 			// timer, clock, events, transform, target
 			var stream = new CueStream(timer, clock, params, Fn.id)
-			.map(toEvent)
 			.each(function(event) {
 				equals(output[++n], event);
 			});
@@ -409,7 +567,6 @@
 
 			// timer, clock, events, transform, target
 			var stream = new CueStream(timer, clock, params, Fn.id)
-			.map(toEvent)
 			.each(function(event) {
 				equals(output[++n], event);
 			});
@@ -428,5 +585,9 @@
 			equals(12, n + 1, 'Expected 12 events but received ' + (n + 1));
 		});
 
+		Fn.requestTick(function() {
+			console.table(Pool.snapshot());
+			Pool.release();
+		});
 	});
 })(this);

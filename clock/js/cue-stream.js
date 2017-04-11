@@ -14,6 +14,7 @@
 	var compose     = Fn.compose;
 	var get         = Fn.get;
 	var each        = Fn.each;
+	var nothing     = Fn.empty;
 
 
 	// Declare
@@ -143,24 +144,23 @@
 		return event[4] === 'exponential' || event[4] === 'linear';
 	}
 
-	function Rates(events, cache) {
-		var buffer = events.filter(isRateEvent);
-		sortBy0(buffer);
-
-		var fn = Fn(function shift() {
+	function RateStream(buffer) {
+		return Fn(function shift() {
 			return buffer.shift();
 		});
-
-		fn.push = function() {
-			buffer.push.apply(buffer, arguments);
-			sortBy0(buffer);
-		};
-
-		return fn.map(eventToData(cache));
 	}
 
+	var objectProperties = {
+		time: { writable: true },
+		idle: { writable: true }
+	};
+
 	var toObject = Pool({
-		name: 'Event Object',
+		name: 'CueStream Event',
+
+		create: function() {
+			Object.defineProperties(this, objectProperties);
+		},
 
 		reset: function reset(event) {
 			assign(this, event);
@@ -173,6 +173,30 @@
 			return !!object.idle;
 		}
 	});
+
+	function assign0(object) {
+		object[0] = object.time;
+		object.idle = true;
+		return object;
+	}
+
+	function assignIdle(object) {
+		object.idle = true;
+		return object;
+	}
+
+	function idleData(data) {
+		data.default.forEach(assignIdle);
+		data.default.length = 0;
+
+		// Fill from param data
+		var name, param;
+		for (name in data.param) {
+			param = data.param[name];
+			param.forEach(assignIdle);
+			param.length = 0;
+		}
+	}
 
 	function eventIsInCue(t1, t2, object) {
 		if (object.time < t2) { return true; }
@@ -219,7 +243,7 @@
 		return t3;
 	}
 
-	function fillBuffer(buffer, transform, t1, t2, data, cache) {
+	function fillBuffer(buffer, transform, t1, t2, data, paramCache) {
 		// Fill from event data
 		fill(buffer, eventIsInCue, t1, t2, data.default, transform);
 
@@ -228,7 +252,7 @@
 
 		for (name in data.param) {
 			param = data.param[name];
-			cache[name] = fill(buffer, paramIsInCue, t1, t2, param, transform, cache[name]);
+			paramCache[name] = fill(buffer, paramIsInCue, t1, t2, param, transform, paramCache[name]);
 		}
 
 		// Sort the buffer
@@ -254,7 +278,18 @@
 		return noteCache;
 	}
 
-	function CueStream(timer, clock, sequence, transform, target) {
+	function CueStream(timer, clock, sequence, transform) {
+		var startBeat  = 0;
+		var rateCache  = [[0, startRateEvent]];
+		var rateStream = nothing;
+
+		var timeAtBeat = compose(clock.timeAtBeat, function(beat) {
+			return startBeat + timeAtBeatStream(rateCache, rateStream, beat);
+		});
+
+		var beatAtTime = compose(function(time) {
+			return beatAtTimeStream(rateCache, rateStream, time - startBeat);
+		}, clock.beatAtTime);
 
 		// Buffers for each type of event, sorted and used as sources
 		// for the stream.
@@ -264,24 +299,19 @@
 			default: []
 		};
 
-		// Rates is a cache to avoid recalculating rates from the start of the
-		// sequence on every request for time position, a potentially expensive
-		// operation over exponential rate changes.
-		var rates   = [[0, startRateEvent]];
-
 		// Pipes for updating data
 		var pipes = {
-			rate: function(event) {
+			rate: function(object) {
 				// If the new rate event is later than the last cached time
 				// just push it in
-				if (rates[rates.length - 1][0] < event[0]) {
-					insertBy0(data.rate, event);
+				if (rateCache[rateCache.length - 1][0] < object[0]) {
+					insertBy0(data.rate, object);
 				}
 				// Otherwise destroy the cache and create a new rates functor
 				else {
-					rates = [[0, startRateEvent]];
-					// TODO!!
-					streams.rate = Rates(sequence, rates);
+					data.rate = sequence.filter(isRateEvent);
+					rateCache.length = 1;
+					rateStream = RateStream(data.rate).map(eventToData(rateCache));
 				}
 			},
 
@@ -309,35 +339,20 @@
 			}, toObject, transform)
 		};
 
-		var startBeat = 0;
-
-		var timeAtBeat = compose(clock.timeAtBeat, function(beat) {
-			return startBeat + timeAtBeatStream(rates, streams.rate, beat);
-		});
-
-		var beatAtTime = compose(function(time) {
-			return beatAtTimeStream(rates, streams.rate, time - startBeat);
-		}, clock.beatAtTime);
-
-		function addAbsoluteTime(object) {
+		function assignTime(object) {
 			object.time = timeAtBeat(object[0]);
 			return object;
 		}
 
-		var streams = {
-			rate: Stream.from(data.rate).map(eventToData(rates))
-		};
-
 		var stream = Stream(function start(notify, stop) {
-
+			var buffer     = [];
+			var startTime  = -Infinity;
+			var stopTime   = Infinity;
+			var t1         = 0;
+			var t2         = 0;
+			var paramCache = {};
+			var noteCache  = [];
 			//var state     = 'stopped';
-			var buffer    = [];
-			var startTime = -Infinity;
-			var stopTime  = Infinity;
-			var t1        = 0;
-			var t2        = 0;
-			var cache     = {};
-			var noteCache = [];
 
 			function update(event) {
 				(pipes[event[1]] || pipes.default)(event);
@@ -348,7 +363,8 @@
 				t1 = startTime > t2 ? startTime : t2 ;
 				t2 = time >= stopTime ? stopTime : time ;
 
-				fillBuffer(buffer, addAbsoluteTime, t1, t2, data, cache);
+				buffer.length = 0;
+				fillBuffer(buffer, assignTime, t1, t2, data, paramCache);
 
 				// Todo: move this into a note-specific fillBuffer function
 				// somehow - perhaps with a data.note buffer??
@@ -362,11 +378,18 @@
 
 				if (t2 === stopTime) {
 					stop(buffer.length);
+					idleData(data);
 					//state = 'stopped';
 					return;
 				}
 
 				timer.request(cue);
+			}
+
+			function startCue(time) {
+				return time > t1 ?
+					cue(time) :
+					timer.request(startCue) ;
 			}
 
 			return {
@@ -376,12 +399,11 @@
 
 				start: function(time) {
 					startBeat = clock.beatAtTime(time);
-					startTime = time;
-					t1 = time;
+					startTime = t1 = time;
 
 					// Fill data with events and start observing the timer
 					each(update, sequence);
-					cue(0);
+					startCue(timer.currentTime || 0);
 
 					// Update state
 					//state = 'started';
@@ -402,36 +424,26 @@
 						stopBuffer(buffer, stopTime, noteCache);
 						if (buffer.length) { notify('push'); }
 						stop(buffer.length);
+						idleData(data);
 						//state = 'stopped';
 					}
 				},
 
 				push: function() {
 					each(update, arguments);
-					fillBuffer(buffer, addAbsoluteTime, t1, t2, data, cache);
+					fillBuffer(buffer, assignTime, t1, t2, data, paramCache);
 					if (buffer.length) { notify('push'); }
 				}
 			};
 		})
-		//.map(function(object) {
-		//	object.idle = true;
-		//});
-		//.each(function distribute(object) {
-		//	target(object.time, object.event, cuestream);
-		//	object.idle = true;
-		//});
+		.map(assign0);
 
-		function create(sequence, target) {
-			return new CueStream(timer, stream, sequence, Fn.id, target);
-		}
+		//stream.then(function() { idleData(data); });
 
-		//Object.defineProperties(stream, {
-		//	state: {
-		//		get: function() { return state; }
-		//	}
-		//});
+		stream.create = function create(events) {
+			return CueStream(timer, stream, events, Fn.id);
+		};
 
-		stream.create     = create;
 		stream.timeAtBeat = timeAtBeat;
 		stream.beatAtTime = beatAtTime;
 

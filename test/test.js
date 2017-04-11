@@ -4,17 +4,12 @@
 
 	var Fn = window.Fn;
 
-	function typeWrap(value) {
-		var type = typeof value;
-		return type === 'string' ? '"' + value + '"' : value ;
-	}
-
 	function equals(expected, value, message) {
 		if (!Fn.equals(value, expected)) {
 			console.trace('%c' +
 				(message || ('Test failed,' + ' ' + 
-				'expected: ' + typeWrap(expected) + ' ' +
-				'received: ' + typeWrap(value))),
+				'expected: ' + JSON.stringify(expected) + ' ' +
+				'received: ' + JSON.stringify(value))),
 				'color: #ee8833; font-weight: 700;'
 			);
 		}

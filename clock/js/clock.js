@@ -21,7 +21,7 @@
 	function Clock(audio, events, target) {
 		// Support using constructor without the `new` keyword
 		if (!Clock.prototype.isPrototypeOf(this)) {
-			return new Clock(audio, events, target);
+			return new Clock(audio, events);
 		}
 
 		var timer = createCueTimer(audio);
@@ -46,8 +46,10 @@
 				events.splice(0, 0, rateEvent);
 			}
 
-			cuestream = new CueStream(timer, fns, events, Fn.id, target);
-			cuestream.start(startTime);
+			cuestream = CueStream(timer, fns, events, Fn.id)
+			.each(function(event) { target(event, cuestream); })
+			.start(startTime);
+
 			return this;
 		};
 
@@ -70,8 +72,8 @@
 				0 ;
 		};
 
-		this.create = function(sequence, target) {
-			return new CueStream(timer, this, sequence, Fn.id, target);
+		this.create = function(sequence) {
+			return CueStream(timer, this, sequence, Fn.id);
 		};
 
 		Object.defineProperties(this, {

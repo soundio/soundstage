@@ -6,6 +6,7 @@
 
 	function MockTimer() {
 		this._fns = [];
+		this.currentTime = 0;
 	}
 
 	MockTimer.prototype.request = function(fn) {
@@ -28,6 +29,7 @@
 		while ((fn = fns.shift())) {
 			fn(time);
 		}
+		this.currentTime = time;
 	};
 
 	window.MockTimer = MockTimer;

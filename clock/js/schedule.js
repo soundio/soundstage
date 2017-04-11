@@ -122,8 +122,27 @@
 		}
 	};
 
+	function createTransform(event) {
+		return event.length < 6 ?
+			Fn.id :
+			Fn.pipe.apply(null,
+				Fn(event.slice(5))
+				.split(isString)
+				.map(function(def) {
+					var name = def[0];
+
+					if (!transforms[name]) {
+						if (debug) { console.log('Schedule: transform"' + name + '" not a supported transformation'); }
+					}
+
+					return transforms[name].apply(null, def.slice(1));
+				})
+				.toArray()
+			);
+	}
+
 	function Schedule(findEvents, findAudioObject, object) {
-		function scheduleSequence(head, event) {
+		function scheduleSequence(event, clock) {
 			var events = typeof event[2] === 'string' ?
 				findEvents(event[2]) :
 				event[2] ;
@@ -132,39 +151,26 @@
 				if (debug) { console.log('Schedule: events not found for event', event, events); }
 			}
 
-			var transform = event.length < 6 ?
-				Fn.id :
-				Fn.pipe.apply(null,
-					Fn(event.slice(5))
-					.split(isString)
-					.map(function(def) {
-						var name = def[0];
-
-						if (!transforms[name]) {
-							if (debug) { console.log('Schedule: transform"' + name + '" not a supported transformation'); }
-						}
-
-						return transforms[name].apply(null, def.slice(1));
-					})
-					.toArray()
-				);
+			var transform = createTransform(event);
 
 			var sched = isDefined(event[3]) ?
 				Schedule(findEvents, findAudioObject, findAudioObject(event[3])) :
 				schedule ;
 
+			var head = clock.create(events.map(transform));
+
 			head
-			.create(events.map(transform), sched)
+			.each(function(event) { sched(event, head); })
 			.start(event[0]);
 		}
 
 		function schedule(event, head) {
 			return event[1] === "sequence" ?
-				scheduleSequence(head, event) :
+				scheduleSequence(event, head) :
 				// If object, direct
 				object ?
 					scheduleAudioObject(object, event) :
-					debug && warnEvent(object, event);
+					debug && warnEvent(object, event) ;
 		}
 
 		return schedule;
