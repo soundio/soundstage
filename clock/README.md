@@ -5,19 +5,22 @@ functions for scheduling events.
 
 ### `Clock(audio, events)`
 
-Creates a new clock that is ready to stream a cue of `events`.
+Creates a new clock, dependent on the time of the `audio` context. Events are
+streamed on `start()`.
 
-##### `rate`
 
-Current rate of the clock.
+//##### `rate`
+//
+//Current rate of the clock.
+//
+//##### `state`
+//
+//Current state of event stream.
+//
+//`stopped` – 
+//`started` –
+//`done` –
 
-##### `state`
-
-Current state of event stream.
-
-`stopped` – 
-`started` –
-`done` –
 
 ##### `create(events, fn)`
 

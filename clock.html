@@ -1,43 +1,44 @@
 <body>
 
-<script src="../polyfills/window.audiocontext.js"></script>
-<script src="../polyfills/navigator.getusermedia.js"></script>
-<script src="../polyfills/object.setprototypeof.js"></script>
+<script src="polyfills/window.audiocontext.js"></script>
+<script src="polyfills/navigator.getusermedia.js"></script>
+<script src="polyfills/object.setprototypeof.js"></script>
 
-<script src="../fn/polyfills/number.isnan.js"></script>
-<script src="../fn/polyfills/object.assign.js"></script>
-<script src="../fn/js/fn.js"></script>
-<script src="../fn/js/stream.js"></script>
-<script src="../fn/js/pool.js"></script>
-<script src="../fn/js/events.js"></script>
+<script src="fn/polyfills/number.isnan.js"></script>
+<script src="fn/polyfills/object.assign.js"></script>
+<script src="fn/js/fn.js"></script>
+<script src="fn/js/stream.js"></script>
+<script src="fn/js/pool.js"></script>
+<script src="fn/js/events.js"></script>
 
-<script src="../modules/collection/js/observe.js"></script>
-<script src="../modules/collection/js/collection.js"></script>
-<script src="../modules/music/music.js"></script>
+<script src="modules/collection/js/observe.js"></script>
+<script src="modules/collection/js/collection.js"></script>
+<script src="modules/music/music.js"></script>
 
 <script title="config">
 	Fn.debug = true;
 </script>
 
-<script src="../modules/audio-object/js/audio-object.js"></script>
-<script src="../modules/audio-object/js/ao-tick.js"></script>
-<script src="../modules/audio-object/js/ao-oscillator.js"></script>
-<script src="../modules/audio-object/js/ao-sampler.js"></script>
-<script src="../modules/audio-object/js/ao-sampler-presets-gretsch-kit.js"></script>
-<script src="../modules/audio-object/js/ao-sampler-presets-mis-piano.js"></script>
-<script src="../modules/audio-object/js/ao-sampler-presets-fender-rhodes-mark-ii.js"></script>
+<script src="modules/audio-object/js/audio-object.js"></script>
+<script src="modules/audio-object/js/ao-tick.js"></script>
+<script src="modules/audio-object/js/ao-oscillator.js"></script>
+<script src="modules/audio-object/js/ao-sampler.js"></script>
+<script src="modules/audio-object/js/ao-sampler-presets-gretsch-kit.js"></script>
+<script src="modules/audio-object/js/ao-sampler-presets-mis-piano.js"></script>
+<script src="modules/audio-object/js/ao-sampler-presets-fender-rhodes-mark-ii.js"></script>
 
-<script src="js/cue-timer.js"></script>
-<script src="js/cue-stream.js"></script>
-<script src="js/clock.js"></script>
-<script src="js/schedule.js"></script>
+<script src="clock/js/cue-timer.js"></script>
+<script src="clock/js/cue-stream.js"></script>
+<script src="clock/js/clock.js"></script>
+<script src="clock/js/schedule.js"></script>
 
-<script src="../modules/dom/js/dom.js"></script>
+<script src="modules/dom/js/dom.js"></script>
 
-<script src="js/metronome.js"></script>
-<script src="../js/soundstage-inspector.js"></script>
+<script src="clock/js/metronome.js"></script>
 
-<script src="test/data-chromatic.js"></script>
+<script src="js/soundstage-inspector.js"></script>
+
+<script src="clock/test/data-chromatic.js"></script>
 
 
 <style>
@@ -59,8 +60,6 @@
 	var Clock = window.Clock;
 	var audio = new window.AudioContext();
 	var clock = new Clock(audio, [[0, "rate", 2]]);
-
-var graph = timeline;
 
 	var objects = {
 		"piano": new AudioObject.Sampler(audio, {
@@ -116,17 +115,17 @@ var graph = timeline;
 		return {
 			start: function(time, number) {
 				object.start.apply(object, arguments);
-				graph.drawEvent(audio.currentTime, time, 'noteon', number);
+				timeline.drawEvent(audio.currentTime, time, 'noteon', number);
 			},
 
 			stop: function(time, number) {
 				object.stop.apply(object, arguments);
-				graph.drawEvent(audio.currentTime, time, 'noteoff', number);
+				timeline.drawEvent(audio.currentTime, time, 'noteoff', number);
 			},
 
 			automate: function(time, param) {
 				object.automate.apply(object, arguments);
-				graph.drawEvent(audio.currentTime, time, 'param', param);
+				timeline.drawEvent(audio.currentTime, time, 'param', param);
 			}
 		};
 	});
@@ -145,7 +144,7 @@ console.log('Start:', startTime);
 	})
 	.start(5);
 
-//	var metronome = new Metronome(audio, clock);
+	var metronome = new Metronome(audio, clock);
 //	metronome.start(1);
 
 </script>

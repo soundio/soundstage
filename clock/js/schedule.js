@@ -150,7 +150,7 @@
 		var fns = split(isString, tokens)
 		.map(function(def) {
 			var name = def[0];
-console.log(def);
+
 			if (!transforms[name]) {
 				if (debug) { console.log('Schedule: transform"' + name + '" not a supported transformation'); }
 			}
@@ -161,33 +161,33 @@ console.log(def);
 		return event.length < 6 ? id : pipe.apply(null, fns);
 	}
 
-	function Schedule(findEvents, findAudioObject, object) {
-		function scheduleSequence(event, clock) {
-			var events = typeof event[2] === 'string' ?
-				findEvents(event[2]) :
-				event[2] ;
+	function scheduleSequence(event, stream, findEvents, findAudioObject) {
+		var events = typeof event[2] === 'string' ?
+			findEvents(event[2]) :
+			event[2] ;
 
-			if (!events) {
-				if (debug) { console.log('Schedule: events not found for event', event, events); }
-			}
-
-			var transform = createTransform(event);
-			
-			clock
-			.create(events.map(transform))
-			.each(
-				isDefined(event[3]) ?
-				Schedule(findEvents, findAudioObject, findAudioObject(event[3])) :
-				schedule
-			)
-			.start(event[0]);
+		if (!events) {
+			if (debug) { console.log('Schedule: events not found for event', event, events); }
 		}
 
+		var transform = createTransform(event);
+		
+		stream
+		.create(events.map(transform))
+		.each(
+			isDefined(event[3]) ?
+			Schedule(findEvents, findAudioObject, findAudioObject(event[3])) :
+			schedule
+		)
+		.start(event[0]);
+	}
+
+	function Schedule(findEvents, findAudioObject, object) {
 		function schedule(event, stream) {
 			stream = stream || this;
 
 			return event[1] === "sequence" ?
-				scheduleSequence(event, stream) :
+				scheduleSequence(event, stream, findEvents, findAudioObject) :
 				// If object, direct
 				object ?
 					scheduleAudioObject(object, event) :
