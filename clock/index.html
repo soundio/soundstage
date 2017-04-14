@@ -3,17 +3,23 @@
 <label>Rate</label>
 <input type="range" min="0.33333333333333" max="6" step="any" id="clock-rate" value="2" />
 
-<script src="../js/window.audiocontext.js"></script>
-<script src="../js/navigator.getusermedia.js"></script>
-<script src="../js/object.setprototypeof.js"></script>
+<script src="../polyfills/window.audiocontext.js"></script>
+<script src="../polyfills/navigator.getusermedia.js"></script>
+<script src="../polyfills/object.setprototypeof.js"></script>
 
-<script src="../modules/object.assign/object.assign.js"></script>
-<script src="../modules/fn/js/fn.js"></script>
-<script src="../modules/fn/js/events.js"></script>
+<script src="../fn/polyfills/number.isnan.js"></script>
+<script src="../fn/polyfills/object.assign.js"></script>
+<script src="../fn/js/fn.js"></script>
+<script src="../fn/js/stream.js"></script>
+<script src="../fn/js/pool.js"></script>
+
 <script src="../modules/collection/js/observe.js"></script>
 <script src="../modules/collection/js/collection.js"></script>
 <script src="../modules/audio-object/js/audio-object.js"></script>
+<script src="../modules/music/music.js"></script>
 
+
+<script src="js/cue-stream.js"></script>
 <script src="js/clock.js"></script>
 
 <script>

@@ -12,8 +12,9 @@
 	var by          = Fn.by;
 	var curry       = Fn.curry;
 	var compose     = Fn.compose;
-	var get         = Fn.get;
 	var each        = Fn.each;
+	var get         = Fn.get;
+	var id          = Fn.id;
 	var nothing     = Fn.empty;
 
 
@@ -262,6 +263,12 @@
 	function stopBuffer(buffer, time, noteCache) {
 		var name, object;
 
+		// Remove all following events
+		var n = -1;
+		while (buffer[++n] && buffer[n].time < time);
+		buffer.length = n;
+
+		// Stop notes at time
 		while (noteCache.length) {
 			name = noteCache.shift();
 			object = toObject([time, 'noteoff', name]);
@@ -440,8 +447,8 @@
 
 		//stream.then(function() { idleData(data); });
 
-		stream.create = function create(events) {
-			return CueStream(timer, stream, events, Fn.id);
+		stream.create = function create(events, transform) {
+			return CueStream(timer, stream, events, transform || id);
 		};
 
 		stream.timeAtBeat = timeAtBeat;

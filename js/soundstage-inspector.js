@@ -1,5 +1,8 @@
 (function(window){
 
+	var dom  = window.dom;
+
+
 	// Create inspector and place it in the DOM
 
 	var body = document.body;
@@ -66,6 +69,7 @@
 	var audioTrackY  = 256 - 24;
 	
 	var workerPath   = '/static/soundstage/js/worker.waveform.js';
+	var workerPath   = '/soundstage/js/worker.waveform.js';
 	var worker       = new Worker(workerPath);
 
 	// Memory cache for audio nodes

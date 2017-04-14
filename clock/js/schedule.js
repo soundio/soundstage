@@ -1,17 +1,39 @@
 (function(window) {
 	"use strict";
 
+	var debug     = true;
+
+
 	// Import
 
 	var Fn        = window.Fn;
+	var split     = Fn.split;
+
 
 	// Define
 
-	var debug     = true;
 	var isDefined = Fn.isDefined;
+	var pipe      = Fn.pipe;
+
 
 	function warnEvent(object, event) {
 		console.warn('Schedule: Event dropped. Target audio object is', object, '. Event:', event);
+	}
+
+	function slice(i, j, object) {
+		j = j || undefined;
+		if (object.slice) { return object.slice(i, j); }
+
+		var array = [];
+		var n = -1;
+		var l = j - i;
+		var length = isDefined(object.length) ? object.length : Infinity ;
+
+		while (++n < l && (n + i) < length) {
+			array[n] = object[n + i];
+		}
+
+		return array;
 	}
 
 	// Event types
@@ -123,22 +145,20 @@
 	};
 
 	function createTransform(event) {
-		return event.length < 6 ?
-			Fn.id :
-			Fn.pipe.apply(null,
-				Fn(event.slice(5))
-				.split(isString)
-				.map(function(def) {
-					var name = def[0];
+		var tokens = slice(5, 0, event);
 
-					if (!transforms[name]) {
-						if (debug) { console.log('Schedule: transform"' + name + '" not a supported transformation'); }
-					}
+		var fns = split(isString, tokens)
+		.map(function(def) {
+			var name = def[0];
+console.log(def);
+			if (!transforms[name]) {
+				if (debug) { console.log('Schedule: transform"' + name + '" not a supported transformation'); }
+			}
 
-					return transforms[name].apply(null, def.slice(1));
-				})
-				.toArray()
-			);
+			return transforms[name].apply(null, def.slice(1));
+		});
+
+		return event.length < 6 ? id : pipe.apply(null, fns);
 	}
 
 	function Schedule(findEvents, findAudioObject, object) {
@@ -152,21 +172,22 @@
 			}
 
 			var transform = createTransform(event);
-
-			var sched = isDefined(event[3]) ?
+			
+			clock
+			.create(events.map(transform))
+			.each(
+				isDefined(event[3]) ?
 				Schedule(findEvents, findAudioObject, findAudioObject(event[3])) :
-				schedule ;
-
-			var head = clock.create(events.map(transform));
-
-			head
-			.each(function(event) { sched(event, head); })
+				schedule
+			)
 			.start(event[0]);
 		}
 
-		function schedule(event, head) {
+		function schedule(event, stream) {
+			stream = stream || this;
+
 			return event[1] === "sequence" ?
-				scheduleSequence(event, head) :
+				scheduleSequence(event, stream) :
 				// If object, direct
 				object ?
 					scheduleAudioObject(object, event) :

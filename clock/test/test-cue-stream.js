@@ -585,6 +585,8 @@
 			equals(12, n + 1, 'Expected 12 events but received ' + (n + 1));
 		});
 
+
+
 		Fn.requestTick(function() {
 			console.table(Pool.snapshot());
 			Pool.release();

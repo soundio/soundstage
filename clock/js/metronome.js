@@ -95,7 +95,10 @@
 			state = 'started';
 
 			cuestream = clock
-			.create(ticks, schedule)
+			.create(ticks)
+			.each(function(event) {
+				schedule(event[0], event);
+			})
 			.start(time);
 		}
 

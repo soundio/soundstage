@@ -4,7 +4,7 @@
 	// Import
 
 	var Fn     = window.Fn;
-	var Stream = Fn.Stream;
+	var Stream = window.Stream;
 
 
 	// Functions

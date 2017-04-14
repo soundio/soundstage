@@ -1,22 +1,24 @@
+<body>
 
-<canvas id="canvas-0" width="7200" height="256"></canvas>
+<script src="../polyfills/window.audiocontext.js"></script>
+<script src="../polyfills/navigator.getusermedia.js"></script>
+<script src="../polyfills/object.setprototypeof.js"></script>
 
-<script src="../js/window.audiocontext.js"></script>
-<script src="../js/navigator.getusermedia.js"></script>
-<script src="../js/object.setprototypeof.js"></script>
+<script src="../fn/polyfills/number.isnan.js"></script>
+<script src="../fn/polyfills/object.assign.js"></script>
+<script src="../fn/js/fn.js"></script>
+<script src="../fn/js/stream.js"></script>
+<script src="../fn/js/pool.js"></script>
+<script src="../fn/js/events.js"></script>
 
-<script src="../modules/object.assign/object.assign.js"></script>
-<script src="../modules/fn/js/fn.js"></script>
-<script src="../modules/fn/js/events.js"></script>
 <script src="../modules/collection/js/observe.js"></script>
 <script src="../modules/collection/js/collection.js"></script>
+<script src="../modules/music/music.js"></script>
 
 <script title="config">
 	Fn.debug = true;
 </script>
 
-<script src="../modules/music/music.js"></script>
-<script src="../modules/music/music-stream.js"></script>
 <script src="../modules/audio-object/js/audio-object.js"></script>
 <script src="../modules/audio-object/js/ao-tick.js"></script>
 <script src="../modules/audio-object/js/ao-oscillator.js"></script>
@@ -29,8 +31,11 @@
 <script src="js/cue-stream.js"></script>
 <script src="js/clock.js"></script>
 <script src="js/schedule.js"></script>
+
+<script src="../modules/dom/js/dom.js"></script>
+
 <script src="js/metronome.js"></script>
-<script src="../test/soundstage-inspector.js"></script>
+<script src="../js/soundstage-inspector.js"></script>
 
 <script src="test/data-chromatic.js"></script>
 
@@ -55,11 +60,13 @@
 	var audio = new window.AudioContext();
 	var clock = new Clock(audio, [[0, "rate", 2]]);
 
+var graph = timeline;
+
 	var objects = {
-		//"piano": new AudioObject.Sampler(audio, {
-		//	"sample-map": "MIS Piano",
-		//	"filter-type": "off"
-		//}, AudioObject.presets),
+		"piano": new AudioObject.Sampler(audio, {
+		  "sample-map": "MIS Piano",
+		  "filter-type": "off"
+		}, AudioObject.presets),
 
 		//"drums": new AudioObject.Sampler(audio, {
 		//   "sample-map": "Gretsch Kit",
@@ -76,7 +83,7 @@
 	};
 
 	//AudioObject.getOutput(objects.oscillator).connect(audio.destination);
-	//AudioObject.getOutput(objects.piano).connect(audio.destination);
+	AudioObject.getOutput(objects.piano).connect(audio.destination);
 	//AudioObject.getOutput(objects.drums).connect(audio.destination);
 
 	var cue = Schedule(function findSequence(slug) {
@@ -124,54 +131,23 @@
 		};
 	});
 
+window.c = cue;
+
+	// Start
+	var startTime = Math.ceil(audio.currentTime) + 1;
+console.log('Start:', startTime);
 	clock.start(Math.ceil(audio.currentTime));
-	//clock.create(sequence.events, cue).start(5);
 
-	var metronome = new Metronome(audio, clock);
-	metronome.start(1);
+	clock
+	.create(sequence.events, cue)
+	.each(function(event) {
+		cue(event, this);
+	})
+	.start(5);
 
-
-
-
-	// Draw the graph -----------------------------------------------
-
-	clock.requestCue(function cue(time) {
-		// Make the test run for 30 seconds only
-		if (audio.currentTime > 30) {
-			clock.stop();
-			return;
-		}
-
-		graph.drawCue(audio.currentTime, time);
-		clock.requestCue(cue);
-	});
-
-	var scrollDuration = 0.666667;
-	var mousewheelTime = -Infinity;
-
-	function isScrolling() {
-		return audio.currentTime < mousewheelTime + scrollDuration * 0.666667 ;
-	}
-
-	// Elastic scrolling in Chrome causes delays in setTimeout. Scroll
-	// events don't necessarily fire so use wheel.
-	// Todo: we don't appear to need this for FF or Safari.
-	document.addEventListener('wheel', function(e) {
-		graph.drawBar(audio.currentTime, 'rgba(220,20,20,0.1)', '');
-
-		// During a scroll use these mousewheel events as a timer, as
-		// setTimeout becomes unreliable.
-		if (!isScrolling()) {
-			graph.drawBar(audio.currentTime, 'red');
-			mousewheelTime = audio.currentTime;
-		}
-	});
-
-	document.addEventListener('visibilitychange', function(e) {
-		graph.drawBar(audio.currentTime, '#cc6622');
-	});
-
-	graph.drawBar(audio.currentTime);
-	console.log('CLOCK', clock.now().toFixed(4));
+//	var metronome = new Metronome(audio, clock);
+//	metronome.start(1);
 
 </script>
+
+</body>
