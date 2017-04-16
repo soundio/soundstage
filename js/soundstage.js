@@ -885,12 +885,12 @@ console.log(selector, object);
 
 		destroy: function() {
 			// Destroy the playhead.
-			Head.prototype.destroy.call(this);
+			//Head.prototype.destroy.call(this);
 
 			// Remove soundstage's input node from mediaInputs, and disconnect
 			// media from it.
 			var input = AudioObject.getInput(this);
-			var i = mediaInputs.indexOf(input);
+			var i     = mediaInputs.indexOf(input);
 
 			if (i > -1) {
 				mediaInputs.splice(i, 1);
