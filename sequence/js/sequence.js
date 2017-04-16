@@ -193,33 +193,45 @@
 			return new Sequence(data);
 		}
 
-		// Force name to be a string
-		var name   = data && data.name ? data.name + '' : '';
-		var events = new Collection(data && data.events || [], eventsDefaults);
-		var heads  = new Collection();
-
 		Object.defineProperties(this, {
-			name:   { value: name, enumerable: true, configurable: true, writable: true },
-			events: { value: events, enumerable: true },
-			heads:  { value: heads }
+			name: {
+				enumerable: true,
+				configurable: true,
+				writable: true,
+				value: data && data.name ?
+					data.name + '' :
+					''
+			},
+
+			sequences: {
+				enumerable: true,
+				value: data && data.sequences ?
+					data.sequences.map(Sequence) :
+					[],
+			},
+
+			events: {
+				enumerable: true,
+				value: new Collection(data && data.events || [], eventsDefaults)
+			}
 		});
 	}
 
-	assign(Sequence.prototype, {
-		createHead: function(clock) {
-			var head = new Head(this.events, clock, this.settings);
-			this.heads.push(head);
-			return head;
-		},
-
-		start: function(time) {
-
-		},
-
-		stop: function(time) {
-
-		}
-	});
+//	assign(Sequence.prototype, {
+//		createHead: function(clock) {
+//			var head = new Head(this.events, clock, this.settings);
+//			this.heads.push(head);
+//			return head;
+//		},
+//
+//		start: function(time) {
+//
+//		},
+//
+//		stop: function(time) {
+//
+//		}
+//	});
 
 	assign(Sequence, {
 		getEventDuration: getEventDuration,

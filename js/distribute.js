@@ -17,7 +17,7 @@
 
 
 	function warnEvent(object, event) {
-		console.warn('Schedule: Event dropped. Target audio object is', object, '. Event:', event);
+		console.warn('Distribute: Event dropped. Target audio object is', object, '. Event:', event);
 	}
 
 	function slice(i, j, object) {
@@ -54,7 +54,7 @@
 			var fn = types[type];
 
 			if (!fn) {
-				if (debug) { console.log('Schedule: cant schedule event:', event); }
+				if (debug) { console.log('Distribute: cant schedule event:', event); }
 				return;
 			}
 
@@ -152,7 +152,7 @@
 			var name = def[0];
 
 			if (!transforms[name]) {
-				if (debug) { console.log('Schedule: transform"' + name + '" not a supported transformation'); }
+				if (debug) { console.log('Distribute: transform"' + name + '" not a supported transformation'); }
 			}
 
 			return transforms[name].apply(null, def.slice(1));
@@ -161,13 +161,13 @@
 		return event.length < 6 ? id : pipe.apply(null, fns);
 	}
 
-	function scheduleSequence(event, stream, findEvents, findAudioObject) {
+	function scheduleSequence(event, stream, distribute, findEvents, findAudioObject) {
 		var events = typeof event[2] === 'string' ?
 			findEvents(event[2]) :
 			event[2] ;
 
 		if (!events) {
-			if (debug) { console.log('Schedule: events not found for event', event, events); }
+			if (debug) { console.log('Distribute: events not found for event', event, events); }
 		}
 
 		var transform = createTransform(event);
@@ -176,26 +176,31 @@
 		.create(events.map(transform))
 		.each(
 			isDefined(event[3]) ?
-			Schedule(findEvents, findAudioObject, findAudioObject(event[3])) :
-			schedule
+			Distribute(findEvents, findAudioObject, findAudioObject(event[3])) :
+			distribute
 		)
 		.start(event[0]);
 	}
 
-	function Schedule(findEvents, findAudioObject, object) {
-		function schedule(event, stream) {
+	function drawEvent(event) {
+		if (!window.timeline) { return; }
+		timeline.drawEvent(audio.currentTime, event[0], event[1], event[2]);
+	}
+
+	function Distribute(findEvents, findAudioObject, object) {
+		return function distribute(event, stream) {
 			stream = stream || this;
 
+			drawEvent(event);
+
 			return event[1] === "sequence" ?
-				scheduleSequence(event, stream, findEvents, findAudioObject) :
+				scheduleSequence(event, stream, distribute, findEvents, findAudioObject) :
 				// If object, direct
 				object ?
 					scheduleAudioObject(object, event) :
 					debug && warnEvent(object, event) ;
-		}
-
-		return schedule;
+		};
 	}
 
-	window.Schedule = Schedule;
+	window.Distribute = Distribute;
 })(this);

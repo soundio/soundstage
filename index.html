@@ -1,22 +1,46 @@
+<!DOCTYPE html>
+<head>
+
 <meta charset="utf-8" />
+<link rel="stylesheet" href="css/dom.css" />
 
-<script src="js/window.audiocontext.js"></script>
-<script src="js/navigator.getusermedia.js"></script>
-<script src="js/object.setprototypeof.js"></script>
+<body>
 
-<script src="modules/object.assign/object.assign.js"></script>
-<script src="modules/fn/js/fn.js"></script>
-<script src="modules/fn/js/events.js"></script>
+<script src="polyfills/window.audiocontext.js"></script>
+<script src="polyfills/navigator.getusermedia.js"></script>
+<script src="polyfills/object.setprototypeof.js"></script>
+
+<script src="fn/polyfills/number.isnan.js"></script>
+<script src="fn/polyfills/object.assign.js"></script>
+<script src="fn/js/fn.js"></script>
+<script src="fn/js/stream.js"></script>
+<script src="fn/js/pool.js"></script>
+<script src="fn/js/events.js"></script>
+
 <script src="modules/collection/js/observe.js"></script>
 <script src="modules/collection/js/collection.js"></script>
+<script src="modules/music/music.js"></script>
+
+<script title="config">
+	Fn.debug = true;
+</script>
+
 <script src="modules/audio-object/js/audio-object.js"></script>
+<script src="modules/audio-object/js/ao-tick.js"></script>
+<script src="modules/audio-object/js/ao-oscillator.js"></script>
+<script src="modules/audio-object/js/ao-sampler.js"></script>
+<script src="modules/audio-object/js/ao-sampler-presets-gretsch-kit.js"></script>
+<script src="modules/audio-object/js/ao-sampler-presets-mis-piano.js"></script>
+<script src="modules/audio-object/js/ao-sampler-presets-fender-rhodes-mark-ii.js"></script>
+
 <script src="modules/midi/js/midi.js"></script>
 <script src="modules/midi/js/midi-utils.js"></script>
 
+<script src="js/distribute.js"></script>
+<script src="clock/js/cue-timer.js"></script>
+<script src="clock/js/cue-stream.js"></script>
 <script src="clock/js/clock.js"></script>
-<script src="sequence/js/sequence.js"></script>
 
-<script src="js/event-distributor.js"></script>
 <script src="js/soundstage.js"></script>
 <script src="js/soundstage.midi.js"></script>
 <script src="js/soundstage.objects.js"></script>
@@ -35,116 +59,104 @@
 <script src="js/soundstage.metronome.js"></script>
 <script src="js/soundstage.tone-synth.js"></script>
 
-<script src="js/soundstage.presets.sample-map.js"></script>
+<script src="modules/dom/js/dom.js"></script>
+<script src="js/soundstage-inspector.js"></script>
+
+<script src="clock/test/data-chromatic.js"></script>
 
 <script>
-	window.soundstage = Soundstage();
 
-	var n0 = soundstage.objects.create('oscillator');
-	var n1 = soundstage.objects.create('signal-detector');
-	var n2 = soundstage.objects.create('output', { output: AudioObject.getOutput(soundstage) });
+	var stage = Soundstage({
 
-	function isReceivingSignal() { return n1.signal; }
+		// Audio Objects
+		//
+		// {
+		//   "id":     number
+		//   "type":   string
+		//   "name:    string
+		//   "slug":   slug
+		//   ...
+		// }
 
-	n0.start();
+		objects: [{
+			"id":          1,
+			"type":        "sampler",
+			"name":        "Piano",
+			"slug":        "piano",
+			"sample-map":  "MIS Piano",
+			"filter-type": "off"
+		}],
 
-	soundstage.connections.create({ source: n0, destination: n1 });
-	soundstage.connections.create({ source: n0, destination: n2 });
+		// Sequence
+		//
+		// {
+		//   "id":     number
+		//   "name:    string
+		//   "slug":   slug
+		//   "events": array or functor
+		// }
 
-	console.log('SIGNAL n1', isReceivingSignal());
+		sequences: [{
+			"name": "Chromatic",
+			"slug": "chromatic",
+			"events": (function() {
+				var n = 0;
+				return Fn(function chromatic() {
+					if (n > 128) { return; }
+					return [++n / 12, "note", n, 0.5, 1 / 12];
+				});
+			})()
+		}],
 
-	setTimeout(function() {
-		console.log('SIGNAL n1', isReceivingSignal());
-		soundstage.connections.delete({ source: n0, destination: n2 });
-	}, 100);
+		// Event types
+		//
+		// [time, "rate", number, curve]
+		// [time, "note", number, velocity, duration]
+		// [time, "noteon", number, velocity]
+		// [time, "noteoff", number]
+		// [time, "param", name, value, curve]
+		// [time, "pitch", semitones]
+		// [time, "chord", root, mode, duration]
+		// [time, "sequence", selector || events, target, duration, transforms...]
 
-	setTimeout(function() {
-		console.log('SIGNAL n1', isReceivingSignal());
-	}, 200);
-</script>
-
-<!--script>
-(function(window) {
-	"use strict";
-
-	var drumSequence = [
-		[0.0, "note", 51, 0.76, 0.125],
-		[0.5, "note", 51, 0.52, 0.125],
-		[1.0, "note", 51, 0.71, 0.125],
-		[1.5, "note", 51, 0.51, 0.125],
-		[2.0, "note", 51, 0.75, 0.125],
-		[2.5, "note", 51, 0.54, 0.125],
-		[3.0, "note", 51, 0.72, 0.125],
-		[3.5, "note", 51, 0.53, 0.125],
-
-		[0.0, "note", 36, 0.65, 0.125],
-		[0.5, "note", 36, 0.5, 0.125],
-		[1.5, "note", 38, 0.75, 0.125],
-		[2.5, "note", 36, 0.4, 0.125],
-		[3.0, "note", 38, 0.5, 0.125]
-	];
-
-	var data = [
-		[0,   "noteon",  36, 1],
-		[4,   "noteoff", 36, 1],
-		[2,   "noteon",  64, 0.8],
-		[2.5, "noteoff", 64, 0.8],
-		[2,   "noteon",  58, 0.8],
-		[2.5, "noteoff", 58, 0.8],
-		[2,   "noteon",  43, 0.8],
-		[2.5, "noteoff", 43, 0.8],
-		[2.5, "noteon",  65, 0.6],
-		[3,   "noteoff", 65, 0.6],
-		[3,   "noteon",  67, 1],
-		[3.5, "noteoff", 67, 1],
-		[3.5, "noteon",  62, 1],
-		[7,   "noteoff", 62, 1],
-		[3.5, "noteon",  46, 1],
-		[7,   "noteoff", 46, 1],
-		[3.5, "noteon",  53, 1],
-		[7,   "noteoff", 53, 1]
-	];
-
-	var soundstage = window.Soundstage({
-		objects: [
-			{id: 1, type: "tone-synth"},
-			{id: 2, type: "output"},
-			{id: 3, type: "metronome" },
-			{id: 4, type: "sampler"}
-		],
-
-		connections: [
-			{source: 1, destination: 2},
-			{source: 3, destination: 2},
-			{source: 4, destination: 2}
-		],
-
-		sequence: [
-			[0,  "sequence", drumSequence, 1, 4],
-			[4,  "sequence", drumSequence, 1, 4],
-			[8,  "sequence", drumSequence, 1, 4],
-			[12, "sequence", drumSequence, 1, 4],
-
-			[4, "sequence", data, 1, 1],
-			[12, "sequence", data, 2, 1],
-			[16, "sequence", data, 3, 4],
-			//[12, "sequence", data, 4, 1],
-			//[2, "sequence", data, 0.5]
+		events: [
+			[0, "rate", 2],
+			[5, "sequence", '[slug="chromatic"]', '[slug="piano"]']
 		]
 	});
 
-	var osc = window.osc = soundstage.find(1);
-	var metronome = window.metronome = soundstage.find(3);
-	var sampler = window.sampler = soundstage.find(4);
+	var audio = stage.audio;
 
-	soundstage.clock.tempo(0, 120);
+//	var n0 = soundstage.objects.create('oscillator');
+//	var n1 = soundstage.objects.create('signal-detector');
+//	var n2 = soundstage.objects.create('output', { output: AudioObject.getOutput(soundstage) });
+//
+//	function isReceivingSignal() { return n1.signal; }
+//
+//	n0.start();
+//
+//	soundstage.connections.create({ source: n0, destination: n1 });
+//	soundstage.connections.create({ source: n0, destination: n2 });
+//
+//	console.log('SIGNAL n1', isReceivingSignal());
+//
+//	setTimeout(function() {
+//		console.log('SIGNAL n1', isReceivingSignal());
+//		soundstage.connections.delete({ source: n0, destination: n2 });
+//	}, 100);
+//
+//	setTimeout(function() {
+//		console.log('SIGNAL n1', isReceivingSignal());
+//	}, 200);
 
-	observe(sampler, 'loaded', function() {
-		console.log(sampler.loaded);
 
-		if (sampler.loaded === 1) {
-			soundstage.start();
-		}
-	});
-})(window);
-</script-->
+	// Start
+	var startTime = Math.ceil(audio.currentTime) + 1;
+console.log('Start:', startTime);
+	stage.start(Math.ceil(audio.currentTime));
+
+
+//	var metronome = new Metronome(audio, clock);
+//	metronome.start(1);
+
+</script>

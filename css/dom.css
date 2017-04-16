@@ -1,0 +1,12 @@
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+	-webkit-overflow-scrolling: auto;
+}
+
+canvas {
+	display: block;
+	width: 7200px;
+}

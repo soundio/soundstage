@@ -30,7 +30,7 @@
 <script src="clock/js/cue-timer.js"></script>
 <script src="clock/js/cue-stream.js"></script>
 <script src="clock/js/clock.js"></script>
-<script src="clock/js/schedule.js"></script>
+<script src="clock/js/distribute.js"></script>
 
 <script src="modules/dom/js/dom.js"></script>
 
@@ -40,20 +40,8 @@
 
 <script src="clock/test/data-chromatic.js"></script>
 
+<link rel="stylesheet" href="css/dom.css" />
 
-<style>
-	html,
-	body {
-		margin: 0;
-		padding: 0;
-		-webkit-overflow-scrolling: auto;
-	}
-
-	canvas {
-		display: block;
-		width: 7200px;
-	}
-</style>
 
 <script>
 
@@ -85,7 +73,7 @@
 	AudioObject.getOutput(objects.piano).connect(audio.destination);
 	//AudioObject.getOutput(objects.drums).connect(audio.destination);
 
-	var cue = Schedule(function findSequence(slug) {
+	var cue = Distribute(function findSequence(slug) {
 		var type = Fn.toStringType(slug);
 		var bySlug = Fn.compose(Fn.is(slug), Fn.get('slug'));
 		var sequence, stream;

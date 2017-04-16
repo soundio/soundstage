@@ -23,12 +23,12 @@
 	// whence other cue streams sprout. Clock methods basically map
 	// CueStream methods.
 
-	function Clock(audio, events, target) {
+	function Clock(audio, events, distribute) {
 		// Support using constructor without the `new` keyword
-		if (!Clock.prototype.isPrototypeOf(this)) {
+		if (!AudioObject.prototype.isPrototypeOf(this)) {
 			return new Clock(audio, events);
 		}
-
+console.log(events)
 		var timer      = createCueTimer(audio);
 		var rateEvent  = [0, 'rate', defaults.rate];
 		var meterEvent = [0, 'meter', 4, 1];
@@ -41,10 +41,7 @@
 			timeAtBeat: function(beat) { return startTime + beat; }
 		};
 
-		var stream = CueStream(timer, fns, events, Fn.id);
-
-		// Temp: Make it startable
-		stream.shift();
+		var stream = CueStream(timer, fns, events, Fn.id).each(distribute);
 
 		this.start = function(time) {
 			startTime = time || audio.currentTime ;
@@ -74,14 +71,9 @@
 			return stream ? stream.timeAtBeat(beat) : 0 ;
 		};
 
-		this.create = function(events, transform) {
-			return stream ? stream.create(events, transform) : undefined ;
-		};
-
-		this.each = function(fn) {
-			eachFn = fn;
-			cuestream && cuestream.each(fn);
-		};
+//		this.create = function(events, transform) {
+//			return stream ? stream.create(events, transform) : undefined ;
+//		};
 
 //		Object.defineProperties(this, {
 //			state: {
@@ -134,7 +126,7 @@
 //		});
 	}
 
-	Clock.prototype = Object.create(AudioObject.prototype);
+	Clock.prototype = AudioObject.prototype;
 
 	assign(Clock, {
 		lookahead: 0.1,

@@ -65,9 +65,10 @@ Call `fn` on the next cue, with a single parameter, `time`.
 Remove `fn` from the functions called on the next cue.
 
 
-### `Schedule(findEvents, findAudioObject [, object])`
+### `Distribute(findEvents, findAudioObject [, object])`
 
-Returns a function responsible for distributing events from a cue head.
+Returns a function responsible for distributing events from a MIDI input
+or `CueStream`.
 
 
 ## Dependencies and tests

@@ -15,11 +15,21 @@
 
 	// Imports
 	var Fn         = window.Fn;
+	var compose    = Fn.compose;
+	var curry      = Fn.curry;
+	var find       = Fn.find;
+	var get        = Fn.get;
+	var select     = Fn.getPath;
+	var is         = Fn.is;
+	var isDefined  = Fn.isDefined;
+	var toType     = Fn.toType;
+	var toStringType = Fn.toStringType;
+	//var update     = Fn.update;
+
 	var observe    = window.observe;
 	var unobserve  = window.unobserve;
 	var Collection = window.Collection;
 	var Clock      = window.Clock;
-	var Sequence   = window.Sequence;
 	var EventDistributor = window.EventDistributor;
 	var assign     = Object.assign;
 	var splice     = Function.prototype.call.bind(Array.prototype.splice);
@@ -33,14 +43,42 @@
 	output.connect(audio.destination);
 
 
-	// Helper functions
+	var selectIn = curry(function(object, selector) {
+		return select(selector, object);
+	});
 
-	var isDefined = Fn.isDefined;
-	var toType    = Fn.toType;
+	var update = curry(function update(object, data) {
+		if (object.update) { object.update.apply(object, data); }
 
-	//function isDefined(val) {
-	//	return val !== undefined && val !== null;
-	//}
+		if (isDefined(object.length)) {
+			var n = data.length;
+			var item, datum;
+
+			while (n--) {
+				datum = data[n];
+				item = find(function(item) {
+					return item.id === datum.id;
+				}, object);
+				if (item) {
+					update(item, datum);
+				}
+				else {
+					object.push(datum);
+				}
+			}
+		}
+		else {
+			var name;
+			for (name in data) {
+				if (object[name] && isDefined(object.name.length)) {
+					update(object[name], data[name])
+				}
+				else {
+					object[name] = data[name];
+				}
+			}
+		}
+	});
 
 	// distributeArgs(i, fn)
 	//
@@ -517,26 +555,53 @@
 	});
 
 
-	// Sequences
+	// Sequence
 
-	function Sequences(data) {
-		// Initialise connections as a Collection
-		Collection.call(this, data, { index: "name" });
-	}
-
-	Object.setPrototypeOf(Sequences.prototype, Collection.prototype);
-
-	assign(Sequences.prototype, {
-		create: function(data) {
-			var sequence = new Sequence(data);
-			this.add(sequence);
-			return sequence;
-		},
-
-		delete: function(data) {
-			// Todo.
+	function Sequence(data) {
+		if (this === undefined || this === window) {
+			// If this is undefined the constructor has been called without the
+			// new keyword, or without a context applied. Do that now.
+			return new Sequence(data);
 		}
-	});
+
+		Object.defineProperties(this, {
+			name: {
+				enumerable:   true,
+				configurable: true,
+				writable:     true,
+				value: data && data.name ?
+					data.name + '' :
+					''
+			},
+
+			slug: {
+				enumerable:   true,
+				configurable: true,
+				writable:     true,
+				value: data && data.slug ? data.slug + '' :
+					data.name ? slugify(data.name) :
+					''
+			},
+
+			sequences: {
+				enumerable: true,
+				value: new Collection(
+					data && data.sequences ? data.sequences.map(Sequence) : [],
+					{ index: 'id' }
+				)
+			},
+
+			events: {
+				enumerable: true,
+				writable:   true,
+				value: data && data.events ?
+					data.events.length ?
+						new Collection(data.events,	{}) :
+						data.events :
+					new Collection([], {})
+			}
+		});
+	}
 
 
 	// Soundstage
@@ -549,65 +614,83 @@
 			return new Soundstage(data, settings);
 		}
 
-		var soundstage  = this;
-		var options     = assign({}, defaults, settings);
-		var audio       = options.audio;
-		var output      = createOutput(audio);
+		var soundstage = this;
+		var options    = assign({}, defaults, settings);
 
-		var objects     = new Objects(this);
-		var inputs      = objects.sub({ type: 'input' }, { sort: byChannels });
-		var outputs     = objects.sub({ type: 'output' }, { sort: byChannels });
-		var connections = new Connections(objects);
-		var midi        = Soundstage.MidiMap(objects);
-		var clock       = new Clock(audio);
-		var sequences   = new Sequences();
 
 		// Initialise soundstage as an Audio Object with no inputs and
-		// a channel merger as an output.
-		AudioObject.call(this, options.audio, undefined, output);
+		// a channel merger as an output. Assigns:
+		//
+		// audio:      audio context
 
-		// Initialise soundstage as a sequence
-		Sequence.call(this, data);
+		var audio  = options.audio;
+		var output = createOutput(audio);
 
-		// Initialise soundstage as a playhead for the sequence
-		Head.call(this, this, clock, {
-			find: function(name) {
-				return sequences.find(name);
-			},
-
-			distribute: function(path, head) {
-				var object = soundstage.find(path);
-
-				if (!object) {
-					console.warn('Soundstage: object', path, 'not found.');
-					return;
-				}
-
-				var distributor = new EventDistributor(audio, clock, object, head);
-
-				head.on('stop', function(head) {
-					console.log('STOP', head.n, this.n, 'distributor.destroy()');
-					distributor.destroy();
-				});
-			}
-		});
-
-		// Manually push the head (this) into the sequence's head stack.
-		this.heads.push(this);
-
-		// Hitch up the output to the destination
+		AudioObject.call(this, audio, undefined, output);
 		output.connect(audio.destination);
 
-		// Define soundstage's properties
+
+		// Initialise soundstage as a Sequence. Assigns:
+		//
+		// name:       string
+		// sequences:  collection
+		// events:     collection
+
+		Sequence.call(this, data);
+
+
+		// Initialise soundstage as a Clock. Assigns:
+		//
+		// start:      fn
+		// stop:       fn
+		// beatAtTime: fn
+		// timeAtBeat: fn
+
+		var objects        = new Objects(this);
+		var connections    = new Connections(objects);
+		var selectObject   = selectIn(objects);
+		var selectSequence = selectIn(this.sequences);
+
+		Clock.call(this, audio, this.events, Distribute(function(selector) {
+			var type = toStringType(selector);
+			var stream;
+	
+			// Find sequence via URL
+			if (type === 'url') {
+				stream = Stream.of();
+	
+				Soundstage
+				.fetchSequence()
+				.then(function(sequence) {
+					stream.push.apply(stream, sequence.events);
+				});
+
+				return stream;
+			}
+	
+			// Find sequence via selector
+			var sequence = selectSequence(selector);
+console.log(selector, sequence);
+			return sequence.events;
+		}, function(selector) {
+			var object = selectObject(selector);
+console.log(selector, object);
+			return object;
+		}));
+
+
+		// Methods
+
+		this.select = selectIn(this);
+
+
+		// Properties
 		Object.defineProperties(soundstage, {
-			audio:       { value: options.audio },
-			midi:        { value: midi, enumerable: true },
+			midi:        { value: Soundstage.MidiMap(objects), enumerable: true },
 			objects:     { value: objects, enumerable: true },
-			inputs:      { value: inputs },
-			outputs:     { value: outputs },
+			inputs:      { value: objects.sub({ type: 'input' }, { sort: byChannels }) },
+			outputs:     { value: objects.sub({ type: 'output' }, { sort: byChannels }) },
 			connections: { value: connections, enumerable: true },
-			clock:       { value: clock },
-			sequences:   { value: sequences, enumerable: true },
 			presets:     { value: Soundstage.presets, enumerable: true },
 			mediaChannelCount: { value: undefined, writable: true, configurable: true },
 			roundTripLatency:  { value: Soundstage.roundTripLatency, writable: true, configurable: true },
@@ -621,6 +704,7 @@
 
 		soundstage.update(data);
 
+
 		if (Soundstage.debug) {
 			soundstage.on('clear', function(soundstage) {
 				console.log('Soundstage: "clear"');
@@ -631,9 +715,9 @@
 		}
 	}
 
-	Object.setPrototypeOf(Soundstage.prototype, Head.prototype);
+	Object.setPrototypeOf(Soundstage.prototype, AudioObject.prototype);
 
-	assign(Soundstage.prototype, {
+	assign(Soundstage.prototype, mixin.events, {
 		create: function(type, settings) {
 			return this.objects.create(type, settings);
 		},
@@ -731,14 +815,9 @@
 				this.midi.create.apply(this.midi, data.midi);
 			}
 
-			if (data.sequences) {
-				var keys = Object.keys(data.sequences);
-				var k = keys.length;
-
-				while (k--) {
-					this.sequences.create(data.sequences[keys[k]]);
-				}
-			}
+			//if (data.sequences) {
+			//	update(this.sequences, data.sequences);
+			//}
 
 			if (data.events && data.events.length) {
 				this.events.add.apply(this.events, data.events);
@@ -802,10 +881,6 @@
 			input       && (selector.source = input);
 
 			var connections = this.connections.delete(selector);
-		},
-
-		stringify: function() {
-			return JSON.stringify(this);
 		},
 
 		destroy: function() {
@@ -919,32 +994,57 @@
 
 	// Extend Soundstage namespace
 
+	function getEventsDuration(sequence, round, find) {
+		var n = sequence.length;
+		var time = 0;
+		var duration = 0;
+
+		while (n--) {
+			time = sequence[n][0] + getEventDuration(sequence[n], find);
+			if (time > duration) { duration = time; }
+		}
+
+		return round ?
+			duration + round - (duration % round) :
+			duration ;
+	}
+
+	function getEventDuration(e, find) {
+		// find - a function for finding sequences referred
+		// to by sequence events.
+		return e[1] === "note" ? e[4] :
+			e[1] === "param" ?
+				e[4] === "step" ? 0 :
+					e[5] :
+			e[1] === "sequence" ?
+				typeof e[2] === 'string' || typeof e[2] === 'number' ?
+					getEventsDuration(find(e[2]), 1, find) :
+					getEventsDuration(e[2], 1, find) :
+			0 ;
+	}
+
 	assign(Soundstage, {
 		debug: true,
-		requestMedia: requestMedia,
-		roundTripLatency: 0.020,
-		create: create,
-		register: register,
-		defaults: retrieveDefaults,
-		presets: Collection([], { index: "name" }),
-		distributeArgs: distributeArgs,
-		fetchBuffer: fetchBuffer,
-		isDefined: isDefined,
-		isEvent: isEvent,
 
-		// Helper functions from AudioObject
-		getInput: AudioObject.getInput,
-		getOutput: AudioObject.getOutput,
-		isAudioContext: AudioObject.isAudioContext,
-		isAudioNode: AudioObject.isAudioNode,
-		isAudioParam: AudioObject.isAudioParam,
-		isAudioObject: AudioObject.isAudioObject,
+		requestMedia:      requestMedia,
+		roundTripLatency:  0.020,
+		create:            create,
+		register:          register,
+		defaults:          retrieveDefaults,
+		presets:           Collection([], { index: "name" }),
+		distributeArgs:    distributeArgs,
+		fetchBuffer:       fetchBuffer,
+		isEvent:           isEvent,
+		getEventDuration:  getEventDuration,
+		getEventsDuration: getEventsDuration,
 
-		// Helper functions from Sequence
-		getEventDuration: Sequence.getEventDuration,
-		getEventsDuration: Sequence.getEventsDuration,
+		getInput:          AudioObject.getInput,
+		getOutput:         AudioObject.getOutput,
+		isAudioContext:    AudioObject.isAudioContext,
+		isAudioNode:       AudioObject.isAudioNode,
+		isAudioParam:      AudioObject.isAudioParam,
+		isAudioObject:     AudioObject.isAudioObject,
 
-		// Collated feature tests
 		features: assign({}, AudioObject.features)
 	});
 
