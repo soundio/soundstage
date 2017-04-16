@@ -87,7 +87,7 @@
 	// A Soundstage plugin is created with an object constructor.
 	// The constructor must create an instance of AudioObject.
 	// One way to do this is to use AudioObject as a mix-in.
-	function ToneSynthAudioObject(audio, settings, clock) {
+	function ToneSynthAudioObject(audio, settings, presets, clock) {
 		var options = assign({}, defaults, settings);
 		var object = this;
 		var outputNode = audio.createGain();

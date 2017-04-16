@@ -17,6 +17,7 @@
 	var Fn         = window.Fn;
 	var compose    = Fn.compose;
 	var curry      = Fn.curry;
+	var each       = Fn.each;
 	var find       = Fn.find;
 	var get        = Fn.get;
 	var select     = Fn.getPath;
@@ -163,7 +164,7 @@
 			throw new Error('soundstage: Calling Soundstage.create(type, settings) unregistered type: ' + type);
 		}
 
-		var object = new registry[type][0](audio, settings, clock, presets);
+		var object = new registry[type][0](audio, settings, presets, clock);
 
 		if (settings) {
 			assignSettings(object, settings);
@@ -300,7 +301,7 @@
 
 	// Objects
 
-	function Objects(soundstage, array, settings) {
+	function Objects(soundstage, clock, array, settings) {
 		if (this === undefined || this === window) {
 			// Soundstage has been called without the new keyword
 			return new Objects(soundstage, array, settings);
@@ -326,7 +327,7 @@
 
 			var audio = soundstage.audio;
 
-			object = create(audio, type, settings, soundstage.clock, soundstage.presets);
+			object = create(audio, type, settings, clock, AudioObject.presets);
 
 			Object.defineProperty(object, 'id', {
 				value: settings && settings.id || createId(this),
@@ -565,6 +566,11 @@
 		}
 
 		Object.defineProperties(this, {
+			id: {
+				enumerable:   true,
+				value: data && isDefined(data.id) ? data.id : 0
+			},
+
 			name: {
 				enumerable:   true,
 				configurable: true,
@@ -646,12 +652,12 @@
 		// beatAtTime: fn
 		// timeAtBeat: fn
 
-		var objects        = new Objects(this);
+		var objects        = new Objects(this, this);
 		var connections    = new Connections(objects);
 		var selectObject   = selectIn(objects);
 		var selectSequence = selectIn(this.sequences);
 
-		Clock.call(this, audio, this.events, Distribute(function(selector) {
+		var clock = Clock(audio, this.events, Distribute(function(selector) {
 			var type = toStringType(selector);
 			var stream;
 	
@@ -677,6 +683,8 @@ console.log(selector, sequence);
 console.log(selector, object);
 			return object;
 		}));
+
+		assign(this, clock);
 
 
 		// Methods
@@ -1047,6 +1055,30 @@ console.log(selector, object);
 
 		features: assign({}, AudioObject.features)
 	});
+
+	each(function(def) {
+		var lower = def.name.toLowerCase();
+		Soundstage.register(lower, AudioObject[def.name], def.defaults);
+	}, [{
+		name: 'Sampler',
+		defaults: {}
+	}, {
+		name: 'Tick',
+		defaults: {}
+	}, {
+		name: 'Delay',
+		defaults: {
+			delay: { min: 0, max: 2, transform: 'linear', value: 0.020 }
+		}
+	}, {
+		name: 'Oscillator',
+		defaults: {}
+	}, {
+		name: 'Pan',
+		defaults: {
+			angle: { min: -1, max: 1, transform: 'linear' , value: 0 }
+		}
+	}]);
 
 	window.Soundstage = Soundstage;
 })(window);

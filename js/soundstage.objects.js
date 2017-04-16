@@ -56,13 +56,6 @@
 		return node;
 	};
 
-	// Delay Audio object
-
-	Soundstage.register('delay', AudioObject.Delay, {
-		delay: { min: 0, max: 2, transform: 'linear', value: 0.020 }
-	});
-
-
 
 	// Script Audio object
 
@@ -294,9 +287,6 @@
 		return object;
 	}, {});
 
-	Soundstage.register('pan', AudioObject.Pan, {
-		angle: { min: -1, max: 1, transform: 'linear' , value: 0 }
-	});
 
 	Soundstage.register('convolver', function createConvolverObject(audio, settings) {
 		var options = assign({}, defaults, settings);
@@ -377,73 +367,73 @@
 
 
 
-	// Oscillator Audio Object
-
-	function createDefaults(automation) {
-		var defaults = {};
-
-		Object.keys(automation)
-		.forEach(function(key) {
-			defaults[key] = automation[key].value;
-		});
-
-		return defaults;
-	}
-
-	var automation = {
-		detune:    { min: -1200, max: 1200,  transform: 'linear' ,     value: 0 },
-		frequency: { min: 16,    max: 16000, transform: 'logarithmic', value: 440 }
-	};
-
-	var defaults = createDefaults(automation);
-
-	function OscillatorAudioObject(audio, settings) {
-		var options = assign({}, defaults, settings);
-		var node    = audio.createOscillator();
-
-		node.detune.value = options.detune;
-		node.frequency.value = options.frequency;
-
-		AudioObject.call(this, audio, node, node, {
-			detune:    node.detune,
-			frequency: node.frequency
-		});
-
-		aliasProperty(this, node, 'onended');
-
-		// We shouldn't use 'type' as it is required by
-		// Soundstage to describe the type of audio object.
-		// Waveform. Yeah.
-		Object.defineProperty(this, 'waveform', {
-			get: function() { return node.type; },
-			set: function(value) { node.type = value; },
-			enumerable: true
-		});
-
-		assign(this, {
-			start: function() {
-				node.start.apply(node, arguments);
-				return this;
-			},
-
-			stop: function() {
-				node.stop.apply(node, arguments);
-				return this;
-			},
-
-			setPeriodicWave: function() {
-				node.setPeriodicWave.apply(node, arguments);
-				return this;
-			},
-
-			destroy: function() {
-				node.disconnect();
-				return this;
-			}
-		});
-	}
-
-	assign(OscillatorAudioObject.prototype, AudioObject.prototype);
-	Soundstage.register('oscillator', OscillatorAudioObject, automation);
-	Soundstage.OscillatorAudioObject = OscillatorAudioObject;
+	//// Oscillator Audio Object
+	//
+	//function createDefaults(automation) {
+	//	var defaults = {};
+	//
+	//	Object.keys(automation)
+	//	.forEach(function(key) {
+	//		defaults[key] = automation[key].value;
+	//	});
+	//
+	//	return defaults;
+	//}
+	//
+	//var automation = {
+	//	detune:    { min: -1200, max: 1200,  transform: 'linear' ,     value: 0 },
+	//	frequency: { min: 16,    max: 16000, transform: 'logarithmic', value: 440 }
+	//};
+	//
+	//var defaults = createDefaults(automation);
+	//
+	//function OscillatorAudioObject(audio, settings) {
+	//	var options = assign({}, defaults, settings);
+	//	var node    = audio.createOscillator();
+	//
+	//	node.detune.value = options.detune;
+	//	node.frequency.value = options.frequency;
+	//
+	//	AudioObject.call(this, audio, node, node, {
+	//		detune:    node.detune,
+	//		frequency: node.frequency
+	//	});
+	//
+	//	aliasProperty(this, node, 'onended');
+	//
+	//	// We shouldn't use 'type' as it is required by
+	//	// Soundstage to describe the type of audio object.
+	//	// Waveform. Yeah.
+	//	Object.defineProperty(this, 'waveform', {
+	//		get: function() { return node.type; },
+	//		set: function(value) { node.type = value; },
+	//		enumerable: true
+	//	});
+	//
+	//	assign(this, {
+	//		start: function() {
+	//			node.start.apply(node, arguments);
+	//			return this;
+	//		},
+	//
+	//		stop: function() {
+	//			node.stop.apply(node, arguments);
+	//			return this;
+	//		},
+	//
+	//		setPeriodicWave: function() {
+	//			node.setPeriodicWave.apply(node, arguments);
+	//			return this;
+	//		},
+	//
+	//		destroy: function() {
+	//			node.disconnect();
+	//			return this;
+	//		}
+	//	});
+	//}
+	//
+	//assign(OscillatorAudioObject.prototype, AudioObject.prototype);
+	//Soundstage.register('oscillator', OscillatorAudioObject, automation);
+	//Soundstage.OscillatorAudioObject = OscillatorAudioObject;
 })(window);

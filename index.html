@@ -52,11 +52,9 @@
 <script src="js/soundstage.flange.js"></script>
 <script src="js/soundstage.gain.js"></script>
 <script src="js/soundstage.loop.js"></script>
-<script src="js/soundstage.sampler.js"></script>
 <script src="js/soundstage.saturate.js"></script>
 <script src="js/soundstage.compress.js"></script>
 <script src="js/soundstage.envelope.js"></script>
-<script src="js/soundstage.metronome.js"></script>
 <script src="js/soundstage.tone-synth.js"></script>
 
 <script src="modules/dom/js/dom.js"></script>
@@ -79,6 +77,14 @@
 		// }
 
 		objects: [{
+			"id":          0,
+			"type":        "oscillator",
+			"name":        "Oscillator",
+			"slug":        "oscillator",
+			"frequency":   200,
+			"waveform":    "sine",
+			"gain":        0.0625
+		}, {
 			"id":          1,
 			"type":        "sampler",
 			"name":        "Piano",
@@ -121,7 +127,7 @@
 
 		events: [
 			[0, "rate", 2],
-			[5, "sequence", '[slug="chromatic"]', '[slug="piano"]']
+			[4, "sequence", '[slug="chromatic"]', '[slug="piano"]']
 		]
 	});
 
