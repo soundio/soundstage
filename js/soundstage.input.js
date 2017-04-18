@@ -13,7 +13,7 @@
 
 	function increment(n) { return ++n; }
 
-	function InputAudioObject(audio, settings) {
+	function Input(audio, settings) {
 		var options  = assign({}, defaults, settings);
 		var output   = audio.createChannelMerger(options.channels.length);
 		var request  = Soundstage.requestMedia(audio);
@@ -72,6 +72,6 @@
 		this.channels = options.channels;
 	}
 
-	Object.setPrototypeOf(InputAudioObject.prototype, AudioObject.prototype);
-	Soundstage.register('input', InputAudioObject);
+	Object.setPrototypeOf(Input.prototype, AudioObject.prototype);
+	Soundstage.register('input', Input);
 })(window);

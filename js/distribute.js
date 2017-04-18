@@ -183,8 +183,8 @@
 	}
 
 	function drawEvent(event) {
-		if (!window.timeline) { return; }
-		timeline.drawEvent(audio.currentTime, event[0], event[1], event[2]);
+		if (!Soundstage.inspector) { return; }
+		Soundstage.inspector.drawEvent(audio.currentTime, event[0], event[1], event[2]);
 	}
 
 	function Distribute(findEvents, findAudioObject, object) {

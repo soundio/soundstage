@@ -1,16 +1,47 @@
 (function(window) {
 	"use strict";
 
-	var observe   = window.observe;
-	var unobserve = window.unobserve;
-	var Soundstage   = window.Soundstage;
-	var MIDI      = window.MIDI;
+	var observe    = window.observe;
+	var unobserve  = window.unobserve;
+	var Soundstage = window.Soundstage;
+	var MIDI       = window.MIDI;
 
-	var assign    = Object.assign;
-	var isDefined = Soundstage.isDefined;
-	var distributeArgs = Soundstage.distributeArgs;
+	var assign     = Object.assign;
+	var isDefined  = Fn.isDefined;
 
 	var timeOffset = 0;
+
+	// distributeArgs(i, fn)
+	//
+	// i  - number of arguments to send to all calls of fn.
+	// fn - called once for each remain argument.
+
+	function distributeArgs(i, fn, result) {
+		var args = [];
+
+		return function distribute() {
+			var n = -1;
+			var l = arguments.length;
+			var results = [];
+
+			args.length = 0;
+
+			while (++n < i) {
+				args.push(arguments[n]);
+			}
+
+			--n;
+
+			while (++n < l) {
+				args[i] = arguments[n];
+				results.push(fn.apply(this, args));
+			}
+
+			// Return either the given object (likely for
+			// method chaining) or the array of results.
+			return result || results;
+		}
+	}
 
 	var transforms = {
 		'linear': function linear(n, min, max) {

@@ -248,7 +248,7 @@
 	var c = colors[0];
 	var frameY = 20;
 
-	window.timeline = {
+	Soundstage.inspector = {
 		drawCue: function(s1, s2) {
 			n = (n + 1) % 3;
 			c = colors[n];
@@ -298,11 +298,12 @@
 		drawAudioFromNode: function(source) {
 			var audio = source.context;
 			var node = audio.createScriptProcessor(512);
+			var inspector = this;
 
 			node.onaudioprocess = function(e) {
 				// Todo: TEMP hard time limit
 				if (e.playbackTime > 30) { return; }
-				timeline.drawAudioBuffer(e.playbackTime, e.inputBuffer);
+				inspector.drawAudioBuffer(e.playbackTime, e.inputBuffer);
 			};
 
 			node.channelCountMode      = "explicit";

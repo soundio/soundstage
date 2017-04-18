@@ -30,8 +30,8 @@
 			}, (time - audio.currentTime - 0.003) * 1000);
 
 			// Log in timeline
-			if (debug && window.timeline) {
-				window.timeline.drawEvent(audio.currentTime, time, 'tick', 72);
+			if (debug && Soundstage.inspector) {
+				Soundstage.inspector.drawEvent(audio.currentTime, time, 'tick', 72);
 			}
 		},
 
@@ -45,8 +45,8 @@
 			}, (time - audio.currentTime - 0.003) * 1000);
 
 			// Log in timeline
-			if (debug && window.timeline) {
-				window.timeline.drawEvent(audio.currentTime, time, 'tock', 60);
+			if (debug && Soundstage.inspector) {
+				Soundstage.inspector.drawEvent(audio.currentTime, time, 'tock', 60);
 			}
 		},
 
@@ -166,8 +166,8 @@
 		AudioObject.getOutput(source).connect(audio.destination);
 
 		// Plot output on debug timeline if it's available
-		if (window.timeline) {
-			timeline.drawAudioFromNode(AudioObject.getOutput(source));
+		if (Soundstage.inspector) {
+			Soundstage.inspector.drawAudioFromNode(AudioObject.getOutput(source));
 		}
 
 		if (settings.state === 'started') { this.start(); }

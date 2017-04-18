@@ -1,168 +1,228 @@
 <!DOCTYPE html>
 <head>
+	<meta charset="utf-8" />
 
-<meta charset="utf-8" />
-<link rel="stylesheet" href="css/dom.css" />
+	<title>Soundstage</title>
+	
+	<link rel="stylesheet" href="//stephen.band/bolt/css/normalise.css" />
+	<link rel="stylesheet" href="//stephen.band/bolt/css/block.css" />
+	<link rel="stylesheet" href="//stephen.band/bolt/css/text.css" />
+	<link rel="stylesheet" href="//stephen.band/bolt/css/grid.css" />
+	<link rel="stylesheet" href="//stephen.band/bolt/css/dom.css" />
+	
+	<link rel="stylesheet" href="css/soundstage-inspector.css" />
+</head>
 
 <body>
+	<div class="grid-block block">
+		<section class="grid-1/5 block">
+			<h3>Plugs</h3>
+			<h3>Inputs</h3>
+			<h3>Outputs</h3>
+		</section
+		
+		><section class="grid-1/5 block">
+			<h3>Sequences</h3>
+		</section
+		
+		><section class="grid-1/5 block">
+			<h3>Events</h3>
+		</section
 
-<script src="polyfills/window.audiocontext.js"></script>
-<script src="polyfills/navigator.getusermedia.js"></script>
-<script src="polyfills/object.setprototypeof.js"></script>
+		><section class="grid-1/5 block">
+		
+		</section
+		
+		><section class="grid-1/5 block">
+		
+		</section>
+	</div>
+	
+	<script src="polyfills/window.audiocontext.js"></script>
+	<script src="polyfills/navigator.getusermedia.js"></script>
+	<script src="polyfills/object.setprototypeof.js"></script>
+	
+	<script src="fn/polyfills/number.isnan.js"></script>
+	<script src="fn/polyfills/object.assign.js"></script>
+	<script src="fn/js/fn.js"></script>
+	<script src="fn/js/stream.js"></script>
+	<script src="fn/js/store.js"></script>
+	<script src="fn/js/pool.js"></script>
+	<script src="fn/js/events.js"></script>
+	
+	<script src="modules/collection/js/observe.js"></script>
+	<script src="modules/collection/js/collection.js"></script>
+	<script src="modules/music/music.js"></script>
+	
+	<script title="config">
+		Fn.debug = true;
+	</script>
+	
+	<script src="modules/audio-object/js/audio-object.js"></script>
+	<script src="modules/audio-object/js/ao-tick.js"></script>
+	<script src="modules/audio-object/js/ao-oscillator.js"></script>
+	<script src="modules/audio-object/js/ao-sampler.js"></script>
+	<script src="modules/audio-object/js/ao-sampler-presets-gretsch-kit.js"></script>
+	<script src="modules/audio-object/js/ao-sampler-presets-mis-piano.js"></script>
+	<script src="modules/audio-object/js/ao-sampler-presets-fender-rhodes-mark-ii.js"></script>
+	
+	<script src="modules/midi/js/midi.js"></script>
+	<script src="modules/midi/js/midi-utils.js"></script>
+	
+	<script src="js/distribute.js"></script>
+	<script src="clock/js/cue-timer.js"></script>
+	<script src="clock/js/cue-stream.js"></script>
+	<script src="clock/js/clock.js"></script>
 
-<script src="fn/polyfills/number.isnan.js"></script>
-<script src="fn/polyfills/object.assign.js"></script>
-<script src="fn/js/fn.js"></script>
-<script src="fn/js/stream.js"></script>
-<script src="fn/js/pool.js"></script>
-<script src="fn/js/events.js"></script>
+	<script src="js/sequence.js"></script>
 
-<script src="modules/collection/js/observe.js"></script>
-<script src="modules/collection/js/collection.js"></script>
-<script src="modules/music/music.js"></script>
+	<script src="js/soundstage.js"></script>
+	<script src="js/soundstage.midi.js"></script>
+	<script src="js/soundstage.objects.js"></script>
+	<script src="js/soundstage.input.js"></script>
+	<script src="js/soundstage.output.js"></script>
+	<script src="js/soundstage.track.js"></script>
+	<script src="js/soundstage.send.js"></script>
+	<script src="js/soundstage.filter.js"></script>
+	<script src="js/soundstage.flange.js"></script>
+	<script src="js/soundstage.gain.js"></script>
+	<script src="js/soundstage.loop.js"></script>
+	<script src="js/soundstage.saturate.js"></script>
+	<script src="js/soundstage.compress.js"></script>
+	<script src="js/soundstage.envelope.js"></script>
+	<script src="js/soundstage.tone-synth.js"></script>
+	
+	<script src="modules/dom/js/dom.js"></script>
+	<script src="js/soundstage-inspector.js"></script>
+	
+	<script src="clock/test/data-chromatic.js"></script>
+	
+	<script>
+	
+		var stage = Soundstage({
+	
+			// Version
+			//
+			// If version is missing, data is assumed to be in the latest format
+			"version": 0,
 
-<script title="config">
-	Fn.debug = true;
-</script>
+			// Name
+			//
+			// A string, not required
+			"name": "Test",
 
-<script src="modules/audio-object/js/audio-object.js"></script>
-<script src="modules/audio-object/js/ao-tick.js"></script>
-<script src="modules/audio-object/js/ao-oscillator.js"></script>
-<script src="modules/audio-object/js/ao-sampler.js"></script>
-<script src="modules/audio-object/js/ao-sampler-presets-gretsch-kit.js"></script>
-<script src="modules/audio-object/js/ao-sampler-presets-mis-piano.js"></script>
-<script src="modules/audio-object/js/ao-sampler-presets-fender-rhodes-mark-ii.js"></script>
+			// Audio Objects
+			//
+			// {
+			//   "id":     number
+			//   "type":   string
+			//   "name":   string
+			//   "slug":   slug
+			//   ...
+			// }
+	
+			"objects": [{
+				"id":          0,
+				"type":        "oscillator",
+				"name":        "Oscillator",
+				"slug":        "oscillator",
+				"frequency":   200,
+				"waveform":    "sine",
+				"gain":        0.0625
+			}, {
+				"id":          1,
+				"type":        "sampler",
+				"name":        "Piano",
+				"slug":        "piano",
+				"sample-map":  "MIS Piano",
+				"filter-type": "off"
+			}, {
+				"id":          2,
+				"type":        "output",
+				"name":        "Out 1-2"
+			}, {
+				"id":          3,
+				"type":        "input",
+				"name":        "In 1-2"
+			}],
 
-<script src="modules/midi/js/midi.js"></script>
-<script src="modules/midi/js/midi-utils.js"></script>
+			// Conections
+			//
+			// {
+			//   "src":     id
+			//   "dst":     id
+			//   "srcName": string
+			//   "dstName": string
+			// }
 
-<script src="js/distribute.js"></script>
-<script src="clock/js/cue-timer.js"></script>
-<script src="clock/js/cue-stream.js"></script>
-<script src="clock/js/clock.js"></script>
+			"connections": [
+				{ "src": 3, "dst": 2 },
+				{ "src": 1, "dst": 2 }
+			],
 
-<script src="js/soundstage.js"></script>
-<script src="js/soundstage.midi.js"></script>
-<script src="js/soundstage.objects.js"></script>
-<script src="js/soundstage.input.js"></script>
-<script src="js/soundstage.output.js"></script>
-<script src="js/soundstage.track.js"></script>
-<script src="js/soundstage.send.js"></script>
-<script src="js/soundstage.filter.js"></script>
-<script src="js/soundstage.flange.js"></script>
-<script src="js/soundstage.gain.js"></script>
-<script src="js/soundstage.loop.js"></script>
-<script src="js/soundstage.saturate.js"></script>
-<script src="js/soundstage.compress.js"></script>
-<script src="js/soundstage.envelope.js"></script>
-<script src="js/soundstage.tone-synth.js"></script>
+			// Sequence
+			//
+			// {
+			//   "id":     number
+			//   "name:    string
+			//   "slug":   slug
+			//   "events": array or functor
+			// }
+	
+			"sequences": [{
+				"id":   0,
+				"name": "Chromatic",
+				"slug": "chromatic",
+				"events": (function() {
+					var n = -1;
+					return Fn(function chromatic() {
+						if (++n > 128) { return; }
+						return [n / 12, "note", n, 0.5, 1 / 12];
+					});
+				})()
+			}, {
+				"id":   0,
+				"name": "Pedal",
+				"slug": "pedal",
+				"events": [
+					[0, "note", 64, 0.95, 20]
+				]
+			}],
+	
+			// Event types
+			//
+			// [time, "rate", number, curve]
+			// [time, "note", number, velocity, duration]
+			// [time, "noteon", number, velocity]
+			// [time, "noteoff", number]
+			// [time, "param", name, value, curve]
+			// [time, "pitch", semitones]
+			// [time, "chord", root, mode, duration]
+			// [time, "sequence", selector || events, target, duration, transforms...]
+	
+			"events": [
+				[0, "rate", 2],
+			//	[0, "sequence", '[slug="chromatic"]', '[slug="piano"]'],
+				[0, "sequence", '[slug="pedal"]', '[slug="piano"]']
+			]
+		});
+	
+	
+		// Start
+		var audio     = stage.audio;
 
-<script src="modules/dom/js/dom.js"></script>
-<script src="js/soundstage-inspector.js"></script>
+		//stage.start(2).stop(5);
 
-<script src="clock/test/data-chromatic.js"></script>
+		var get = Fn.get;
+		var is  = Fn.is;
 
-<script>
+		dom
+		.on('keydown', document)
+		.map(get('keyCode'))
+		.filter(is(32))
+		.each(function() {
+			stage[stage.status === "stopped" ? 'start' : 'stop']();
+		});
 
-	var stage = Soundstage({
-
-		// Audio Objects
-		//
-		// {
-		//   "id":     number
-		//   "type":   string
-		//   "name:    string
-		//   "slug":   slug
-		//   ...
-		// }
-
-		objects: [{
-			"id":          0,
-			"type":        "oscillator",
-			"name":        "Oscillator",
-			"slug":        "oscillator",
-			"frequency":   200,
-			"waveform":    "sine",
-			"gain":        0.0625
-		}, {
-			"id":          1,
-			"type":        "sampler",
-			"name":        "Piano",
-			"slug":        "piano",
-			"sample-map":  "MIS Piano",
-			"filter-type": "off"
-		}],
-
-		// Sequence
-		//
-		// {
-		//   "id":     number
-		//   "name:    string
-		//   "slug":   slug
-		//   "events": array or functor
-		// }
-
-		sequences: [{
-			"name": "Chromatic",
-			"slug": "chromatic",
-			"events": (function() {
-				var n = 0;
-				return Fn(function chromatic() {
-					if (n > 128) { return; }
-					return [++n / 12, "note", n, 0.5, 1 / 12];
-				});
-			})()
-		}],
-
-		// Event types
-		//
-		// [time, "rate", number, curve]
-		// [time, "note", number, velocity, duration]
-		// [time, "noteon", number, velocity]
-		// [time, "noteoff", number]
-		// [time, "param", name, value, curve]
-		// [time, "pitch", semitones]
-		// [time, "chord", root, mode, duration]
-		// [time, "sequence", selector || events, target, duration, transforms...]
-
-		events: [
-			[0, "rate", 2],
-			[4, "sequence", '[slug="chromatic"]', '[slug="piano"]']
-		]
-	});
-
-	var audio = stage.audio;
-
-//	var n0 = soundstage.objects.create('oscillator');
-//	var n1 = soundstage.objects.create('signal-detector');
-//	var n2 = soundstage.objects.create('output', { output: AudioObject.getOutput(soundstage) });
-//
-//	function isReceivingSignal() { return n1.signal; }
-//
-//	n0.start();
-//
-//	soundstage.connections.create({ source: n0, destination: n1 });
-//	soundstage.connections.create({ source: n0, destination: n2 });
-//
-//	console.log('SIGNAL n1', isReceivingSignal());
-//
-//	setTimeout(function() {
-//		console.log('SIGNAL n1', isReceivingSignal());
-//		soundstage.connections.delete({ source: n0, destination: n2 });
-//	}, 100);
-//
-//	setTimeout(function() {
-//		console.log('SIGNAL n1', isReceivingSignal());
-//	}, 200);
-
-
-	// Start
-	var startTime = Math.ceil(audio.currentTime) + 1;
-console.log('Start:', startTime);
-	stage.start(Math.ceil(audio.currentTime));
-
-
-//	var metronome = new Metronome(audio, clock);
-//	metronome.start(1);
-
-</script>
+	</script>
+</body>

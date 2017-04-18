@@ -3,19 +3,22 @@
 
 	// Import
 
-	var Fn          = window.Fn;
-	var Pool        = window.Pool;
-	var Stream      = window.Stream;
-	var AudioObject = window.AudioObject;
+	var Fn             = window.Fn;
+	var Pool           = window.Pool;
+	var Stream         = window.Stream;
+	var AudioObject    = window.AudioObject;
 
-	var assign      = Object.assign;
-	var by          = Fn.by;
-	var curry       = Fn.curry;
-	var compose     = Fn.compose;
-	var each        = Fn.each;
-	var get         = Fn.get;
-	var id          = Fn.id;
-	var nothing     = Fn.empty;
+	var assign         = Object.assign;
+	var defineProperty = Object.defineProperty;
+	var by             = Fn.by;
+	var curry          = Fn.curry;
+	var compose        = Fn.compose;
+	var each           = Fn.each;
+	var get            = Fn.get;
+	var id             = Fn.id;
+	var invoke         = Fn.invoke;
+	var remove         = Fn.remove;
+	var nothing        = Fn.nothing;
 
 
 	// Declare
@@ -289,14 +292,15 @@
 		var startBeat  = 0;
 		var rateCache  = [[0, startRateEvent]];
 		var rateStream = nothing;
-
-		var timeAtBeat = compose(clock.timeAtBeat, function(beat) {
-			return startBeat + timeAtBeatStream(rateCache, rateStream, beat);
-		});
+		var stopTime;
 
 		var beatAtTime = compose(function(time) {
 			return beatAtTimeStream(rateCache, rateStream, time - startBeat);
 		}, clock.beatAtTime);
+
+		var timeAtBeat = compose(clock.timeAtBeat, function(beat) {
+			return startBeat + timeAtBeatStream(rateCache, rateStream, beat);
+		});
 
 		// Buffers for each type of event, sorted and used as sources
 		// for the stream.
@@ -354,21 +358,23 @@
 		var stream = Stream(function start(notify, stop) {
 			var buffer     = [];
 			var startTime  = -Infinity;
-			var stopTime   = Infinity;
 			var t1         = 0;
 			var t2         = 0;
 			var paramCache = {};
 			var noteCache  = [];
-			//var state     = 'stopped';
 
 			function update(event) {
 				(pipes[event[1]] || pipes.default)(event);
 			}
 
 			function cue(time) {
+				var t3 = stopTime === undefined ? clock.stopTime : stopTime ;
+
+				stream.status = 'playing';
+
 				// Update locals
 				t1 = startTime > t2 ? startTime : t2 ;
-				t2 = time >= stopTime ? stopTime : time ;
+				t2 = time >= t3 ? t3 : time ;
 
 				buffer.length = 0;
 				fillBuffer(buffer, assignTime, t1, t2, data, paramCache);
@@ -377,13 +383,13 @@
 				// somehow - perhaps with a data.note buffer??
 				buffer.reduce(updateNoteCache, noteCache);
 
-				if (t2 === stopTime) {
+				if (t2 === t3) {
 					stopBuffer(buffer, t2, noteCache);
 				}
 
 				if (buffer.length) { notify('push'); }
 
-				if (t2 === stopTime) {
+				if (t2 === t3) {
 					stop(buffer.length);
 					idleData(data);
 					//state = 'stopped';
@@ -399,25 +405,35 @@
 					timer.request(startCue) ;
 			}
 
+			function stopCue() {
+				timer.cancel(cue);
+				stopBuffer(buffer, stopTime, noteCache);
+
+				// If we have new events to deliver, deliver them
+				if (buffer.length) { notify('push'); }
+				stop(buffer.length);
+				idleData(data);
+			}
+
 			return {
 				shift: function() {
 					return buffer.shift();
 				},
 
-				start: function(time) {
+				start: function(time, beat) {
 					startBeat = clock.beatAtTime(time);
 					startTime = t1 = time;
 
 					// Fill data with events and start observing the timer
 					each(update, sequence);
-					startCue(timer.currentTime || 0);
+					startCue(timer.currentTime);
 
 					// Update state
-					//state = 'started';
+					stream.status = 'cued';
 
 					// Log in timeline
-					if (window.timeline) {
-						window.timeline.drawBar(audio.currentTime, 'orange', 'CueStream.start ' + clock.constructor.name);
+					if (Soundstage.inspector) {
+						Soundstage.inspector.drawBar(timer.now(), 'orange', 'CueStream.start ' + clock.constructor.name);
 					}
 
 					return this;
@@ -425,15 +441,7 @@
 				
 				stop: function(time) {
 					stopTime = time;
-
-					if (t2 >= stopTime) {
-						timer.cancel(cue);
-						stopBuffer(buffer, stopTime, noteCache);
-						if (buffer.length) { notify('push'); }
-						stop(buffer.length);
-						idleData(data);
-						//state = 'stopped';
-					}
+					if (t2 >= time) { stopCue(); }
 				},
 
 				push: function() {
@@ -453,6 +461,15 @@
 
 		stream.timeAtBeat = timeAtBeat;
 		stream.beatAtTime = beatAtTime;
+
+		defineProperty(stream, 'stopTime', {
+			get: function() {
+				return stopTime === undefined ? clock.stopTime : stopTime ;
+			},
+			enumerable: true
+		});
+
+		stream.status = 'stopped';
 
 		return stream;
 	}

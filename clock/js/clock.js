@@ -1,11 +1,13 @@
 (function(window) {
 	"use strict";
 
-	var assign      = Object.assign;
-	var Fn          = window.Fn;
-	var AudioObject = window.AudioObject;
-	var CueStream   = window.CueStream;
-	var CueTimer    = window.CueTimer;
+	var Fn             = window.Fn;
+	var AudioObject    = window.AudioObject;
+	var CueStream      = window.CueStream;
+	var CueTimer       = window.CueTimer;
+
+	var assign         = Object.assign;
+	var defineProperty = Object.defineProperty;
 
 	var defaults = { rate: 2 };
 
@@ -26,24 +28,31 @@
 	function Clock(audio, events, distribute) {
 		// Support using constructor without the `new` keyword
 		if (!AudioObject.prototype.isPrototypeOf(this)) {
-			return new Clock(audio, events);
+			return new Clock(audio, events, distribute);
 		}
-console.log(events)
+
 		var timer      = createCueTimer(audio);
 		var rateEvent  = [0, 'rate', defaults.rate];
 		var meterEvent = [0, 'meter', 4, 1];
 		var startTime  = 0;
 		var stopTime   = 0;
-		var eachFn;
+		var stream;
 
 		var fns = {
 			beatAtTime: function(time) { return time - startTime; },
 			timeAtBeat: function(beat) { return startTime + beat; }
 		};
 
-		var stream = CueStream(timer, fns, events, Fn.id).each(distribute);
+		function createStream() {
+			// Ensures there is always a stream waiting by preparing a new
+			// stream when the previous one ends.
+			stream = CueStream(timer, fns, events, Fn.id);
+			stream
+			.each(distribute)
+			.then(createStream);
+		}
 
-		this.start = function(time) {
+		this.start = function(time, beat) {
 			startTime = time || audio.currentTime ;
 			stopTime  = Infinity ;
 
@@ -70,6 +79,12 @@ console.log(events)
 		this.timeAtBeat = function(beat) {
 			return stream ? stream.timeAtBeat(beat) : 0 ;
 		};
+
+		defineProperty(this, 'status', {
+			get: function() { return stream ? stream.status : 'stopped' ; }
+		});
+
+		createStream();
 
 //		this.create = function(events, transform) {
 //			return stream ? stream.create(events, transform) : undefined ;

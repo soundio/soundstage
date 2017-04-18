@@ -1,23 +1,39 @@
 (function(window) {
 	"use strict";
 
-	var assign = Object.assign;
-
-	//
 	var debug = true;
 
-	// Duration override when page is not visible and setTimeout is throttled.
-	var hiddenDuration = 1.333333;
-	
-	// Duration override during elastic scrolling in Chrome.
-	var scrollDuration = 0.666667;
+	var assign         = Object.assign;
+	var defineProperty = Object.defineProperty;
+
+	function nextCueTime(time, t, isScrolling) {
+		var n;
+
+		if (document.hidden) {
+			n = t + CueTimer.hiddenDuration;
+			return n > time ? n : time ;
+		}
+
+		if (isScrolling()) {
+			n = t + CueTimer.scrollDuration;
+			return n > time ? n : time ;
+		}
+
+		return time + CueTimer.duration;
+	}
 
 	function CueTimer(now) {
+		var cuetimer  = this;
+
+		var duration        = CueTimer.duration;
+		var lookahead       = CueTimer.lookahead;
+		var hiddenDuration  = CueTimer.hiddenDuration;
+		var hiddenLookahead = CueTimer.hiddenLookahead;
+		var scrollDuration  = CueTimer.scrollDuration;
+		var scrollLookahead = CueTimer.scrollLookahead;
+
 		var playing   = false;
 		var fns       = [];
-		var cuetimer  = this;
-		var duration  = CueTimer.duration;
-		var lookahead = CueTimer.lookahead;
 		var timer, time;
 
 		function fire(time) {
@@ -28,16 +44,13 @@
 
 			fns = [];
 
-			// Do we need this? It's exposed for immediate scheduling...
-			cuetimer.lastCueTime = time;
-
 			for (fn of functions) {
 				fn(time);
 			}
 
 			// For debugging
-			if (debug && window.timeline) {
-				window.timeline.drawCue(audio.currentTime, time);
+			if (Soundstage.inspector) {
+				Soundstage.inspector.drawCue(audio.currentTime, time);
 			}
 		}
 
@@ -48,33 +61,15 @@
 			}
 
 			var t = now();
-			var n;
 
 			if (t > time) {
 				console.warn('CueTimer: cue dropped at', t);
 			}
 
-			if (document.hidden) {
-				n = t + hiddenDuration;
-				time = n > time ? n : time ;
-				fire(time);
-				// Delay should be 0, the browser will fire the timer as soon as
-				// it can. However, let's give it some value to protect against
-				// a fast timer loop. Shouldn't happen, but just in case.
-				timer = setTimeout(frame, duration);
-				return;
-			}
-
-			if (isScrolling()) {
-				n = t + scrollDuration;
-				time = n > time ? n : time ;
-			}
-			else {
-				time += duration;
-			}
+			time = nextCueTime(time, t, isScrolling);
 
 			fire(time);
-			timer = setTimeout(frame, (time - now() - lookahead) * 1000);
+			timer = setTimeout(frame, (time - t - lookahead) * 1000);
 		}
 
 		function start() {
@@ -82,8 +77,6 @@
 			playing = true;
 			frame();
 		}
-
-		this.time = -Infinity;
 
 		this.now = now;
 
@@ -96,6 +89,22 @@
 			var i = fns.indexOf(fn);
 			if (i > -1) { fns.splice(i, 1); }
 		};
+
+		this.currentTime = 0;
+
+		// Define currentTime
+		//
+		// When the timer is playing, currentTime is the time of the previous
+		// cue, and while stopped it is always one cue duration ahead of now().
+		// This allows us to schedule immediately where we have missed the
+		// chance to get events into the current cue.
+		defineProperty(this, 'currentTime', {
+			get: function() {
+				if (playing) { return time; }
+				var t = now();
+				return nextCueTime(t, t, isScrolling) ;
+			}
+		});
 
 		var mousewheelTime = -Infinity;
 
@@ -123,8 +132,17 @@
 	}
 
 	assign(CueTimer, {
-		lookahead: 0.16,
-		duration: 0.2
+		// Duration of cue frame
+		lookahead:       0.2,
+		duration:        0.2,
+
+		// Duration override when page is not visible and setTimeout is throttled.
+		hiddenDuration:  1.333333,
+		hiddenLookahead: 0.666667,
+
+		// Duration override during elastic scrolling in Chrome.
+		scrollDuration:  0.666667,
+		scrollLookahead: 0.333333,
 	});
 
 	// Export

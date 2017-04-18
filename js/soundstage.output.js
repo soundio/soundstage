@@ -10,14 +10,15 @@
 		return n + 1;
 	}
 
-	function createOutput(audio, settings) {
+	function Output(audio, settings, presets, clock, output) {
 		var options = assign({}, defaults, settings);
 		var input = audio.createChannelSplitter();
-		var output = settings.output;
-		var object = AudioObject(audio, input);
 		var channels = [];
+		var object = this;
 
-		Object.defineProperties(object, {
+		AudioObject.call(this, audio, input);
+
+		Object.defineProperties(this, {
 			channels: {
 				get: function() { return channels; },
 				set: function(array) {
@@ -41,14 +42,14 @@
 			}
 		});
 
-		object.channels = options.channels;
-		object.type = 'output';
-		object.destroy = function destroy() {
+		this.channels = options.channels;
+		this.type = 'output';
+		this.destroy = function destroy() {
 			input.disconnect(output);
 		};
-
-		return object;
 	}
 
-	Soundstage.register('output', createOutput);
+	Output.prototype = AudioObject.prototype;
+
+	Soundstage.register('output', Output);
 })(window.Soundstage);
