@@ -45,7 +45,7 @@ gulp.task('concat', function() {
 
     return gulp.src(files)
     .pipe(concat('soundstage-' + version + '.js'))
-    .pipe(gulp.dest('./build/'));
+    .pipe(gulp.dest('./'));
 });
 
 gulp.task('default', ['test', 'lint', 'concat'], function() {});
