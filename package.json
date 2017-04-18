@@ -49,9 +49,9 @@
   "sourceFiles": [
 	"polyfills/window.audiocontext.js",
 	"polyfills/navigator.getusermedia.js",
-	"polyfills/object.setprototypeof.js",
 	"fn/polyfills/number.isnan.js",
 	"fn/polyfills/object.assign.js",
+	"fn/polyfills/object.setprototypeof.js",
 	"fn/js/fn.js",
 	"fn/js/stream.js",
 	"fn/js/store.js",
