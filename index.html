@@ -61,14 +61,23 @@
 	<script src="modules/audio-object/js/audio-object.js"></script>
 	<script src="modules/audio-object/js/ao-tick.js"></script>
 	<script src="modules/audio-object/js/ao-oscillator.js"></script>
+	<script src="modules/audio-object/js/ao-filter.js"></script>
+	<script src="modules/audio-object/js/ao-flanger.js"></script>
+	<script src="modules/audio-object/js/ao-input.js"></script>
+	<script src="modules/audio-object/js/ao-gain.js"></script>
+	<script src="modules/audio-object/js/ao-saturate.js"></script>
+	<script src="modules/audio-object/js/ao-compress.js"></script>
+	<script src="modules/audio-object/js/ao-tone-synth.js"></script>
 	<script src="modules/audio-object/js/ao-sampler.js"></script>
 	<script src="modules/audio-object/js/ao-sampler-presets-gretsch-kit.js"></script>
 	<script src="modules/audio-object/js/ao-sampler-presets-mis-piano.js"></script>
 	<script src="modules/audio-object/js/ao-sampler-presets-fender-rhodes-mark-ii.js"></script>
-	
+	<script src="modules/audio-object/js/ao-signal-detector.js"></script>
+	<script src="modules/audio-object/js/ao-enveloper.js"></script>
+
 	<script src="modules/midi/js/midi.js"></script>
 	<script src="modules/midi/js/midi-utils.js"></script>
-	
+
 	<script src="js/distribute.js"></script>
 	<script src="clock/js/cue-timer.js"></script>
 	<script src="clock/js/cue-stream.js"></script>
@@ -78,19 +87,10 @@
 
 	<script src="js/soundstage.js"></script>
 	<script src="js/soundstage.midi.js"></script>
-	<script src="js/soundstage.objects.js"></script>
-	<script src="js/soundstage.input.js"></script>
 	<script src="js/soundstage.output.js"></script>
 	<script src="js/soundstage.track.js"></script>
 	<script src="js/soundstage.send.js"></script>
-	<script src="js/soundstage.filter.js"></script>
-	<script src="js/soundstage.flange.js"></script>
-	<script src="js/soundstage.gain.js"></script>
 	<script src="js/soundstage.loop.js"></script>
-	<script src="js/soundstage.saturate.js"></script>
-	<script src="js/soundstage.compress.js"></script>
-	<script src="js/soundstage.envelope.js"></script>
-	<script src="js/soundstage.tone-synth.js"></script>
 	
 	<script src="modules/dom/js/dom.js"></script>
 	<script src="js/soundstage-inspector.js"></script>
@@ -178,7 +178,7 @@
 					return Fn(function chromatic() {
 						if (++n > 128) { return; }
 						return [n / 12, "note", n, 0.5, 1 / 12];
-					});
+					}).toArray();
 				})()
 			}, {
 				"id":   0,
@@ -202,7 +202,7 @@
 	
 			"events": [
 				[0, "rate", 2],
-			//	[0, "sequence", '[slug="chromatic"]', '[slug="piano"]'],
+				[0, "sequence", '[slug="chromatic"]', '[slug="piano"]'],
 				[0, "sequence", '[slug="pedal"]', '[slug="piano"]']
 			]
 		});

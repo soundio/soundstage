@@ -1,8 +1,6 @@
 (function(window) {
 	if (!window.console || !window.console.log) { return; }
-	console.log('Soundstage');
-	console.log('http://github.com/soundio/soundstage');
-	//console.log('Graph Object Model for the Web Audio API');
+	console.log('Soundstage - http://github.com/soundio/soundstage');
 })(this);
 
 
@@ -36,6 +34,7 @@
 	var isDefined    = Fn.isDefined;
 	var noop         = Fn.noop;
 	var rest         = Fn.rest;
+	var requestMedia = AudioObject.requestMedia;
 	var overload     = Fn.overload;
 	var query        = Fn.query;
 	var slugify      = Fn.slugify;
@@ -679,8 +678,7 @@
 			var soundstage = this;
 
 			if (this.mediaChannelCount === undefined) {
-				Soundstage
-				.requestMedia(this.audio)
+				requestMedia(this.audio)
 				.then(function(media) {
 					soundstage.mediaChannelCount = media.channelCount;
 					createInputObjects(soundstage, soundstage.mediaChannelCount);
@@ -782,8 +780,7 @@
 				mediaInputs.splice(i, 1);
 			}
 
-			Soundstage
-			.requestMedia(this.audio)
+			requestMedia(this.audio)
 			.then(function(media) {
 				media.disconnect(input);
 			});
@@ -878,47 +875,6 @@
 	}
 
 
-	// Handle user media streams
-
-	var streamRequest;
-	var mediaRequests = new WeakMap();
-
-	function requestStream() {
-		if (!streamRequest) {
-			streamRequest = new Promise(function(accept, reject) {
-				return navigator.getUserMedia ?
-					navigator.getUserMedia({
-						audio: { optional: [{ echoCancellation: false }] }
-					}, accept, reject) :
-					reject({
-						message: 'navigator.getUserMedia: ' + !!navigator.getUserMedia
-					});
-			});
-		}
-
-		return streamRequest;
-	}
-
-	function requestMedia(audio) {
-		var request = mediaRequests.get(audio);
-
-		if (!request) {
-			request = requestStream().then(function(stream) {
-				var source       = audio.createMediaStreamSource(stream);
-				var channelCount = source.channelCount;
-				var splitter     = audio.createChannelSplitter(channelCount);
-
-				source.connect(splitter);
-				return splitter;
-			});
-
-			mediaRequests.set(audio, request);
-		}
-
-		return request;
-	}
-
-
 	assign(Soundstage, {
 		debug: true,
 
@@ -943,10 +899,26 @@
 		features: assign({}, AudioObject.features)
 	});
 
+
+	// Register base set of audio objects
+
 	each(function(def) {
-		var lower = def.name.toLowerCase();
-		Soundstage.register(lower, def.fn, def.defaults);
+		Soundstage.register(slugify(def.name), def.fn, def.defaults);
 	}, [{
+		name: 'Input',
+		defaults: {},
+		fn: AudioObject.Input
+	}, {
+		name: 'Gain',
+		defaults: {},
+		fn: AudioObject.Gain
+	}, {
+		name: 'Pan',
+		defaults: {
+			angle: { min: -1, max: 1, transform: 'linear' , value: 0 }
+		},
+		fn: AudioObject.Pan
+	}, {
 		name: 'Sampler',
 		defaults: {},
 		fn: AudioObject.Sampler
@@ -955,27 +927,73 @@
 		defaults: {},
 		fn: AudioObject.Tick
 	}, {
+		name: 'Oscillator',
+		defaults: {},
+		fn: AudioObject.Oscillator
+	}, {
 		name: 'Delay',
 		defaults: {
 			delay: { min: 0, max: 2, transform: 'linear', value: 0.020 }
 		},
 		fn: AudioObject.Delay
 	}, {
-		name: 'Oscillator',
-		defaults: {},
-		fn: AudioObject.Oscillator
-	}, {
-		name: 'Pan',
+		name: 'Saturate',
 		defaults: {
-			angle: { min: -1, max: 1, transform: 'linear' , value: 0 }
+	    	frequency: { min: 16,  max: 16384, transform: 'logarithmic', value: 1000 },
+	    	drive:     { min: 0.5, max: 8,     transform: 'cubic',       value: 1 },
+	    	wet:       { min: 0,   max: 2,     transform: 'cubic',       value: 1 }
 		},
-		fn: AudioObject.Pan
+		fn: AudioObject.Saturate
+	}, {
+		name: 'Flanger',
+		defaults: {
+	    	delay:     { min: 0,      max: 1,    transform: 'quadratic',   value: 0.012 },
+	    	frequency: { min: 0.0625, max: 256,  transform: 'logarithmic', value: 3 },
+	    	depth:     { min: 0,      max: 0.25, transform: 'cubic',       value: 0.0015609922621756954 },
+	    	feedback:  { min: 0,      max: 1,    transform: 'cubic',       value: 0.1 },
+	    	wet:       { min: 0,      max: 1,    transform: 'cubic',       value: 1 },
+	    	dry:       { min: 0,      max: 1,    transform: 'cubic',       value: 1 }
+		},
+		fn: AudioObject.Flanger
+	}, {
+		name: 'Filter',
+		defaults: {
+	    	'q':             { min: 0,   max: 100,   transform: 'quadratic',   value: 0.25 },
+	    	'frequency':     { min: 16,  max: 16000, transform: 'logarithmic', value: 16 },
+	    	'lfo-frequency': { min: 0.5, max: 64,    transform: 'logarithmic', value: 12 },
+	    	'lfo-depth':     { min: 0,   max: 2400,  transform: 'linear',      value: 0 },
+	    	'env-depth':     { min: 0,   max: 6400,  transform: 'linear',      value: 0 },
+	    	'env-attack':    { min: 0,   max: 0.01,  transform: 'quadratic',   value: 0.005 },
+	    	'env-decay':     { min: 0,   max: 0.01,  transform: 'quadratic',   value: 0.00125 }
+		},
+		fn: AudioObject.Filter
+	}, {
+		name: 'Tone Synth',
+		defaults: {
+			"filter-q":         { min: 0,   max: 100,   transform: 'quadratic',   value: 0.25 },
+			"filter-frequency": { min: 16,  max: 16000, transform: 'logarithmic', value: 16 },
+			"velocity-follow":  { min: -2,  max: 6,     transform: 'linear',      value: 0 }
+		},
+		fn: AudioObject.ToneSynth
+	}, {
+		name: 'Compress',
+		defaults: {
+	    	threshold: { min: -60, max: 0,   transform: 'linear' ,   value: -12   }, // dB
+	    	knee:      { min: 0,   max: 40,  transform: 'linear' ,   value: 8     }, // dB
+	    	ratio:     { min: 0,   max: 20,  transform: 'quadratic', value: 4     }, // dB input / dB output
+	    	attack:    { min: 0,   max: 0.2, transform: 'quadratic', value: 0.020 }, // seconds
+	    	release:   { min: 0,   max: 1,   transform: 'quadratic', value: 0.16  }  // seconds
+		},
+		fn: AudioObject.Compress
+	}, {
+		name: 'Signal Detector',
+		defaults: {},
+		fn: AudioObject.SignalDetector
+	}, {
+		name: 'Enveloper',
+		defaults: {},
+		fn: AudioObject.Enveloper
 	}]);
 
 	window.Soundstage = Soundstage;
 })(window);
-
-(function(window) {
-	if (!window.console || !window.console.log) { return; }
-	console.log('____________________________________');
-})(this);

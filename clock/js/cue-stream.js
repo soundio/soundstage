@@ -16,6 +16,7 @@
 	var each           = Fn.each;
 	var get            = Fn.get;
 	var id             = Fn.id;
+	var is             = Fn.is;
 	var invoke         = Fn.invoke;
 	var remove         = Fn.remove;
 	var nothing        = Fn.nothing;
@@ -30,8 +31,8 @@
 
 	var get1         = get('1');
 	var get2         = get('2');
-	var isRateEvent  = compose(Fn.is('rate'), get1);
-	var isParamEvent = compose(Fn.is('param'), get1);
+	var isRateEvent  = compose(is('rate'), get1);
+	var isParamEvent = compose(is('param'), get1);
 	var isOtherEvent = compose(function(type) {
 		return type !== 'rate' && type !== 'param';
 	}, get1);
@@ -263,28 +264,43 @@
 		buffer.sort(by0);
 	}
 
-	function stopBuffer(buffer, time, noteCache) {
-		var name, object;
-
-		// Remove all following events
-		var n = -1;
-		while (buffer[++n] && buffer[n].time < time);
-		buffer.length = n;
+	function stopBuffer(buffer, stopTime, noteCache) {
+		var event, object, time;
 
 		// Stop notes at time
 		while (noteCache.length) {
-			name = noteCache.shift();
-			object = toObject([time, 'noteoff', name]);
-			object.time = time;
+			event  = noteCache.shift();
+			time   = stopTime < event[0] ? event[0] : stopTime ;
+			object = toObject([time, 'noteoff', event[2]]);
+			// Where notes are already scheduled post-stopTime, stop them
+			// as soon as they start, otherwise stop notes on stopTime
+			object.time = time ;
 			buffer.push(object);
 		}
 	}
 
-	function updateNoteCache(noteCache, event) {
+	function updateNoteOn(noteCache, event) {
 		var type = event[1];
+		if (type !== "noteon") { return noteCache; }
+
 		var name = event[2];
-		if (type === "noteon") { noteCache.push(name); }
-		else if (type === "noteoff") { noteCache.splice(noteCache.indexOf(name), 1); }
+		noteCache.push([event.time, 'noteon', event[2]]);
+		return noteCache;
+	}
+
+	function updateNoteOff(noteCache, event) {
+		var type = event[1];
+		if (type !== "noteoff") { return noteCache; }
+
+		var name = event[2];
+		var n = noteCache.length;
+
+		while (n--) {
+			if (noteCache[n][2] === name) {
+				noteCache.splice(n, 1);
+				break;
+			}
+		}
 		return noteCache;
 	}
 
@@ -294,14 +310,6 @@
 		var rateStream = nothing;
 		var stopTime;
 
-		var beatAtTime = compose(function(time) {
-			return beatAtTimeStream(rateCache, rateStream, time - startBeat);
-		}, clock.beatAtTime);
-
-		var timeAtBeat = compose(clock.timeAtBeat, function(beat) {
-			return startBeat + timeAtBeatStream(rateCache, rateStream, beat);
-		});
-
 		// Buffers for each type of event, sorted and used as sources
 		// for the stream.
 		var data = {
@@ -309,6 +317,14 @@
 			param:   {},
 			default: []
 		};
+
+		function beatAtTime(time) {
+			return beatAtTimeStream(rateCache, rateStream, clock.beatAtTime(time) - startBeat);
+		}
+
+		function timeAtBeat(beat) {
+			return clock.timeAtBeat(startBeat + timeAtBeatStream(rateCache, rateStream, beat));
+		}
 
 		// Pipes for updating data
 		var pipes = {
@@ -362,6 +378,7 @@
 			var t2         = 0;
 			var paramCache = {};
 			var noteCache  = [];
+			var i = -1;
 
 			function update(event) {
 				(pipes[event[1]] || pipes.default)(event);
@@ -376,12 +393,24 @@
 				t1 = startTime > t2 ? startTime : t2 ;
 				t2 = time >= t3 ? t3 : time ;
 
+				// Todo:
+				//
+				// Note cache system is working, but the audio objects don't
+				// do it yet, as they have already scheduled on/off for each
+				// note, I guess. Perhaps a generic "stop" event might serve
+				// us better?
+				//
+				// If we keep this system, move it into a note-specific pipe
+				// function somehow.
+				buffer.reduce(updateNoteOff, noteCache);
+
+				i = -1;
 				buffer.length = 0;
 				fillBuffer(buffer, assignTime, t1, t2, data, paramCache);
 
-				// Todo: move this into a note-specific fillBuffer function
-				// somehow - perhaps with a data.note buffer??
-				buffer.reduce(updateNoteCache, noteCache);
+				// Todo: move this into a note-specific pipe function
+				// somehow
+				buffer.reduce(updateNoteOn, noteCache);
 
 				if (t2 === t3) {
 					stopBuffer(buffer, t2, noteCache);
@@ -390,7 +419,7 @@
 				if (buffer.length) { notify('push'); }
 
 				if (t2 === t3) {
-					stop(buffer.length);
+					stop(buffer.length, t2);
 					idleData(data);
 					//state = 'stopped';
 					return;
@@ -411,13 +440,13 @@
 
 				// If we have new events to deliver, deliver them
 				if (buffer.length) { notify('push'); }
-				stop(buffer.length);
+				stop(buffer.length, stopTime);
 				idleData(data);
 			}
 
 			return {
 				shift: function() {
-					return buffer.shift();
+					return buffer[++i];
 				},
 
 				start: function(time, beat) {
@@ -435,8 +464,6 @@
 					if (Soundstage.inspector) {
 						Soundstage.inspector.drawBar(timer.now(), 'orange', 'CueStream.start ' + clock.constructor.name);
 					}
-
-					return this;
 				},
 				
 				stop: function(time) {
@@ -453,6 +480,11 @@
 		})
 		.map(assign0);
 
+		// If clock is a CueStream, which is a promise, it resolves
+		// with stopTime
+		if (clock.then) { clock.then(stream.stop); }
+
+		// Make sure all pooled event objects are released
 		//stream.then(function() { idleData(data); });
 
 		stream.create = function create(events, transform) {

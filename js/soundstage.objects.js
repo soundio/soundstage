@@ -27,35 +27,6 @@
 		};
 	}
 
-	function UnityNode(audio) {
-		var oscillator = audio.createOscillator();
-		var waveshaper = audio.createWaveShaper();
-
-		var curve = new Float32Array(2);
-		curve[0] = curve[1] = 1;
-
-		oscillator.type = 'square';
-		oscillator.connect(waveshaper);
-		oscillator.frequency.value = 100;
-		waveshaper.curve = curve;
-		oscillator.start();
-
-		return waveshaper;
-	}
-
-	var unityNodeMap = new WeakMap();
-
-	Soundstage.UnityNode = function(audio) {
-		var node = unityNodeMap.get(audio);
-
-		if (!node) {
-			node = UnityNode(audio);
-			unityNodeMap.set(audio, node);
-		}
-
-		return node;
-	};
-
 
 	// Script Audio object
 
@@ -90,54 +61,6 @@
 
 	assign(ScriptAudioObject.prototype, AudioObject.prototype);
 	Soundstage.register('script', ScriptAudioObject);
-
-
-
-	// Signal Detector Audio object
-
-	function SignalDetectorAudioObject(audio) {
-		var object = this;
-		var scriptNode = audio.createScriptProcessor(256, 1, 1);
-		var signal;
-
-		scriptNode.channelCountMode = "explicit";
-
-		// Script nodes should be kept in memory to avoid
-		// Chrome bugs, and also need to be connected to
-		// destination to avoid garbage collection. This is
-		// ok, as we're not sending any sound out of this
-		// script node.
-		cache.push(scriptNode);
-		scriptNode.connect(audio.destination);
-
-		scriptNode.onaudioprocess = function(e) {
-			var buffer = e.inputBuffer.getChannelData(0);
-			var n = buffer.length;
-
-			while (n--) {
-				if (buffer[n] !== 0) {
-					object.signal = true;
-					return;
-				}
-			}
-
-			object.signal = false;
-		};
-
-		AudioObject.call(this, audio, scriptNode);
-
-		this.signal = false;
-
-		this.destroy = function() {
-			scriptNode.disconnect();
-			var i = cache.indexOf(scriptNode);
-			if (i > -1) { cache.splice(i, 1); }
-		};
-	}
-
-	assign(SignalDetectorAudioObject.prototype, AudioObject.prototype);
-	Soundstage.register('signal-detector', SignalDetectorAudioObject);
-	Soundstage.SignalDetectorAudioObject = SignalDetectorAudioObject;
 
 
 	// Buffer Audio object
@@ -301,28 +224,6 @@
 		return object;
 	}, {});
 
-	Soundstage.register('compressor', function createCompressorObject(audio, settings) {
-		var options = assign({}, defaults, settings);
-		var node    = audio.createDynamicsCompressor();
-		var object  = AudioObject(audio, node, node, {
-			attack:    node.attack,
-			knee:      node.knee,
-			ratio:     node.ratio,
-			release:   node.release,
-			threshold: node.threshold
-		});
-
-		aliasProperty(object, node, 'reduction');
-
-		return object;
-	}, {
-		threshold: { min: -60, max: 0,   transform: 'linear' ,   value: -12   }, // dB
-		knee:      { min: 0,   max: 40,  transform: 'linear' ,   value: 8     }, // dB
-		ratio:     { min: 0,   max: 20,  transform: 'quadratic', value: 4     }, // dB input / dB output
-		attack:    { min: 0,   max: 0.2, transform: 'quadratic', value: 0.020 }, // seconds
-		release:   { min: 0,   max: 1,   transform: 'quadratic', value: 0.16  }  // seconds
-	});
-
 	Soundstage.register('biquad-filter', function createBiquadFilterObject(audio, settings) {
 		var options = assign({}, defaults, settings);
 		var node    = audio.createBiquadFilter();
@@ -363,77 +264,4 @@
 
 		return object;
 	}, automation);
-
-
-
-
-	//// Oscillator Audio Object
-	//
-	//function createDefaults(automation) {
-	//	var defaults = {};
-	//
-	//	Object.keys(automation)
-	//	.forEach(function(key) {
-	//		defaults[key] = automation[key].value;
-	//	});
-	//
-	//	return defaults;
-	//}
-	//
-	//var automation = {
-	//	detune:    { min: -1200, max: 1200,  transform: 'linear' ,     value: 0 },
-	//	frequency: { min: 16,    max: 16000, transform: 'logarithmic', value: 440 }
-	//};
-	//
-	//var defaults = createDefaults(automation);
-	//
-	//function OscillatorAudioObject(audio, settings) {
-	//	var options = assign({}, defaults, settings);
-	//	var node    = audio.createOscillator();
-	//
-	//	node.detune.value = options.detune;
-	//	node.frequency.value = options.frequency;
-	//
-	//	AudioObject.call(this, audio, node, node, {
-	//		detune:    node.detune,
-	//		frequency: node.frequency
-	//	});
-	//
-	//	aliasProperty(this, node, 'onended');
-	//
-	//	// We shouldn't use 'type' as it is required by
-	//	// Soundstage to describe the type of audio object.
-	//	// Waveform. Yeah.
-	//	Object.defineProperty(this, 'waveform', {
-	//		get: function() { return node.type; },
-	//		set: function(value) { node.type = value; },
-	//		enumerable: true
-	//	});
-	//
-	//	assign(this, {
-	//		start: function() {
-	//			node.start.apply(node, arguments);
-	//			return this;
-	//		},
-	//
-	//		stop: function() {
-	//			node.stop.apply(node, arguments);
-	//			return this;
-	//		},
-	//
-	//		setPeriodicWave: function() {
-	//			node.setPeriodicWave.apply(node, arguments);
-	//			return this;
-	//		},
-	//
-	//		destroy: function() {
-	//			node.disconnect();
-	//			return this;
-	//		}
-	//	});
-	//}
-	//
-	//assign(OscillatorAudioObject.prototype, AudioObject.prototype);
-	//Soundstage.register('oscillator', OscillatorAudioObject, automation);
-	//Soundstage.OscillatorAudioObject = OscillatorAudioObject;
 })(window);

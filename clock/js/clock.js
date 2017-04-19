@@ -3,6 +3,7 @@
 
 	var Fn             = window.Fn;
 	var AudioObject    = window.AudioObject;
+	var UnityNode      = AudioObject.UnityNode;
 	var CueStream      = window.CueStream;
 	var CueTimer       = window.CueTimer;
 
@@ -109,7 +110,7 @@
 //		});
 //
 //		// Set up audio object params
-//		var unityNode = AudioObject.UnityNode(audio);
+//		var unityNode = UnityNode(audio);
 //		var rateNode  = audio.createGain();
 //
 //		rateNode.channelCount = 1;
