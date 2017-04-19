@@ -1,8 +1,9 @@
-(function(Soundstage) {
+(function(window) {
 	"use strict";
 
-	var assign = Object.assign;
-	var defaults = { channels: [0, 1] };
+	var Soundstage = window.Soundstage;
+	var assign     = Object.assign;
+	var defaults   = { channels: [0, 1] };
 
 	var rautoname = /Out\s\d+\/\d+/;
 
@@ -29,7 +30,10 @@
 					var count = array.length;
 
 					while (count--) {
-						input.connect(output, count, array[count]);
+						// output.channelCount may not be as high as the index
+						// of channel in array. If the output soundcard is mono
+						// Route all sound to channel 0.
+						input.connect(output, count, output.channelCount === 1 ? 0 : array[count]);
 						channels[count] = array[count];
 					}
 
@@ -52,4 +56,4 @@
 	Output.prototype = AudioObject.prototype;
 
 	Soundstage.register('output', Output);
-})(window.Soundstage);
+})(this);

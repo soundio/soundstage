@@ -183,7 +183,6 @@
 	}
 
 	function drawEvent(event) {
-		if (!Soundstage.inspector) { return; }
 		Soundstage.inspector.drawEvent(audio.currentTime, event[0], event[1], event[2]);
 	}
 
@@ -191,7 +190,7 @@
 		return function distribute(event, stream) {
 			stream = stream || this;
 
-			drawEvent(event);
+			if (Soundstage.inspector) { drawEvent(event); }
 
 			return event[1] === "sequence" ?
 				scheduleSequence(event, stream, distribute, findEvents, findAudioObject) :

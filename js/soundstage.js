@@ -14,32 +14,32 @@
 
 	// Imports
 
-	var AudioObject  = window.AudioObject;
-	var Clock        = window.Clock;
-	var Collection   = window.Collection;
-	var Fn           = window.Fn;
-	var Sequence     = window.Sequence;
-
-	var assign       = Object.assign;
-	var cache        = Fn.cache;
-	var choose       = Fn.choose;
-	var compose      = Fn.compose;
-	var curry        = Fn.curry;
-	var each         = Fn.each;
-	var find         = Fn.find;
-	var get          = Fn.get;
-	var getPath      = Fn.getPath;
-	var id           = Fn.id;
-	var is           = Fn.is;
-	var isDefined    = Fn.isDefined;
-	var noop         = Fn.noop;
-	var rest         = Fn.rest;
-	var requestMedia = AudioObject.requestMedia;
-	var overload     = Fn.overload;
-	var query        = Fn.query;
-	var slugify      = Fn.slugify;
-	var toType       = Fn.toType;
-	var toStringType = Fn.toStringType;
+	var AudioObject    = window.AudioObject;
+	var Clock          = window.Clock;
+	var Collection     = window.Collection;
+	var Fn             = window.Fn;
+	var Sequence       = window.Sequence;
+	var assign         = Object.assign;
+	var defineProperty = Object.defineProperty;
+	var cache          = Fn.cache;
+	var choose         = Fn.choose;
+	var compose        = Fn.compose;
+	var curry          = Fn.curry;
+	var each           = Fn.each;
+	var find           = Fn.find;
+	var get            = Fn.get;
+	var getPath        = Fn.getPath;
+	var id             = Fn.id;
+	var is             = Fn.is;
+	var isDefined      = Fn.isDefined;
+	var noop           = Fn.noop;
+	var rest           = Fn.rest;
+	var overload       = Fn.overload;
+	var query          = Fn.query;
+	var slugify        = Fn.slugify;
+	var toType         = Fn.toType;
+	var toStringType   = Fn.toStringType;
+	var requestMedia   = AudioObject.requestMedia;
 
 	var $store = Symbol('store');
 
@@ -646,6 +646,9 @@
 		});
 
 		var store = Store(actions, this, {
+			// Private constants passed to action functions as part of all
+			// action objects
+
 			audio:   audio,
 			clock:   clock,
 			output:  output,
@@ -897,6 +900,11 @@
 		isAudioObject:    AudioObject.isAudioObject,
 
 		features: assign({}, AudioObject.features)
+	});
+
+	defineProperty(Soundstage, 'audio', {
+		get: createAudio,
+		enumerable: true
 	});
 
 
