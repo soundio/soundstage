@@ -70,6 +70,11 @@
 		this.stop = function(time) {
 			stopTime = time || audio.currentTime ;
 			stream.stop(time || audio.currentTime);
+
+requestTick(function() {
+	console.table(Pool.snapshot());
+});
+
 			return this;
 		};
 

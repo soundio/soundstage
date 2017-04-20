@@ -627,6 +627,7 @@
 
 
 		// Properties
+
 		Object.defineProperties(soundstage, {
 			midi:        { value: Soundstage.MidiMap(objects), enumerable: true },
 			objects:     { value: objects, enumerable: true },
