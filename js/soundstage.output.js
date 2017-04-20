@@ -7,9 +7,7 @@
 
 	var rautoname = /Out\s\d+\/\d+/;
 
-	function increment(n) {
-		return n + 1;
-	}
+	function increment(n) { return n + 1; }
 
 	function Output(audio, settings, presets, clock, output) {
 		var options = assign({}, defaults, settings);
@@ -38,7 +36,7 @@
 					}
 
 					if (!object.name || rautoname.test(object.name)) {
-						object.name = 'Out ' + channels.map(increment).join('/');
+						object.name = 'Out ' + channels.map(increment).join('-');
 					}
 				},
 				enumerable: true,

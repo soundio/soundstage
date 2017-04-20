@@ -98,7 +98,9 @@
 	<script src="clock/test/data-chromatic.js"></script>
 	
 	<script>
-	
+
+		var requestTick = Fn.requestTick;
+
 		var stage = Soundstage({
 	
 			// Version
@@ -185,10 +187,10 @@
 				"name": "Pedal",
 				"slug": "pedal",
 				"events": [
-					[0, "note", 64, 0.95, 20]
+					[4, "note", 64, 0.95, 8]
 				]
 			}],
-	
+
 			// Event types
 			//
 			// [time, "rate", number, curve]
@@ -203,7 +205,7 @@
 			"events": [
 				[0, "rate", 2],
 				[0, "sequence", '[slug="chromatic"]', '[slug="piano"]'],
-				[0, "sequence", '[slug="pedal"]', '[slug="piano"]']
+			//	[0, "sequence", '[slug="pedal"]', '[slug="piano"]']
 			]
 		});
 	
@@ -221,7 +223,11 @@
 		.map(get('keyCode'))
 		.filter(is(32))
 		.each(function() {
-			stage[stage.status === "stopped" ? 'start' : 'stop']();
+			var toggle = stage.status === "stopped" ? 'start' : 'stop';
+			stage[toggle]();
+			if (toggle === 'stop') {
+				requestTick(function() { console.table(Pool.snapshot); });
+			}
 		});
 
 	</script>

@@ -38,6 +38,7 @@
 	}, get1);
 	var sortBy0      = Fn.sort(by0);
 
+
 	function by0(a, b) {
 		var n = a[0];
 		var m = b[0];
@@ -179,12 +180,6 @@
 		}
 	});
 
-	function assign0(object) {
-		object[0] = object.time;
-		object.idle = true;
-		return object;
-	}
-
 	function assignIdle(object) {
 		object.idle = true;
 		return object;
@@ -234,7 +229,7 @@
 			else if (test(t1, t2, object, t3)) {
 				// Add the object to buffer and keep note of time
 				buffer.push(object);
-				t3 = object.time;
+				object[0] = t3 = object.time;
 			}
 
 			// If the event is for a future cue frame
@@ -260,48 +255,12 @@
 			paramCache[name] = fill(buffer, paramIsInCue, t1, t2, param, transform, paramCache[name]);
 		}
 
-		// Sort the buffer
+		// Sort the buffer - not strictly necessary here
 		buffer.sort(by0);
 	}
 
-	function stopBuffer(buffer, stopTime, noteCache) {
-		var event, object, time;
-
-		// Stop notes at time
-		while (noteCache.length) {
-			event  = noteCache.shift();
-			time   = stopTime < event[0] ? event[0] : stopTime ;
-			object = toObject([time, 'noteoff', event[2]]);
-			// Where notes are already scheduled post-stopTime, stop them
-			// as soon as they start, otherwise stop notes on stopTime
-			object.time = time ;
-			buffer.push(object);
-		}
-	}
-
-	function updateNoteOn(noteCache, event) {
-		var type = event[1];
-		if (type !== "noteon") { return noteCache; }
-
-		var name = event[2];
-		noteCache.push([event.time, 'noteon', event[2]]);
-		return noteCache;
-	}
-
-	function updateNoteOff(noteCache, event) {
-		var type = event[1];
-		if (type !== "noteoff") { return noteCache; }
-
-		var name = event[2];
-		var n = noteCache.length;
-
-		while (n--) {
-			if (noteCache[n][2] === name) {
-				noteCache.splice(n, 1);
-				break;
-			}
-		}
-		return noteCache;
+	function stopBuffer(buffer, stopTime) {
+		buffer.push({ 0: stopTime, 1: "stop" });
 	}
 
 	function CueStream(timer, clock, sequence, transform) {
@@ -377,7 +336,6 @@
 			var t1         = 0;
 			var t2         = 0;
 			var paramCache = {};
-			var noteCache  = [];
 			var i = -1;
 
 			function update(event) {
@@ -393,38 +351,17 @@
 				t1 = startTime > t2 ? startTime : t2 ;
 				t2 = time >= t3 ? t3 : time ;
 
-				// Todo:
-				//
-				// Note cache system is working, but the audio objects don't
-				// do it yet, as they have already scheduled on/off for each
-				// note, I guess. Perhaps a generic "stop" event might serve
-				// us better?
-				//
-				// If we keep this system, move it into a note-specific pipe
-				// function somehow.
-				buffer.reduce(updateNoteOff, noteCache);
-
-				i = -1;
+				// Update buffer
 				buffer.length = 0;
 				fillBuffer(buffer, assignTime, t1, t2, data, paramCache);
 
-				// Todo: move this into a note-specific pipe function
-				// somehow
-				buffer.reduce(updateNoteOn, noteCache);
-
 				if (t2 === t3) {
-					stopBuffer(buffer, t2, noteCache);
-				}
-
-				if (buffer.length) { notify('push'); }
-
-				if (t2 === t3) {
-					stop(buffer.length, t2);
-					idleData(data);
-					//state = 'stopped';
+					stopCue(t3);
 					return;
 				}
 
+				i = -1;
+				if (buffer.length) { notify('push'); }
 				timer.request(cue);
 			}
 
@@ -434,18 +371,18 @@
 					timer.request(startCue) ;
 			}
 
-			function stopCue() {
-				timer.cancel(cue);
-				stopBuffer(buffer, stopTime, noteCache);
-
-				// If we have new events to deliver, deliver them
+			function stopCue(time) {
+				stopBuffer(buffer, time);
+				i = -1;
 				if (buffer.length) { notify('push'); }
-				stop(buffer.length, stopTime);
+				stop(buffer.length, time);
 				idleData(data);
 			}
 
 			return {
 				shift: function() {
+					// Keep the buffer intact for the length of the frame. This
+					// used to be important, I'm not sure it still is: Todo.
 					return buffer[++i];
 				},
 
@@ -465,10 +402,14 @@
 						Soundstage.inspector.drawBar(timer.now(), 'orange', 'CueStream.start ' + clock.constructor.name);
 					}
 				},
-				
+
 				stop: function(time) {
 					stopTime = time;
-					if (t2 >= time) { stopCue(); }
+
+					if (t2 >= time) {
+						timer.cancel(cue);
+						stopCue(time);
+					}
 				},
 
 				push: function() {
@@ -477,15 +418,11 @@
 					if (buffer.length) { notify('push'); }
 				}
 			};
-		})
-		.map(assign0);
+		});
 
 		// If clock is a CueStream, which is a promise, it resolves
 		// with stopTime
 		if (clock.then) { clock.then(stream.stop); }
-
-		// Make sure all pooled event objects are released
-		//stream.then(function() { idleData(data); });
 
 		stream.create = function create(events, transform) {
 			return CueStream(timer, stream, events, transform || id);

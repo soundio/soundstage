@@ -7,33 +7,24 @@
 	// Import
 
 	var Fn        = window.Fn;
-	var split     = Fn.split;
 
 
 	// Define
 
 	var isDefined = Fn.isDefined;
+	var each      = Fn.each;
 	var pipe      = Fn.pipe;
+	var rest      = Fn.rest;
+	var split     = Fn.split;
+	var rest5     = rest(5);
 
 
 	function warnEvent(object, event) {
-		console.warn('Distribute: Event dropped. Target audio object is', object, '. Event:', event);
+		console.warn('Distribute: Event dropped. Target audio object', object, 'does not accept event', event);
 	}
 
-	function slice(i, j, object) {
-		j = j || undefined;
-		if (object.slice) { return object.slice(i, j); }
-
-		var array = [];
-		var n = -1;
-		var l = j - i;
-		var length = isDefined(object.length) ? object.length : Infinity ;
-
-		while (++n < l && (n + i) < length) {
-			array[n] = object[n + i];
-		}
-
-		return array;
+	function setIdle(object) {
+		object.idle = true;
 	}
 
 	// Event types
@@ -48,45 +39,106 @@
 	// [time, "sequence", name || events, target, duration, transforms...]
 
 	var scheduleAudioObject = (function(types) {
-		return function(object, event) {
+		return function(object, event, noteCache, cueCache) {
 			var time = event[0];
 			var type = event[1];
 			var fn = types[type];
 
 			if (!fn) {
-				if (debug) { console.log('Distribute: cant schedule event:', event); }
+				warnEvent(object, event);
+				event.idle = true;
 				return;
 			}
 
-			return fn(object, time, event);
+			return fn(object, time, event, noteCache, cueCache);
 		};
 	})({
-		"note": function(object, time, event) {
+		// A cheap workaround. We need reference to the cue frame in distribute,
+		// or a reference to the voice object in the cue stream. I'm beginning
+		// to wonder if it's not better to merge these scripts. For now, invent
+		// an event, and don't dare rely on it elsewhere or your implementation
+		// will get all messy.
+		"noteon": function(object, time, event, noteMap, noteons) {
 			if (!object.start) { return; }
-			var result = object.start(time, event[2], event[3]);
-			if (!object.stop)  { return; }
-			object.stop(time + (event[4] || 0));
-			return result;
+
+			var name = event[2];
+			var note = object.start(event[0], event[2], event[3]);
+
+			event.object = note;
+
+			if (noteMap[name]) { noteMap[name].push(event); }
+			else { noteMap[name] = [event]; }
+
+			noteons.push(event);
 		},
 
-		"noteon": function(object, time, event) {
-			if (!object.start) { return; }
-			return object.start(time, event[2], event[3]);
+		"noteoff": function(object, time, event, noteMap, noteons) {
+			var name = event[2];
+			if (!noteMap[name]) { return; }
+
+			var noteon = noteMap[name].shift();
+			if (!noteon) { return; }
+
+			//if (noteMap[name].length === 0) { delete noteMap[name]; }
+
+			var note = noteon.object;
+
+			if (note.stop) { note.stop(time, name); }
+			//setIdle(noteon);
 		},
 
-		"noteoff": function(object, time, event) {
-			if (!object.stop) { return; }
-			return object.stop(time, event[2]);
+		"stop": function(object, time, event, noteMap, noteons) {
+			var key, array, n, noteon, note;
+
+			Soundstage.inspector.drawBar(time, "red", 'stop');
+
+			// Stop notes that have been started before time and have not yet
+			// been scheduled to stop
+			for (key in noteMap) {
+				array = noteMap[key];
+				n = array.length;
+				while (n--) {
+					noteon = array[n];
+
+					if (noteon.object.stop) {
+						noteon.object.stop(event[0], noteon[2]);
+					}
+
+					if (Soundstage.inspector) { drawEvent([time, "noteoff", noteon[2]], 'purple'); }
+				}
+				array.length = 0;
+			}
+
+			// Cancel notes that have been cued to start after time. Loop
+			// backwards through noteons, as we want to talk to the latest
+			// lot first
+			var n = noteons.length;
+			var noteon, note;
+			while ((noteon = noteons[--n]) && noteon[0] > event[0]) {
+				note = noteon.object;
+				if (note.cancel) {
+					note.cancel(event[0], noteon[2]);
+					if (Soundstage.inspector) { drawEvent([noteon[0], "noteoff", noteon[2]], 'blue'); }
+				}
+			}
+
+			// Todo: That leaves notes that have been started before time and
+			// are already scheduled to stop after time...
+
+			noteons.forEach(setIdle);
+			setIdle(event);
 		},
 
 		"param": function(object, time, event) {
 			// time, name, value, [curve], [duration]
-			return object.automate(time, event[2], event[3], event[4], event[5]);
+			object.automate(time, event[2], event[3], event[4], event[5]);
+			event.idle = true;
 		},
 
 		"pitch": function(object, time, event) {
 			// time, name, value, [curve], [duration]
-			return object.automate(time, "pitch", event[3], event[4], event[5]);
+			object.automate(time, "pitch", event[3], event[4], event[5]);
+			event.idle = true;
 		}
 	});
 
@@ -145,7 +197,7 @@
 	};
 
 	function createTransform(event) {
-		var tokens = slice(5, 0, event);
+		var tokens = rest5(event);
 
 		var fns = split(isString, tokens)
 		.map(function(def) {
@@ -180,24 +232,29 @@
 			distribute
 		)
 		.start(event[0]);
+
+		event.idle = true;
 	}
 
-	function drawEvent(event) {
-		Soundstage.inspector.drawEvent(audio.currentTime, event[0], event[1], event[2]);
+	function drawEvent(event, color) {
+		Soundstage.inspector.drawEvent(audio.currentTime, event[0], event[1], event[2], color);
 	}
 
 	function Distribute(findEvents, findAudioObject, object) {
+		// Keep a cache of note objects
+		var noteCache = {};
+		var cueCache  = [];
+
 		return function distribute(event, stream) {
 			stream = stream || this;
+			var type = event[1];
+			var name, note;
 
 			if (Soundstage.inspector) { drawEvent(event); }
 
-			return event[1] === "sequence" ?
+			return type === "sequence" ?
 				scheduleSequence(event, stream, distribute, findEvents, findAudioObject) :
-				// If object, direct
-				object ?
-					scheduleAudioObject(object, event) :
-					debug && warnEvent(object, event) ;
+				scheduleAudioObject(object, event, noteCache, cueCache) ;
 		};
 	}
 

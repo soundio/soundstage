@@ -261,15 +261,15 @@
 			drawLabel(toX(seconds), Fn.isDefined(text) ? text : seconds.toFixed(3) + 's', 12, color || 'blue');
 		},
 
-		drawEvent: function(s1, s2, type, value) {
+		drawEvent: function(s1, s2, type, value, color) {
 			if (type === "param") {
-				drawParamEvent(toX(s1), toX(s2), 256 * (1 - value), s2 < s1 ? warningColor : 'rgb(' + c.r + ',' + c.g + ',' + c.b + ')');
+				drawParamEvent(toX(s1), toX(s2), 256 * (1 - value), s2 < s1 ? warningColor : color || 'rgb(' + c.r + ',' + c.g + ',' + c.b + ')');
 			}
 			else if (type === "noteoff") {
-				drawNoteOffEvent(toX(s1), toX(s2), (128 - value) * 2, s2 < s1 ? warningColor : 'rgb(' + c.r + ',' + c.g + ',' + c.b + ')');
+				drawNoteOffEvent(toX(s1), toX(s2), (128 - value) * 2, s2 < s1 ? warningColor : color || 'rgb(' + c.r + ',' + c.g + ',' + c.b + ')');
 			}
 			else {
-				drawNoteEvent(toX(s1), toX(s2), (128 - value) * 2, s2 < s1 ? warningColor : 'rgb(' + c.r + ',' + c.g + ',' + c.b + ')');
+				drawNoteEvent(toX(s1), toX(s2), (128 - value) * 2, s2 < s1 ? warningColor : color || 'rgb(' + c.r + ',' + c.g + ',' + c.b + ')');
 			}
 		},
 
