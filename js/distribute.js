@@ -64,6 +64,11 @@
 			var name = event[2];
 			var note = object.start(event[0], event[2], event[3]);
 
+			if (!note) {
+				return;
+				setIdle(event);
+			}
+
 			event.object = note;
 
 			if (noteMap[name]) { noteMap[name].push(event); }
@@ -104,7 +109,7 @@
 						noteon.object.stop(event[0], noteon[2]);
 					}
 
-					if (Soundstage.inspector) { drawEvent([time, "noteoff", noteon[2]], 'purple'); }
+					if (Soundstage.inspector) { drawEvent([time, "noteoff", noteon[2]], 'green'); }
 				}
 				array.length = 0;
 			}
@@ -118,7 +123,7 @@
 				note = noteon.object;
 				if (note.cancel) {
 					note.cancel(event[0], noteon[2]);
-					if (Soundstage.inspector) { drawEvent([noteon[0], "noteoff", noteon[2]], 'blue'); }
+					if (Soundstage.inspector) { drawEvent([event[0], "noteoff", noteon[2]], 'blue'); }
 				}
 			}
 
@@ -126,6 +131,7 @@
 			// are already scheduled to stop after time...
 
 			noteons.forEach(setIdle);
+			noteons.length = 0;
 			setIdle(event);
 		},
 

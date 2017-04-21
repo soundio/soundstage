@@ -260,6 +260,7 @@
 	}
 
 	function stopBuffer(buffer, stopTime) {
+		buffer.length = 0;
 		buffer.push({ 0: stopTime, 1: "stop" });
 	}
 
@@ -336,7 +337,6 @@
 			var t1         = 0;
 			var t2         = 0;
 			var paramCache = {};
-			var i = -1;
 
 			function update(event) {
 				(pipes[event[1]] || pipes.default)(event);
@@ -360,7 +360,6 @@
 					return;
 				}
 
-				i = -1;
 				if (buffer.length) { notify('push'); }
 				timer.request(cue);
 			}
@@ -373,7 +372,6 @@
 
 			function stopCue(time) {
 				stopBuffer(buffer, time);
-				i = -1;
 				if (buffer.length) { notify('push'); }
 				stop(buffer.length, time);
 				idleData(data);
@@ -383,7 +381,7 @@
 				shift: function() {
 					// Keep the buffer intact for the length of the frame. This
 					// used to be important, I'm not sure it still is: Todo.
-					return buffer[++i];
+					return buffer.shift();
 				},
 
 				start: function(time, beat) {
