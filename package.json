@@ -1,7 +1,7 @@
 {
   "name": "soundstage",
   "title": "Soundstage",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "homepage": "http://sound.io",
   "description": "An object model and timing engine for the Web Audio API.",
   "author": {
