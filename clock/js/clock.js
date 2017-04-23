@@ -26,10 +26,10 @@
 	// whence other cue streams sprout. Clock methods basically map
 	// CueStream methods.
 
-	function Clock(audio, events, distribute) {
+	function Clock(audio, events, fns) {
 		// Support using constructor without the `new` keyword
 		if (!AudioObject.prototype.isPrototypeOf(this)) {
-			return new Clock(audio, events, distribute);
+			return new Clock(audio, events, fns);
 		}
 
 		var timer      = createCueTimer(audio);
@@ -39,7 +39,7 @@
 		var stopTime   = 0;
 		var stream;
 
-		var fns = {
+		var clock = {
 			beatAtTime: function(time) { return time - startTime; },
 			timeAtBeat: function(beat) { return startTime + beat; }
 		};
@@ -47,10 +47,8 @@
 		function createStream() {
 			// Ensures there is always a stream waiting by preparing a new
 			// stream when the previous one ends.
-			stream = CueStream(timer, fns, events, Fn.id);
-			stream
-			.each(distribute)
-			.then(createStream);
+			stream = new CueStream(timer, clock, events, Fn.id, fns);
+			stream.then(createStream);
 		}
 
 		this.start = function(time, beat) {

@@ -78,7 +78,6 @@
 	<script src="modules/midi/js/midi.js"></script>
 	<script src="modules/midi/js/midi-utils.js"></script>
 
-	<script src="js/distribute.js"></script>
 	<script src="clock/js/cue-timer.js"></script>
 	<script src="clock/js/cue-stream.js"></script>
 	<script src="clock/js/clock.js"></script>
@@ -204,16 +203,16 @@
 
 			"events": [
 				[0, "rate", 2],
-				[0, "sequence", '[slug="chromatic"]', '[slug="piano"]'],
-				[0, "sequence", '[slug="pedal"]', '[slug="piano"]']
+				[0, "sequence", '[slug="chromatic"]', '[slug="piano"]', 20],
+				[0, "sequence", '[slug="pedal"]', '[slug="piano"]', 20]
 			]
 		});
 	
 	
 		// Start
-		var audio     = stage.audio;
+		var audio = stage.audio;
 
-		//stage.start(2).stop(5);
+		//stage.start(12);
 
 		var get = Fn.get;
 		var is  = Fn.is;
@@ -223,6 +222,7 @@
 		.map(get('keyCode'))
 		.filter(is(32))
 		.each(function() {
+window.yep = true;
 			var toggle = stage.status === "stopped" ? 'start' : 'stop';
 			stage[toggle]();
 			if (toggle === 'stop') {

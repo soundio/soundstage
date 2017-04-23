@@ -590,8 +590,8 @@
 		var objects        = new Collection([], { index: 'id' });
 		var selectObject   = selectIn(objects);
 		var selectSequence = selectIn(this.sequences);
-
-		var clock = Clock(audio, this.events, Distribute(function(selector) {
+		
+		function findEvents(selector) {
 			var type = toStringType(selector);
 			var stream;
 	
@@ -610,13 +610,52 @@
 	
 			// Find sequence via selector
 			var sequence = selectSequence(selector);
-			Soundstage.debug && console.log(selector, sequence);
+			//Soundstage.debug && console.log(selector, sequence);
 			return sequence.events;
-		}, function(selector) {
-			var object = selectObject(selector);
-			Soundstage.debug && console.log(selector, object);
-			return object;
-		}));
+		}
+
+		var clock = Clock(audio, this.events, {
+			// Event types
+			//
+			// [time, "rate", number, curve]
+			// [time, "meter", numerator, denominator]
+			// [time, "note", number, velocity, duration]
+			// [time, "noteon", number, velocity]
+			// [time, "noteoff", number]
+			// [time, "param", name, value, curve]
+			// [time, "pitch", semitones]
+			// [time, "chord", root, mode, duration]
+			// [time, "sequence", name || events, target, duration, transforms...]
+
+			"note": function(object, event) {
+				return object.start(event[0], event[2], event[3]);
+			},
+
+			"param": function(object, event) {
+				return object.automate(event[0], event[2], event[3], event[4]);
+			},
+
+			//"pitch": function(object, event) {
+			//	return object.automate(time, "pitch", event[3], event[4]);
+			//},
+
+			"sequence": function(object, event, stream, transform) {
+				var events = typeof event[2] === 'string' ?
+					findEvents(event[2]) :
+					event[2] ;
+
+				if (!events && debug) {
+					console.warn('CueStream: events not found for event', event, events);
+				}
+
+				// Todo: we probably want a blank dummy object in here for cases
+				// where an object is not found.
+
+				return stream
+				.create(events, transform, event[3] ? selectObject(event[3]) : object)
+				.start(event[0]);
+			}
+		});
 
 		assign(this, clock);
 
