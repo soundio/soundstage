@@ -182,11 +182,57 @@
 					}).toArray();
 				})()
 			}, {
-				"id":   0,
+				"id":   1,
 				"name": "Pedal",
 				"slug": "pedal",
 				"events": [
 					[0, "note", 64, 0.95, 8]
+				]
+			}, {
+				"id":   2,
+				"name": "London",
+				"slug": "1",
+				"events": [
+					[0,   "note", 64, 0.4, 0.5],
+					[0.5, "note", 64, 0.4, 0.5],
+					[1,   "note", 69, 0.6, 1],
+					[2,   "note", 69, 0.5, 1],
+					[3,   "sequence", '[slug="1"]', '[slug="piano"]'],
+				]
+			}, {
+				"id":   3,
+				"name": "London",
+				"slug": "2",
+				"events": [
+					[0,   "note", 71, 0.5, 0.5],
+					[0.5, "note", 71, 0.5, 0.5],
+					[1,   "note", 73, 0.7, 1],
+					[2,   "note", 73, 0.6, 1],
+					[3,   "sequence", '[slug="2"]', '[slug="piano"]'],
+				]
+			}, {
+				"id":   4,
+				"name": "London",
+				"slug": "3",
+				"events": [
+					[0,   "note", 76, 0.7, 1],
+					[1,   "note", 76, 0.7, 2],
+					[3,   "sequence", '[slug="3"]', '[slug="piano"]'],
+				]
+			}, {
+				"id":   5,
+				"name": "London",
+				"slug": "4",
+				"events": [
+					[0,   "note", 76, 0.7, 0.5],
+					[0.5, "note", 74, 0.65, 0.5],
+					[1,   "note", 73, 0.6, 1],
+					[2,   "note", 73, 0.6, 1],
+					[3,   "note", 73, 0.65, 0.5],
+					[3.5, "note", 71, 0.55, 0.5],
+					[4,   "note", 69, 0.5, 1],
+					[5,   "note", 69, 0.5, 1],
+					[6,   "sequence", '[slug="4"]', '[slug="piano"]'],
 				]
 			}],
 
@@ -203,8 +249,15 @@
 
 			"events": [
 				[0, "rate", 2],
-				[0, "sequence", '[slug="chromatic"]', '[slug="piano"]', 20],
-				[0, "sequence", '[slug="pedal"]', '[slug="piano"]', 20]
+				//[0, "sequence", '[id=6]', '[slug="piano"]', 20],
+				[0,  "sequence", '[slug="1"]', '[slug="piano"]'],
+				//[3,  "sequence", '[slug="1"]', '[slug="piano"]', 3],
+				[6,  "sequence", '[slug="2"]', '[slug="piano"]'],
+				//[9,  "sequence", '[slug="2"]', '[slug="piano"]', 3],
+				[12, "sequence", '[slug="3"]', '[slug="piano"]'],
+				//[15, "sequence", '[slug="3"]', '[slug="piano"]', 3],
+				[18, "sequence", '[slug="4"]', '[slug="piano"]'],
+				//[21, "sequence", '[slug="4"]', '[slug="piano"]', 3],
 			]
 		});
 	
