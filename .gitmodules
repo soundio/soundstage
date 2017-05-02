@@ -1,9 +1,6 @@
 [submodule "modules/collection"]
 	path = modules/collection
 	url = https://github.com/cruncher/collection.git
-[submodule "git_modules/object.assign"]
-	path = modules/object.assign
-	url = https://github.com/cruncher/object.assign.git
 [submodule "fn"]
 	path = fn
 	url = https://github.com/stephband/Fn.git
