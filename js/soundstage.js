@@ -18,9 +18,11 @@
 	var Clock          = window.Clock;
 	var Collection     = window.Collection;
 	var Fn             = window.Fn;
+	var MIDI           = window.MIDI;
 	var Sequence       = window.Sequence;
 	var assign         = Object.assign;
 	var defineProperty = Object.defineProperty;
+	var defineProperties = Object.defineProperties;
 	var cache          = Fn.cache;
 	var choose         = Fn.choose;
 	var compose        = Fn.compose;
@@ -40,6 +42,8 @@
 	var toType         = Fn.toType;
 	var toStringType   = Fn.toStringType;
 	var requestMedia   = AudioObject.requestMedia;
+
+	var get1           = get('1');
 
 	var $store = Symbol('store');
 
@@ -382,6 +386,70 @@
 	};
 
 
+
+	// Events
+
+	var Event = Pool({
+		name: 'Input Event',
+
+		create: noop,
+
+		reset: function reset() {
+			assign(this, arguments);
+			var n = arguments.length - 1;
+			while (this[++n] !== undefined) { delete this[n]; }
+			this.idle  = false;
+		},
+
+		isIdle: function isIdle(object) {
+			return !!object.idle;
+		}
+	}, defineProperties({}, {
+		time:   { writable: true },
+		object: { writable: true },
+		idle:   { writable: true }
+	}));
+
+	Event.from = function toEvent(data) {
+		return Event.apply(null, data);
+	};
+
+	function MIDIInputStream(selector, transform, object) {
+		if (!selector) {
+			console.warn('midi connection dropped', selector);
+			return;
+		}
+
+		var noteMap = {};
+
+		return MIDI.Input(selector)
+		.map(Event.from)
+		.map(transform)
+		.each(overload(get1, {
+			noteon: function(event) {
+				mapPush(noteMap, object);
+				object.start(0, event[2]);
+				return object;
+			},
+	
+			noteoff: function(event) {
+				var offObject = mapShift(noteMap, event[2]);
+				if (!offObject) { return object; }
+				object.stop(0, event[2]);
+				return object;
+			},
+	
+			param: function(event) {
+				console.log('TODO:', event);
+			},
+	
+			sequence: function() {
+				console.log('TODO:', event);
+			}
+		}));
+	}
+
+
 	// Soundstage
 
 	var mediaInputs = [];
@@ -516,18 +584,40 @@
 		}),
 
 		midi: Store.actions({
-			"update": function(midi, data) {
+			"update": function(midi, data, constants) {
 				if (!data.midi) { return midi; }
-				midi.create.apply(midi, data.midi);
+				var resolveObject = constants.resolveObject;
+				var array = data.midi;
+				var n     = array.length;
+				var object;
+
+				while (n--) {
+					object = resolveObject(array[n].target);
+
+					if (!object) {
+						console.warn('Soundstage: Cannot bind MIDI - object does not exist in objects', array[n].target, object);
+						continue;
+					}
+
+					MIDIInputStream(array[n].select, array[n].transform || id, object);
+					
+					Soundstage.debug && console.log('Soundstage: created MIDI binding', array[n].select, 'to', object);
+				}
+
+				midi.push.apply(midi, array);
+				return midi;
+			},
+
+			"midi-in": function(midi, data, constants) {
+				MIDIInputStream(data.select, resolveObject(data.object));
+				midi.push(data);
 				return midi;
 			},
 
 			"clear": function(midi) {
-				var n = midi.length;
 				Soundstage.debug && console.log('Removing ' + n + ' midi bindings...');
-				while (n--) {
-					midi.remove(midi[n]);
-				}
+				midi.length = 0;
+				return midi;
 			}
 		}),
 
@@ -668,7 +758,7 @@
 		// Properties
 
 		Object.defineProperties(soundstage, {
-			midi:        { value: Soundstage.MidiMap(objects), enumerable: true },
+			midi:        { value: new Collection([]), enumerable: true },
 			objects:     { value: objects, enumerable: true },
 			inputs:      { value: objects.sub({ type: 'input' }, { sort: byChannels }) },
 			outputs:     { value: objects.sub({ type: 'output' }, { sort: byChannels }) },

@@ -246,7 +246,7 @@
 	Event.from = function toEvent(data) {
 		return Event.apply(null, data);
 	};
-window.Event = Event;
+
 	function assignIdle(event) {
 		event.idle = true;
 		return event;
@@ -622,8 +622,6 @@ window.Event = Event;
 			},
 			enumerable: true
 		});
-
-		return stream;
 	}
 
 	window.CueStream = CueStream;

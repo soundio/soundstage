@@ -85,7 +85,7 @@
 	<script src="js/sequence.js"></script>
 
 	<script src="js/soundstage.js"></script>
-	<script src="js/soundstage.midi.js"></script>
+	<!--script src="js/soundstage.midi.js"></script-->
 	<script src="js/soundstage.output.js"></script>
 	<script src="js/soundstage.track.js"></script>
 	<script src="js/soundstage.send.js"></script>
@@ -159,6 +159,19 @@
 			"connections": [
 				{ "src": 3, "dst": 2 },
 				{ "src": 1, "dst": 2 }
+			],
+
+			// MIDI
+			//
+			// {
+			//   "select":    [event]
+			//   "transform": [...]
+			//   "output":    id || selector
+			// }
+
+			"midi": [
+				{ "select": ["note"], "transform": [], "target": 1 },
+				{ "select": ["note"], "transform": [], "target": 1 }
 			],
 
 			// Sequence
