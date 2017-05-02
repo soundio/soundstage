@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="author" content="" />
+	<meta name="description" content="" />
+
+	<title>MIDIRouter</title>
+
+	<script>document.documentElement.className = 'js';</script>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />
+
+	<link rel="icon" type="image/png" href="images/favicon.png" />
+	<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+	<link rel="stylesheet" href="//stephen.band/bolt/css/normalise.css" />
+	<link rel="stylesheet" href="//stephen.band/bolt/css/block.css" />
+	<link rel="stylesheet" href="//stephen.band/bolt/css/text.css" />
+	<link rel="stylesheet" href="//stephen.band/bolt/css/grid.css" />
+	<link rel="stylesheet" href="//stephen.band/bolt/css/dom.css" />
+
+	<link rel="stylesheet" href="midi/css/midi.css" />
+	<link rel="stylesheet" href="midi/css/midi-graph.css" />
+</head>
+
+<body>
+	<h1>MIDI</h1>
+
+	<ul class="link-index index">
+		<li>repo: <a href="http://github.com/stephband/midi">github.com/sound-io/midi</a></li>
+	</ul>
+
+	<canvas class="midi-graph block" id="midi-graph" width="960"></canvas>
+
+	<p class="block">Plug in a MIDI instrument!<p>
+
+	<p class="block">
+		This example takes midi events from all inputs, filters them to
+		<code>noteon</code>, <code>noteoff</code> and <code>pitch</code>
+		normalises the messages (to Music JSON) and logs the results.
+	</p>
+
+	<script src="fn/js/fn.js"></script>
+	<script src="fn/js/stream.js"></script>
+
+	<script src="midi/js/midi.js"></script>
+	<script src="midi/js/midi-functions.js"></script>
+	<script src="midi/js/midi-setup.js"></script>
+
+	<script src="midi/test/test.js"></script>
+	<script src="midi/test/test-midi-functions.js"></script>
+	<script src="midi/test/test-midi-stream.js"></script>
+
+	<script>
+	(function(window) {
+		"use strict";
+	
+		var get = Fn.get;
+
+		MIDI([1, 'note'])
+		.map(get('data'))
+		.each(console.log);
+	})(this);
+	</script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="author" content="" />
+	<meta name="description" content="" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+	<title>Fn tests</title>
+
+	<!-- Bolt requires this. -->
+	<script>document.documentElement.className = 'js';</script>
+
+	<link rel="icon" type="image/png" href="images/favicon.png" />
+	<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+</head>
+<body>
+
+	<p class="delegate">
+		<button id="button">Button</button>
+	</p>
+
+	<input type="range" id="1" step="any" min="0" max="1" value="0" />
+	<input type="range" id="2" step="any" min="0" max="1" value="0" />
+	<input type="range" id="3" step="any" min="0" max="2" value="0" />
+
+	<script src="polyfills/number.isnan.js"></script>
+	<script src="polyfills/object.assign.js"></script>
+
+	<script src="js/fn.js"></script>
+	<script src="js/observe.js"></script>
+	<script src="js/stream.js"></script>
+	<script src="js/stream.property.js"></script>
+	<script src="js/pool.js"></script>
+
+	<!--script src="js/store.js"></script-->
+	<!--script src="js/router.js"></script-->
+
+	<script src="test/test.js"></script>
+
+	<script src="test/test.fn.utils.js"></script>
+	<script src="test/test.fn.js"></script>
+	<script src="test/test.stream.js"></script>
+	<script src="test/test.stream.stop.js"></script>
+	<script src="test/test.stream.clone.js"></script>
+	<script src="test/test.stream.property.js"></script>
+	<!--script src="test/test.store.js"></script>
+	<script src="test/test.router.js"></script-->
+
+	<script>
+		var in1 = document.getElementById('1');
+		var in2 = document.getElementById('2');
+		var in3 = document.getElementById('3');
+
+		var st1 = Stream.Events('input', in1).map(Fn.getPath('target.value')).buffer(in1.value).map(parseFloat);
+		var st2 = Stream.Events('input', in2).map(Fn.getPath('target.value')).buffer(in2.value).map(parseFloat);
+		var st3 = Stream.Combine(Fn.add, st1, st2);
+
+		st3.each(Fn.set('value', in3));
+	</script>
+</body>
+</html>
