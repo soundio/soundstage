@@ -1,9 +1,6 @@
 [submodule "modules/collection"]
 	path = modules/collection
 	url = https://github.com/cruncher/collection.git
-[submodule "modules/audio-object"]
-	path = modules/audio-object
-	url = https://github.com/soundio/audio-object.git
 [submodule "git_modules/object.assign"]
 	path = modules/object.assign
 	url = https://github.com/cruncher/object.assign.git
@@ -19,3 +16,6 @@
 [submodule "midi"]
 	path = midi
 	url = https://github.com/soundio/midi.git
+[submodule "audio-object"]
+	path = audio-object
+	url = https://github.com/soundio/audio-object.git
