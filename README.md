@@ -7,27 +7,6 @@ exporting and importing them.
 Soundstage is the library that powers <a href="http://sound.io">sound.io</a>.
 
 
-## Dependencies and tests
-
-Soundstage is in development. It is currently dependent on three repos that can be
-installed as git submodules:
-
-- <a href="https://github.com/cruncher/collection">github.com/cruncher/collection</a>
-- <a href="https://github.com/soundio/audio-object">github.com/soundio/audio-object</a>
-- <a href="https://github.com/soundio/clock">github.com/soundio/clock</a> (optional)
-- <a href="https://github.com/soundio/midi">github.com/soundio/midi</a> (optional)
-
-Install with submodules:
-
-	git clone https://github.com/soundio/soundstage.git
-	cd soundstage
-	git submodule update --init
-
-Tests use Karma. To run tests:
-
-	npm install
-	karma start
-
 ## Soundstage(data, options) – overview
 
 Soundstage <code>data</code> is an object with properties that define audio objects,
@@ -741,6 +720,29 @@ An object of results from feature tests.
 
 <code>true</code> if the Web Audio API supports disconnecting specified nodes
 via the <code>node1.disconnect(node2)</code>, otherwise <code>false</code>.
+
+
+## Dependencies and tests
+
+Soundstage is in development. It is currently dependent on three repos that can be
+installed as git submodules:
+
+- <a href="https://github.com/stephband/fn">github.com/stephband/fn</a>
+- <a href="https://github.com/cruncher/collection">github.com/cruncher/collection</a>
+- <a href="https://github.com/soundio/audio-object">github.com/soundio/audio-object</a>
+- <a href="https://github.com/soundio/midi">github.com/soundio/midi</a> (optional)
+- <a href="https://github.com/stephband/">github.com/soundio/music</a>
+
+Install with submodules:
+
+	git clone https://github.com/soundio/soundstage.git
+	cd soundstage
+	git submodule update --init
+
+Tests use Karma. To run tests:
+
+	npm install
+	karma start
 
 
 ## Author
