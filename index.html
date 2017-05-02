@@ -58,25 +58,26 @@
 		Fn.debug = true;
 	</script>
 	
-	<script src="modules/audio-object/js/audio-object.js"></script>
-	<script src="modules/audio-object/js/ao-tick.js"></script>
-	<script src="modules/audio-object/js/ao-oscillator.js"></script>
-	<script src="modules/audio-object/js/ao-filter.js"></script>
-	<script src="modules/audio-object/js/ao-flanger.js"></script>
-	<script src="modules/audio-object/js/ao-input.js"></script>
-	<script src="modules/audio-object/js/ao-gain.js"></script>
-	<script src="modules/audio-object/js/ao-saturate.js"></script>
-	<script src="modules/audio-object/js/ao-compress.js"></script>
-	<script src="modules/audio-object/js/ao-tone-synth.js"></script>
-	<script src="modules/audio-object/js/ao-sampler.js"></script>
-	<script src="modules/audio-object/js/ao-sampler-presets-gretsch-kit.js"></script>
-	<script src="modules/audio-object/js/ao-sampler-presets-mis-piano.js"></script>
-	<script src="modules/audio-object/js/ao-sampler-presets-fender-rhodes-mark-ii.js"></script>
-	<script src="modules/audio-object/js/ao-signal-detector.js"></script>
-	<script src="modules/audio-object/js/ao-enveloper.js"></script>
+	<script src="audio-object/js/audio-object.js"></script>
+	<script src="audio-object/js/ao-tick.js"></script>
+	<script src="audio-object/js/ao-oscillator.js"></script>
+	<script src="audio-object/js/ao-filter.js"></script>
+	<script src="audio-object/js/ao-flanger.js"></script>
+	<script src="audio-object/js/ao-input.js"></script>
+	<script src="audio-object/js/ao-gain.js"></script>
+	<script src="audio-object/js/ao-saturate.js"></script>
+	<script src="audio-object/js/ao-compress.js"></script>
+	<script src="audio-object/js/ao-tone-synth.js"></script>
+	<script src="audio-object/js/ao-sampler.js"></script>
+	<script src="audio-object/js/ao-sampler-presets-gretsch-kit.js"></script>
+	<script src="audio-object/js/ao-sampler-presets-mis-piano.js"></script>
+	<script src="audio-object/js/ao-sampler-presets-fender-rhodes-mark-ii.js"></script>
+	<script src="audio-object/js/ao-signal-detector.js"></script>
+	<script src="audio-object/js/ao-enveloper.js"></script>
 
-	<script src="modules/midi/js/midi.js"></script>
-	<script src="modules/midi/js/midi-utils.js"></script>
+	<script src="midi/js/midi.js"></script>
+	<script src="midi/js/midi-functions.js"></script>
+	<script src="midi/js/midi-setup.js"></script>
 
 	<script src="clock/js/cue-timer.js"></script>
 	<script src="clock/js/cue-stream.js"></script>
@@ -170,8 +171,8 @@
 			// }
 
 			"midi": [
-				{ "select": ["note"], "transform": [], "target": 1 },
-				{ "select": ["note"], "transform": [], "target": 1 }
+				{ "select": [1, "note"], "transform": [], "target": 1 },
+				{ "select": [1, "note"], "transform": [], "target": 1 }
 			],
 
 			// Sequence
@@ -273,8 +274,8 @@
 				//[21, "sequence", '[slug="4"]', '[slug="piano"]', 3],
 			]
 		});
-	
-	
+
+
 		// Start
 		var audio = stage.audio;
 

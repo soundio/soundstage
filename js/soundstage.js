@@ -422,7 +422,7 @@
 
 		var noteMap = {};
 
-		return MIDI.Input(selector)
+		return MIDI(selector)
 		.map(Event.from)
 		.map(transform)
 		.each(overload(get1, {
