@@ -171,7 +171,6 @@
 			// }
 
 			"midi": [
-				{ "select": [1, "note"], "transform": [], "target": 1 },
 				{ "select": [1, "note"], "transform": [], "target": 1 }
 			],
 
@@ -289,7 +288,6 @@
 		.map(get('keyCode'))
 		.filter(is(32))
 		.each(function() {
-window.yep = true;
 			var toggle = stage.status === "stopped" ? 'start' : 'stop';
 			stage[toggle]();
 			if (toggle === 'stop') {

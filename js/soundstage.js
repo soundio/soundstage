@@ -20,6 +20,7 @@
 	var Fn             = window.Fn;
 	var MIDI           = window.MIDI;
 	var Sequence       = window.Sequence;
+
 	var assign         = Object.assign;
 	var defineProperty = Object.defineProperty;
 	var defineProperties = Object.defineProperties;
@@ -43,7 +44,12 @@
 	var toStringType   = Fn.toStringType;
 	var requestMedia   = AudioObject.requestMedia;
 
+	// A small latency added to incoming MIDI events to reduce timing jitter
+	// in scheduling web audio 'immediately'.
+	var jitterLatency  = 0.008;
+
 	var get1           = get('1');
+	var getData        = get('data');
 
 	var $store = Symbol('store');
 
@@ -105,6 +111,34 @@
 		var id = -1;
 		while (collection.find(++id));
 		return id;
+	}
+
+
+	// Buffer maps
+
+	function mapPush(map, key, value) {
+		if (map[key]) { map[key].push(value); }
+		else { map[key] = [value]; }
+	}
+
+	function mapInsert(map, key, value) {
+		if (map[key]) { insertBy0(map[key], value); }
+		else { map[key] = [value]; }
+	}
+
+	function mapShift(map, key) {
+		return map[key] && map[key].shift();
+	}
+
+	function mapGet(map, key) {
+		return map[key] || nothing;
+	}
+
+	function mapEach(map, fn) {
+		var key;
+		for (key in map) {
+			if (map[key] && map[key].length) { fn(map[key], key); }
+		}
 	}
 
 
@@ -386,7 +420,6 @@
 	};
 
 
-
 	// Events
 
 	var Event = Pool({
@@ -397,22 +430,55 @@
 		reset: function reset() {
 			assign(this, arguments);
 			var n = arguments.length - 1;
-			while (this[++n] !== undefined) { delete this[n]; }
-			this.idle  = false;
+			while (this[++n] !== undefined) { this[n] = undefined; }
+			this.idle = false;
 		},
 
 		isIdle: function isIdle(object) {
 			return !!object.idle;
 		}
-	}, defineProperties({}, {
+	}, defineProperties({
+		toJSON: function() {
+			var array = [];
+			var n = -1;
+			while (this[++n] !== undefined) { array.push(this[n]); }
+			return array;
+		}
+	}, {
 		time:   { writable: true },
 		object: { writable: true },
 		idle:   { writable: true }
 	}));
 
-	Event.from = function toEvent(data) {
-		return Event.apply(null, data);
-	};
+	var normalise = overload(compose(MIDI.toType, getData), {
+		pitch: function(e) {
+			return Event(timeAtDomTime(audio, e.timeStamp), 'pitch', pitchToFloat(2, e.data));
+		},
+
+		pc: function(e) {
+			return Event(timeAtDomTime(audio, e.timeStamp), 'program', e.data[1]);
+		},
+
+		channeltouch: function(e) {
+			return Event(timeAtDomTime(audio, e.timeStamp), 'touch', 'all', e.data[1] / 127);
+		},
+
+		polytouch: function(e) {
+			return Event(timeAtDomTime(audio, e.timeStamp), 'touch', e.data[1], e.data[2] / 127);
+		},
+
+		default: function(e) {
+			return Event(timeAtDomTime(audio, e.timeStamp), MIDI.toType(e.data), e.data[1], e.data[2] / 127) ;
+		}
+	});
+
+	function timeAtDomTime(audio, time) {
+		var stamps = audio.getOutputTimestamp();
+		var audioTime = stamps.contextTime;
+		var domTime   = stamps.performanceTime / 1000;
+		var diff      = domTime - audioTime;
+		return (time / 1000) - (stamps.performanceTime / 1000) + stamps.contextTime ;
+	}
 
 	function MIDIInputStream(selector, transform, object) {
 		if (!selector) {
@@ -420,33 +486,47 @@
 			return;
 		}
 
-		var noteMap = {};
+		var notes = {};
 
 		return MIDI(selector)
-		.map(Event.from)
-		.map(transform)
-		.each(overload(get1, {
+		.map(normalise)
+		.map(overload(get1, {
 			noteon: function(event) {
-				mapPush(noteMap, object);
-				object.start(0, event[2]);
-				return object;
+				// To reduce jitter we add a small amount of latency before
+				// scheduling. Not sure it's really necessary. Play with it.
+				event.object = object.start(event[0] + jitterLatency, event[2], event[3]);
+				mapPush(notes, event[2], event);
 			},
-	
-			noteoff: function(event) {
-				var offObject = mapShift(noteMap, event[2]);
-				if (!offObject) { return object; }
-				object.stop(0, event[2]);
-				return object;
+
+			noteoff: function(event1) {
+				// Get 'noteon' event
+				var event0 = mapShift(notes, event1[2]);
+				if (!event0) { return; }
+				var object = event0.object;
+				object.stop(event1[0] + jitterLatency, event0[2]);
+
+				// Mutate 'noteon' to 'note' event
+				event0[1] = "note";
+				event0[4] = event1[0] - event0[0];
+				return event0.toJSON();
 			},
-	
-			param: function(event) {
+
+			param: function(object, event) {
 				console.log('TODO:', event);
 			},
-	
-			sequence: function() {
+
+			sequence: function(object, event) {
 				console.log('TODO:', event);
+			},
+
+			default: function(event) {
+				event.object = object.automate(event[0] + jitterLatency, event[2], event[3], event[4]);
+				return event.toJSON();
 			}
-		}));
+		}))
+		.each(function(event) {
+			console.log(event);
+		});
 	}
 
 
@@ -598,6 +678,10 @@
 						console.warn('Soundstage: Cannot bind MIDI - object does not exist in objects', array[n].target, object);
 						continue;
 					}
+
+					
+					
+					
 
 					MIDIInputStream(array[n].select, array[n].transform || id, object);
 					
@@ -854,7 +938,7 @@
 			//		}
 			//	}
 
-			console.group('Soundstage: updating graph');
+			console.groupCollapsed('Soundstage: updating graph');
 
 			if (data.name) { this.name = data.name; }
 			if (data.slug) { this.slug = data.slug; }
@@ -1071,38 +1155,38 @@
 	}, {
 		name: 'Delay',
 		defaults: {
-			delay: { min: 0, max: 2, transform: 'linear', value: 0.020 }
+			'delay':         { min: 0, max: 2, transform: 'linear', value: 0.020 }
 		},
 		fn: AudioObject.Delay
 	}, {
 		name: 'Saturate',
 		defaults: {
-	    	frequency: { min: 16,  max: 16384, transform: 'logarithmic', value: 1000 },
-	    	drive:     { min: 0.5, max: 8,     transform: 'cubic',       value: 1 },
-	    	wet:       { min: 0,   max: 2,     transform: 'cubic',       value: 1 }
+			'frequency':     { min: 16,  max: 16384, transform: 'logarithmic', value: 1000 },
+			'drive':         { min: 0.5, max: 8,     transform: 'cubic',       value: 1 },
+			'wet':           { min: 0,   max: 2,     transform: 'cubic',       value: 1 }
 		},
 		fn: AudioObject.Saturate
 	}, {
 		name: 'Flanger',
 		defaults: {
-	    	delay:     { min: 0,      max: 1,    transform: 'quadratic',   value: 0.012 },
-	    	frequency: { min: 0.0625, max: 256,  transform: 'logarithmic', value: 3 },
-	    	depth:     { min: 0,      max: 0.25, transform: 'cubic',       value: 0.0015609922621756954 },
-	    	feedback:  { min: 0,      max: 1,    transform: 'cubic',       value: 0.1 },
-	    	wet:       { min: 0,      max: 1,    transform: 'cubic',       value: 1 },
-	    	dry:       { min: 0,      max: 1,    transform: 'cubic',       value: 1 }
+			'delay':         { min: 0,      max: 1,    transform: 'quadratic',   value: 0.012 },
+			'frequency':     { min: 0.0625, max: 256,  transform: 'logarithmic', value: 3 },
+			'depth':         { min: 0,      max: 0.25, transform: 'cubic',       value: 0.0015609922621756954 },
+			'feedback':      { min: 0,      max: 1,    transform: 'cubic',       value: 0.1 },
+			'wet':           { min: 0,      max: 1,    transform: 'cubic',       value: 1 },
+			'dry':           { min: 0,      max: 1,    transform: 'cubic',       value: 1 }
 		},
 		fn: AudioObject.Flanger
 	}, {
 		name: 'Filter',
 		defaults: {
-	    	'q':             { min: 0,   max: 100,   transform: 'quadratic',   value: 0.25 },
-	    	'frequency':     { min: 16,  max: 16000, transform: 'logarithmic', value: 16 },
-	    	'lfo-frequency': { min: 0.5, max: 64,    transform: 'logarithmic', value: 12 },
-	    	'lfo-depth':     { min: 0,   max: 2400,  transform: 'linear',      value: 0 },
-	    	'env-depth':     { min: 0,   max: 6400,  transform: 'linear',      value: 0 },
-	    	'env-attack':    { min: 0,   max: 0.01,  transform: 'quadratic',   value: 0.005 },
-	    	'env-decay':     { min: 0,   max: 0.01,  transform: 'quadratic',   value: 0.00125 }
+			'q':             { min: 0,   max: 100,   transform: 'quadratic',   value: 0.25 },
+			'frequency':     { min: 16,  max: 16000, transform: 'logarithmic', value: 16 },
+			'lfo-frequency': { min: 0.5, max: 64,    transform: 'logarithmic', value: 12 },
+			'lfo-depth':     { min: 0,   max: 2400,  transform: 'linear',      value: 0 },
+			'env-depth':     { min: 0,   max: 6400,  transform: 'linear',      value: 0 },
+			'env-attack':    { min: 0,   max: 0.01,  transform: 'quadratic',   value: 0.005 },
+			'env-decay':     { min: 0,   max: 0.01,  transform: 'quadratic',   value: 0.00125 }
 		},
 		fn: AudioObject.Filter
 	}, {
@@ -1116,11 +1200,11 @@
 	}, {
 		name: 'Compress',
 		defaults: {
-	    	threshold: { min: -60, max: 0,   transform: 'linear' ,   value: -12   }, // dB
-	    	knee:      { min: 0,   max: 40,  transform: 'linear' ,   value: 8     }, // dB
-	    	ratio:     { min: 0,   max: 20,  transform: 'quadratic', value: 4     }, // dB input / dB output
-	    	attack:    { min: 0,   max: 0.2, transform: 'quadratic', value: 0.020 }, // seconds
-	    	release:   { min: 0,   max: 1,   transform: 'quadratic', value: 0.16  }  // seconds
+			'threshold':     { min: -60, max: 0,   transform: 'linear' ,   value: -12   }, // dB
+			'knee':          { min: 0,   max: 40,  transform: 'linear' ,   value: 8     }, // dB
+			'ratio':         { min: 0,   max: 20,  transform: 'quadratic', value: 4     }, // dB input / dB output
+			'attack':        { min: 0,   max: 0.2, transform: 'quadratic', value: 0.020 }, // seconds
+			'release':       { min: 0,   max: 1,   transform: 'quadratic', value: 0.16  }  // seconds
 		},
 		fn: AudioObject.Compress
 	}, {
