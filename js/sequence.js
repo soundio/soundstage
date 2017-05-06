@@ -46,9 +46,10 @@
 				writable:   true,
 				value: data && data.events ?
 					data.events.length ?
-						new Collection(data.events,	{}) :
+						new Collection(data.events,	{ index: '0' }) :
+						// This supports Functors, for just now
 						data.events :
-					new Collection([], {})
+					new Collection([], { index: '0' })
 			}
 		});
 	}

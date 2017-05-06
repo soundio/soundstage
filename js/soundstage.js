@@ -450,7 +450,7 @@
 		idle:   { writable: true }
 	}));
 
-	var normalise = overload(compose(MIDI.toType, getData), {
+	var normaliseMIDI = overload(compose(MIDI.toType, getData), {
 		pitch: function(e) {
 			return Event(timeAtDomTime(audio, e.timeStamp), 'pitch', pitchToFloat(2, e.data));
 		},
@@ -480,55 +480,7 @@
 		return (time / 1000) - (stamps.performanceTime / 1000) + stamps.contextTime ;
 	}
 
-	function MIDIInputStream(selector, transform, object) {
-		if (!selector) {
-			console.warn('midi connection dropped', selector);
-			return;
-		}
-
-		var notes = {};
-
-		return MIDI(selector)
-		.map(normalise)
-		.map(overload(get1, {
-			noteon: function(event) {
-				// To reduce jitter we add a small amount of latency before
-				// scheduling. Not sure it's really necessary. Play with it.
-				event.object = object.start(event[0] + jitterLatency, event[2], event[3]);
-				mapPush(notes, event[2], event);
-			},
-
-			noteoff: function(event1) {
-				// Get 'noteon' event
-				var event0 = mapShift(notes, event1[2]);
-				if (!event0) { return; }
-				var object = event0.object;
-				object.stop(event1[0] + jitterLatency, event0[2]);
-
-				// Mutate 'noteon' to 'note' event
-				event0[1] = "note";
-				event0[4] = event1[0] - event0[0];
-				return event0.toJSON();
-			},
-
-			param: function(object, event) {
-				console.log('TODO:', event);
-			},
-
-			sequence: function(object, event) {
-				console.log('TODO:', event);
-			},
-
-			default: function(event) {
-				event.object = object.automate(event[0] + jitterLatency, event[2], event[3], event[4]);
-				return event.toJSON();
-			}
-		}))
-		.each(function(event) {
-			console.log(event);
-		});
-	}
-
+	var resolveTransform = noop;
 
 	// Soundstage
 
@@ -667,33 +619,35 @@
 			"update": function(midi, data, constants) {
 				if (!data.midi) { return midi; }
 				var resolveObject = constants.resolveObject;
+				var distribute    = constants.distribute;
 				var array = data.midi;
-				var n     = array.length;
-				var object;
 
-				while (n--) {
-					object = resolveObject(array[n].target);
+				each(function(route) {
+					var object    = resolveObject(route.target);
+					//var transform = resolveTransform(route.transform);
 
 					if (!object) {
-						console.warn('Soundstage: Cannot bind MIDI - object does not exist in objects', array[n].target, object);
-						continue;
+						console.warn('Soundstage: Cannot bind MIDI - object does not exist in objects', route.target, object);
+						return;
 					}
 
-					
-					
-					
+					route.stream = MIDI(route.select)
+					.map(normaliseMIDI)
+					//.map(transform)
+					.each(function(event) {
+						distribute(object, event);
+					});
 
-					MIDIInputStream(array[n].select, array[n].transform || id, object);
-					
-					Soundstage.debug && console.log('Soundstage: created MIDI binding', array[n].select, 'to', object);
-				}
+					midi.push(route);
 
-				midi.push.apply(midi, array);
+					Soundstage.debug && console.log('Soundstage: created MIDI binding', route.select, 'to', object);
+				}, array);
+
 				return midi;
 			},
 
 			"midi-in": function(midi, data, constants) {
-				MIDIInputStream(data.select, resolveObject(data.object));
+				//MIDIInputStream(data.select, resolveObject(data.object));
 				midi.push(data);
 				return midi;
 			},
@@ -721,6 +675,41 @@
 			}
 		})
 	});
+
+	var types = {
+
+		// Event types
+		//
+		// [time, "rate", number, curve]
+		// [time, "meter", numerator, denominator]
+		// [time, "note", number, velocity, duration]
+		// [time, "noteon", number, velocity]
+		// [time, "noteoff", number]
+		// [time, "param", name, value, curve]
+		// [time, "pitch", semitones]
+		// [time, "chord", root, mode, duration]
+		// [time, "sequence", name || events, target, duration, transforms...]
+
+		"note": function(object, event) {
+			return object.start(event[0], event[2], event[3]);
+		},
+
+		"noteon": function(object, event) {
+			return object.start(event[0], event[2], event[3]);
+		},
+		
+		"noteoff": function(object, event) {
+			return object.stop(event[0], event[2]);
+		},
+
+		"param": function(object, event) {
+			return object.automate(event[0], event[2], event[3], event[4]);
+		},
+
+		"default": function(object, event) {
+			console.log()
+		}
+	};
 
 	function Soundstage(data, settings) {
 		if (this === undefined || this === window) {
@@ -788,31 +777,7 @@
 			return sequence.events;
 		}
 
-		var clock = Clock(audio, this.events, {
-			// Event types
-			//
-			// [time, "rate", number, curve]
-			// [time, "meter", numerator, denominator]
-			// [time, "note", number, velocity, duration]
-			// [time, "noteon", number, velocity]
-			// [time, "noteoff", number]
-			// [time, "param", name, value, curve]
-			// [time, "pitch", semitones]
-			// [time, "chord", root, mode, duration]
-			// [time, "sequence", name || events, target, duration, transforms...]
-
-			"note": function(object, event) {
-				return object.start(event[0], event[2], event[3]);
-			},
-
-			"param": function(object, event) {
-				return object.automate(event[0], event[2], event[3], event[4]);
-			},
-
-			//"pitch": function(object, event) {
-			//	return object.automate(time, "pitch", event[3], event[4]);
-			//},
-
+		var distributors = assign({
 			"sequence": function(object, event, stream, transform) {
 				var events = typeof event[2] === 'string' ?
 					findEvents(event[2]) :
@@ -829,7 +794,9 @@
 				.create(events, transform, event[3] ? selectObject(event[3]) : object)
 				.start(event[0]);
 			}
-		});
+		}, types);
+
+		var clock = Clock(audio, this.events, distributors);
 
 		assign(this, clock);
 
@@ -859,14 +826,30 @@
 			status:      { get: function() { return clock.status; } }
 		});
 
+
+		// Set up record stream
+
+		var distributeEvents = overload(get1, distributors);
+		var recordStream     = RecordStream(this);
+		
+		function distribute(event) {
+			var object = event.object;
+			recordStream.push(event);
+			return (types[event[1]] || types.default)(object, event);
+		}
+
+
+		// Set up store
+
 		var store = Store(actions, this, {
 			// Private constants passed to action functions as part of all
 			// action objects
 
-			audio:   audio,
-			clock:   clock,
-			output:  output,
-			presets: AudioObject.presets,
+			audio:      audio,
+			clock:      clock,
+			output:     output,
+			presets:    AudioObject.presets,
+			distribute: distribute,
 
 			resolveObject: resolve(function(object, id) {
 				return object === id || object.id === id ;
