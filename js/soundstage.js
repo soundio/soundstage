@@ -831,7 +831,7 @@ console.log('UPDATE sequence', sequences.length, data.sequences.length);
 				if (!object) {
 					console.warn('Soundstage: object not found for event', event);
 				}
-
+console.log('SEQ', events, object);
 				return stream
 				.create(events, transform, object)
 				.start(event[0]);
@@ -871,12 +871,13 @@ console.log('UPDATE sequence', sequences.length, data.sequences.length);
 
 		// Set up record stream
 
-		var recordStream     = RecordStream(this);
+		var recordStream = RecordStream(this);
 
 		function distribute(event) {
 			var object = event.object;
+			var result = (distributors[event[1]] || distributors.default)(object, event)
 			if (object.recording) { recordStream.push(event); }
-			return (distributors[event[1]] || distributors.default)(object, event);
+			return result;
 		}
 
 

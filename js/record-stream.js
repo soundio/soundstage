@@ -6,11 +6,23 @@
 	var id       = Fn.id;
 	var insert   = Fn.insert;
 	var overload = Fn.overload;
+	var toArray  = Fn.toArray;
 
 	var get0      = get('0');
 	var get1      = get('1');
 	var insertBy0 = insert(get0);
 
+	var lengths = {
+		"rate":     4,
+		"meter":    4,
+		"note":     5,
+		"noteon":   4,
+		"noteoff":  3,
+		"param":    5,
+		"pitch":    3,
+		"chord":    5,
+		"sequence": 5
+	};
 
 	// Buffer maps
 
@@ -47,6 +59,10 @@
 		return id;
 	}
 
+	function assignIdle(event) {
+		event.isIdle = true;
+	}
+
 
 	// RecordStream
 
@@ -78,17 +94,23 @@
 
 			if (!child) {
 				child = new Sequence({  
-					name:   object.name,
-					events: [event]
+					name:   object.name
 				});
 
 				child.id = createId(sequence.sequences);
 				children.set(object, child);
 				sequence.sequences.push(child);
-				insertBy0(sequence.events, [0, 'sequence', child.id, object.id]);
+				insertBy0(sequence.events, [0, 'sequence', child.id, object.id, 60]);
 			}
 
-			child.events.push(event);
+			// Copy the event
+			var array = [];
+			var n = lengths[event[1]];
+			while (n--) { array[n] = event[n]; }
+
+			// Add the copy to events list and release the original
+			child.events.push(array);
+			assignIdle(event);
 		});
 	}
 
