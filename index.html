@@ -138,7 +138,8 @@
 				"name":        "Piano",
 				"slug":        "piano",
 				"sample-map":  "MIS Piano",
-				"filter-type": "off"
+				"filter-type": "off",
+				"recording":   true
 			}, {
 				"id":          2,
 				"type":        "output",
@@ -204,8 +205,8 @@
 				]
 			}, {
 				"id":   2,
-				"name": "London",
-				"slug": "1",
+				"name": "London 1",
+				"slug": "london-1",
 				"events": [
 					[0,   "note", 64, 0.4, 0.5],
 					[0.5, "note", 64, 0.4, 0.5],
@@ -215,8 +216,8 @@
 				]
 			}, {
 				"id":   3,
-				"name": "London",
-				"slug": "2",
+				"name": "London 2",
+				"slug": "london-2",
 				"events": [
 					[0,   "note", 71, 0.5, 0.5],
 					[0.5, "note", 71, 0.5, 0.5],
@@ -226,8 +227,8 @@
 				]
 			}, {
 				"id":   4,
-				"name": "London",
-				"slug": "3",
+				"name": "London 3",
+				"slug": "london-3",
 				"events": [
 					[0,   "note", 76, 0.7, 1],
 					[1,   "note", 76, 0.7, 2],
@@ -235,8 +236,8 @@
 				]
 			}, {
 				"id":   5,
-				"name": "London",
-				"slug": "4",
+				"name": "London 4",
+				"slug": "london-4",
 				"events": [
 					[0,   "note", 76, 0.7, 0.5],
 					[0.5, "note", 74, 0.65, 0.5],
@@ -263,15 +264,10 @@
 
 			"events": [
 				[0, "rate", 2],
-				//[0, "sequence", '[id=6]', '[slug="piano"]', 20],
-				[0,  "sequence", '[slug="1"]', '[slug="piano"]'],
-				//[3,  "sequence", '[slug="1"]', '[slug="piano"]', 3],
-				[6,  "sequence", '[slug="2"]', '[slug="piano"]'],
-				//[9,  "sequence", '[slug="2"]', '[slug="piano"]', 3],
-				[12, "sequence", '[slug="3"]', '[slug="piano"]'],
-				//[15, "sequence", '[slug="3"]', '[slug="piano"]', 3],
-				[18, "sequence", '[slug="4"]', '[slug="piano"]'],
-				//[21, "sequence", '[slug="4"]', '[slug="piano"]', 3],
+				//[0,  "sequence", '[slug="london-1"]', '[slug="piano"]'],
+				//[6,  "sequence", '[slug="london-2"]', '[slug="piano"]'],
+				//[12, "sequence", '[slug="london-3"]', '[slug="piano"]'],
+				//[18, "sequence", '[slug="london-4"]', '[slug="piano"]'],
 			]
 		});
 

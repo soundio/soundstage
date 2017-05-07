@@ -20,6 +20,7 @@
 	var Fn             = window.Fn;
 	var MIDI           = window.MIDI;
 	var Sequence       = window.Sequence;
+	var RecordStream   = window.RecordStream;
 
 	var assign         = Object.assign;
 	var defineProperty = Object.defineProperty;
@@ -50,6 +51,7 @@
 
 	var get1           = get('1');
 	var getData        = get('data');
+	var getId          = get('id');
 
 	var $store = Symbol('store');
 
@@ -62,7 +64,7 @@
 	});
 
 	var selectIn = curry(function(object, selector) {
-		return getPath(selector, object);
+		return getPath(selector, object) ;
 	});
 
 	var update = curry(function update(create, object, data) {
@@ -107,9 +109,10 @@
 		}
 	});
 
-	function createId(collection) {
+	function createId(objects) {
+		var ids = objects.map(get('id'));
 		var id = -1;
-		while (collection.find(++id));
+		while (ids.indexOf(++id) !== -1);
 		return id;
 	}
 
@@ -623,9 +626,9 @@
 				var array = data.midi;
 
 				each(function(route) {
-					var object    = resolveObject(route.target);
+					var object = resolveObject(route.target);
 					//var transform = resolveTransform(route.transform);
-
+console.log('Cretae MIDI route', route.select, object)
 					if (!object) {
 						console.warn('Soundstage: Cannot bind MIDI - object does not exist in objects', route.target, object);
 						return;
@@ -633,10 +636,13 @@
 
 					route.stream = MIDI(route.select)
 					.map(normaliseMIDI)
+					
 					//.map(transform)
-					.each(function(event) {
-						distribute(object, event);
-					});
+					.map(function(event) {
+						event.object = object;
+						return event;
+					})
+					.each(distribute);
 
 					midi.push(route);
 
@@ -670,7 +676,15 @@
 		sequences: Store.actions({
 			"update": function(sequences, data) {
 				if (!data.sequences) { return sequences; }
-				update(sequences, data.sequences);
+
+console.log('UPDATE sequence', sequences.length, data.sequences.length);
+
+				update(function(data) {
+					var sequence = new Sequence(data);
+					sequence.id = data.id || createId(sequences);
+					return sequence;
+				}, sequences, data.sequences);
+
 				return sequences;
 			}
 		})
@@ -751,9 +765,10 @@
 		// timeAtBeat: fn
 
 		var objects        = new Collection([], { index: 'id' });
+		var sequences      = this.sequences;
 		var selectObject   = selectIn(objects);
-		var selectSequence = selectIn(this.sequences);
-		
+		var selectSequence = selectIn(sequences);
+
 		function findEvents(selector) {
 			var type = toStringType(selector);
 			var stream;
@@ -770,28 +785,55 @@
 
 				return stream;
 			}
-	
+
 			// Find sequence via selector
 			var sequence = selectSequence(selector);
+
 			//Soundstage.debug && console.log(selector, sequence);
 			return sequence.events;
 		}
 
+		function findEventsById(id) {
+			var sequence = find(compose(is(id), getId), sequences);
+			if (!sequence) { throw new Error('Sequence not found: ' + id); }
+			return sequence.events;
+		}
+
+		function findById(objects, id) {
+			var object = find(compose(is(id), getId), objects);
+			if (!object) { throw new Error('Object not found: ' + id); }
+			return object;
+		}
+
 		var distributors = assign({
 			"sequence": function(object, event, stream, transform) {
-				var events = typeof event[2] === 'string' ?
-					findEvents(event[2]) :
+				var type = typeof event[2] ;
+				var events =
+					type === 'string' ? findEvents(event[2]) :
+					type === 'number' ? findEventsById(event[2]) :
 					event[2] ;
 
-				if (!events && debug) {
-					console.warn('CueStream: events not found for event', event, events);
+				if (!events) {
+					console.warn('Soundstage: events not found for event', event, events);
 				}
 
 				// Todo: we probably want a blank dummy object in here for cases
 				// where an object is not found.
 
+				var otype  = typeof(event[3]);
+
+				object = event[3] ?
+					otype === 'string' ?
+						selectObject(event[3]) :
+					findById(objects, event[3]) :
+				object;
+
+				if (!object) {
+					console.warn('Soundstage: object not found for event', event);
+				}
+
 				return stream
-				.create(events, transform, event[3] ? selectObject(event[3]) : object)
+				.create(events, transform, object)
 				.start(event[0]);
 			}
 		}, types);
@@ -829,13 +871,12 @@
 
 		// Set up record stream
 
-		var distributeEvents = overload(get1, distributors);
 		var recordStream     = RecordStream(this);
-		
+
 		function distribute(event) {
 			var object = event.object;
-			recordStream.push(event);
-			return (types[event[1]] || types.default)(object, event);
+			if (object.recording) { recordStream.push(event); }
+			return (distributors[event[1]] || distributors.default)(object, event);
 		}
 
 

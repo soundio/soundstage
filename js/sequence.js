@@ -3,7 +3,16 @@
 
 	var Fn         = window.Fn;
 	var Collection = window.Collection;
+	
+	var isDefined  = Fn.isDefined;
 	var slugify    = Fn.slugify;
+
+	function createId(objects) {
+		var ids = objects.map(get('id'));
+		var id = -1;
+		while (ids.indexOf(++id) !== -1);
+		return id;
+	}
 
 	// Sequence
 
@@ -12,6 +21,12 @@
 			// If this is undefined the constructor has been called without the
 			// new keyword, or without a context applied. Do that now.
 			return new Sequence(data);
+		}
+
+		function toSequence(d) {
+			var sequence = new Sequence(d);
+			sequence.id = isDefined(d.id) ? d.id : createId(data.sequences) ;
+			return sequence;
 		}
 
 		Object.defineProperties(this, {
@@ -36,8 +51,8 @@
 			sequences: {
 				enumerable: true,
 				value: new Collection(
-					data && data.sequences ? data.sequences.map(Sequence) : [],
-					{ index: 'slug' }
+					data && data.sequences ? data.sequences.map(toSequence) : [],
+					{ index: 'id' }
 				)
 			},
 
