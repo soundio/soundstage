@@ -8,9 +8,9 @@
 	window.AudioContext = function() {
 		var audio = new AudioContext();
 
-		if (window.console) {
-			console.log('audio: new context, state is "' + audio.state + '"');
-		}
+		//if (window.console) {
+		//	console.log('audio: new context, state is "' + audio.state + '"');
+		//}
 
 		if (audio.state === 'suspended') {
 			var resume = function () {

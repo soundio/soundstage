@@ -4,7 +4,7 @@
 
 (function(window) {
 	if (!window.console || !window.console.log) { return; }
-	console.log('Music  - https://github.com/soundio/music');
+	console.log('Music       - https://github.com/soundio/music');
 })(this);
 
 (function(window) {

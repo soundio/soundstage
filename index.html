@@ -80,16 +80,14 @@
 	<script src="midi/js/midi-setup.js"></script>
 
 	<script src="js/event.js"></script>
-	<script src="clock/js/cue-timer.js"></script>
-	<script src="clock/js/cue-stream.js"></script>
-	<script src="clock/js/clock.js"></script>
-
+	<script src="js/event-stream.js"></script>
+	<script src="js/cue-timer.js"></script>
+	<script src="js/cue-stream.js"></script>
+	<script src="js/clock.js"></script>
 	<script src="js/sequence.js"></script>
 	<script src="js/sequencer.js"></script>
-	<script src="js/event-stream.js"></script>
 
 	<script src="js/soundstage.js"></script>
-	<!--script src="js/soundstage.midi.js"></script-->
 	<script src="js/soundstage.output.js"></script>
 	<script src="js/soundstage.track.js"></script>
 	<script src="js/soundstage.send.js"></script>
@@ -98,8 +96,8 @@
 	<script src="modules/dom/js/dom.js"></script>
 	<script src="js/soundstage-inspector.js"></script>
 	
-	<script src="clock/test/data-chromatic.js"></script>
-	
+	<script src="test/data-chromatic.js"></script>
+
 	<script>
 
 		var requestTick = Fn.requestTick;
@@ -128,17 +126,13 @@
 	
 			"objects": [{
 				"id":          0,
-				"type":        "oscillator",
-				"name":        "Oscillator",
-				"slug":        "oscillator",
-				"frequency":   200,
-				"waveform":    "sine",
-				"gain":        0.0625
+				"type":        "tick",
+				"name":        "Tick",
+				"gain":        1
 			}, {
 				"id":          1,
 				"type":        "sampler",
 				"name":        "Piano",
-				"slug":        "piano",
 				"sample-map":  "MIS Piano",
 				"filter-type": "off",
 				"recording":   true
@@ -162,8 +156,9 @@
 			// }
 
 			"connections": [
+				{ "src": 0, "dst": 2 },
 				{ "src": 3, "dst": 2 },
-				{ "src": 1, "dst": 2 }
+				{ "src": 1, "dst": 2 },
 			],
 
 			// MIDI
@@ -198,17 +193,19 @@
 						return [n / 12, "note", n, 0.5, 1 / 12];
 					}).toArray();
 				})()
-			}, {
-				"id":   1,
-				"name": "Pedal",
-				"slug": "pedal",
-				"events": [
-					[0, "note", 64, 0.95, 8]
-				]
 			}, */{
+				"id":   1,
+				"name": "Metronome",
+				"events": [
+					[0, "note", 64, 0.75, 0.5],
+					[1, "note", 64, 0.5,  0.5],
+					[2, "note", 64, 0.5,  0.5],
+					[3, "note", 64, 0.5,  0.5],
+					[4, "sequence", 1, 0, 240],
+				]
+			}, {
 				"id":   2,
 				"name": "London 1",
-				"slug": "london-1",
 				"events": [
 					[0,   "note", 64, 0.4, 0.5],
 					[0.5, "note", 64, 0.4, 0.5],
@@ -266,6 +263,7 @@
 
 			"events": [
 				[0, "rate", 2],
+				[0,  "sequence", 1, 0, 240],
 				//[0,  "sequence", '[slug="london-1"]', '[slug="piano"]', 100],
 				//[6,  "sequence", '[slug="london-2"]', '[slug="piano"]'],
 				//[12, "sequence", '[slug="london-3"]', '[slug="piano"]'],

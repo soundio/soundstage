@@ -1,6 +1,6 @@
 (function(window) {
 	if (!window.console || !window.console.log) { return; }
-	console.log('Soundstage - http://github.com/soundio/soundstage');
+	console.log('Soundstage  - http://github.com/soundio/soundstage');
 })(this);
 
 
@@ -228,7 +228,7 @@
 		//	object.output = output;
 		//}
 
-		Soundstage.debug && console.log('Soundstage: created', object.id, '"' + object.name + '"');
+		Soundstage.debug && console.log('Soundstage: created AudioObject', object.id, '"' + object.name + '"');
 
 		return object;
 	}
@@ -356,10 +356,11 @@
 			outNode.connect(inNode, outOutput, inInput);
 		}
 		else {
+console.log(outNode, inNode)
 			outNode.connect(inNode);
 		}
 
-		Soundstage.debug && console.log('Soundstage: connected', src.id, '"' + src.name + '" to', dst.id, '"' + dst.name + '"');
+		Soundstage.debug && console.log('Soundstage: created connection ', src.id, '"' + src.name + '" to', dst.id, '"' + dst.name + '"');
 	}
 
 	function disconnect(src, dst, outName, inName, outOutput, inInput, connections) {
@@ -560,9 +561,20 @@
 		connections: Store.actions({
 			"update": function(connections, data, constants) {
 				if (!data.connections) { return connections; }
-				update(function(data) {
-					return new Connection(data, constants.resolveObject);
-				}, connections, data.connections);
+
+				var resolveObject = constants.resolveObject;
+
+				each(function(data) {
+					// Ignore pre-existing connections
+					if (connections.find(function(connect) {
+						return connect.src === data.src && connect.dst === data.dst;
+					})) {
+						return;
+					}
+
+					connections.push(new Connection(data, constants.resolveObject));
+				}, data.connections);
+
 				return connections;
 			},
 
@@ -639,7 +651,7 @@
 				each(function(route) {
 					var object = resolveObject(route.target);
 					//var transform = resolveTransform(route.transform);
-console.log('Cretae MIDI route', route.select, object)
+
 					if (!object) {
 						console.warn('Soundstage: Cannot bind MIDI - object does not exist in objects', route.target, object);
 						return;
@@ -656,8 +668,7 @@ console.log('Cretae MIDI route', route.select, object)
 					.each(distribute);
 
 					midi.push(route);
-
-					Soundstage.debug && console.log('Soundstage: created MIDI binding', route.select, 'to', object);
+					Soundstage.debug && console.log('Soundstage: created MIDI stream [' + route.select.join(', ') + '] to', object.id, '"' + object.name + '"');
 				}, array);
 
 				return midi;
@@ -791,17 +802,15 @@ console.log('Cretae MIDI route', route.select, object)
 					console.warn('Soundstage: sequence has n events', event);
 				}
 
-				object = event[3] ?
+				object = isDefined(event[3]) ?
 					typeof event[3] === 'string' ?
 						selectObject(event[3]) :
 					findObject(event[3]) :
 				object;
 
 				if (!object) {
-					console.warn('Soundstage: object not found for event', event);
+					console.warn('Soundstage: object not found', event);
 				}
-
-console.log('SEQUENCE', event, object, events);
 
 				return stream
 				.create(events, transform, object)
