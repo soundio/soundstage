@@ -5,9 +5,9 @@
 	// Import
 
 	var Fn               = window.Fn;
-	var Pool             = window.Pool;
 	var Stream           = window.Stream;
 	var AudioObject      = window.AudioObject;
+	var Event            = window.SoundstageEvent;
 
 	var assign           = Object.assign;
 	var defineProperty   = Object.defineProperty;
@@ -31,6 +31,7 @@
 	var split            = Fn.split;
 	var toFixed          = Fn.toFixed;
 	var nothing          = Fn.nothing;
+	var release          = Event.release;
 
 	var by0              = by('0');
 	var get0             = get('0');
@@ -222,36 +223,6 @@
 
 	// Events
 
-	var Event = Pool({
-		name: 'CueStream Event',
-
-		create: noop,
-
-		reset: function reset() {
-			assign(this, arguments);
-			var n = arguments.length - 1;
-			while (this[++n] !== undefined) { delete this[n]; }
-			this.idle  = false;
-		},
-
-		isIdle: function isIdle(object) {
-			return !!object.idle;
-		}
-	}, defineProperties({}, {
-		time:   { writable: true },
-		object: { writable: true },
-		idle:   { writable: true }
-	}));
-
-	Event.from = function toEvent(data) {
-		return Event.apply(null, data);
-	};
-
-	function assignIdle(event) {
-		event.idle = true;
-		return event;
-	}
-
 	function isTransitionEvent(event) {
 		// [time, "param", name, value, curve]
 		return event[4] === 'exponential' || event[4] === 'linear';
@@ -330,7 +301,7 @@
 			Soundstage.inspector.drawEvent(audio.currentTime, event[0], event[1], event[2]);
 
 			if (!note) {
-				assignIdle(event);
+				release(event);
 				return;
 			}
 
@@ -348,7 +319,7 @@
 			var object = event.object;
 			event[0] = event.time;
 			object.stop && object.stop(event[0], event[2]);
-			assignIdle(event);
+			release(event);
 
 			Soundstage.inspector &&
 			Soundstage.inspector.drawEvent(audio.currentTime, event[0], event[1], event[2]);
@@ -374,7 +345,7 @@
 			var object = event.object;
 			event[0] = event.time;
 			object.stop && object.stop(event[0]);
-			assignIdle(event);
+			release(event);
 
 			Soundstage.inspector &&
 			Soundstage.inspector.drawBar(event[0], 'black', event[2]);
@@ -397,7 +368,7 @@
 			Soundstage.inspector.drawEvent(audio.currentTime, stopTime, 'noteoff', event[2], 'red');
 		}
 
-		buffer.forEach(assignIdle);
+		buffer.forEach(release);
 
 		// Because length might be immutable...
 		if (buffer.length) { buffer.length = 0; }
@@ -416,7 +387,7 @@
 			Soundstage.inspector.drawEvent(audio.currentTime, stopTime, 'noteoff', event[2], 'purple');
 		}
 
-		buffer.forEach(assignIdle);
+		buffer.forEach(release);
 
 		// Because length might be immutable... 
 		if (buffer.length) { buffer.length = 0; }
@@ -557,7 +528,7 @@
 			cancel(inBuffers, outBuffers, time);
 			//stop(buffer.length, time);
 			mapEach(inBuffers, function(array) {
-				array.forEach(assignIdle);
+				array.forEach(release);
 				array.length = 0;
 			});
 

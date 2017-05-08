@@ -4,6 +4,7 @@
 	var Fn         = window.Fn;
 	var Collection = window.Collection;
 	
+	var assign     = Object.assign;
 	var isDefined  = Fn.isDefined;
 	var slugify    = Fn.slugify;
 

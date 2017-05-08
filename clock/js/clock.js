@@ -4,95 +4,31 @@
 	var Fn             = window.Fn;
 	var AudioObject    = window.AudioObject;
 	var UnityNode      = AudioObject.UnityNode;
-	var CueStream      = window.CueStream;
-	var CueTimer       = window.CueTimer;
-
-	var assign         = Object.assign;
-	var defineProperty = Object.defineProperty;
-
-	var defaults = { rate: 2 };
-
-	var createCueTimer = Fn.cache(function createCueTimer(audio) {
-		return new CueTimer(function() {
-			return audio.currentTime;
-		});
-	});
 
 
-	// Clock
-	//
-	// Intended as a singleton, Clock is a persistent, reusable wrapper for
-	// Cuestream, which is read-once only. It is the `master` object from
-	// whence other cue streams sprout. Clock methods basically map
-	// CueStream methods.
-
-	function Clock(audio, events, fns) {
+	function Clock(audio) {
 		// Support using constructor without the `new` keyword
-		if (!AudioObject.prototype.isPrototypeOf(this)) {
-			return new Clock(audio, events, fns);
+		if (!Clock.prototype.isPrototypeOf(this)) {
+			return new Clock(audio);
 		}
 
-		var timer      = createCueTimer(audio);
-		var rateEvent  = [0, 'rate', defaults.rate];
-		var meterEvent = [0, 'meter', 4, 1];
 		var startTime  = 0;
 		var stopTime   = 0;
 		var stream;
 
-		var clock = {
-			beatAtTime: function(time) { return time - startTime; },
-			timeAtBeat: function(beat) { return startTime + beat; }
-		};
-
-		function createStream() {
-			// Ensures there is always a stream waiting by preparing a new
-			// stream when the previous one ends.
-			stream = new CueStream(timer, clock, events, Fn.id, fns);
-			stream.then(createStream);
-		}
+		this.beatAtTime = function(time) { return time - startTime; };
+		this.timeAtBeat = function(beat) { return startTime + beat; };
 
 		this.start = function(time, beat) {
 			startTime = time || audio.currentTime ;
-			stopTime  = Infinity ;
-
-			// Where there is no meter or rate event at time 0, splice some in
-			if (!events[0] || events[0][0] !== 0) {
-				events.splice(0, 0, meterEvent);
-				events.splice(0, 0, rateEvent);
-			}
-
-			stream.start(startTime);
 			return this;
 		};
 
 		this.stop = function(time) {
 			stopTime = time || audio.currentTime ;
-			stream.stop(time || audio.currentTime);
-
-requestTick(function() {
-	console.table(Pool.snapshot());
-});
-
 			return this;
 		};
 
-		this.beatAtTime = function(time) {
-			return stream ? stream.beatAtTime(time) : 0 ;
-		};
-
-		this.timeAtBeat = function(beat) {
-			return stream ? stream.timeAtBeat(beat) : 0 ;
-		};
-
-		defineProperty(this, 'status', {
-			get: function() { return stream ? stream.status : 'stopped' ; }
-		});
-
-		createStream();
-
-//		this.create = function(events, transform) {
-//			return stream ? stream.create(events, transform) : undefined ;
-//		};
 
 //		Object.defineProperties(this, {
 //			state: {
@@ -145,12 +81,7 @@ requestTick(function() {
 //		});
 	}
 
-	Clock.prototype = AudioObject.prototype;
-
-	assign(Clock, {
-		lookahead: 0.1,
-		frameDuration: 0.2
-	});
+//	Clock.prototype = AudioObject.prototype;
 
 	window.Clock = Clock;
 })(this);

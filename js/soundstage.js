@@ -17,9 +17,11 @@
 	var AudioObject    = window.AudioObject;
 	var Clock          = window.Clock;
 	var Collection     = window.Collection;
+	var Event          = window.SoundstageEvent;
 	var Fn             = window.Fn;
 	var MIDI           = window.MIDI;
 	var Sequence       = window.Sequence;
+	var Sequencer      = window.Sequencer;
 	var RecordStream   = window.RecordStream;
 
 	var assign         = Object.assign;
@@ -30,10 +32,12 @@
 	var compose        = Fn.compose;
 	var curry          = Fn.curry;
 	var each           = Fn.each;
+	var equals         = Fn.equals;
 	var find           = Fn.find;
 	var get            = Fn.get;
 	var getPath        = Fn.getPath;
 	var id             = Fn.id;
+	var insert         = Fn.insert;
 	var is             = Fn.is;
 	var isDefined      = Fn.isDefined;
 	var noop           = Fn.noop;
@@ -49,9 +53,11 @@
 	// in scheduling web audio 'immediately'.
 	var jitterLatency  = 0.008;
 
-	var get1           = get('1');
-	var getData        = get('data');
-	var getId          = get('id');
+	var get0      = get('0');
+	var get1      = get('1');
+	var getId     = get('id');
+	var insertBy0 = insert(get0);
+	var isUrl     = Fn.noop;   // Todo: obviously temporary.
 
 	var $store = Symbol('store');
 
@@ -61,6 +67,11 @@
 		var audio = new window.AudioContext();
 		audio.destination.channelInterpretation = "discrete";
 		return audio;
+	});
+
+	var findIn = curry(function(objects, id) {
+		var hasId = compose(is(id), getId);
+		return find(hasId, objects);
 	});
 
 	var selectIn = curry(function(object, selector) {
@@ -114,6 +125,18 @@
 		var id = -1;
 		while (ids.indexOf(++id) !== -1);
 		return id;
+	}
+
+	function fetchSequence(url) {
+		stream = Stream.of();
+
+		Soundstage
+		.fetchSequence(url)
+		.then(function(sequence) {
+			stream.push.apply(stream, sequence.events);
+		});
+
+		return stream;
 	}
 
 
@@ -425,56 +448,6 @@
 
 	// Events
 
-	var Event = Pool({
-		name: 'Input Event',
-
-		create: noop,
-
-		reset: function reset() {
-			assign(this, arguments);
-			var n = arguments.length - 1;
-			while (this[++n] !== undefined) { this[n] = undefined; }
-			this.idle = false;
-		},
-
-		isIdle: function isIdle(object) {
-			return !!object.idle;
-		}
-	}, defineProperties({
-		toJSON: function() {
-			var array = [];
-			var n = -1;
-			while (this[++n] !== undefined) { array.push(this[n]); }
-			return array;
-		}
-	}, {
-		time:   { writable: true },
-		object: { writable: true },
-		idle:   { writable: true }
-	}));
-
-	var normaliseMIDI = overload(compose(MIDI.toType, getData), {
-		pitch: function(e) {
-			return Event(timeAtDomTime(audio, e.timeStamp), 'pitch', pitchToFloat(2, e.data));
-		},
-
-		pc: function(e) {
-			return Event(timeAtDomTime(audio, e.timeStamp), 'program', e.data[1]);
-		},
-
-		channeltouch: function(e) {
-			return Event(timeAtDomTime(audio, e.timeStamp), 'touch', 'all', e.data[1] / 127);
-		},
-
-		polytouch: function(e) {
-			return Event(timeAtDomTime(audio, e.timeStamp), 'touch', e.data[1], e.data[2] / 127);
-		},
-
-		default: function(e) {
-			return Event(timeAtDomTime(audio, e.timeStamp), MIDI.toType(e.data), e.data[1], e.data[2] / 127) ;
-		}
-	});
-
 	function timeAtDomTime(audio, time) {
 		var stamps = audio.getOutputTimestamp();
 		var audioTime = stamps.contextTime;
@@ -484,6 +457,42 @@
 	}
 
 	var resolveTransform = noop;
+
+	var eventDistributors = {
+
+		// Event types
+		//
+		// [time, "rate", number, curve]
+		// [time, "meter", numerator, denominator]
+		// [time, "note", number, velocity, duration]
+		// [time, "noteon", number, velocity]
+		// [time, "noteoff", number]
+		// [time, "param", name, value, curve]
+		// [time, "pitch", semitones]
+		// [time, "chord", root, mode, duration]
+		// [time, "sequence", name || events, target, duration, transforms...]
+
+		"note": function(object, event) {
+			return object.start(event[0], event[2], event[3]);
+		},
+
+		"noteon": function(object, event) {
+			return object.start(event[0], event[2], event[3]);
+		},
+		
+		"noteoff": function(object, event) {
+			return object.stop(event[0], event[2]);
+		},
+
+		"param": function(object, event) {
+			return object.automate(event[0], event[2], event[3], event[4]);
+		},
+
+		"default": function(object, event) {
+			console.log()
+		}
+	};
+
 
 	// Soundstage
 
@@ -621,6 +630,8 @@
 		midi: Store.actions({
 			"update": function(midi, data, constants) {
 				if (!data.midi) { return midi; }
+
+				var audio         = constants.audio;
 				var resolveObject = constants.resolveObject;
 				var distribute    = constants.distribute;
 				var array = data.midi;
@@ -635,13 +646,13 @@ console.log('Cretae MIDI route', route.select, object)
 					}
 
 					route.stream = MIDI(route.select)
-					.map(normaliseMIDI)
-					
-					//.map(transform)
+					.map(Event.fromMIDI)
 					.map(function(event) {
+						event[0] = timeAtDomTime(audio, event[0]);
 						event.object = object;
 						return event;
 					})
+					//.map(transform)
 					.each(distribute);
 
 					midi.push(route);
@@ -668,7 +679,13 @@ console.log('Cretae MIDI route', route.select, object)
 		events: Store.actions({
 			"update": function(events, data) {
 				if (!data.events) { return events; }
-				events.add.apply(events, data.events);
+
+				each(function(datum) {
+					// If any events are equal to the event we're trying to add, don't.
+					if (events.filter(equals(datum)).length) { return; }
+					insertBy0(events, datum);
+				}, data.events);
+
 				return events;
 			}
 		}),
@@ -676,8 +693,6 @@ console.log('Cretae MIDI route', route.select, object)
 		sequences: Store.actions({
 			"update": function(sequences, data) {
 				if (!data.sequences) { return sequences; }
-
-console.log('UPDATE sequence', sequences.length, data.sequences.length);
 
 				update(function(data) {
 					var sequence = new Sequence(data);
@@ -690,41 +705,6 @@ console.log('UPDATE sequence', sequences.length, data.sequences.length);
 		})
 	});
 
-	var types = {
-
-		// Event types
-		//
-		// [time, "rate", number, curve]
-		// [time, "meter", numerator, denominator]
-		// [time, "note", number, velocity, duration]
-		// [time, "noteon", number, velocity]
-		// [time, "noteoff", number]
-		// [time, "param", name, value, curve]
-		// [time, "pitch", semitones]
-		// [time, "chord", root, mode, duration]
-		// [time, "sequence", name || events, target, duration, transforms...]
-
-		"note": function(object, event) {
-			return object.start(event[0], event[2], event[3]);
-		},
-
-		"noteon": function(object, event) {
-			return object.start(event[0], event[2], event[3]);
-		},
-		
-		"noteoff": function(object, event) {
-			return object.stop(event[0], event[2]);
-		},
-
-		"param": function(object, event) {
-			return object.automate(event[0], event[2], event[3], event[4]);
-		},
-
-		"default": function(object, event) {
-			console.log()
-		}
-	};
-
 	function Soundstage(data, settings) {
 		if (this === undefined || this === window) {
 			// Soundstage has been called without the new keyword
@@ -733,6 +713,24 @@ console.log('UPDATE sequence', sequences.length, data.sequences.length);
 
 		var soundstage = this;
 		var options    = assign({}, defaults, settings);
+
+
+		// Assign properties
+
+		Object.defineProperties(soundstage, {
+			midi:        { value: new Collection([]), enumerable: true },
+			objects:     { value: new Collection([], { index: 'id' }), enumerable: true },
+			connections: { value: new Collection([]), enumerable: true },
+			presets:     { value: Soundstage.presets, enumerable: true },
+			mediaChannelCount: { value: undefined, writable: true, configurable: true },
+			roundTripLatency:  { value: Soundstage.roundTripLatency, writable: true, configurable: true },
+			//tempo: {
+			//	get: function() { return clock.rate * 60; },
+			//	set: function(n) { clock.rate = n / 60; },
+			//	enumerable: true,
+			//	configurable: true
+			//}
+		});
 
 
 		// Initialise soundstage as an Audio Object with no inputs and
@@ -751,96 +749,67 @@ console.log('UPDATE sequence', sequences.length, data.sequences.length);
 		// Initialise soundstage as a Sequence. Assigns:
 		//
 		// name:       string
-		// sequences:  collection
-		// events:     collection
+		// sequences:  array
+		// events:     array
 
 		Sequence.call(this, data);
 
 
-		// Initialise soundstage as a Clock. Assigns:
+		// Initialise soundstage as a Sequencer. Assigns:
 		//
 		// start:      fn
 		// stop:       fn
 		// beatAtTime: fn
 		// timeAtBeat: fn
+		// status:     string
 
-		var objects        = new Collection([], { index: 'id' });
-		var sequences      = this.sequences;
-		var selectObject   = selectIn(objects);
-		var selectSequence = selectIn(sequences);
-
-		function findEvents(selector) {
-			var type = toStringType(selector);
-			var stream;
-	
-			// Find sequence via URL
-			if (type === 'url') {
-				stream = Stream.of();
-	
-				Soundstage
-				.fetchSequence()
-				.then(function(sequence) {
-					stream.push.apply(stream, sequence.events);
-				});
-
-				return stream;
-			}
-
-			// Find sequence via selector
-			var sequence = selectSequence(selector);
-
-			//Soundstage.debug && console.log(selector, sequence);
-			return sequence.events;
-		}
-
-		function findEventsById(id) {
-			var sequence = find(compose(is(id), getId), sequences);
-			if (!sequence) { throw new Error('Sequence not found: ' + id); }
-			return sequence.events;
-		}
-
-		function findById(objects, id) {
-			var object = find(compose(is(id), getId), objects);
-			if (!object) { throw new Error('Object not found: ' + id); }
-			return object;
-		}
+		var clock          = new Clock(audio);
+		var eventStream    = EventStream(audio, this);
+		var findObject     = findIn(this.objects);
+		var findSequence   = findIn(this.sequences);
+		var selectObject   = selectIn(this.objects);
+		var selectSequence = selectIn(this.sequences);
 
 		var distributors = assign({
 			"sequence": function(object, event, stream, transform) {
-				var type = typeof event[2] ;
-				var events =
-					type === 'string' ? findEvents(event[2]) :
-					type === 'number' ? findEventsById(event[2]) :
-					event[2] ;
+				var type = typeof event[2];
+				var sequence = type === 'string' ?
+					isUrl(event[2]) ?
+						fetchSequence(event[2]) :
+					selectSequence(event[2]) :
+				type === 'number' ?
+					findSequence(event[2]) :
+				event[2] ;
 
-				if (!events) {
-					console.warn('Soundstage: events not found for event', event, events);
+				if (!sequence) {
+					console.warn('Soundstage: sequence not found', event);
 				}
 
-				// Todo: we probably want a blank dummy object in here for cases
-				// where an object is not found.
+				var events = sequence.events;
 
-				var otype  = typeof(event[3]);
+				if (!events || !events.length) {
+					console.warn('Soundstage: sequence has n events', event);
+				}
 
 				object = event[3] ?
-					otype === 'string' ?
+					typeof event[3] === 'string' ?
 						selectObject(event[3]) :
-					findById(objects, event[3]) :
+					findObject(event[3]) :
 				object;
 
 				if (!object) {
 					console.warn('Soundstage: object not found for event', event);
 				}
-console.log('SEQ', events, object);
+
+console.log('SEQUENCE', event, object, events);
+
 				return stream
 				.create(events, transform, object)
 				.start(event[0]);
 			}
-		}, types);
+		}, eventDistributors);
 
-		var clock = Clock(audio, this.events, distributors);
-
-		assign(this, clock);
+		Sequencer.call(this, audio, clock, distributors, eventStream);
 
 
 		// Methods
@@ -848,50 +817,22 @@ console.log('SEQ', events, object);
 		this.select = selectIn(this);
 
 
-		// Properties
-
-		Object.defineProperties(soundstage, {
-			midi:        { value: new Collection([]), enumerable: true },
-			objects:     { value: objects, enumerable: true },
-			inputs:      { value: objects.sub({ type: 'input' }, { sort: byChannels }) },
-			outputs:     { value: objects.sub({ type: 'output' }, { sort: byChannels }) },
-			connections: { value: new Collection([]), enumerable: true },
-			presets:     { value: Soundstage.presets, enumerable: true },
-			mediaChannelCount: { value: undefined, writable: true, configurable: true },
-			roundTripLatency:  { value: Soundstage.roundTripLatency, writable: true, configurable: true },
-			//tempo: {
-			//	get: function() { return clock.rate * 60; },
-			//	set: function(n) { clock.rate = n / 60; },
-			//	enumerable: true,
-			//	configurable: true
-			//}
-			status:      { get: function() { return clock.status; } }
-		});
-
-
-		// Set up record stream
-
-		var recordStream = RecordStream(this);
-
-		function distribute(event) {
-			var object = event.object;
-			var result = (distributors[event[1]] || distributors.default)(object, event)
-			if (object.recording) { recordStream.push(event); }
-			return result;
-		}
-
-
 		// Set up store
 
 		var store = Store(actions, this, {
-			// Private constants passed to action functions as part of all
-			// action objects
+			// Private constants assigned to action objects
 
 			audio:      audio,
 			clock:      clock,
 			output:     output,
 			presets:    AudioObject.presets,
-			distribute: distribute,
+
+			distribute: function distribute(event) {
+				var object = event.object;
+				var result = (distributors[event[1]] || distributors.default)(object, event)
+				eventStream.push(event);
+				return result;
+			},
 
 			resolveObject: resolve(function(object, id) {
 				return object === id || object.id === id ;
