@@ -1,6 +1,3 @@
-[submodule "modules/collection"]
-	path = modules/collection
-	url = https://github.com/stephband/collection.git
 [submodule "fn"]
 	path = fn
 	url = https://github.com/stephband/Fn.git
