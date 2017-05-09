@@ -17,6 +17,7 @@
 	var release        = Event.release;
 
 	var get0      = get('0');
+	var get1      = get('1');
 	var getId     = get('id');
 	var insertBy0 = insert(get0);
 
@@ -136,6 +137,26 @@
 
 		this.timeAtBeat = function(beat) {
 			return stream ? stream.timeAtBeat(beat) : 0 ;
+		};
+
+		this.barAtBeat = function(beat) {
+			
+		};
+
+		this.beatAtBar = function(bar) {
+			
+		};
+
+		// Temporary, while CueStream takes an object instead of a function for distribute...
+		// however, this distribute should not have access to "sequence" triggering...
+//		function distribute(event) {
+//			var object = event.object;
+//console.log('DIST', event);
+//			return (distributors[event[1]] || distributors.default)(object, event);
+//		}
+
+		this.create = function(generator, object) {
+			return new GeneratorStream(timer, stream, generator, distributors, object);
 		};
 
 		defineProperty(this, 'status', {

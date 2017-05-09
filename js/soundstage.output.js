@@ -11,7 +11,7 @@
 
 	function Output(audio, settings, presets, clock, output) {
 		var options = assign({}, defaults, settings);
-		var input = audio.createChannelSplitter();
+		var input = audio.createChannelSplitter(2);
 		var channels = [];
 		var object = this;
 
@@ -25,13 +25,17 @@
 					if (array + '' === channels + '') { return; }
 
 					//input.disconnect(output);
-					var count = array.length;
+					var count = array.length > output.numberOfInputs ?
+						output.numberOfInputs :
+						array.length ;
 
 					while (count--) {
 						// output.channelCount may not be as high as the index
-						// of channel in array. If the output soundcard is mono
-						// Route all sound to channel 0.
-						input.connect(output, count, output.channelCount === 1 ? 0 : array[count]);
+						// of channel in array. Ignore routings to channels the
+						// output does not have.
+						if (array[count] > output.channelCount) { continue; }
+						
+						input.connect(output, count, array[count]);
 						channels[count] = array[count];
 					}
 

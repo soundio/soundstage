@@ -50,7 +50,7 @@
 
 			// For debugging
 			if (Soundstage.inspector) {
-				Soundstage.inspector.drawCue(audio.currentTime, time);
+				Soundstage.inspector.drawCue(now(), time);
 			}
 		}
 

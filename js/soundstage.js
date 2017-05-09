@@ -19,6 +19,7 @@
 	var Collection     = window.Collection;
 	var Event          = window.SoundstageEvent;
 	var Fn             = window.Fn;
+	var Metronome      = window.Metronome;
 	var MIDI           = window.MIDI;
 	var Sequence       = window.Sequence;
 	var Sequencer      = window.Sequencer;
@@ -63,9 +64,12 @@
 
 	var defaults = {};
 
+	var channelCountLimit = 12;
+
 	var createAudio = cache(function() {
 		var audio = new window.AudioContext();
 		audio.destination.channelInterpretation = "discrete";
+		audio.destination.channelCount = audio.destination.maxChannelCount;
 		return audio;
 	});
 
@@ -196,14 +200,14 @@
 		}
 	}
 
-	function create(audio, type, settings, clock, presets, output, objects) {
+	function create(audio, type, settings, sequencer, presets, output, objects) {
 		type = type || settings.type;
 
 		if (!registry[type]) {
 			throw new Error('soundstage: Calling Soundstage.create(type, settings) unregistered type: ' + type);
 		}
 
-		var object = new registry[type][0](audio, settings, presets, clock, output);
+		var object = new registry[type][0](audio, settings, sequencer, presets, output);
 
 		Object.defineProperty(object, 'id', {
 			value: settings && settings.id || createId(objects),
@@ -253,7 +257,10 @@
 		// Safari sets audio.destination.maxChannelCount to
 		// 0 - possibly something to do with not yet
 		// supporting multichannel audio, but still annoying.
-		var count = destination.maxChannelCount || 2;
+		var count = destination.maxChannelCount > channelCountLimit ?
+			channelCountLimit :
+			destination.maxChannelCount ;
+
 		var merger = audio.createChannelMerger(count);
 
 		// Used by meter-canvas controller - there is no way to automatically
@@ -356,7 +363,6 @@
 			outNode.connect(inNode, outOutput, inInput);
 		}
 		else {
-console.log(outNode, inNode)
 			outNode.connect(inNode);
 		}
 
@@ -639,6 +645,13 @@ console.log(outNode, inNode)
 			}
 		}),
 
+		metronome: Store.actions({
+			"update": function(metronome, data, constants) {
+				if (!data.metronome) { return metronome; }
+				return assign(metronome, data.metronome);
+			}
+		}),
+
 		midi: Store.actions({
 			"update": function(midi, data, constants) {
 				if (!data.midi) { return midi; }
@@ -815,11 +828,23 @@ console.log(outNode, inNode)
 				return stream
 				.create(events, transform, object)
 				.start(event[0]);
+			},
+
+			"meter": function(object, event) {
+				
 			}
 		}, eventDistributors);
 
 		Sequencer.call(this, audio, clock, distributors, eventStream);
 
+
+
+		// Metronome
+
+		var metronome = this.metronome = new Metronome(audio, data.metronome, this);
+		this.metronome.start(0);
+
+		//metronome.start(0);
 
 		// Methods
 
@@ -838,7 +863,7 @@ console.log(outNode, inNode)
 
 			distribute: function distribute(event) {
 				var object = event.object;
-				var result = (distributors[event[1]] || distributors.default)(object, event)
+				var result = (distributors[event[1]] || distributors.default)(object, event);
 				eventStream.push(event);
 				return result;
 			},
