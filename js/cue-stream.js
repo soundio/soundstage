@@ -350,6 +350,12 @@
 			Soundstage.inspector &&
 			Soundstage.inspector.drawBar(event[0], 'black', event[2]);
 		});
+
+		distribute(mapGet(inBuffers, 'internal'), assignTime, eventIsInCue, t1, t2, function(event) {
+			var fn = event[2];
+			release(event);
+			fn(event.time);
+		});
 	}
 
 	function cancelIns(stopTime, buffer) {
@@ -518,12 +524,6 @@
 			t2 === t3 ? stopCue(t3) : timer.request(cue) ;
 		}
 
-		function startCue(time) {
-			return time > t1 ?
-				cue(time) :
-				timer.request(startCue) ;
-		}
-
 		function stopCue(time) {
 			cancel(inBuffers, outBuffers, time);
 			//stop(buffer.length, time);
@@ -531,28 +531,41 @@
 				array.forEach(release);
 				array.length = 0;
 			});
-
+		
 			stream.status = "done";
 			console.groupEnd();
 		}
 
-		this.start = function(time, beat) {
+		function startCue(time) {
+			return time > t1 ?
+				cue(time) :
+				timer.request(startCue) ;
+		}
+
+		stream.start = function(time, beat) {
 			startBeat = clock.beatAtTime(time);
 			startTime = t1 = time;
-
+		
 			// Fill data with events and start observing the timer
 			each(push, events);
 			startCue(timer.currentTime);
-
+		
 			// Update state
 			stream.status = 'cued';
-
+		
 			// Log in timeline
 			if (Soundstage.inspector) {
 				Soundstage.inspector.drawBar(time, 'orange', 'CueStream.start ' + clock.constructor.name);
 			}
-
+		
 			return stream;
+		};
+
+		this.cue = function(beat, fn) {
+			// Schedule a fn to fire on a given cue
+			var event = Event(beat, "internal-cue", fn);
+			mapInsert(inBuffers, 'internal', event);
+			return this;
 		};
 
 		this.push = function() {
@@ -579,9 +592,12 @@
 		this.then = promise.then.bind(promise);
 
 		this.create = function create(events, transform, object) {
-			// timer, clock, events, transform, fns, object
-			var child = new CueStream(timer, stream, events, transform || id, fns, object);
-			//stream.then(child.stop);
+			var child = typeof events === 'function' ?
+				// timer, master, generate, distribute, object
+				new GeneratorStream(timer, stream, events, fns, object) :
+				// timer, master, events, transform, fns, object
+				new CueStream(timer, stream, events, id, fns, object) ;
+			stream.then(child.stop);
 			return child;
 		};
 

@@ -27,10 +27,9 @@
 
 		// Private
 
-		function generate(t1, t2) {
-console.log(t1, t2);
-			var b1 = sequencer.beatAtTime(t1);
-			var b2 = sequencer.beatAtTime(t2);
+		function generate(cue) {
+			var b1 = sequencer.beatAtTime(cue.t1);
+			var b2 = sequencer.beatAtTime(cue.t2);
 			var beat = Math.ceil(b1);
 			var tick = metronome.tick;
 			var tock = metronome.tock;
@@ -49,13 +48,13 @@ console.log(t1, t2);
 
 		// Public
 
-		this.start = function start(time) {
-			var stream = sequencer.create(generate, source).start(time || audio.currentTime);
+		this.start = function start() {
+			var stream = sequencer.create(generate, source);
+			sequencer.cue(0, stream.start);
 
 			stream.then(function(t) {
 				if (!playing) { return; }
-console.log('HEYYYY', t);
-				start(0);
+				start();
 			});
 
 			playing = true;

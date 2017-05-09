@@ -67,6 +67,7 @@
 		}
 
 		function reset(time) {
+console.log('THEN')
 			var beat = sequencer.beatAtTime(time);
 
 			// Set duration of newly recorded sequence events
@@ -104,13 +105,13 @@
 			stream.stop(stopTime);
 			clock.stop(stopTime);
 
-			// Log the state of Pool on stop and again shortly after stop
-			requestTick(function() {
+			// Log the state of Pool shortly after stop
+			setTimeout(function() {
 				var toArray = Fn.toArray;
 
-				console.log('Events');
+				console.log('Events ----------------------------');
 				console.table(toArray(sequencer.events));
-				console.log('Sequences');
+				console.log('Sequences -------------------------');
 				console.table(
 					toArray(sequencer.sequences)
 					.map(function(sequence) {
@@ -123,10 +124,9 @@
 						};
 					})
 				);
-				console.log('Pool');
+				console.log('Pool ------------------------------');
 				console.table(Pool.snapshot());
-			});
-			setTimeout(function() { console.table(Pool.snapshot()); }, 4000);
+			}, 200);
 
 			return this;
 		};
@@ -147,6 +147,11 @@
 			
 		};
 
+		this.cue = function(beat, fn) {
+			stream.cue(beat, fn);
+		};
+
+
 		// Temporary, while CueStream takes an object instead of a function for distribute...
 		// however, this distribute should not have access to "sequence" triggering...
 //		function distribute(event) {
@@ -156,7 +161,7 @@
 //		}
 
 		this.create = function(generator, object) {
-			return new GeneratorStream(timer, stream, generator, distributors, object);
+			return stream.create(generator, id, object);
 		};
 
 		defineProperty(this, 'status', {

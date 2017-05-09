@@ -413,6 +413,7 @@
 		var startTime    = 0;
 		var t1           = 0;
 		var t2           = 0;
+		var cueObject    = {};
 		var stopTime;
 
 		// Pipes for updating data
@@ -477,8 +478,10 @@
 			// Update locals
 			t1 = startTime > t2 ? startTime : t2 ;
 			t2 = time >= t3 ? t3 : time ;
+			cueObject.t1 = t1;
+			cueObject.t2 = t2;
 //console.log(timer, master, generate, distribute, object)
-			each(pipeToBuffer, generate(t1, t2));
+			each(pipeToBuffer, generate(cueObject));
 
 			// Distribute events from buffers
 			distributeEvents(inBuffers, outBuffers, t1, t2, assignTime, object, distributors, stream);
@@ -541,13 +544,13 @@
 
 		this.then = promise.then.bind(promise);
 
-		this.create = function create(generate, object) {
-			var child = typeof generate === 'function' ?
+		this.create = function create(events, transform, object) {
+			var child = typeof events === 'function' ?
 				// timer, master, generate, distribute, object
-				new GeneratorStream(timer, stream, generate, distribute, object) :
+				new GeneratorStream(timer, stream, events, distribute, object) :
 				// timer, master, events, transform, fns, object
-				new CueStream(timer, stream, generate, id, distribute, object) ;
-			//stream.then(child.stop);
+				new CueStream(timer, stream, events, id, distribute, object) ;
+			stream.then(child.stop);
 			return child;
 		};
 
