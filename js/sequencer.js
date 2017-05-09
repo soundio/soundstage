@@ -67,7 +67,6 @@
 		}
 
 		function reset(time) {
-console.log('THEN')
 			var beat = sequencer.beatAtTime(time);
 
 			// Set duration of newly recorded sequence events
@@ -139,13 +138,13 @@ console.log('THEN')
 			return stream ? stream.timeAtBeat(beat) : 0 ;
 		};
 
-		this.barAtBeat = function(beat) {
-			
-		};
+		// Mix in Meter. Assigns:
+		//
+		// beatAtBar:  fn(n)
+		// barAtBeat:  fn(n)
+		// resetMeter: fn(array)
 
-		this.beatAtBar = function(bar) {
-			
-		};
+		Meter.call(this, events);
 
 		this.cue = function(beat, fn) {
 			stream.cue(beat, fn);
