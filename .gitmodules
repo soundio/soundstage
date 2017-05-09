@@ -10,3 +10,6 @@
 [submodule "audio-object"]
 	path = audio-object
 	url = https://github.com/soundio/audio-object.git
+[submodule "collection"]
+	path = collection
+	url = https://github.com/stephband/collection.git
