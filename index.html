@@ -4,11 +4,11 @@
 
 	<title>Soundstage</title>
 	
-	<link rel="stylesheet" href="//stephen.band/bolt/css/normalise.css" />
-	<link rel="stylesheet" href="//stephen.band/bolt/css/block.css" />
-	<link rel="stylesheet" href="//stephen.band/bolt/css/text.css" />
-	<link rel="stylesheet" href="//stephen.band/bolt/css/grid.css" />
-	<link rel="stylesheet" href="//stephen.band/bolt/css/dom.css" />
+	<link rel="stylesheet" href="http://stephen.band/bolt/css/normalise.css" />
+	<link rel="stylesheet" href="http://stephen.band/bolt/css/block.css" />
+	<link rel="stylesheet" href="http://stephen.band/bolt/css/text.css" />
+	<link rel="stylesheet" href="http://stephen.band/bolt/css/grid.css" />
+	<link rel="stylesheet" href="http://stephen.band/bolt/css/dom.css" />
 	
 	<link rel="stylesheet" href="css/soundstage-inspector.css" />
 	
@@ -36,7 +36,12 @@
 
 		/><output class="grid-1/6 block">♩= <span id="tempo-output"></span></output>
 	</div>
-	
+
+	<div class="grid-block block">
+		<div class="grid-1/6 block"></div
+		><button class="grid-2/3 block" id="play-button">Play / Stop</button>
+	</div>
+
 	<script src="polyfills/window.audiocontext.js"></script>
 	<script src="polyfills/navigator.getusermedia.js"></script>
 	
@@ -154,7 +159,7 @@
 			// }
 
 			"connections": [
-				{ "src": 3, "dst": 2 },
+			//	{ "src": 3, "dst": 2 },
 				{ "src": 1, "dst": 2 },
 			],
 
@@ -271,6 +276,13 @@
 		.on('keydown', document)
 		.map(get('keyCode'))
 		.filter(is(32))
+		.each(function() {
+			var toggle = stage.status === "stopped" ? 'start' : 'stop';
+			stage[toggle]();
+		});
+
+		dom
+		.on('click', dom('#play-button')[0])
 		.each(function() {
 			var toggle = stage.status === "stopped" ? 'start' : 'stop';
 			stage[toggle]();
