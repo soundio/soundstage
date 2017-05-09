@@ -11,31 +11,30 @@
 	<link rel="stylesheet" href="//stephen.band/bolt/css/dom.css" />
 	
 	<link rel="stylesheet" href="css/soundstage-inspector.css" />
+	
+	<style>
+		body > .grid-block {
+			margin-left: 0;
+			margin-right: 0;
+		}
+	</style>
 </head>
 
 <body>
 	<div class="grid-block block">
-		<section class="grid-1/5 block">
-			<h3>Plugs</h3>
-			<h3>Inputs</h3>
-			<h3>Outputs</h3>
-		</section
-		
-		><section class="grid-1/5 block">
-			<h3>Sequences</h3>
-		</section
-		
-		><section class="grid-1/5 block">
-			<h3>Events</h3>
-		</section
+		<select class="grid-1/6 block" id="meter-select">
+			<option value="2/4">2/4</option>
+			<option value="3/4">3/4</option>
+			<option value="4/4" selected>4/4</option>
+			<option value="5/4">5/4</option>
+			<option value="6/4">6/4</option>
+			<option value="7/4">7/4</option>
+			<option value="6/8">6/8</option>
+		</select
 
-		><section class="grid-1/5 block">
-		
-		</section
-		
-		><section class="grid-1/5 block">
-		
-		</section>
+		><input class="grid-2/3 block" type="range" min="40" max="400" id="tempo-input"
+
+		/><output class="grid-1/6 block">♩= <span id="tempo-output"></span></output>
 	</div>
 	
 	<script src="polyfills/window.audiocontext.js"></script>
@@ -252,9 +251,7 @@
 
 			"events": [
 				[0, "rate", 4],
-				[0, "meter", 4],
-				[8, "meter", 5],
-				[13, "meter", 3],
+				[0, "meter", 4, 1],
 				//[0,  "sequence", 2, 1, 100],
 				//[6,  "sequence", '[slug="london-2"]', 1],
 				//[12, "sequence", '[slug="london-3"]', 1],
@@ -264,12 +261,11 @@
 
 
 		// Start
-		var audio = stage.audio;
 
-		//stage.start(12);
-
-		var get = Fn.get;
-		var is  = Fn.is;
+		var choose    = Fn.choose;
+		var compose   = Fn.compose;
+		var get       = Fn.get;
+		var is        = Fn.is;
 
 		dom
 		.on('keydown', document)
@@ -279,6 +275,95 @@
 			var toggle = stage.status === "stopped" ? 'start' : 'stop';
 			stage[toggle]();
 		});
+
+
+		// Tempo input
+
+		var getTarget   = get('target');
+		var isRate      = compose(is('rate'), get('1'));
+		var tempoInput  = dom('#tempo-input')[0];
+		var tempoOutput = dom('#tempo-output')[0];
+
+		dom
+		.on('input', tempoInput)
+		.map(getTarget)
+		.each(function(node) {
+			var rate
+				= stage.events.filter(isRate)[0][2]
+				= parseInt(node.value, 10) / 60 ;
+
+			tempoOutput.innerHTML = parseInt(node.value, 10).toFixed(1);
+		});
+
+
+		// Meter input
+
+		var getValue    = get('value');
+		var isMeter     = compose(is('meter'), get('1'));
+		var meterSelect = dom('#meter-select')[0];
+
+		dom
+		.on('input', meterSelect)
+		.map(getTarget)
+		.map(getValue)
+		.map(choose({
+			'2/4': function() {
+				var meter = stage.events.filter(isMeter)[0];
+				meter[2] = 2;
+				meter[3] = 1;
+				return meter;
+			},
+
+			'3/4': function() {
+				var meter = stage.events.filter(isMeter)[0];
+				meter[2] = 3;
+				meter[3] = 1;
+				return meter;
+			},
+
+			'4/4': function() {
+				var meter = stage.events.filter(isMeter)[0];
+				meter[2] = 4;
+				meter[3] = 1;
+				return meter;
+			},
+
+			'5/4': function() {
+				var meter = stage.events.filter(isMeter)[0];
+				meter[2] = 5;
+				meter[3] = 1;
+				return meter;
+			},
+
+			'6/4': function() {
+				var meter = stage.events.filter(isMeter)[0];
+				meter[2] = 6;
+				meter[3] = 1;
+				return meter;
+			},
+
+			'7/4': function() {
+				var meter = stage.events.filter(isMeter)[0];
+				meter[2] = 7;
+				meter[3] = 1;
+				return meter;
+			},
+
+			'6/8': function() {
+				var meter = stage.events.filter(isMeter)[0];
+				meter[2] = 3;
+				meter[3] = 0.5;
+				return meter;
+			}
+		}))
+		.each(function() {
+			stage.resetMeter(stage.events);
+		});
+
+
+		// Exose for debugging
+
+		var audio = stage.audio;
 
 	</script>
 </body>

@@ -735,6 +735,10 @@
 			return new Soundstage(data, settings);
 		}
 
+		if (isDefined(data.version) && data.version !== this.version) {
+			throw new Error('Soundstage: version mismatch.', this.version, data.version);
+		}
+
 		var soundstage = this;
 		var options    = assign({}, defaults, settings);
 
@@ -886,6 +890,8 @@
 	Object.setPrototypeOf(Soundstage.prototype, AudioObject.prototype);
 
 	assign(Soundstage.prototype, {
+		version: 0,
+
 		create: function(settings) {
 			this[$store].modify('create', settings);
 			return this;
