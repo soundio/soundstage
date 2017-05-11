@@ -8,6 +8,7 @@
 	var Stream           = window.Stream;
 	var AudioObject      = window.AudioObject;
 	var Event            = window.SoundstageEvent;
+	var Location         = window.Location;
 
 	var assign           = Object.assign;
 	var defineProperty   = Object.defineProperty;
@@ -35,20 +36,10 @@
 
 	var by0              = by('0');
 	var get0             = get('0');
-	var get1             = get('1');
-	var get2             = get('2');
-	var isRateEvent      = compose(is('rate'), get1);
-	var isParamEvent     = compose(is('param'), get1);
-	var isOtherEvent     = compose(function(type) {
-		return type !== 'rate' && type !== 'param';
-	}, get1);
 	var rest5            = rest(5);
-	var sortBy0          = sort(by0);
 	var insertBy0        = insert(get0);
 	var isString         = function(string) { return typeof string === 'string'; };
 
-	var startRateEvent   = Object.freeze([0, "rate", 1]);
-	
 
 	// Buffer maps
 
@@ -75,90 +66,6 @@
 		for (key in map) {
 			if (map[key] && map[key].length) { fn(map[key], key); }
 		}
-	}
-
-
-	// Rates, beats and times
-
-	function log(n, x) { return Math.log(x) / Math.log(n); }
-
-	function root(n, x) { return Math.pow(x, 1/n); }
-
-	function exponentialBeatAtTime(r0, r1, n, t) {
-		// r0 = rate at origin
-		// r1 = rate at destination
-		// n  = beat duration from start to destination
-		// t  = current time
-		var a = root(n, r1 / r0);
-		return -1 * log(a, (1 - t * Math.log(a)));
-	}
-
-	function stepBeatAtTime(r0, t) {
-		// r0 = start rate
-		// t  = current time
-		return t * r0;
-	}
-
-	function exponentialTimeAtBeat(r0, r1, n, b) {
-		// r0 = rate at start
-		// r1 = rate at end
-		// n  = beat count from start to end
-		// b  = current beat
-		var a = root(n, r1 / r0);
-		return (1 - Math.pow(a, -b)) / (Math.log(a) * r0);
-	}
-
-	function stepTimeAtBeat(r0, b) {
-		// r0 = start rate
-		// b  = current beat
-		return b / r0;
-	}
-
-	function beatAtTime(e0, e1, time) {
-		// Returns beat relative to e0[0], where time is time from e0 time
-		return e1 && e1[3] === "exponential" ?
-			exponentialBeatAtTime(e0[2], e1[2], e1[0] - e0[0], time) :
-			stepBeatAtTime(e0[2], time) ;
-	}
-
-	function timeAtBeat(e0, e1, beat) {
-		// Returns time relative to e0 time, where beat is beat from e0[0]
-		return e1 && e1[3] === "exponential" ?
-			exponentialTimeAtBeat(e0[2], e1[2], e1[0] - e0[0], beat) :
-			stepTimeAtBeat(e0[2], beat) ;
-	}
-
-	var eventToData = curry(function eventToData(rates, e1) {
-		var n0 = rates[rates.length - 1];
-		var t0 = n0[0];
-		var e0 = n0[1];
-		var n1 = [t0 + timeAtBeat(e0, e1, e1[0] - e0[0]), e1];
-		rates.push(n1);
-		return n1;
-	});
-
-	function beatAtTimeStream(rates, stream, time) {
-		var n = 0;
-		var t0 = rates[n][0];
-		var e0 = rates[n][1];
-		while ((rates[++n] || stream.shift()) && time > rates[n][0]) {
-			t0 = rates[n][0];
-			e0 = rates[n][1];
-		}
-		var e1 = rates[n] ? rates[n][1] : stream.shift();
-		return e0[0] + beatAtTime(e0, e1, time - t0);
-	}
-
-	function timeAtBeatStream(rates, stream, beat) {
-		var n = 0;
-		var t0 = rates[n][0];
-		var e0 = rates[n][1];
-		while ((rates[++n] || stream.shift()) && rates[n] && beat > rates[n][1][0]) {
-			t0 = rates[n][0];
-			e0 = rates[n][1];
-		}
-		var e1 = rates[n] ? rates[n][1] : stream.shift();
-		return t0 + timeAtBeat(e0, e1, beat - e0[0]);
 	}
 
 
@@ -445,8 +352,9 @@
 
 	function CueStream(timer, clock, events, transform, fns, object) {
 		var stream       = this;
-		var rateCache    = [[0, startRateEvent]];
-		var rateStream   = nothing;
+		var location     = new Location(events);
+		//var rateCache    = [[0, startRateEvent]];
+		//var rateStream   = nothing;
 		var inBuffers    = {};
 		var outBuffers   = {};
 		var paramBuffers = {};
@@ -459,17 +367,20 @@
 		// Pipes for updating data
 		var pipes = {
 			rate: function(event) {
-				// If the new rate event is later than the last cached time
-				// just push it in
-				if (rateCache[rateCache.length - 1][0] < event[0]) {
-					mapInsert(inBuffers, 'rate', event);
-				}
-				// Otherwise destroy the cache and create a new rates buffer
-				else {
-					inBuffers.rate = events.filter(isRateEvent);
-					rateCache.length = 1;
-					rateStream = RateStream(inBuffers.rate).map(eventToData(rateCache));
-				}
+			// TODO: Create a new location object, but only when necessary
+
+			//	// If the new rate event is later than the last cached time
+			//	// just push it in
+			//	if (rateCache[rateCache.length - 1][0] < event[0]) {
+			//		mapInsert(inBuffers, 'rate', event);
+			//	}
+			//	// Otherwise destroy the cache and create a new rates buffer
+			//	else {
+			//		//inBuffers.rate = events.filter(isRateEvent);
+			//		//rateCache.length = 1;
+			//		//rateStream = RateStream(inBuffers.rate).map(eventToData(rateCache));
+			//		location = new Location(events);
+			//	}
 			},
 
 			param: pipe(Event.from, transform, function(event) {
@@ -490,11 +401,13 @@
 		};
 
 		function beatAtTime(time) {
-			return beatAtTimeStream(rateCache, rateStream, clock.beatAtTime(time) - startBeat);
+			return location.beatAtLoc(clock.beatAtTime(time) - startBeat);
+			//return beatAtTimeStream(rateCache, rateStream, clock.beatAtTime(time) - startBeat);
 		}
 
 		function timeAtBeat(beat) {
-			return clock.timeAtBeat(startBeat + timeAtBeatStream(rateCache, rateStream, beat));
+			return clock.timeAtBeat(startBeat + location.locAtBeat(beat));
+			//return clock.timeAtBeat(startBeat + timeAtBeatStream(rateCache, rateStream, beat));
 		}
 
 		function push(event) {

@@ -4,8 +4,10 @@
 	var Fn             = window.Fn;
 	var Pool           = window.Pool;
 	var Event          = window.SoundstageEvent;
+	var Location       = window.Location;
 	var CueStream      = window.CueStream;
 	var CueTimer       = window.CueTimer;
+	var Meter          = window.Meter;
 
 	var assign         = Object.assign;
 	var defineProperty = Object.defineProperty;
@@ -130,6 +132,9 @@
 			return this;
 		};
 
+
+		// Wrap methods of stream
+
 		this.beatAtTime = function(time) {
 			return stream ? stream.beatAtTime(time) : 0 ;
 		};
@@ -138,6 +143,20 @@
 			return stream ? stream.timeAtBeat(beat) : 0 ;
 		};
 
+		this.cue = function(beat, fn) {
+			stream.cue(beat, fn);
+		};
+
+
+		// Mix in Location. Assigns:
+		//
+		// beatAtLoc:  fn(n)
+		// locAtBeat:  fn(n)
+		// resetLocation: fn(array)
+
+		Location.call(this, events);
+
+
 		// Mix in Meter. Assigns:
 		//
 		// beatAtBar:  fn(n)
@@ -145,10 +164,6 @@
 		// resetMeter: fn(array)
 
 		Meter.call(this, events);
-
-		this.cue = function(beat, fn) {
-			stream.cue(beat, fn);
-		};
 
 
 		// Temporary, while CueStream takes an object instead of a function for distribute...
