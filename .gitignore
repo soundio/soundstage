@@ -2,3 +2,4 @@
 archive/*
 node_modules/*
 edit/*
+npm-debug.log

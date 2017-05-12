@@ -1,9 +1,10 @@
 (function(window) {
 	"use strict";
 
-	var Soundstage = window.Soundstage;
-	var assign     = Object.assign;
-	var defaults   = { channels: [0, 1] };
+	var AudioObject = window.AudioObject;
+	var Soundstage  = window.Soundstage;
+	var assign      = Object.assign;
+	var defaults    = { channels: [0, 1] };
 
 	var rautoname = /Out\s\d+\/\d+/;
 

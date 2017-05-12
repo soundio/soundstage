@@ -15,7 +15,6 @@
 	// Imports
 
 	var AudioObject    = window.AudioObject;
-	var Clock          = window.Clock;
 	var Collection     = window.Collection;
 	var Event          = window.SoundstageEvent;
 	var EventStream    = window.EventStream;

@@ -1,23 +1,25 @@
 (function(Soundstage) {
 	"use strict";
 
+	var AudioObject = window.AudioObject;
+
 	var extend = Object.assign;
 
 	var defaults = {
-	    	gain: 0.25,
-	    	angle: 0,
-	    	wet: 1,
-	    	dry: 1,
-	    	channel: 'all',
-	    	muted: false
-	    };
+		gain: 0.25,
+		angle: 0,
+		wet: 1,
+		dry: 1,
+		channel: 'all',
+		muted: false
+	};
 
 	var automationDefaults = {
-	    	angle: { min: -90, max: 90, transform: 'linear', value: 0 },
-	    	gain:  { min: 0,   max: 1,  transform: 'cubic',  value: 0.25 },
-	    	wet:   { min: 0,   max: 1,  transform: 'cubic',  value: 1 },
-	    	dry:   { min: 0,   max: 1,  transform: 'cubic',  value: 1 }
-	    };
+		angle: { min: -90, max: 90, transform: 'linear', value: 0 },
+		gain:  { min: 0,   max: 1,  transform: 'cubic',  value: 0.25 },
+		wet:   { min: 0,   max: 1,  transform: 'cubic',  value: 1 },
+		dry:   { min: 0,   max: 1,  transform: 'cubic',  value: 1 }
+	};
 
 	var pi = Math.PI;
 
@@ -63,7 +65,7 @@
 		var mute = audio.createGain();
 
 		var channel = 'all';
-		var muted = options.muted;
+		//var muted = options.muted;
 
 		input.gain.value = 1;
 		send.gain.value = options.gain;
@@ -88,66 +90,66 @@
 		mute.connect(send);
 
 		var plug = AudioObject(audio, input, {
-		    	default: output,
-		    	send: send
-		    }, {
-		    	angle: audio.createStereoPanner ? {
-		    		param: pan.pan,
-		    		curve: 'linear'
-		    	} : {
-		    		set: function(value) {
-		    			var angle = value > 90 ? 90 : value < -90 ? -90 : value ;
-		    			var x = Math.sin(angle * pi / 180);
-		    			var y = 0;
-		    			var z = Math.cos(angle * pi / 180);
-		    			pan.setPosition(x, y, z);
-		    		},
+			default: output,
+			send: send
+		}, {
+			angle: audio.createStereoPanner ? {
+				param: pan.pan,
+				curve: 'linear'
+			} : {
+				set: function(value) {
+					var angle = value > 90 ? 90 : value < -90 ? -90 : value ;
+					var x = Math.sin(angle * pi / 180);
+					var y = 0;
+					var z = Math.cos(angle * pi / 180);
+					pan.setPosition(x, y, z);
+				},
 
-		    		value: options.angle,
-		    		duration: 0
-		    	},
+				value: options.angle,
+				duration: 0
+			},
 
-		    	gain: {
-		    		param: send.gain,
-		    		curve: 'exponential'
-		    	},
+			gain: {
+				param: send.gain,
+				curve: 'exponential'
+			},
 
-		    	muted: {
-		    		set: function(value, time) {
-		    			AudioObject.automate(mute.gain, time, value ? 0 : 1, 'exponential', 0.008);
-		    		},
-		    		curve: 'linear'
-		    	}
-		    });
+			muted: {
+				set: function(value, time) {
+					AudioObject.automate(mute.gain, time, value ? 0 : 1, 'exponential', 0.008);
+				},
+				curve: 'linear'
+			}
+		});
 
 		Object.defineProperties(plug, {
-		    	type: { value: 'send', enumerable: true },
-		    	channels: {
-		    		value: (function() {
-		    			var channels = [];
-		    			var n = channels.length = input.channelCount;
+			type: { value: 'send', enumerable: true },
+			channels: {
+				value: (function() {
+					var channels = [];
+					var n = channels.length = input.channelCount;
 
-		    			while (n--) {
-		    				channels[n] = { number: n };
-		    			}
+					while (n--) {
+						channels[n] = { number: n };
+					}
 
-		    			return channels;
-		    		})()
-		    	},
-		    	channel: {
-		    		enumerable: true,
-		    		configurable: true,
+					return channels;
+				})()
+			},
+			channel: {
+				enumerable: true,
+				configurable: true,
 
-		    		get: function() {
-		    			return channel;
-		    		},
+				get: function() {
+					return channel;
+				},
 
-		    		set: function(value) {
-		    			channel = value;
-		    			rewire(input, pan, splitter, output, channel);
-		    		}
-		    	}
-		    });
+				set: function(value) {
+					channel = value;
+					rewire(input, pan, splitter, output, channel);
+				}
+			}
+		});
 
 		this.destroy = function() {
 			input.disconnect();
