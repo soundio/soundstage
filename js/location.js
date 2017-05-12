@@ -14,7 +14,7 @@
 	var isRate   = compose(is('rate'), get1);
 
 	var privates = Symbol('privates');
-	var rate0    = assign(Event(0, 'rate', 2), { loc: 0 });
+	var rate0    = assign(Event(0, 'rate', 1), { loc: 0 });
 
 
 	function log(n, x) { return Math.log(x) / Math.log(n); }
@@ -76,7 +76,7 @@
 	function calcLocAtBeat(cache, functor, beat) {
 		var n = -1;
 		while ((cache[++n] || functor.shift()) && beat >= cache[n][0]) {
-			console.log(beat, cache);
+			//console.log(beat, cache);
 		}
 		var e0 = cache[n - 1];
 		var e1 = cache[n];
