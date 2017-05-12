@@ -121,9 +121,11 @@
 			return calcLocAtBeat(cache, functor, beat);
 		},
 
-		release: function() {
-			this[privates].cache.forEach(release);
-		}
+		// Todo: release event objects
+
+		//release: function() {
+		//	this[privates].cache.forEach(release);
+		//}
 	});
 
 	window.Location = Location;
