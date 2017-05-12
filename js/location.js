@@ -4,7 +4,10 @@
 	var Fn       = window.Fn;
 	var Event    = window.SoundstageEvent;
 
+	var privates = Symbol('privates');
+
 	var assign   = Object.assign;
+	var freeze   = Object.freeze;
 	var release  = Event.release;
 	var compose  = Fn.compose;
 	var get      = Fn.get;
@@ -12,9 +15,7 @@
 
 	var get1     = get('1');
 	var isRate   = compose(is('rate'), get1);
-
-	var privates = Symbol('privates');
-	var rate0    = assign(Event(0, 'rate', 1), { loc: 0 });
+	var rate0    = freeze({ 0: 0, 1: 'rate', 2: 1, loc: 0 });
 
 
 	function log(n, x) { return Math.log(x) / Math.log(n); }

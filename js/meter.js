@@ -1,26 +1,32 @@
 (function(window) {
 	"use strict";
 
-	var Fn      = window.Fn;
-	var Event   = window.SoundstageEvent;
+	var Fn       = window.Fn;
+	var Event    = window.SoundstageEvent;
 
-	var assign  = Object.assign;
-	var release = Event.release;
-	var compose = Fn.compose;
-	var get     = Fn.get;
-	var is      = Fn.is;
+	var privates = Symbol('privates');
 
-	var get1    = get('1');
-	var isMeter = compose(is('meter'), get1);
+	var assign   = Object.assign;
+	var freeze   = Object.freeze;
+	var release  = Event.release;
+	var compose  = Fn.compose;
+	var get      = Fn.get;
+	var is       = Fn.is;
 
-	var meter0  = assign(Event(0, 'meter', 4, 1), { bar: 0 });
+	var get1     = get('1');
+	var isMeter  = compose(is('meter'), get1);
+	var meter0   = freeze({ 0: 0, 1: 'meter', 2: 4, 3: 1, bar: 0 });
 
+
+	function findPrevious(cache, functor, name, value) {
+		var o = cache[cache.length - 1] || functor.shift();
+		while (o[name] <= value && (o = functor.shift()));
+		var n = cache.length;
+		while (n-- && cache[n][name] > value);
+		return cache[n];
+	}
 
 	function createEventsFn(cache, events) {
-		// Release old events
-		cache.forEach(release);
-		cache.length = 0;
-
 		// Return a functor of new ones
 		return Fn.from(events)
 		.map(Event.from)
@@ -33,37 +39,38 @@
 		});
 	}
 
-	function findPrevious(cache, functor, name, value) {
-		var o = cache[cache.length - 1] || functor.shift();
-		while (o[name] <= value && (o = functor.shift()));
-		var n = cache.length;
-		while (n-- && cache[n][name] > value);
-		return cache[n];
-	}
-
 	function Meter(events) {
-		var cache, func;
+		events = events.filter(isMeter);
 
-		function setup(events) {
-			events = events.filter(isMeter);
-			cache  = [];
-			func   = createEventsFn(cache, events);
-		}
+		var cache = [];
 
-		this.barAtBeat = function(beat) {
-			var e = findPrevious(cache, func, '0', beat);
-			return e[0] + (beat - e[0]) / e[2];
+		this[privates] = {
+			cache: cache,
+			functor: createEventsFn(cache, events)
 		};
-
-		this.beatAtBar = function(bar) {
-			var e = findPrevious(cache, func, 'bar', bar);
-			return e.bar + (bar - e.bar) * e[2];
-		};
-
-		this.resetMeter = setup;
-
-		setup(events);
 	}
+
+	assign(Meter.prototype, {
+		barAtBeat: function(beat) {
+			var cache   = this[privates].cache;
+			var functor = this[privates].functor;
+			var e = findPrevious(cache, functor, '0', beat);
+			return e[0] + (beat - e[0]) / e[2];
+		},
+
+		beatAtBar: function(bar) {
+			var cache   = this[privates].cache;
+			var functor = this[privates].functor;
+			var e = findPrevious(cache, functor, 'bar', bar);
+			return e.bar + (bar - e.bar) * e[2];
+		},
+
+		// Todo: release event objects
+
+		//release: function() {
+		//	this[privates].cache.forEach(release);
+		//}
+	});
 
 	window.Meter = Meter;
 })(this);

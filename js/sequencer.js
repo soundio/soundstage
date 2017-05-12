@@ -1,22 +1,25 @@
 (function(window) {
 	"use strict";
 
-	var Fn             = window.Fn;
-	var Pool           = window.Pool;
-	var Event          = window.SoundstageEvent;
-	var Location       = window.Location;
+	var Clock          = window.Clock;
 	var CueStream      = window.CueStream;
 	var CueTimer       = window.CueTimer;
-	var Sequence       = window.Sequence;
+	var Fn             = window.Fn;
+	var Location       = window.Location;
 	var Meter          = window.Meter;
+	var Pool           = window.Pool;
+	var Sequence       = window.Sequence;
+	var Event          = window.SoundstageEvent;
 
-	var defineProperty = Object.defineProperty;
+	var assign         = Object.assign;
+	var defineProperties = Object.defineProperties;
 	var each           = Fn.each;
 	var get            = Fn.get;
 	var id             = Fn.id;
 	var insert         = Fn.insert;
 	var release        = Event.release;
 
+	var privates  = Symbol('privates');
 	var get0      = get('0');
 	var insertBy0 = insert(get0);
 
@@ -43,26 +46,25 @@
 	// and RecordStreams, which are read-once. It is the `master` object from
 	// whence event streams sprout.
 
-	function Sequencer(audio, clock, distributors, eventStream) {
+	function Sequencer(audio, distributors, eventStream, sequences, events) {
 
 		// Private
 
 		var sequencer  = this;
-		var events     = this.events;
-		var sequences  = this.sequences;
+		var clock      = new Clock(audio);
 		var timer      = new CueTimer(function() { return audio.currentTime; });
-		var rateEvent  = [0, 'rate', defaults.rate];
-		var meterEvent = [0, 'meter', 4, 1];
 		var startTime  = 0;
 		var childSequences = {};
 		var childEvents = [];
-		var stream;
+
+		this[privates] = {};
 
 		function init() {
-			stream = new CueStream(timer, clock, sequencer.events, Fn.id, distributors);
+			var stream = new CueStream(timer, clock, sequencer.events, Fn.id, distributors);
 			// Ensure there is always a stream waiting by preparing a new
 			// stream when the previous one ends.
 			stream.then(reset);
+			sequencer[privates].stream = stream;
 		}
 
 		function reset(time) {
@@ -79,17 +81,12 @@
 		}
 
 
-		// Public
+		// Public methods
 
 		this.start = function(time, beat) {
-			startTime = time || audio.currentTime ;
-			var events    = sequencer.events;
-
-			// Where there is no meter or rate event at time 0, splice some in
-			if (!events[0] || events[0][0] !== 0) {
-				events.splice(0, 0, meterEvent);
-				events.splice(0, 0, rateEvent);
-			}
+			startTime  = time || audio.currentTime ;
+			var events = sequencer.events;
+			var stream = sequencer[privates].stream;
 
 			clock.start(startTime);
 			stream.start(startTime);
@@ -98,6 +95,7 @@
 
 		this.stop = function(time) {
 			var stopTime = time || audio.currentTime ;
+			var stream   = sequencer[privates].stream;
 
 			stream.stop(stopTime);
 			clock.stop(stopTime);
@@ -129,54 +127,20 @@
 		};
 
 
-		// Wrap methods of stream
-
-		this.beatAtTime = function(time) {
-			return stream ? stream.beatAtTime(time) : 0 ;
-		};
-
-		this.timeAtBeat = function(beat) {
-			return stream ? stream.timeAtBeat(beat) : 0 ;
-		};
-
-		this.cue = function(beat, fn) {
-			stream.cue(beat, fn);
-		};
-
-
-		// Mix in Location. Assigns:
+		// Mix in Location
 		//
-		// beatAtLoc:  fn(n)
-		// locAtBeat:  fn(n)
-		// resetLocation: fn(array)
+		// beatAtLoc:     fn(n)
+		// locAtBeat:     fn(n)
 
 		Location.call(this, events);
 
 
-		// Mix in Meter. Assigns:
+		// Mix in Meter
 		//
 		// beatAtBar:  fn(n)
 		// barAtBeat:  fn(n)
-		// resetMeter: fn(array)
 
 		Meter.call(this, events);
-
-
-		// Temporary, while CueStream takes an object instead of a function for distribute...
-		// however, this distribute should not have access to "sequence" triggering...
-//		function distribute(event) {
-//			var object = event.object;
-//console.log('DIST', event);
-//			return (distributors[event[1]] || distributors.default)(object, event);
-//		}
-
-		this.create = function(generator, object) {
-			return stream.create(generator, id, object);
-		};
-
-		defineProperty(this, 'status', {
-			get: function() { return stream ? stream.status : 'stopped' ; }
-		});
 
 
 		// Init playback
@@ -217,6 +181,38 @@
 			release(event);
 		});
 	}
+
+	defineProperties(Sequencer.prototype, {
+		status: {
+			get: function() {
+				var stream = this[privates].stream;
+				return stream ? stream.status : 'stopped' ;
+			}
+		}
+	});
+
+	assign(Sequencer.prototype, Location.prototype, Meter.prototype, {
+		create: function(generator, object) {
+			var stream = this[privates].stream;
+			return stream.create(generator, id, object);
+		},
+
+		cue: function(beat, fn) {
+			var stream = this[privates].stream;
+			stream.cue(beat, fn);
+			return this;
+		},
+
+		beatAtTime: function(time) {
+			var stream = this[privates].stream;
+			return stream ? stream.beatAtTime(time) : undefined ;
+		},
+
+		timeAtBeat: function(beat) {
+			var stream = this[privates].stream;
+			return stream ? stream.timeAtBeat(beat) : undefined ;
+		}
+	});
 
 	window.Sequencer = Sequencer;
 

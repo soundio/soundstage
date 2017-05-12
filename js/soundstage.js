@@ -29,6 +29,9 @@
 
 	var assign         = Object.assign;
 	var defineProperty = Object.defineProperty;
+	var defineProperties = Object.defineProperties;
+	var getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
+	var setPrototypeOf = Object.setPrototypeOf;
 	var cache          = Fn.cache;
 	var compose        = Fn.compose;
 	var curry          = Fn.curry;
@@ -461,7 +464,7 @@
 		},
 
 		"default": function(object, event) {
-			console.log()
+			console.log('Distribute some other event?? Do nothing.');
 		}
 	};
 
@@ -473,11 +476,11 @@
 	var actions = Store.reducer({
 		objects: Store.actions({
 			"create": function(objects, data, constants) {
-				var audio   = constants.audio;
-				var clock   = constants.clock;
-				var output  = constants.output;
-				var presets = constants.presets;
-				var type    = data.type;
+				var audio     = constants.audio;
+				var sequencer = constants.sequencer;
+				var output    = constants.output;
+				var presets   = constants.presets;
+				var type      = data.type;
 				var object;
 
 				if (!type) {
@@ -492,7 +495,7 @@
 					}
 				}
 
-				object = create(audio, data.type, data, clock, presets, output, objects);
+				object = create(audio, data.type, data, sequencer, presets, output, objects);
 				objects.push(object);
 
 				return objects;
@@ -501,13 +504,13 @@
 			"update": function(objects, data, constants) {
 				if (!data.objects) { return objects; }
 
-				var audio   = constants.audio;
-				var clock   = constants.clock;
-				var output  = constants.output;
-				var presets = constants.presets;
+				var audio     = constants.audio;
+				var sequencer = constants.sequencer;
+				var output    = constants.output;
+				var presets   = constants.presets;
 
 				update(function(data) {
-					var object = create(audio, data.type, data, clock, presets, output, objects);
+					var object = create(audio, data.type, data, sequencer, presets, output, objects);
 					return object;
 				}, objects, data.objects);
 
@@ -715,17 +718,11 @@
 			presets:     { value: Soundstage.presets, enumerable: true },
 			mediaChannelCount: { value: undefined, writable: true, configurable: true },
 			roundTripLatency:  { value: Soundstage.roundTripLatency, writable: true, configurable: true },
-			//tempo: {
-			//	get: function() { return clock.rate * 60; },
-			//	set: function(n) { clock.rate = n / 60; },
-			//	enumerable: true,
-			//	configurable: true
-			//}
 		});
 
 
 		// Initialise soundstage as an Audio Object with no inputs and
-		// a channel merger as an output. Assigns:
+		// a channel merger as an output
 		//
 		// audio:      audio context
 
@@ -737,7 +734,7 @@
 		Soundstage.inspector && Soundstage.inspector.drawAudioFromNode(output);
 
 
-		// Initialise soundstage as a Sequence. Assigns:
+		// Initialise soundstage as a Sequence
 		//
 		// name:       string
 		// sequences:  array
@@ -746,15 +743,20 @@
 		Sequence.call(this, data);
 
 
-		// Initialise soundstage as a Sequencer. Assigns:
+		// Initialise soundstage as a Sequencer
 		//
 		// start:      fn
 		// stop:       fn
 		// beatAtTime: fn
 		// timeAtBeat: fn
+		// beatAtLoc:  fn
+		// locAtBeat:  fn
+		// beatAtBar:  fn
+		// barAtBeat:  fn
+		// create:     fn
+		// cue:        fn
 		// status:     string
 
-		var clock          = new Clock(audio);
 		var eventStream    = EventStream(audio, this);
 		var findObject     = findIn(this.objects);
 		var findSequence   = findIn(this.sequences);
@@ -805,8 +807,7 @@
 			}
 		}, eventDistributors);
 
-		Sequencer.call(this, audio, clock, distributors, eventStream);
-
+		Sequencer.call(this, audio, distributors, eventStream, this.sequences, this.events);
 
 
 		// Metronome
@@ -824,9 +825,21 @@
 
 		var store = Store(actions, this, {
 			// Private constants assigned to action objects
+			audio: audio,
 
-			audio:      audio,
-			clock:      clock,
+			// AudioObject constructors are given restricted access to a subset
+			// of sequencer functions
+			sequencer: {
+				create:     soundstage.create.bind(soundstage),
+				cue:        soundstage.cue.bind(soundstage),
+				beatAtTime: soundstage.beatAtTime.bind(soundstage),
+				timeAtBeat: soundstage.timeAtBeat.bind(soundstage),
+				beatAtBar:  soundstage.beatAtBar.bind(soundstage),
+				barAtBeat:  soundstage.barAtBeat.bind(soundstage),
+				beatAtLoc:  soundstage.beatAtLoc.bind(soundstage),
+				locAtBeat:  soundstage.locAtBeat.bind(soundstage),
+			},
+
 			output:     output,
 			presets:    AudioObject.presets,
 
@@ -852,16 +865,14 @@
 		this.update(data);
 	}
 
-	Object.setPrototypeOf(Soundstage.prototype, AudioObject.prototype);
+	setPrototypeOf(Soundstage.prototype, AudioObject.prototype);
 
-	assign(Soundstage.prototype, {
-		version: 0,
+	defineProperties(Soundstage.prototype, {
+		version: { value: 0 },
+		status: getOwnPropertyDescriptor(Sequencer.prototype, 'status')
+	});
 
-		create: function(settings) {
-			this[$store].modify('create', settings);
-			return this;
-		},
-
+	assign(Soundstage.prototype, Sequencer.prototype, {
 		createInputs: function() {
 			var soundstage = this;
 
