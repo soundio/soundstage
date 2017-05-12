@@ -75,7 +75,9 @@
 
 	function calcLocAtBeat(cache, functor, beat) {
 		var n = -1;
-		while ((cache[++n] || functor.shift()) && beat >= cache[n][0]);
+		while ((cache[++n] || functor.shift()) && beat >= cache[n][0]) {
+			console.log(beat, cache);
+		}
 		var e0 = cache[n - 1];
 		var e1 = cache[n];
 		return e0.loc + locAtBeat(e0, e1, beat - e0[0]);

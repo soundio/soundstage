@@ -774,12 +774,14 @@
 
 				if (!sequence) {
 					console.warn('Soundstage: sequence not found', event);
+					return;
 				}
 
 				var events = sequence.events;
 
 				if (!events || !events.length) {
-					console.warn('Soundstage: sequence has n events', event);
+					console.warn('Soundstage: sequence has no events', event);
+					return;
 				}
 
 				object = isDefined(event[3]) ?
@@ -790,6 +792,7 @@
 
 				if (!object) {
 					console.warn('Soundstage: object not found', event);
+					return;
 				}
 
 				return stream

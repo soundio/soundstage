@@ -221,6 +221,14 @@
 			event[0] = event.time;
 			var stream = fns.sequence(object, event, cuestream, createTransforms(event));
 
+			// If there was no duration given at event[4], offBeat will be NaN,
+			// and the sequence should run forever. If the child sequence was
+			// not found, stream will be undefined, and we should getouttahere.
+			if (!offBeat || !stream) {
+				release(event);
+				return;
+			}
+
 			Soundstage.inspector &&
 			Soundstage.inspector.drawBar(event[0], 'blue', event[2]);
 
