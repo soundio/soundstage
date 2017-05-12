@@ -1,5 +1,6 @@
 (function(window){
 
+	var Fn   = window.Fn;
 	var dom  = window.dom;
 
 
@@ -37,8 +38,10 @@
 	var frameId;
 
 	function scrollTimeline(t) {
+		var width;
+
 		if (window.audio) {
-			var width = dom.style('width', time);
+			width = dom.style('width', time);
 			time.scrollLeft = toX(audio.currentTime) - 0.8 * width;
 			if (audio.currentTime > 30) { return; }
 		}
@@ -68,7 +71,7 @@
 	
 	var audioTrackY  = 256 - 24;
 	
-	var workerPath   = '/static/soundstage/js/worker.waveform.js';
+//	var workerPath   = '/static/soundstage/js/worker.waveform.js';
 	var workerPath   = '/soundstage/js/worker.waveform.js';
 	var worker       = new Worker(workerPath);
 

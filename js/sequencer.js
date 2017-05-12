@@ -7,20 +7,17 @@
 	var Location       = window.Location;
 	var CueStream      = window.CueStream;
 	var CueTimer       = window.CueTimer;
+	var Sequence       = window.Sequence;
 	var Meter          = window.Meter;
 
-	var assign         = Object.assign;
 	var defineProperty = Object.defineProperty;
 	var each           = Fn.each;
 	var get            = Fn.get;
 	var id             = Fn.id;
 	var insert         = Fn.insert;
-	var overload       = Fn.overload;
 	var release        = Event.release;
 
 	var get0      = get('0');
-	var get1      = get('1');
-	var getId     = get('id');
 	var insertBy0 = insert(get0);
 
 	var defaults = { rate: 2 };
@@ -59,7 +56,7 @@
 		var startTime  = 0;
 		var childSequences = {};
 		var childEvents = [];
-		var stream, record;
+		var stream;
 
 		function init() {
 			stream = new CueStream(timer, clock, sequencer.events, Fn.id, distributors);
@@ -101,7 +98,6 @@
 
 		this.stop = function(time) {
 			var stopTime = time || audio.currentTime ;
-			var beat     = sequencer.beatAtTime(stopTime);
 
 			stream.stop(stopTime);
 			clock.stop(stopTime);

@@ -2,15 +2,14 @@
 	"use strict";
 
 	var Fn        = window.Fn;
+	var Stream    = window.Stream;
 	var Event     = window.SoundstageEvent;
 
 	var get       = Fn.get;
 	var id        = Fn.id;
-	var insert    = Fn.insert;
 	var overload  = Fn.overload;
 	var release   = Event.release;
 
-	var get0      = get('0');
 	var get1      = get('1');
 
 
@@ -23,21 +22,6 @@
 
 	function mapShift(map, key) {
 		return map[key] && map[key].shift();
-	}
-
-	function createId(objects) {
-		var ids = objects.map(get('id'));
-		var id = -1;
-		while (ids.indexOf(++id) !== -1);
-		return id;
-	}
-
-	function timeAtDomTime(audio, time) {
-		var stamps    = audio.getOutputTimestamp();
-		var audioTime = stamps.contextTime;
-		var domTime   = stamps.performanceTime / 1000;
-		var diff      = domTime - audioTime;
-		return (time / 1000) - (stamps.performanceTime / 1000) + stamps.contextTime ;
 	}
 
 

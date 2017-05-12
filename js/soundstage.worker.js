@@ -7,7 +7,6 @@ var tickTime = 0;
 
 var recordDuration = 30;
 var recordTimeStart;
-var recordTimeEnd;
 var recordSampleCount = 0;
 var recordChannelCount = 0;
 var recordBuffers = [];
@@ -63,7 +62,7 @@ function start(data) {
 
 function stop(data) {
 	//console.log('STOP WORKER');
-	var time = recordTimeEnd = data.time;
+	var time = data.time;
 	var rate = data.sampleRate;
 
 	// Work out how many samples we've recorded that we don't need, and reduce

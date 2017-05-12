@@ -117,6 +117,10 @@
 			var functor = this[privates].functor;
 			return calcLocAtBeat(cache, functor, beat);
 		},
+
+		release: function() {
+			this[privates].cache.forEach(release);
+		}
 	});
 
 	window.Location = Location;

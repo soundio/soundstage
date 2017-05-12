@@ -18,18 +18,18 @@
 	var Clock          = window.Clock;
 	var Collection     = window.Collection;
 	var Event          = window.SoundstageEvent;
+	var EventStream    = window.EventStream;
 	var Fn             = window.Fn;
 	var Metronome      = window.Metronome;
 	var MIDI           = window.MIDI;
 	var Sequence       = window.Sequence;
 	var Sequencer      = window.Sequencer;
-	var RecordStream   = window.RecordStream;
+	var Store          = window.Store;
+	var Stream         = window.Stream;
 
 	var assign         = Object.assign;
 	var defineProperty = Object.defineProperty;
-	var defineProperties = Object.defineProperties;
 	var cache          = Fn.cache;
-	var choose         = Fn.choose;
 	var compose        = Fn.compose;
 	var curry          = Fn.curry;
 	var each           = Fn.each;
@@ -37,17 +37,13 @@
 	var find           = Fn.find;
 	var get            = Fn.get;
 	var getPath        = Fn.getPath;
-	var id             = Fn.id;
 	var insert         = Fn.insert;
 	var is             = Fn.is;
 	var isDefined      = Fn.isDefined;
 	var noop           = Fn.noop;
-	var rest           = Fn.rest;
-	var overload       = Fn.overload;
+	var remove         = Fn.remove;
 	var query          = Fn.query;
 	var slugify        = Fn.slugify;
-	var toType         = Fn.toType;
-	var toStringType   = Fn.toStringType;
 	var requestMedia   = AudioObject.requestMedia;
 
 	// A small latency added to incoming MIDI events to reduce timing jitter
@@ -55,10 +51,11 @@
 	var jitterLatency  = 0.008;
 
 	var get0      = get('0');
-	var get1      = get('1');
 	var getId     = get('id');
 	var insertBy0 = insert(get0);
-	var isUrl     = Fn.noop;   // Todo: obviously temporary.
+
+	// Todo: obviously temporary.
+	var isUrl     = Fn.noop;
 
 	var $store = Symbol('store');
 
@@ -85,15 +82,17 @@
 	var update = curry(function update(create, object, data) {
 		//if (object.update) { object.update.apply(object, data); }
 
-		if (isDefined(object.length)) {
-			var n = data.length;
-			var item, datum;
+		var n, item, datum, name;
 
+		function hasDatumId(item) {
+			return item.id === datum.id;
+		}
+
+		if (isDefined(object.length)) {
+			n = data.length;
 			while (n--) {
 				datum = data[n];
-				item = find(function(item) {
-					return item.id === datum.id;
-				}, object);
+				item = find(hasDatumId, object);
 				if (item) {
 					update(item, datum);
 				}
@@ -103,7 +102,6 @@
 			}
 		}
 		else {
-			var name;
 			for (name in data) {
 				if (object[name] && isDefined(object[name].length)) {
 					update(object[name], data[name])
@@ -132,7 +130,7 @@
 	}
 
 	function fetchSequence(url) {
-		stream = Stream.of();
+		var stream = Stream.of();
 
 		Soundstage
 		.fetchSequence(url)
@@ -141,34 +139,6 @@
 		});
 
 		return stream;
-	}
-
-
-	// Buffer maps
-
-	function mapPush(map, key, value) {
-		if (map[key]) { map[key].push(value); }
-		else { map[key] = [value]; }
-	}
-
-	function mapInsert(map, key, value) {
-		if (map[key]) { insertBy0(map[key], value); }
-		else { map[key] = [value]; }
-	}
-
-	function mapShift(map, key) {
-		return map[key] && map[key].shift();
-	}
-
-	function mapGet(map, key) {
-		return map[key] || nothing;
-	}
-
-	function mapEach(map, fn) {
-		var key;
-		for (key in map) {
-			if (map[key] && map[key].length) { fn(map[key], key); }
-		}
 	}
 
 
@@ -293,7 +263,7 @@
 			// channel does not already exist.
 			if(!soundstage.inputs.filter(hasChannelsMono).length) {
 				soundstage.create('input', { channels: [count] });
-			};
+			}
 
 			// Only create a new stereo input where an input with these
 			// channels does not already exist.
@@ -308,9 +278,9 @@
 	function createOutputObjects(soundstage, count) {
 		var output = AudioObject.getOutput(soundstage);
 
-		function hasChannelsMono(object) {
-			return object.channels + '' === [count] + '';
-		}
+		//function hasChannelsMono(object) {
+		//	return object.channels + '' === [count] + '';
+		//}
 
 		function hasChannelsStereo(object) {
 			return object.channels + '' === [count, count + 1] + '';
@@ -412,7 +382,7 @@
 
 		// Reconnect all entries apart from the node we just disconnected.
 		var n = connects.length;
-		var dst, inName, inNode;
+		var dst;
 
 		while (n--) {
 			dst = connects[n].dst;
@@ -457,13 +427,8 @@
 
 	function timeAtDomTime(audio, time) {
 		var stamps = audio.getOutputTimestamp();
-		var audioTime = stamps.contextTime;
-		var domTime   = stamps.performanceTime / 1000;
-		var diff      = domTime - audioTime;
-		return (time / 1000) - (stamps.performanceTime / 1000) + stamps.contextTime ;
+		return (time - stamps.performanceTime) / 1000 + stamps.contextTime ;
 	}
-
-	var resolveTransform = noop;
 
 	var eventDistributors = {
 
@@ -568,8 +533,6 @@
 			"update": function(connections, data, constants) {
 				if (!data.connections) { return connections; }
 
-				var resolveObject = constants.resolveObject;
-
 				each(function(data) {
 					// Ignore pre-existing connections
 					if (connections.find(function(connect) {
@@ -605,11 +568,11 @@
 				if (query(connections, data).length) {
 					console.log('Soundstage: Connect failed. Source and dst already connected.');
 					return this;
-				};
+				}
 
 				var connection = new Connection(data, resolve);
 
-				if (!connection) { return stage; }
+				if (!connection) { return connections; }
 				connections.push(connection);
 
 				return connections;
@@ -694,7 +657,7 @@
 			},
 
 			"clear": function(midi) {
-				Soundstage.debug && console.log('Removing ' + n + ' midi bindings...');
+				Soundstage.debug && console.log('Removing ' + midi.length + ' midi bindings...');
 				midi.length = 0;
 				return midi;
 			}
@@ -845,10 +808,9 @@
 
 		// Metronome
 
-		var metronome = this.metronome = new Metronome(audio, data.metronome, this);
+		this.metronome = new Metronome(audio, data.metronome, this);
 		this.metronome.start(0);
 
-		//metronome.start(0);
 
 		// Methods
 
@@ -968,7 +930,7 @@
 			return this;
 		},
 
-		connect: function(src, dstination, output, input) {
+		connect: function(src, dst, output, input) {
 			this[$store].modify('connect', {
 				src:    src,
 				dst:    dst,

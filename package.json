@@ -28,20 +28,6 @@
   "dependencies": {
     "audio-object": "latest"
   },
-  "devDependencies": {
-    "eslint": "^3.6.1",
-    "gulp": "latest",
-    "gulp-concat": "^2.6.0",
-    "gulp-eslint": "^1.1.0",
-    "karma": "latest",
-    "karma-chrome-launcher": "latest",
-    "karma-coverage": "latest",
-    "karma-firefox-launcher": "latest",
-    "karma-qunit": "latest",
-    "karma-safari-launcher": "latest",
-    "qunit": "latest",
-    "qunitjs": "latest"
-  },
   "scripts": {
     "test": "node_modules/karma/bin/karma start"
   },
@@ -98,7 +84,10 @@
     "test/test-sequence.js",
     "test/test-audio-objects.js"
   ],
+  "devDependencies": {
+    "eslint": "^3.19.0"
+  },
   "scripts": {
-    "lint": "eslint modules/audio-object/js/*.js modules/fn/js/*.js clock/js/*.js"
+    "lint": "eslint js/*.js"
   }
 }

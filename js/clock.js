@@ -1,11 +1,6 @@
 (function(window) {
 	"use strict";
 
-	var Fn             = window.Fn;
-	var AudioObject    = window.AudioObject;
-	var UnityNode      = AudioObject.UnityNode;
-
-
 	function Clock(audio) {
 		// Support using constructor without the `new` keyword
 		if (!Clock.prototype.isPrototypeOf(this)) {
@@ -14,7 +9,6 @@
 
 		var startTime  = 0;
 		var stopTime   = 0;
-		var stream;
 
 		this.beatAtTime = function(time) { return time - startTime; };
 		this.timeAtBeat = function(beat) { return startTime + beat; };

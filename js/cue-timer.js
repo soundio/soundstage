@@ -1,8 +1,6 @@
 (function(window) {
 	"use strict";
 
-	var debug = true;
-
 	var assign         = Object.assign;
 	var defineProperty = Object.defineProperty;
 
@@ -23,14 +21,9 @@
 	}
 
 	function CueTimer(now) {
-		var cuetimer  = this;
-
 		var duration        = CueTimer.duration;
 		var lookahead       = CueTimer.lookahead;
-		var hiddenDuration  = CueTimer.hiddenDuration;
-		var hiddenLookahead = CueTimer.hiddenLookahead;
 		var scrollDuration  = CueTimer.scrollDuration;
-		var scrollLookahead = CueTimer.scrollLookahead;
 
 		var playing   = false;
 		var fns       = [];

@@ -5,36 +5,24 @@
 	// Import
 
 	var Fn               = window.Fn;
-	var Stream           = window.Stream;
-	var AudioObject      = window.AudioObject;
+	var GeneratorStream  = window.GeneratorStream;
 	var Event            = window.SoundstageEvent;
 	var Location         = window.Location;
 
-	var assign           = Object.assign;
 	var defineProperty   = Object.defineProperty;
-	var defineProperties = Object.defineProperties;
-	var by               = Fn.by;
+	var add              = Fn.add;
 	var choose           = Fn.choose;
-	var curry            = Fn.curry;
-	var compose          = Fn.compose;
 	var each             = Fn.each;
 	var get              = Fn.get;
 	var id               = Fn.id;
-	var is               = Fn.is;
-	var isDefined        = Fn.isDefined;
 	var insert           = Fn.insert;
-	var invoke           = Fn.invoke;
-	var noop             = Fn.noop;
+	var multiply         = Fn.multiply;
 	var pipe             = Fn.pipe;
-	var remove           = Fn.remove;
 	var rest             = Fn.rest;
-	var sort             = Fn.sort;
 	var split            = Fn.split;
-	var toFixed          = Fn.toFixed;
 	var nothing          = Fn.nothing;
 	var release          = Event.release;
 
-	var by0              = by('0');
 	var get0             = get('0');
 	var rest5            = rest(5);
 	var insertBy0        = insert(get0);
@@ -118,14 +106,10 @@
 	function createTransforms(event) {
 		var tokens = rest5(event);
 
-		var fns = split(isString, tokens)
-		.map(function(def) {
-			var name = def[0];
-			return createTransform.apply(null, def);
-		});
-
+		var fns = split(isString, tokens).map(createTransform);
 		return event.length < 6 ? id : pipe.apply(null, fns);
 	}
+
 
 
 	// Events
@@ -327,10 +311,11 @@
 	function rebuffer(inBuffers, outBuffers, stopTime, assignTime) {
 		// On stop stream
 
-		Soundstage.inspector.drawBar(time, "purple", 'stop');
+		Soundstage.inspector.drawBar(stopTime, "purple", 'stop');
 
 		// Cancel notes that have been cued to start after time, looping
 		// backwards through time, then push them back into buffer.
+		var noteBuffer = inBuffers.note;
 		var n = noteBuffer.length;
 		var event, object;
 
@@ -340,9 +325,9 @@
 			event.object = undefined;
 
 			// Push event back into cue buffer
-			mapPush(inBuffer, 'note', event);
+			mapPush(inBuffers, 'note', event);
 
-			if (Soundstage.inspector) { drawEvent([event[0], "noteoff", noteon[2]], 'blue'); }
+			if (Soundstage.inspector) { Soundstage.inspector.drawEvent(audio.currentTime, stopTime, "noteoff", event[2], 'blue'); }
 		}
 
 		// Todo: That leaves notes that have been started before time and
@@ -446,7 +431,7 @@
 			});
 		
 			stream.status = "done";
-			console.groupEnd();
+//console.groupEnd();
 		}
 
 		function startCue(time) {

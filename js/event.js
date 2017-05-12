@@ -5,17 +5,17 @@
 	var Pool = window.Pool;
 	var MIDI = window.MIDI;
 
-	var assign           = Object.assign;
+	var assign       = Object.assign;
 	var defineProperties = Object.defineProperties;
 
-	var compose  = Fn.compose;
-	var get      = Fn.get;
-	var noop     = Fn.noop;
-	var overload = Fn.overload;
-	var toArray  = Fn.toArray;
+	var compose      = Fn.compose;
+	var get          = Fn.get;
+	var noop         = Fn.noop;
+	var overload     = Fn.overload;
 
-	var getData  = get('data');
-	var toType   = MIDI.toType;
+	var getData      = get('data');
+	var pitchToFloat = MIDI.pitchToFloat;
+	var toType       = MIDI.toType;
 
 
 	// Event

@@ -2,11 +2,8 @@
 	"use strict";
 
 	var assign      = Object.assign;
-	var Fn          = window.Fn;
 	var AudioObject = window.AudioObject;
 	var Event       = window.SoundstageEvent;
-
-	var debug = true;
 
 	var defaults = {
 		duration: 0.03125,
@@ -16,7 +13,7 @@
 	};
 
 
-	function Metronome(audio, settings, sequencer, options) {
+	function Metronome(audio, options, sequencer) {
 		var metronome = this;
 		var settings  = assign({}, defaults, options);
 		var source    = AudioObject.Tick(audio, settings.source);
@@ -33,7 +30,7 @@
 			var beat = Math.ceil(b1);
 			var tick = metronome.tick;
 			var tock = metronome.tock;
-			var time, event;
+			var event;
 
 			buffer.length = 0;
 

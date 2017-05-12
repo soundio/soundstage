@@ -1,14 +1,14 @@
 
 var worker = this;
 
-worker.onmessage = function(e) {
+worker.onmessage = function(e) {	
 	var data       = e.data.data;
 	var resolution = e.data.resolution;
 	var waveform   = [];
 	var r = 0;
 	var n = 0;
 	var length = data[0].length;
-	var min, max, n;
+	var min, max, b, limit;
 
 	// Loop over blocks of samples
 	while (r++ < resolution) {

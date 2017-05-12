@@ -10,7 +10,6 @@
 	var get     = Fn.get;
 	var is      = Fn.is;
 
-	var get0    = get('0');
 	var get1    = get('1');
 	var isMeter = compose(is('meter'), get1);
 
