@@ -29,7 +29,7 @@
 
 	function EventStream(audio, sequence) {
 
-		var notes    = {};
+		var notes = {};
 
 		return Stream.of()
 		.filter(function() { return sequence.status === 'playing'; })

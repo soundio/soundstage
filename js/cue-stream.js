@@ -4,29 +4,32 @@
 
 	// Import
 
-	var Fn               = window.Fn;
-	var GeneratorStream  = window.GeneratorStream;
-	var Event            = window.SoundstageEvent;
-	var Location         = window.Location;
+	var Fn              = window.Fn;
+	var GeneratorStream = window.GeneratorStream;
+	var Event           = window.SoundstageEvent;
+	var Location        = window.Location;
 
-	var defineProperty   = Object.defineProperty;
-	var add              = Fn.add;
-	var choose           = Fn.choose;
-	var each             = Fn.each;
-	var get              = Fn.get;
-	var id               = Fn.id;
-	var insert           = Fn.insert;
-	var multiply         = Fn.multiply;
-	var pipe             = Fn.pipe;
-	var rest             = Fn.rest;
-	var split            = Fn.split;
-	var nothing          = Fn.nothing;
-	var release          = Event.release;
+	var privates        = Symbol('privates');
 
-	var get0             = get('0');
-	var rest5            = rest(5);
-	var insertBy0        = insert(get0);
-	var isString         = function(string) { return typeof string === 'string'; };
+	var assign          = Object.assign;
+	var defineProperty  = Object.defineProperty;
+	var add             = Fn.add;
+	var choose          = Fn.choose;
+	var each            = Fn.each;
+	var get             = Fn.get;
+	var id              = Fn.id;
+	var insert          = Fn.insert;
+	var multiply        = Fn.multiply;
+	var pipe            = Fn.pipe;
+	var rest            = Fn.rest;
+	var split           = Fn.split;
+	var nothing         = Fn.nothing;
+	var release         = Event.release;
+
+	var get0            = get('0');
+	var rest5           = rest(5);
+	var insertBy0       = insert(get0);
+	var isString        = function(string) { return typeof string === 'string'; };
 
 
 	// Buffer maps
@@ -109,7 +112,6 @@
 		var fns = split(isString, tokens).map(createTransform);
 		return event.length < 6 ? id : pipe.apply(null, fns);
 	}
-
 
 
 	// Events
@@ -351,7 +353,7 @@
 		var inBuffers    = {};
 		var outBuffers   = {};
 		var paramBuffers = {};
-		var startBeat    = 0;
+		var startLoc    = 0;
 		var startTime    = 0;
 		var t1           = 0;
 		var t2           = 0;
@@ -394,13 +396,13 @@
 		};
 
 		function beatAtTime(time) {
-			return location.beatAtLoc(clock.beatAtTime(time) - startBeat);
-			//return beatAtTimeStream(rateCache, rateStream, clock.beatAtTime(time) - startBeat);
+			return location.beatAtLoc(clock.beatAtTime(time) - startLoc);
+			//return beatAtTimeStream(rateCache, rateStream, clock.beatAtTime(time) - startLoc);
 		}
 
 		function timeAtBeat(beat) {
-			return clock.timeAtBeat(startBeat + location.locAtBeat(beat));
-			//return clock.timeAtBeat(startBeat + timeAtBeatStream(rateCache, rateStream, beat));
+			return clock.timeAtBeat(startLoc + location.locAtBeat(beat));
+			//return clock.timeAtBeat(startLoc + timeAtBeatStream(rateCache, rateStream, beat));
 		}
 
 		function push(event) {
@@ -449,9 +451,15 @@
 		}
 
 		stream.start = function(time, beat) {
-			startBeat = clock.beatAtTime(time);
+			//if (beat) {
+			//	var loc = location.locAtBeat(beat);
+			//	var t   = clock.timeAtBeat(-loc);
+			//}
+
+			startLoc  = clock.beatAtTime(time);
 			startTime = t1 = time;
-		
+			
+
 			// Fill data with events and start observing the timer
 			each(push, events);
 			startCue(timer.currentTime);
@@ -518,6 +526,10 @@
 			enumerable: true
 		});
 	}
+
+	assign(CueStream.prototype, {
+		
+	});
 
 	window.CueStream = CueStream;
 

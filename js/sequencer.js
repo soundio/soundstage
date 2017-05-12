@@ -89,7 +89,7 @@
 			var stream = sequencer[privates].stream;
 
 			clock.start(startTime);
-			stream.start(startTime);
+			stream.start(startTime, beat);
 			return this;
 		};
 
