@@ -158,33 +158,46 @@
 		}
 	}
 
-	function distribute(source, assignTime, test, t1, t2, fn) {
+	function distribute(source, assignTime, timeAtBeat, test, t1, t2, fn) {
 		var event;
 
 		while ((event = source.shift()) !== undefined) {
 			assignTime(event);
 
 			// If the event is before latest cue time, ignore
-			if (event.time < t1) { continue; }
+			if (event.time < t1) {
+				if (event[1] === "note" || event[1] === "sequence") {
+					if (timeAtBeat(event[1] + event[4]) > t1) {
+						// DO SOMETHING WITH EVENT THAT SHOULD BE EN COURSE
+						fn(event);
+						// This, maybe??
+					}
+				}
+
+				console.log('BEFORE', event)
+				continue;
+			}
 
 			// If the event needs cued in the current frame
 			else if (test(t1, t2, event)) {
+				console.log('PRESENT', event)
 				fn(event);
 			}
 
 			// If the event is for a future cue frame push it back into
 			// source and leave
 			else {
+				console.log('AFTER', event)
 				source.unshift(event);
 				break;
 			}
 		}
 	}
 
-	function distributeEvents(inBuffers, outBuffers, t1, t2, assignTime, object, fns, cuestream) {
+	function distributeEvents(inBuffers, outBuffers, t1, t2, assignTime, timeAtBeat, object, fns, cuestream) {
 //console.log('buffered notes:', mapGet(inBuffers, 'note').map(get0).map(toFixed(4)));
 
-		distribute(mapGet(inBuffers, 'note'), assignTime, eventIsInCue, t1, t2, function(event) {
+		distribute(mapGet(inBuffers, 'note'), assignTime, timeAtBeat, eventIsInCue, t1, t2, function(event) {
 			var offBeat = event[0] + event[4];
 
 			event[0] = event.time;
@@ -208,7 +221,7 @@
 
 //console.log('buffered noteoffs:', mapGet(inBuffers, 'noteoff').map(get0).map(toFixed(4)));
 
-		distribute(mapGet(inBuffers, 'noteoff'), assignTime, eventIsInCue, t1, t2, function(event) {
+		distribute(mapGet(inBuffers, 'noteoff'), assignTime, timeAtBeat, eventIsInCue, t1, t2, function(event) {
 			var object = event.object;
 			event[0] = event.time;
 			object.stop && object.stop(event[0], event[2]);
@@ -242,7 +255,7 @@
 			mapInsert(inBuffers, 'sequenceoff', event1);
 		});
 
-		distribute(mapGet(inBuffers, 'sequenceoff'), assignTime, eventIsInCue, t1, t2, function(event) {
+		distribute(mapGet(inBuffers, 'sequenceoff'), assignTime, timeAtBeat, eventIsInCue, t1, t2, function(event) {
 			var object = event.object;
 			event[0] = event.time;
 			object.stop && object.stop(event[0]);
@@ -252,7 +265,7 @@
 			Soundstage.inspector.drawBar(event[0], 'black', event[2]);
 		});
 
-		distribute(mapGet(inBuffers, 'internal'), assignTime, eventIsInCue, t1, t2, function(event) {
+		distribute(mapGet(inBuffers, 'internal'), assignTime, timeAtBeat, eventIsInCue, t1, t2, function(event) {
 			var fn = event[2];
 			release(event);
 			fn(event.time);
@@ -348,12 +361,11 @@
 	function CueStream(timer, clock, events, transform, fns, object) {
 		var stream       = this;
 		var location     = new Location(events);
-		//var rateCache    = [[0, startRateEvent]];
-		//var rateStream   = nothing;
 		var inBuffers    = {};
 		var outBuffers   = {};
 		var paramBuffers = {};
-		var startLoc    = 0;
+		//var startBeat    = 0;
+		var startLoc     = 0;
 		var startTime    = 0;
 		var t1           = 0;
 		var t2           = 0;
@@ -397,12 +409,10 @@
 
 		function beatAtTime(time) {
 			return location.beatAtLoc(clock.beatAtTime(time) - startLoc);
-			//return beatAtTimeStream(rateCache, rateStream, clock.beatAtTime(time) - startLoc);
 		}
 
 		function timeAtBeat(beat) {
 			return clock.timeAtBeat(startLoc + location.locAtBeat(beat));
-			//return clock.timeAtBeat(startLoc + timeAtBeatStream(rateCache, rateStream, beat));
 		}
 
 		function push(event) {
@@ -425,7 +435,7 @@
 			t2 = time >= t3 ? t3 : time ;
 
 			// Distribute events from buffers
-			distributeEvents(inBuffers, outBuffers, t1, t2, assignTime, object, fns, stream);
+			distributeEvents(inBuffers, outBuffers, t1, t2, assignTime, timeAtBeat, object, fns, stream);
 
 //console.groupEnd();
 			// Stop or continue
@@ -451,14 +461,15 @@
 		}
 
 		stream.start = function(time, beat) {
-			//if (beat) {
-			//	var loc = location.locAtBeat(beat);
-			//	var t   = clock.timeAtBeat(-loc);
-			//}
-
-			startLoc  = clock.beatAtTime(time);
 			startTime = t1 = time;
-			
+
+
+console.log('time', time, 'beat', beat, 'loc', location.locAtBeat(beat), 'startLoc', (clock.beatAtTime(time) - (beat ? location.locAtBeat(beat) : 0)));
+
+
+			startLoc  = clock.beatAtTime(time)
+				- (beat ? location.locAtBeat(beat) : 0) ;
+			//startBeat = beat || 0;
 
 			// Fill data with events and start observing the timer
 			each(push, events);
@@ -486,7 +497,7 @@
 			each(push, arguments);
 
 			// Distribute events from buffers
-			distributeEvents(inBuffers, outBuffers, t1, t2, assignTime, object, fns, stream);
+			distributeEvents(inBuffers, outBuffers, t1, t2, assignTime, timeAtBeat, object, fns, stream);
 		};
 
 		var promise = new Promise(function(accept, reject) {
