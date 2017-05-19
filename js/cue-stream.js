@@ -408,11 +408,11 @@
 		};
 
 		function beatAtTime(time) {
-			return location.beatAtLoc(clock.beatAtTime(time) - startLoc);
+			return location.beatAtLoc(clock.beatAtTime(time));
 		}
 
 		function timeAtBeat(beat) {
-			return clock.timeAtBeat(startLoc + location.locAtBeat(beat));
+			return clock.timeAtBeat(location.locAtBeat(beat));
 		}
 
 		function push(event) {
@@ -469,7 +469,7 @@ console.log('time', time, 'beat', beat, 'loc', location.locAtBeat(beat), 'startL
 
 			startLoc  = clock.beatAtTime(time)
 				- (beat ? location.locAtBeat(beat) : 0) ;
-			//startBeat = beat || 0;
+			startBeat = beat || 0;
 
 			// Fill data with events and start observing the timer
 			each(push, events);
