@@ -9,10 +9,11 @@
 	var Event           = window.SoundstageEvent;
 	var Location        = window.Location;
 
-	var privates        = Symbol('privates');
+	var $privates       = Symbol('privates');
 
 	var assign          = Object.assign;
 	var defineProperty  = Object.defineProperty;
+	var defineProperties = Object.defineProperties;
 	var add             = Fn.add;
 	var choose          = Fn.choose;
 	var each            = Fn.each;
@@ -20,6 +21,8 @@
 	var id              = Fn.id;
 	var insert          = Fn.insert;
 	var multiply        = Fn.multiply;
+	var noop            = Fn.noop;
+	var overload        = Fn.overload;
 	var pipe            = Fn.pipe;
 	var rest            = Fn.rest;
 	var split           = Fn.split;
@@ -27,6 +30,7 @@
 	var release         = Event.release;
 
 	var get0            = get('0');
+	var get1            = get('1');
 	var rest5           = rest(5);
 	var insertBy0       = insert(get0);
 	var isString        = function(string) { return typeof string === 'string'; };
@@ -124,6 +128,24 @@
 
 	// CueStream
 
+	var reducers = {
+		param: function(privates, event) {
+			mapInsert(privates.paramBuffers, event[2], event);
+		},
+
+		note: function(privates, event) {
+			mapInsert(privates.inBuffers, 'note', event);
+		},
+
+		sequence: function(privates, event) {
+			mapInsert(privates.inBuffers, 'sequence', event);
+		},
+
+		default: function(privates, event) {
+			mapInsert(privates.inBuffers, 'default', event);
+		}
+	};
+
 	function RateStream(buffer) {
 		return Fn(function shift() {
 			return buffer.shift();
@@ -156,6 +178,10 @@
 			param = data.param[name];
 			paramCache[name] = fill(buffer, paramIsInCue, t1, t2, param, transform, paramCache[name]);
 		}
+	}
+
+	function getType(privates, event) {
+		return event[1];
 	}
 
 	function distribute(source, assignTime, timeAtBeat, test, t1, t2, fn) {
@@ -326,6 +352,12 @@
 
 		// Todo: That leaves notes that have been started before time and
 		// are already scheduled to stop after time...
+
+		// Release events
+		mapEach(inBuffers, function(array) {
+			array.forEach(release);
+			array.length = 0;
+		});
 	}
 
 	function rebuffer(inBuffers, outBuffers, stopTime, assignTime) {
@@ -365,43 +397,30 @@
 		var startTime    = 0;
 		var t1           = 0;
 		var t2           = 0;
-		var stopTime;
 
-		// Pipes for updating data
-		var pipes = {
-			rate: function(event) {
-			// TODO: Create a new location object, but only when necessary
 
-			//	// If the new rate event is later than the last cached time
-			//	// just push it in
-			//	if (rateCache[rateCache.length - 1][0] < event[0]) {
-			//		mapInsert(inBuffers, 'rate', event);
-			//	}
-			//	// Otherwise destroy the cache and create a new rates buffer
-			//	else {
-			//		//inBuffers.rate = events.filter(isRateEvent);
-			//		//rateCache.length = 1;
-			//		//rateStream = RateStream(inBuffers.rate).map(eventToData(rateCache));
-			//		location = new Location(events);
-			//	}
-			},
+		// Private
 
-			param: pipe(Event.from, transform, function(event) {
-				mapInsert(paramBuffers, event[2], event);
-			}),
+		var privates = this[$privates] = {
+			stopTime: undefined,
+			timer: timer,
+			clock: clock,
+			fns: fns,
+			inBuffers: inBuffers,
+			paramBuffers: paramBuffers,
+			status: 'stopped'
+		};
 
-			note: pipe(Event.from, transform, function(event) {
-				mapInsert(inBuffers, 'note', event);
-			}),
+		var reducer = overload(getType, reducers);
 
-			sequence: pipe(Event.from, transform, function(event) {
-				mapInsert(inBuffers, 'sequence', event);
-			}),
+		var push = overload(get1, {
+			// Todo: handle pushed rate events
+			rate: noop,
 
 			default: pipe(Event.from, transform, function(event) {
-				mapInsert(inBuffers, 'default', event);
+				reducer(privates, event);
 			})
-		};
+		});
 
 		function beatAtTime(time) {
 			return location.beatAtLoc(clock.beatAtTime(time) - startLoc);
@@ -411,10 +430,6 @@
 			return clock.timeAtBeat(startLoc + location.locAtBeat(beat));
 		}
 
-		function push(event) {
-			(pipes[event[1]] || pipes.default)(event);
-		}
-
 		function assignTime(event) {
 			event.time = timeAtBeat(event[0]);
 			return event;
@@ -422,9 +437,9 @@
 
 		function cue(time) {
 //console.group('Soundstage: cue ' + toFixed(4, time));
-			var t3 = stopTime === undefined ? clock.stopTime : stopTime ;
+			var t3 = stream.stopTime;
 
-			stream.status = 'playing';
+			privates.status = 'playing';
 
 			// Update locals
 			t1 = t2 ;
@@ -441,14 +456,7 @@
 
 		function stopCue(time) {
 			cancel(inBuffers, outBuffers, time);
-			//stop(buffer.length, time);
-			mapEach(inBuffers, function(array) {
-				array.forEach(release);
-				array.length = 0;
-			});
-		
-			stream.status = "done";
-//console.groupEnd();
+			privates.status = "done";
 		}
 
 		function startCue(time) {
@@ -472,7 +480,7 @@
 			startCue(timer.currentTime);
 		
 			// Update state
-			stream.status = 'cued';
+			privates.status = 'cued';
 		
 			// Log in timeline
 			if (Soundstage.inspector) {
@@ -480,13 +488,6 @@
 			}
 		
 			return stream;
-		};
-
-		this.cue = function(beat, fn) {
-			// Schedule a fn to fire on a given cue
-			var event = Event(beat, "internal-cue", fn);
-			mapInsert(inBuffers, 'internal', event);
-			return this;
 		};
 
 		this.push = function() {
@@ -498,7 +499,7 @@
 
 		var promise = new Promise(function(accept, reject) {
 			stream.stop = function(time) {
-				stopTime = time;
+				privates.stopTime = time;
 
 				if (t2 >= time) {
 					timer.cancel(cue);
@@ -512,30 +513,58 @@
 
 		this.then = promise.then.bind(promise);
 
-		this.create = function create(events, transform, object) {
-			var child = typeof events === 'function' ?
-				// timer, master, generate, distribute, object
-				new GeneratorStream(timer, stream, events, fns, object) :
-				// timer, master, events, transform, fns, object
-				new CueStream(timer, stream, events, id, fns, object) ;
-			stream.then(child.stop);
-			return child;
-		};
-
 		this.timeAtBeat = timeAtBeat;
 		this.beatAtTime = beatAtTime;
-		this.status     = 'stopped';
-
-		defineProperty(this, 'stopTime', {
-			get: function() {
-				return stopTime === undefined ? clock.stopTime : stopTime ;
-			},
-			enumerable: true
-		});
 	}
 
+	defineProperties(CueStream.prototype, {
+		stopTime: {
+			get: function() {
+				var privates = this[$privates];
+			
+				return privates.stopTime !== undefined ?
+					privates.stopTime :
+					privates.clock.stopTime ;
+			},
+
+			configurable: true
+		},
+
+		status: {
+			get: function() {
+				var privates = this[$privates];
+				return privates.status;
+			},
+
+			configurable: true
+		}
+	});
+
 	assign(CueStream.prototype, {
-		
+		create: function create(events, transform, object) {
+			var privates = this[$privates];
+			var timer    = privates.timer;
+			var fns      = privates.fns;
+
+			var child = typeof events === 'function' ?
+				// timer, master, generate, distribute, object
+				new GeneratorStream(timer, this, events, fns, object) :
+				// timer, master, events, transform, fns, object
+				new CueStream(timer, this, events, id, fns, object) ;
+
+			this.then(child.stop);
+			return child;
+		},
+
+		cue: function(beat, fn) {
+			var privates  = this[$privates];
+			var inBuffers = privates.inBuffers;
+
+			// Schedule a fn to fire on a given cue
+			var event = Event(beat, "internal-cue", fn);
+			mapInsert(inBuffers, 'internal', event);
+			return this;
+		}
 	});
 
 	window.CueStream = CueStream;

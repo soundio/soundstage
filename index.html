@@ -174,10 +174,10 @@
 			//   "tock":    number - Note number
 			// }
 
-			//"metronome": {
-			//	"tick": 72,
-			//	"tock": 64
-			//},
+			"metronome": {
+				"tick": 72,
+				"tock": 64
+			},
 
 			// MIDI
 			//
@@ -297,7 +297,7 @@
 		.on('keydown', document)
 		.each(overload(toKey, {
 			'0': function(e) {
-				console.log(0)
+				stage.beat = 0;
 			},
 
 			'space': function(e) {

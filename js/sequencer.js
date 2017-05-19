@@ -48,8 +48,6 @@
 
 	function Sequencer(audio, distributors, eventStream, sequences, events) {
 
-		// Private
-
 		var sequencer  = this;
 		var clock      = new Clock(audio);
 		var timer      = new CueTimer(function() { return audio.currentTime; });
@@ -57,7 +55,13 @@
 		var childSequences = {};
 		var childEvents = [];
 
-		var privates = this[$privates] = { audio: audio, beat: 0 };
+
+		// Private
+
+		var privates = this[$privates] = {
+			audio: audio,
+			beat: 0
+		};
 
 		function init() {
 			var stream = new CueStream(timer, clock, sequencer.events, Fn.id, distributors);
@@ -81,7 +85,7 @@
 		}
 
 
-		// Public methods
+		// Public
 
 		this.start = function(time, beat) {
 			startTime = time || audio.currentTime ;
@@ -197,11 +201,16 @@
 			},
 
 			set: function(beat) {
-				var privates = this[$privates];
-				var stream   = privates.stream;
+				var sequencer = this;
+				var privates  = this[$privates];
+				var stream    = privates.stream;
 
 				if (stream && stream.status !== 'stopped') {
-					console.log('CANNOT CHANGE BEAT. SEQUENCER PLAYING.');
+					stream.then(function(stopTime) {
+						sequencer.start(stopTime, beat);
+					});
+
+					this.stop();
 					return;
 				}
 
