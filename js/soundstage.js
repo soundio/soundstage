@@ -868,6 +868,7 @@
 
 	defineProperties(Soundstage.prototype, {
 		version: { value: 0 },
+		beat:   getOwnPropertyDescriptor(Sequencer.prototype, 'beat'),
 		status: getOwnPropertyDescriptor(Sequencer.prototype, 'status')
 	});
 

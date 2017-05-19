@@ -204,6 +204,7 @@
 				"id": 1,
 				"name": "steps",
 				"events": [
+					[0,  "rate", 2],
 					[0,  "note", 10, 1, 1],
 					[1,  "note", 20, 1, 1],
 					[2,  "note", 30, 1, 1],
@@ -289,15 +290,21 @@
 		var compose   = Fn.compose;
 		var get       = Fn.get;
 		var is        = Fn.is;
+		var overload  = Fn.overload;
+		var toKey     = dom.toKey;
 
 		dom
 		.on('keydown', document)
-		.map(get('keyCode'))
-		.filter(is(32))
-		.each(function() {
-			var toggle = stage.status === "stopped" ? 'start' : 'stop';
-			stage[toggle](audio.currentTime, 2);
-		});
+		.each(overload(toKey, {
+			'0': function(e) {
+				console.log(0)
+			},
+
+			'space': function(e) {
+				var toggle = stage.status === "stopped" ? 'start' : 'stop';
+				stage[toggle]();
+			}
+		}));
 
 		dom
 		.on('click', dom('#play-button')[0])

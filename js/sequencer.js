@@ -17,13 +17,13 @@
 	var get            = Fn.get;
 	var id             = Fn.id;
 	var insert         = Fn.insert;
+	var isDefined      = Fn.isDefined;
 	var release        = Event.release;
 
-	var privates  = Symbol('privates');
+	var $privates = Symbol('privates');
 	var get0      = get('0');
 	var insertBy0 = insert(get0);
-
-	var defaults = { rate: 2 };
+	var defaults  = { rate: 2 };
 
 	function empty(object) {
 		var prop;
@@ -57,14 +57,14 @@
 		var childSequences = {};
 		var childEvents = [];
 
-		this[privates] = {};
+		var privates = this[$privates] = { audio: audio, beat: 0 };
 
 		function init() {
 			var stream = new CueStream(timer, clock, sequencer.events, Fn.id, distributors);
 			// Ensure there is always a stream waiting by preparing a new
 			// stream when the previous one ends.
 			stream.then(reset);
-			sequencer[privates].stream = stream;
+			privates.stream = stream;
 		}
 
 		function reset(time) {
@@ -84,19 +84,22 @@
 		// Public methods
 
 		this.start = function(time, beat) {
-			startTime  = time || audio.currentTime ;
+			startTime = time || audio.currentTime ;
+
+			if (isDefined(beat)) { privates.beat = beat; }
 			var events = sequencer.events;
-			var stream = sequencer[privates].stream;
+			var stream = privates.stream;
 
 			clock.start(startTime);
-			stream.start(startTime, beat);
+			stream.start(startTime, privates.beat);
 			return this;
 		};
 
 		this.stop = function(time) {
 			var stopTime = time || audio.currentTime ;
-			var stream   = sequencer[privates].stream;
+			var stream   = privates.stream;
 
+			privates.beat = stream.beatAtTime(stopTime);
 			stream.stop(stopTime);
 			clock.stop(stopTime);
 
@@ -183,9 +186,35 @@
 	}
 
 	defineProperties(Sequencer.prototype, {
+		beat: {
+			get: function() {
+				var privates = this[$privates];
+				var stream   = privates.stream;
+
+				return stream && stream.status !== 'stopped' ?
+					stream.beatAtTime(privates.audio) :
+					this[$privates].beat ;
+			},
+
+			set: function(beat) {
+				var privates = this[$privates];
+				var stream   = privates.stream;
+
+				if (stream && stream.status !== 'stopped') {
+					console.log('CANNOT CHANGE BEAT. SEQUENCER PLAYING.');
+					return;
+				}
+
+				privates.beat = beat;
+			},
+
+			// Make observable via get/set
+			configurable: true
+		},
+
 		status: {
 			get: function() {
-				var stream = this[privates].stream;
+				var stream = this[$privates].stream;
 				return stream ? stream.status : 'stopped' ;
 			}
 		}
@@ -193,23 +222,23 @@
 
 	assign(Sequencer.prototype, Location.prototype, Meter.prototype, {
 		create: function(generator, object) {
-			var stream = this[privates].stream;
+			var stream = this[$privates].stream;
 			return stream.create(generator, id, object);
 		},
 
 		cue: function(beat, fn) {
-			var stream = this[privates].stream;
+			var stream = this[$privates].stream;
 			stream.cue(beat, fn);
 			return this;
 		},
 
 		beatAtTime: function(time) {
-			var stream = this[privates].stream;
+			var stream = this[$privates].stream;
 			return stream ? stream.beatAtTime(time) : undefined ;
 		},
 
 		timeAtBeat: function(beat) {
-			var stream = this[privates].stream;
+			var stream = this[$privates].stream;
 			return stream ? stream.timeAtBeat(beat) : undefined ;
 		}
 	});

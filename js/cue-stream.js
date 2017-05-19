@@ -167,27 +167,24 @@
 			// If the event is before latest cue time, ignore
 			if (event.time < t1) {
 				if (event[1] === "note" || event[1] === "sequence") {
-					if (timeAtBeat(event[1] + event[4]) > t1) {
-						// DO SOMETHING WITH EVENT THAT SHOULD BE EN COURSE
+					if (timeAtBeat(event[0] + event[4]) > t1) {
+//console.log('BEFORE ', event);
+						// Trigger event that should already be playing
 						fn(event);
-						// This, maybe??
 					}
 				}
 
-				console.log('BEFORE', event)
 				continue;
 			}
 
 			// If the event needs cued in the current frame
 			else if (test(t1, t2, event)) {
-				console.log('PRESENT', event)
 				fn(event);
 			}
 
 			// If the event is for a future cue frame push it back into
 			// source and leave
 			else {
-				console.log('AFTER', event)
 				source.unshift(event);
 				break;
 			}
@@ -231,7 +228,7 @@
 			Soundstage.inspector.drawEvent(audio.currentTime, event[0], event[1], event[2]);
 		});
 
-		distribute(mapGet(inBuffers, 'sequence'), assignTime, eventIsInCue, t1, t2, function(event) {
+		distribute(mapGet(inBuffers, 'sequence'), assignTime, timeAtBeat, eventIsInCue, t1, t2, function(event) {
 			var offBeat = event[0] + event[4];
 			event[0] = event.time;
 			var stream = fns.sequence(object, event, cuestream, createTransforms(event));
@@ -364,7 +361,6 @@
 		var inBuffers    = {};
 		var outBuffers   = {};
 		var paramBuffers = {};
-		//var startBeat    = 0;
 		var startLoc     = 0;
 		var startTime    = 0;
 		var t1           = 0;
@@ -408,11 +404,11 @@
 		};
 
 		function beatAtTime(time) {
-			return location.beatAtLoc(clock.beatAtTime(time));
+			return location.beatAtLoc(clock.beatAtTime(time) - startLoc);
 		}
 
 		function timeAtBeat(beat) {
-			return clock.timeAtBeat(location.locAtBeat(beat));
+			return clock.timeAtBeat(startLoc + location.locAtBeat(beat));
 		}
 
 		function push(event) {
@@ -431,10 +427,11 @@
 			stream.status = 'playing';
 
 			// Update locals
-			t1 = startTime > t2 ? startTime : t2 ;
+			t1 = t2 ;
 			t2 = time >= t3 ? t3 : time ;
 
 			// Distribute events from buffers
+			
 			distributeEvents(inBuffers, outBuffers, t1, t2, assignTime, timeAtBeat, object, fns, stream);
 
 //console.groupEnd();
@@ -455,21 +452,20 @@
 		}
 
 		function startCue(time) {
-			return time > t1 ?
-				cue(time) :
-				timer.request(startCue) ;
+			if (time > startTime) {
+				t2 = startTime > audio.currentTime ? startTime : audio.currentTime ;
+				cue(time);
+				return;
+			}
+
+			timer.request(startCue);
 		}
 
 		stream.start = function(time, beat) {
-			startTime = t1 = time;
+			startTime = time;
+			startLoc  = clock.beatAtTime(time) - (beat ? location.locAtBeat(beat) : 0);
 
-
-console.log('time', time, 'beat', beat, 'loc', location.locAtBeat(beat), 'startLoc', (clock.beatAtTime(time) - (beat ? location.locAtBeat(beat) : 0)));
-
-
-			startLoc  = clock.beatAtTime(time)
-				- (beat ? location.locAtBeat(beat) : 0) ;
-			startBeat = beat || 0;
+//console.log('time', time, 'beat', beat || 0, 'startLoc', startLoc);
 
 			// Fill data with events and start observing the timer
 			each(push, events);

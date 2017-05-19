@@ -3,7 +3,7 @@
 
 	var Fn   = window.Fn;
 	var Pool = window.Pool;
-	var MIDI = window.MIDI;
+	var MIDI = window.MIDI || {};
 
 	var assign       = Object.assign;
 	var defineProperties = Object.defineProperties;
