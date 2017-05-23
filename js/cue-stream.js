@@ -15,6 +15,7 @@
 	var defineProperty  = Object.defineProperty;
 	var defineProperties = Object.defineProperties;
 	var add             = Fn.add;
+	var by              = Fn.by;
 	var choose          = Fn.choose;
 	var each            = Fn.each;
 	var get             = Fn.get;
@@ -22,6 +23,7 @@
 	var insert          = Fn.insert;
 	var multiply        = Fn.multiply;
 	var noop            = Fn.noop;
+	var once            = Fn.once;
 	var overload        = Fn.overload;
 	var pipe            = Fn.pipe;
 	var rest            = Fn.rest;
@@ -29,8 +31,10 @@
 	var nothing         = Fn.nothing;
 	var release         = Event.release;
 
+	var by0             = by('0');
 	var get0            = get('0');
 	var get1            = get('1');
+	var get2            = get('2');
 	var rest5           = rest(5);
 	var insertBy0       = insert(get0);
 	var isString        = function(string) { return typeof string === 'string'; };
@@ -120,6 +124,11 @@
 
 	// Events
 
+	function isTransitionRateEvent(event) {
+		// [time, "param", name, value, curve]
+		return event[3] === 'exponential' || event[3] === 'linear';
+	}
+
 	function isTransitionEvent(event) {
 		// [time, "param", name, value, curve]
 		return event[4] === 'exponential' || event[4] === 'linear';
@@ -127,30 +136,6 @@
 
 
 	// CueStream
-
-	var reducers = {
-		param: function(privates, event) {
-			mapInsert(privates.paramBuffers, event[2], event);
-		},
-
-		note: function(privates, event) {
-			mapInsert(privates.inBuffers, 'note', event);
-		},
-
-		sequence: function(privates, event) {
-			mapInsert(privates.inBuffers, 'sequence', event);
-		},
-
-		default: function(privates, event) {
-			mapInsert(privates.inBuffers, 'default', event);
-		}
-	};
-
-	function RateStream(buffer) {
-		return Fn(function shift() {
-			return buffer.shift();
-		});
-	}
 
 	function eventIsInCue(t1, t2, object) {
 		if (object.time < t2) { return true; }
@@ -180,120 +165,81 @@
 		}
 	}
 
-	function getType(privates, event) {
+	function getEventType(privates, event) {
 		return event[1];
 	}
 
-	function distribute(source, assignTime, timeAtBeat, test, t1, t2, fn) {
-		var event;
+	function distributeDurationEvent(privates, event) {
+		var buffer     = privates.buffer;
+		var outBuffers = privates.outBuffers;
+		var distribute = privates.distribute;
+		var object     = event.object || privates.object;
+		var stopBeat   = event[0] + event[4];
 
-		while ((event = source.shift()) !== undefined) {
-			assignTime(event);
+		event[0] = event.time;
 
-			// If the event is before latest cue time, ignore
-			if (event.time < t1) {
-				if (event[1] === "note" || event[1] === "sequence") {
-					if (timeAtBeat(event[0] + event[4]) > t1) {
-//console.log('BEFORE ', event);
-						// Trigger event that should already be playing
-						fn(event);
-					}
-				}
+		var stopObject = distribute(event);
 
-				continue;
-			}
-
-			// If the event needs cued in the current frame
-			else if (test(t1, t2, event)) {
-				fn(event);
-			}
-
-			// If the event is for a future cue frame push it back into
-			// source and leave
-			else {
-				source.unshift(event);
-				break;
-			}
+		// If there was no duration given at event[4], offBeat will be NaN,
+		// and the sequence should run forever. If the child sequence was
+		// not found, stream will be undefined, and we should getouttahere.
+		if (!stopBeat || !stopObject || !stopObject.stop) {
+			release(event);
+			return privates;
 		}
+
+//		Soundstage.inspector &&
+//		Soundstage.inspector.drawBar(event[0], 'blue', event[2]);
+
+		var stopEvent = Event(stopBeat, event[1] + 'off', event[2]);
+		event.object  = stopObject;
+		stopEvent.object = stopObject;
+
+		mapPush(outBuffers, event[1], event);
+		insertBy0(buffer, stopEvent);
+
+		return privates;
 	}
 
-	function distributeEvents(inBuffers, outBuffers, t1, t2, assignTime, timeAtBeat, object, fns, cuestream) {
-//console.log('buffered notes:', mapGet(inBuffers, 'note').map(get0).map(toFixed(4)));
+	function distributeOffEvent(privates, event) {
+		var buffer     = privates.buffer;
+		var distribute = privates.distribute;
+		var object     = event.object;
 
-		distribute(mapGet(inBuffers, 'note'), assignTime, timeAtBeat, eventIsInCue, t1, t2, function(event) {
-			var offBeat = event[0] + event[4];
+		event[0] = event.time;
 
-			event[0] = event.time;
-			var note = fns.note(object, event);
+		distribute(event);
+		release(event);
 
-			Soundstage.inspector &&
-			Soundstage.inspector.drawEvent(audio.currentTime, event[0], event[1], event[2]);
+//		Soundstage.inspector &&
+//		Soundstage.inspector.drawEvent(audio.currentTime, event[0], event[1], event[2]);
 
-			if (!note) {
-				release(event);
-				return;
-			}
+		return privates;
+	}
 
-			event.object = note;
-			mapPush(outBuffers, 'note', event);
+	var distribute = overload(getEventType, {
+		"note":        distributeDurationEvent,
+		"sequence":    distributeDurationEvent,
+		"noteoff":     distributeOffEvent,
+		"sequenceoff": distributeOffEvent,
 
-			var event1 = Event(offBeat, 'noteoff', event[2]);
-			event1.object = note;
-			mapInsert(inBuffers, 'noteoff', event1);
-		});
+		"param": function(privates, event) {
+			console.log('PARAM EVENT', event);
+			return privates;
+		},
 
-//console.log('buffered noteoffs:', mapGet(inBuffers, 'noteoff').map(get0).map(toFixed(4)));
+		"rate": function(privates, event) {
+			console.log('RATE EVENT', event);
+			return privates;
+		},
 
-		distribute(mapGet(inBuffers, 'noteoff'), assignTime, timeAtBeat, eventIsInCue, t1, t2, function(event) {
-			var object = event.object;
-			event[0] = event.time;
-			object.stop && object.stop(event[0], event[2]);
-			release(event);
-
-			Soundstage.inspector &&
-			Soundstage.inspector.drawEvent(audio.currentTime, event[0], event[1], event[2]);
-		});
-
-		distribute(mapGet(inBuffers, 'sequence'), assignTime, timeAtBeat, eventIsInCue, t1, t2, function(event) {
-			var offBeat = event[0] + event[4];
-			event[0] = event.time;
-			var stream = fns.sequence(object, event, cuestream, createTransforms(event));
-
-			// If there was no duration given at event[4], offBeat will be NaN,
-			// and the sequence should run forever. If the child sequence was
-			// not found, stream will be undefined, and we should getouttahere.
-			if (!offBeat || !stream) {
-				release(event);
-				return;
-			}
-
-			Soundstage.inspector &&
-			Soundstage.inspector.drawBar(event[0], 'blue', event[2]);
-
-			var event1 = Event(offBeat, 'sequenceoff', event[2]);
-			event.object  = stream;
-			event1.object = stream;
-
-			mapPush(outBuffers, 'sequence', event);
-			mapInsert(inBuffers, 'sequenceoff', event1);
-		});
-
-		distribute(mapGet(inBuffers, 'sequenceoff'), assignTime, timeAtBeat, eventIsInCue, t1, t2, function(event) {
-			var object = event.object;
-			event[0] = event.time;
-			object.stop && object.stop(event[0]);
-			release(event);
-
-			Soundstage.inspector &&
-			Soundstage.inspector.drawBar(event[0], 'black', event[2]);
-		});
-
-		distribute(mapGet(inBuffers, 'internal'), assignTime, timeAtBeat, eventIsInCue, t1, t2, function(event) {
+		"cue": function(privates, event) {
 			var fn = event[2];
 			release(event);
 			fn(event.time);
-		});
-	}
+			return privates;
+		}
+	});
 
 	function cancelIns(stopTime, buffer) {
 		if (!buffer) { return; }
@@ -387,16 +333,157 @@
 
 	}
 
-	function CueStream(timer, clock, events, transform, fns, object) {
+	// Buffer Generator
+	//
+	// Create a buffer generator from an array of events
+
+	// Event types
+	//
+	// [time, "rate", number, curve]
+	// [time, "meter", numerator, denominator]
+	// [time, "note", number, velocity, duration]
+	// [time, "noteon", number, velocity]
+	// [time, "noteoff", number]
+	// [time, "param", name, value, curve]
+	// [time, "pitch", semitones]
+	// [time, "chord", root, mode, duration]
+	// [time, "sequence", name || events, target, duration, transforms...]
+
+	function bufferEvents(buffer, events, b1, b2) {
+		// Ignore previous events
+		while (events.length && events[0][0] < b1) {
+			events.shift();
+		}
+
+		// Buffer events in this cue
+		while (events.length && b1 <= events[0][0] && events[0][0] < b2) {
+			buffer.push(events.shift());
+		}
+	}
+
+	function bufferRateEvents(buffer, events, b1, b2) {
+		// Buffer previous events ????
+		while (events.length && events[0][0] < b1) {
+			buffer.push(events.shift());
+		}
+
+		// Buffer events up to 400 beats ahead of time, because
+		while (events.length && b1 <= events[0][0] && events[0][0] < b2 + 400) {
+			buffer.push(events.shift());
+		}
+
+		// Buffer the following event if it is a transition event
+		if (events.length && isTransitionRateEvent(events[0])) {
+			buffer.push(events.shift());
+		}
+	}
+
+	function bufferTransitionEvents(buffer, events, b1, b2) {
+		// Buffer the patest previous event
+		var event;
+		while (events.length && events[0][0] < b1) {
+			event = events.shift();
+		}
+		if (event) { buffer.push(event); }
+
+		// Buffer events in this cue
+		while (events.length && b1 <= events[0][0] && events[0][0] < b2) {
+			buffer.push(events.shift());
+		}
+
+		// Buffer the following event if it is a transition event
+		if (events.length && isTransitionEvent(events[0])) {
+			buffer.push(events.shift());
+		}
+	}
+
+	function bufferDurationEvents(buffer, events, b1, b2) {
+		// Inspect events that should have started before this cue
+		while (events.length && events[0][0] < b1) {
+			event = events.shift();
+
+			// Buffer any events that should currently be playing
+			if (event[0] + event[4] > b1) {
+				buffer.push(event);
+			}
+		}
+
+		// Buffer events that start in this cue
+		while (events.length && events[0][0] >= b1 && events[0][0] < b2) {
+			buffer.push(events.shift());
+		}
+	}
+
+	function createKeyReducer(toKey, reducers) {
+		return function reducer(data, event) {
+			data = data || {};
+
+			var key = toKey(event);
+			var fn  = reducers[key] || reducers.default;
+
+			if (fn) {
+				data[key] = fn(data[key], event);
+			}
+
+			return data;
+		};
+	}
+
+	function push(array, object) {
+		array = array || [];
+		array.push(object);
+		return array;
+	}
+
+	var splitReducer = createKeyReducer(get1, {
+		param: createKeyReducer(get2, {
+			default: push
+		}),
+		default: push
+	});
+
+	function createGenerate(beatAtTime, events) {
+		var buffer = [];
+
+		var data = events.sort(by0).reduce(splitReducer, {
+			rate:     [],
+			note:     [],
+			sequence: [],
+			param:    {},
+			default:  []
+		});
+
+		return function generate(cue) {
+			var b1 = beatAtTime(cue.t1);
+			var b2 = beatAtTime(cue.t2);
+			var key;
+
+			buffer.length = 0;
+
+			bufferRateEvents(buffer, data.rate, b1, b2);
+			bufferDurationEvents(buffer, data.note, b1, b2);
+			bufferDurationEvents(buffer, data.sequence, b1, b2);
+
+			for (key in data.param) {
+				bufferTransitionEvents(buffer, data.param[key], b1, b2);
+			}
+
+			bufferEvents(buffer, data.default, b1, b2);
+
+			return buffer;
+		};
+	}
+
+	function CueStream(timer, clock, generate, transform, fns, object) {
 		var stream       = this;
-		var location     = new Location(events);
+		var location     = new Location([]);
 		var inBuffers    = {};
 		var outBuffers   = {};
-		var paramBuffers = {};
 		var startLoc     = 0;
 		var startTime    = 0;
 		var t1           = 0;
 		var t2           = 0;
+		var cueObject    = {};
 
 
 		// Private
@@ -407,20 +494,16 @@
 			clock: clock,
 			fns: fns,
 			inBuffers: inBuffers,
-			paramBuffers: paramBuffers,
-			status: 'stopped'
+			outBuffers: outBuffers,
+			buffer: [],
+			object: object,
+			status: 'stopped',
+			distribute: function(event) {
+				var transforms = event[1] === 'sequence' ? createTransforms(event) : undefined ;
+				return (fns[get1(event)] || fns.default)(event.object || object, event, stream, transforms);
+			}
 		};
 
-		var reducer = overload(getType, reducers);
-
-		var push = overload(get1, {
-			// Todo: handle pushed rate events
-			rate: noop,
-
-			default: pipe(Event.from, transform, function(event) {
-				reducer(privates, event);
-			})
-		});
 
 		function beatAtTime(time) {
 			return location.beatAtLoc(clock.beatAtTime(time) - startLoc);
@@ -435,6 +518,15 @@
 			return event;
 		}
 
+		function assignTarget(event) {
+			event.object = object;
+			return event;
+		}
+
+		if (typeof generate !== 'function') {
+			generate = createGenerate(beatAtTime, generate);
+		}
+
 		function cue(time) {
 //console.group('Soundstage: cue ' + toFixed(4, time));
 			var t3 = stream.stopTime;
@@ -444,10 +536,31 @@
 			// Update locals
 			t1 = t2 ;
 			t2 = time >= t3 ? t3 : time ;
+			cueObject.t1 = t1;
+			cueObject.t2 = t2;
 
-			// Distribute events from buffers
-			
-			distributeEvents(inBuffers, outBuffers, t1, t2, assignTime, timeAtBeat, object, fns, stream);
+			// Cue generated events
+			generate(cueObject)
+			.map(Event.from)
+			.map(transform)
+			.map(assignTime)
+			.map(assignTarget)
+			.reduce(distribute, privates);
+
+			// Cue buffered events
+			var buffer = privates.buffer;
+			var event;
+
+			while (buffer[0] && assignTime(buffer[0]).time < t2) {
+				event = buffer.shift();
+
+				if (event.time < t1) {
+					console.log('THIS SHOULDNT HAPPEN', event);
+					continue;
+				}
+
+				distribute(privates, event);
+			}
 
 //console.groupEnd();
 			// Stop or continue
@@ -476,9 +589,9 @@
 //console.log('time', time, 'beat', beat || 0, 'startLoc', startLoc);
 
 			// Fill data with events and start observing the timer
-			each(push, events);
+			//each(push, events);
 			startCue(timer.currentTime);
-		
+
 			// Update state
 			privates.status = 'cued';
 		
@@ -546,11 +659,7 @@
 			var timer    = privates.timer;
 			var fns      = privates.fns;
 
-			var child = typeof events === 'function' ?
-				// timer, master, generate, distribute, object
-				new GeneratorStream(timer, this, events, fns, object) :
-				// timer, master, events, transform, fns, object
-				new CueStream(timer, this, events, id, fns, object) ;
+			var child = new CueStream(timer, this, events, id, fns, object);
 
 			this.then(child.stop);
 			return child;
@@ -561,8 +670,8 @@
 			var inBuffers = privates.inBuffers;
 
 			// Schedule a fn to fire on a given cue
-			var event = Event(beat, "internal-cue", fn);
-			mapInsert(inBuffers, 'internal', event);
+			var event = Event(beat, "cue", fn);
+			mapInsert(inBuffers, 'cue', event);
 			return this;
 		}
 	});
