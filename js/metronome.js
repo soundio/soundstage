@@ -3,7 +3,6 @@
 
 	var assign      = Object.assign;
 	var AudioObject = window.AudioObject;
-	var Event       = window.SoundstageEvent;
 
 	var defaults = {
 		duration: 0.03125,
@@ -30,13 +29,11 @@
 			var beat = Math.ceil(b1);
 			var tick = metronome.tick;
 			var tock = metronome.tock;
-			var event;
 
 			buffer.length = 0;
 
 			while (beat < b2) {
-				event = Event(beat, 'note', sequencer.barAtBeat(beat) % 1 === 0 ? tick : tock, 1, settings.duration);
-				buffer.push(event);
+				buffer.push([beat, 'note', sequencer.barAtBeat(beat) % 1 === 0 ? tick : tock, 1, settings.duration]);
 				++beat;
 			}
 

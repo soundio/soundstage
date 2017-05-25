@@ -169,9 +169,25 @@
 		return event[1];
 	}
 
+	function distributeEvent(privates, event) {
+		var buffer     = privates.inBuffer;
+		var distribute = privates.distribute;
+		var object     = event.object;
+
+		event[0] = event.time;
+
+		distribute(event);
+		release(event);
+
+		Soundstage.inspector &&
+		Soundstage.inspector.drawEvent(audio.currentTime, event[0], event[1], event[2]);
+
+		return privates;
+	}
+
 	function distributeDurationEvent(privates, event) {
-		var buffer     = privates.buffer;
-		var outBuffers = privates.outBuffers;
+		var buffer     = privates.inBuffer;
+		var outBuffer  = privates.outBuffer;
 		var distribute = privates.distribute;
 		var object     = event.object || privates.object;
 		var stopBeat   = event[0] + event[4];
@@ -188,31 +204,15 @@
 			return privates;
 		}
 
-//		Soundstage.inspector &&
-//		Soundstage.inspector.drawBar(event[0], 'blue', event[2]);
+		Soundstage.inspector &&
+		Soundstage.inspector.drawBar(event[0], 'blue', event[2]);
 
 		var stopEvent = Event(stopBeat, event[1] + 'off', event[2]);
 		event.object  = stopObject;
 		stopEvent.object = stopObject;
 
-		mapPush(outBuffers, event[1], event);
+		insertBy0(outBuffer, event);
 		insertBy0(buffer, stopEvent);
-
-		return privates;
-	}
-
-	function distributeOffEvent(privates, event) {
-		var buffer     = privates.buffer;
-		var distribute = privates.distribute;
-		var object     = event.object;
-
-		event[0] = event.time;
-
-		distribute(event);
-		release(event);
-
-//		Soundstage.inspector &&
-//		Soundstage.inspector.drawEvent(audio.currentTime, event[0], event[1], event[2]);
 
 		return privates;
 	}
@@ -220,16 +220,12 @@
 	var distribute = overload(getEventType, {
 		"note":        distributeDurationEvent,
 		"sequence":    distributeDurationEvent,
-		"noteoff":     distributeOffEvent,
-		"sequenceoff": distributeOffEvent,
-
-		"param": function(privates, event) {
-			console.log('PARAM EVENT', event);
-			return privates;
-		},
+		"noteoff":     distributeEvent,
+		"param":       distributeEvent,
+		"sequenceoff": distributeEvent,
 
 		"rate": function(privates, event) {
-			console.log('RATE EVENT', event);
+			privates.rates.push(event);
 			return privates;
 		},
 
@@ -282,28 +278,21 @@
 		if (buffer.length) { buffer.length = 0; }
 	}
 
-	function cancel(inBuffers, outBuffers, stopTime) {
+	function cancel(inBuffer, outBuffer, stopTime) {
 		// On stop stream
 
 		Soundstage.inspector.drawBar(stopTime, "red", 'stop');
 
 		// Stop notes that have been started before time and have not yet
 		// been scheduled to stop
-		cancelIns(stopTime, inBuffers['noteoff']);
-		cancelIns(stopTime, inBuffers['sequenceoff']);
+		cancelIns(stopTime, inBuffer);
 
 		// Cancel notes that have been cued to start after time, looping
 		// backwards through time.
-		cancelOuts(stopTime, outBuffers['note']);
+		cancelOuts(stopTime, outBuffer);
 
 		// Todo: That leaves notes that have been started before time and
 		// are already scheduled to stop after time...
-
-		// Release events
-		mapEach(inBuffers, function(array) {
-			array.forEach(release);
-			array.length = 0;
-		});
 	}
 
 	function rebuffer(inBuffers, outBuffers, stopTime, assignTime) {
@@ -361,23 +350,6 @@
 		}
 	}
 
-	function bufferRateEvents(buffer, events, b1, b2) {
-		// Buffer previous events ????
-		while (events.length && events[0][0] < b1) {
-			buffer.push(events.shift());
-		}
-
-		// Buffer events up to 400 beats ahead of time, because
-		while (events.length && b1 <= events[0][0] && events[0][0] < b2 + 400) {
-			buffer.push(events.shift());
-		}
-
-		// Buffer the following event if it is a transition event
-		if (events.length && isTransitionRateEvent(events[0])) {
-			buffer.push(events.shift());
-		}
-	}
-
 	function bufferTransitionEvents(buffer, events, b1, b2) {
 		// Buffer the patest previous event
 		var event;
@@ -429,7 +401,13 @@
 		};
 	}
 
-	function push(array, object) {
+	function insertReducer(array, object) {
+		array = array || [];
+		insertBy0(array, object);
+		return array;
+	}
+
+	function pushReducer(array, object) {
 		array = array || [];
 		array.push(object);
 		return array;
@@ -437,16 +415,18 @@
 
 	var splitReducer = createKeyReducer(get1, {
 		param: createKeyReducer(get2, {
-			default: push
+			default: insertReducer
 		}),
-		default: push
+		rate:    pushReducer,
+		default: insertReducer
 	});
 
-	function createGenerate(beatAtTime, events) {
+	function createGenerate(beatAtTime, rates, events) {
 		var buffer = [];
 
-		var data = events.sort(by0).reduce(splitReducer, {
-			rate:     [],
+		var data = events.reduce(splitReducer, {
+			// Gaurantee these objects are created and useable
+			rate:     rates,
 			note:     [],
 			sequence: [],
 			param:    {},
@@ -460,7 +440,6 @@
 
 			buffer.length = 0;
 
-			bufferRateEvents(buffer, data.rate, b1, b2);
 			bufferDurationEvents(buffer, data.note, b1, b2);
 			bufferDurationEvents(buffer, data.sequence, b1, b2);
 
@@ -475,29 +454,23 @@
 	}
 
 	function CueStream(timer, clock, generate, transform, fns, object) {
-		var stream       = this;
-		var location     = new Location([]);
-		var inBuffers    = {};
-		var outBuffers   = {};
-		var startLoc     = 0;
-		var startTime    = 0;
-		var t1           = 0;
-		var t2           = 0;
-		var cueObject    = {};
-
+		var stream     = this;
+		var startLoc   = 0;
+		var cue        = { t0: 0, t1: 0, t2: 0 };
+		var rates, location;
 
 		// Private
 
 		var privates = this[$privates] = {
-			stopTime: undefined,
-			timer: timer,
-			clock: clock,
-			fns: fns,
-			inBuffers: inBuffers,
-			outBuffers: outBuffers,
-			buffer: [],
-			object: object,
-			status: 'stopped',
+			stopTime:   undefined,
+			timer:      timer,
+			clock:      clock,
+			fns:        fns,
+			rates:      rates,
+			inBuffer:   [],
+			outBuffer:  [],
+			object:     object,
+			status:     'stopped',
 			distribute: function(event) {
 				var transforms = event[1] === 'sequence' ? createTransforms(event) : undefined ;
 				return (fns[get1(event)] || fns.default)(event.object || object, event, stream, transforms);
@@ -523,24 +496,18 @@
 			return event;
 		}
 
-		if (typeof generate !== 'function') {
-			generate = createGenerate(beatAtTime, generate);
-		}
-
-		function cue(time) {
+		function playCue(time) {
 //console.group('Soundstage: cue ' + toFixed(4, time));
 			var t3 = stream.stopTime;
 
 			privates.status = 'playing';
 
 			// Update locals
-			t1 = t2 ;
-			t2 = time >= t3 ? t3 : time ;
-			cueObject.t1 = t1;
-			cueObject.t2 = t2;
+			cue.t1 = cue.t2;
+			cue.t2 = time >= t3 ? t3 : time;
 
 			// Cue generated events
-			generate(cueObject)
+			generate(cue)
 			.map(Event.from)
 			.map(transform)
 			.map(assignTime)
@@ -548,15 +515,15 @@
 			.reduce(distribute, privates);
 
 			// Cue buffered events
-			var buffer = privates.buffer;
+			var buffer = privates.inBuffer;
 			var event;
 
-			while (buffer[0] && assignTime(buffer[0]).time < t2) {
+			while (buffer[0] && assignTime(buffer[0]).time < cue.t2) {
 				event = buffer.shift();
 
-				if (event.time < t1) {
+				if (event.time < cue.t1) {
 					console.log('THIS SHOULDNT HAPPEN', event);
-					continue;
+					//continue;
 				}
 
 				distribute(privates, event);
@@ -564,18 +531,18 @@
 
 //console.groupEnd();
 			// Stop or continue
-			t2 === t3 ? stopCue(t3) : timer.request(cue) ;
+			cue.t2 === t3 ? stopCue(t3) : timer.request(playCue) ;
 		}
 
 		function stopCue(time) {
-			cancel(inBuffers, outBuffers, time);
+			cancel(privates.inBuffer, privates.outBuffer, time);
 			privates.status = "done";
 		}
 
 		function startCue(time) {
-			if (time > startTime) {
-				t2 = startTime > audio.currentTime ? startTime : audio.currentTime ;
-				cue(time);
+			if (time > cue.t0) {
+				cue.t2 = cue.t0 > audio.currentTime ? cue.t0 : audio.currentTime ;
+				playCue(time);
 				return;
 			}
 
@@ -583,8 +550,15 @@
 		}
 
 		stream.start = function(time, beat) {
-			startTime = time;
-			startLoc  = clock.beatAtTime(time) - (beat ? location.locAtBeat(beat) : 0);
+			cue.t0   = time;
+			rates    = Stream.of();
+			location = new Location(rates);
+
+			if (typeof generate !== 'function') {
+				generate = createGenerate(beatAtTime, rates, generate);
+			}
+
+			startLoc = clock.beatAtTime(time) - (beat ? location.locAtBeat(beat) : 0);
 
 //console.log('time', time, 'beat', beat || 0, 'startLoc', startLoc);
 
@@ -603,19 +577,12 @@
 			return stream;
 		};
 
-		this.push = function() {
-			each(push, arguments);
-
-			// Distribute events from buffers
-			distributeEvents(inBuffers, outBuffers, t1, t2, assignTime, timeAtBeat, object, fns, stream);
-		};
-
 		var promise = new Promise(function(accept, reject) {
 			stream.stop = function(time) {
 				privates.stopTime = time;
 
-				if (t2 >= time) {
-					timer.cancel(cue);
+				if (cue.t2 >= time) {
+					timer.cancel(playCue);
 					stopCue(time);
 				}
 
@@ -666,12 +633,9 @@
 		},
 
 		cue: function(beat, fn) {
-			var privates  = this[$privates];
-			var inBuffers = privates.inBuffers;
-
+			var privates = this[$privates];
 			// Schedule a fn to fire on a given cue
-			var event = Event(beat, "cue", fn);
-			mapInsert(inBuffers, 'cue', event);
+			insertBy0(privates.inBuffer, Event(beat, "cue", fn));
 			return this;
 		}
 	});

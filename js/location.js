@@ -76,11 +76,15 @@
 
 	function calcLocAtBeat(cache, functor, beat) {
 		var n = -1;
+		var e0, e1;
+//console.log(1, JSON.stringify(cache), beat);
 		while ((cache[++n] || functor.shift()) && beat >= cache[n][0]) {
+//console.log(2, JSON.stringify(cache));
+			e0 = cache[n];
 			//console.log(beat, cache);
 		}
-		var e0 = cache[n - 1];
-		var e1 = cache[n];
+
+		e1 = cache[n];
 		return e0.loc + locAtBeat(e0, e1, beat - e0[0]);
 	}
 
@@ -93,13 +97,13 @@
 	// Location
 
 	function Location(events) {
-		events = events.filter(isRate);
-
-		var cache = [];
+		var functor = Fn.prototype.isPrototypeOf(events) ? events : Fn.from(events) ;
+		var cache   = [];
 
 		this[privates] = {
 			cache:   cache,
-			functor: Fn.from(events)
+			functor: functor
+			.filter(isRate)
 			.map(Event.from)
 			.fold(reducer, rate0)
 			.tap(function(event) {
