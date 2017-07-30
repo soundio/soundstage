@@ -20,7 +20,7 @@
 	var isDefined      = Fn.isDefined;
 	var release        = Event.release;
 
-	var $privates = Symbol('privates');
+	var $privates = Symbol('sequencer');
 	var get0      = get('0');
 	var insertBy0 = insert(get0);
 	var defaults  = { rate: 2 };
@@ -50,7 +50,7 @@
 
 		var sequencer  = this;
 		var clock      = new Clock(audio);
-		var timer      = new CueTimer(function() { return audio.currentTime; });
+		var timer      = new CueTimer(function now() { return audio.currentTime; });
 		var startTime  = 0;
 		var childSequences = {};
 		var childEvents = [];
@@ -62,7 +62,7 @@
 			audio: audio,
 			beat: 0
 		};
-
+var i = -1;
 		function init() {
 			var stream = new CueStream(timer, clock, sequencer.events, Fn.id, distributors);
 			// Ensure there is always a stream waiting by preparing a new
@@ -88,11 +88,20 @@
 		// Public
 
 		this.start = function(time, beat) {
+console.log('Sequencer: start()', time, beat);
+			var stream = privates.stream;
+			var status = stream.status;
+
+			// If stream is not waiting, stop it and start a new one
+			if (status !== 'waiting') {
+				this.stop(time);
+				return this.start(time, beat);
+			}
+
 			startTime = time || audio.currentTime ;
 
 			if (isDefined(beat)) { privates.beat = beat; }
 			var events = sequencer.events;
-			var stream = privates.stream;
 
 			clock.start(startTime);
 			stream.start(startTime, privates.beat);
@@ -100,35 +109,42 @@
 		};
 
 		this.stop = function(time) {
-			var stopTime = time || audio.currentTime ;
-			var stream   = privates.stream;
+			var stream = privates.stream;
+			var status = stream.status;
 
+console.log('Sequencer: stop() ', time, status);
+
+			// If stream is not yet playing do nothing
+			if (status === 'waiting') { return this; }
+
+			var stopTime = time || audio.currentTime ;
 			privates.beat = stream.beatAtTime(stopTime);
-			stream.stop(stopTime);
+
+			//stream.stop(stopTime);
 			clock.stop(stopTime);
 
 			// Log the state of Pool shortly after stop
-			setTimeout(function() {
-				var toArray = Fn.toArray;
-
-				console.log('Events ----------------------------');
-				console.table(toArray(sequencer.events));
-				console.log('Sequences -------------------------');
-				console.table(
-					toArray(sequencer.sequences)
-					.map(function(sequence) {
-						return {
-							id: sequence.id,
-							name: sequence.name,
-							slug: sequence.slug,
-							sequences: sequence.sequences.length,
-							events: sequence.events.length
-						};
-					})
-				);
-				console.log('Pool ------------------------------');
-				console.table(Pool.snapshot());
-			}, 200);
+//			setTimeout(function() {
+//				var toArray = Fn.toArray;
+//
+//				console.log('Events ----------------------------');
+//				console.table(toArray(sequencer.events));
+//				console.log('Sequences -------------------------');
+//				console.table(
+//					toArray(sequencer.sequences)
+//					.map(function(sequence) {
+//						return {
+//							id: sequence.id,
+//							name: sequence.name,
+//							slug: sequence.slug,
+//							sequences: sequence.sequences.length,
+//							events: sequence.events.length
+//						};
+//					})
+//				);
+//				console.log('Pool ------------------------------');
+//				console.table(Pool.snapshot());
+//			}, 200);
 
 			return this;
 		};
@@ -195,7 +211,7 @@
 				var privates = this[$privates];
 				var stream   = privates.stream;
 
-				return stream && stream.status !== 'stopped' ?
+				return stream && stream.status !== 'waiting' ?
 					stream.beatAtTime(privates.audio) :
 					this[$privates].beat ;
 			},
@@ -205,7 +221,7 @@
 				var privates  = this[$privates];
 				var stream    = privates.stream;
 
-				if (stream && stream.status !== 'stopped') {
+				if (stream && stream.status !== 'waiting') {
 					stream.then(function(stopTime) {
 						sequencer.start(stopTime, beat);
 					});
@@ -224,7 +240,7 @@
 		status: {
 			get: function() {
 				var stream = this[$privates].stream;
-				return stream ? stream.status : 'stopped' ;
+				return stream ? stream.status : 'waiting' ;
 			}
 		}
 	});

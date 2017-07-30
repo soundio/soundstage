@@ -27,19 +27,23 @@
 
 		var playing   = false;
 		var fns       = [];
+		var buffer    = [];
+		var requests  = fns;
 		var timer, time;
 
 		function fire(time) {
 			// Swap fns so that frames are not pushing new requests to the
-			// current fns list.
-			var functions = fns;
+			// current fns list, but cancel() is still acting on the old one.
+			requests = buffer;
+
 			var fn;
 
-			fns = [];
-
-			for (fn of functions) {
+			while (fn = fns.shift()) {
 				fn(time);
 			}
+
+			buffer = fns;
+			fns = requests;
 
 			// For debugging
 			if (Soundstage.inspector) {
@@ -74,8 +78,11 @@
 		this.now = now;
 
 		this.request = function requestCue(fn) {
-			fns.push(fn);
+			requests.push(fn);
 			if (!playing) { start(); }
+
+			// Return the callback for use as an identifier, because why not
+			return fn;
 		};
 
 		this.cancel = function cancelCue(fn) {
@@ -117,6 +124,8 @@
 			frame();
 		});
 
+		// When the tab is hidden the timer can slow down to firing at once
+		// per second.
 		document.addEventListener('visibilitychange', function(e) {
 			if (!document.hidden) { return; }
 			clearTimeout(timer);

@@ -9,12 +9,13 @@
 	var Event           = window.SoundstageEvent;
 	var Location        = window.Location;
 
-	var $privates       = Symbol('privates');
+	var $privates       = Symbol('source');
 
 	var assign          = Object.assign;
 	var defineProperty  = Object.defineProperty;
 	var defineProperties = Object.defineProperties;
 	var add             = Fn.add;
+	var curry           = Fn.curry;
 	var by              = Fn.by;
 	var choose          = Fn.choose;
 	var each            = Fn.each;
@@ -38,6 +39,11 @@
 	var rest5           = rest(5);
 	var insertBy0       = insert(get0);
 	var isString        = function(string) { return typeof string === 'string'; };
+
+	var WAITING         = 'waiting';
+	var CUEING          = 'cueing';
+	var PLAYING         = 'playing';
+	var STOPPED         = 'done';
 
 
 	// Buffer maps
@@ -322,6 +328,7 @@
 
 	}
 
+
 	// Buffer Generator
 	//
 	// Create a buffer generator from an array of events
@@ -453,38 +460,55 @@
 		};
 	}
 
+var w = 0;
+
+	function CueSource(stream, timer, clock, fns, object) {
+		this.timer     = timer;
+		this.clock     = clock;
+		this.fns       = fns;
+		this.object    = object;
+
+		this.cue       = { t1: -Infinity, t2: -Infinity };
+		this.inBuffer  = [];
+		this.outBuffer = [];
+		this.status    = 'waiting';
+
+		//this.startTime = undefined;
+		//this.stopTime  = undefined;
+		//this.id        = undefined;
+		//this.rates     = undefined;
+
+		this.distribute = function(event) {
+			var transforms = event[1] === 'sequence' ? createTransforms(event) : undefined ;
+			return (fns[get1(event)] || fns.default)(event.object || object, event, stream, transforms);
+		};
+	}
+
 	function CueStream(timer, clock, generate, transform, fns, object) {
 		var stream     = this;
 		var startLoc   = 0;
-		var cue        = { t0: 0, t1: 0, t2: 0 };
-		var rates, location;
+		var cue        = { t1: -Infinity, t2: -Infinity };
+		var location;
+
+var z = 'stream-' + (++w); //Fn.postpad(' ', 12, (generate[0] && generate[0].join() || ++w + ''));
 
 		// Private
 
-		var privates = this[$privates] = {
-			stopTime:   undefined,
-			timer:      timer,
-			clock:      clock,
-			fns:        fns,
-			rates:      rates,
-			inBuffer:   [],
-			outBuffer:  [],
-			object:     object,
-			status:     'stopped',
-			distribute: function(event) {
-				var transforms = event[1] === 'sequence' ? createTransforms(event) : undefined ;
-				return (fns[get1(event)] || fns.default)(event.object || object, event, stream, transforms);
-			}
-		};
+		var privates = this[$privates] = new CueSource(stream, timer, clock, fns, object);
 
+
+		// Time
 
 		function beatAtTime(time) {
-			return location.beatAtLoc(clock.beatAtTime(time) - startLoc);
+			return location && location.beatAtLoc(clock.beatAtTime(time) - startLoc);
 		}
 
 		function timeAtBeat(beat) {
-			return clock.timeAtBeat(startLoc + location.locAtBeat(beat));
+			return location && clock.timeAtBeat(startLoc + location.locAtBeat(beat));
 		}
+
+
+		// Events
 
 		function assignTime(event) {
 			event.time = timeAtBeat(event[0]);
@@ -496,16 +520,19 @@
 			return event;
 		}
 
-		function playCue(time) {
-//console.group('Soundstage: cue ' + toFixed(4, time));
-			var t3 = stream.stopTime;
 
-			privates.status = 'playing';
+		// Stream
 
-			// Update locals
+		function toCue(time) {
+			var stopTime = privates.stopTime;
+
+			// Update cue
 			cue.t1 = cue.t2;
-			cue.t2 = time >= t3 ? t3 : time;
+			cue.t2 = time >= stopTime ? stopTime : time;
+			return cue;
+		}
 
+		function frame(cue) {
 			// Cue generated events
 			generate(cue)
 			.map(Event.from)
@@ -529,29 +556,59 @@
 				distribute(privates, event);
 			}
 
-//console.groupEnd();
-			// Stop or continue
-			cue.t2 === t3 ? stopCue(t3) : timer.request(playCue) ;
+			return cue;
 		}
 
-		function stopCue(time) {
-			cancel(privates.inBuffer, privates.outBuffer, time);
-			privates.status = "done";
-		}
-
-		function startCue(time) {
-			if (time > cue.t0) {
-				cue.t2 = cue.t0 > audio.currentTime ? cue.t0 : audio.currentTime ;
-				playCue(time);
+		function wait(time) {
+			if (time >= privates.startTime) {
+				start(time);
 				return;
 			}
 
-			timer.request(startCue);
+			privates.id = timer.request(wait);
+		}
+
+		function start(time) {
+			var startTime = privates.startTime;
+			var now = timer.now();
+			cue.t2  = startTime > now ? startTime : now ;
+
+			var fn  = pipe(toCue, frame, function until(cue) {
+				var stopTime = privates.stopTime;
+
+				if (cue.t2 >= stopTime) {
+					//privates.id = undefined;
+					stop(stopTime);
+					return;
+				}
+
+				privates.id = timer.request(fn);
+			});
+
+			privates.status = 'playing';
+			fn(time);
+		}
+
+		function stop(time) {
+console.log('CueStream ' + z + ' stop() time', time)
+			cancel(privates.inBuffer, privates.outBuffer, time);
+
+			var fn;
+
+			while (fn = stops.shift()) {
+				fn(time);
+			}
+
+			privates.status = "done";
 		}
 
 		stream.start = function(time, beat) {
-			cue.t0   = time;
-			rates    = Stream.of();
+console.log('CueStream '+ z +' start() time', time, 'beat', beat || 0, 'startLoc', startLoc);
+
+			var rates = privates.rates = Stream.of();
+
+			privates.startTime = time;
+			//rates    = Stream.of();
 			location = new Location(rates);
 
 			if (typeof generate !== 'function') {
@@ -560,63 +617,73 @@
 
 			startLoc = clock.beatAtTime(time) - (beat ? location.locAtBeat(beat) : 0);
 
-//console.log('time', time, 'beat', beat || 0, 'startLoc', startLoc);
-
 			// Fill data with events and start observing the timer
 			//each(push, events);
-			startCue(timer.currentTime);
+			privates.status = 'cueing';
+			wait(timer.currentTime);
 
-			// Update state
-			privates.status = 'cued';
-		
 			// Log in timeline
 			if (Soundstage.inspector) {
 				Soundstage.inspector.drawBar(time, 'orange', 'CueStream.start ' + clock.constructor.name);
 			}
-		
+
 			return stream;
 		};
 
-		var promise = new Promise(function(accept, reject) {
+//		var promise = new Promise(function(accept, reject) {
 			stream.stop = function(time) {
+				// If the stream is finished do nothing
+				if (stream.status === 'done') { return stream; }
+
+				// If we're setting the existing stopTime do nothing
+				if (time === privates.stopTime) { return stream; }
+
 				privates.stopTime = time;
 
 				if (cue.t2 >= time) {
-					timer.cancel(playCue);
-					stopCue(time);
+					var id = privates.id;
+
+					if (id) {
+						timer.cancel(id);
+					}
+
+					stop(time);
 				}
 
-				accept(time);
+//				var fn;
+
+//				while (fn = stops.shift()) {
+//					fn(time);
+//				}
+
+				//accept(time);
 				return stream;
 			};
-		});
+//		});
 
-		this.then = promise.then.bind(promise);
+		clock.then(stream.stop);
 
+		var stops = [];
+
+		this.then = function(fn) {
+			stops.push(fn);
+		};
+
+//		this.then = promise.then.bind(promise);
 		this.timeAtBeat = timeAtBeat;
 		this.beatAtTime = beatAtTime;
 	}
 
 	defineProperties(CueStream.prototype, {
-		stopTime: {
-			get: function() {
-				var privates = this[$privates];
-			
-				return privates.stopTime !== undefined ?
-					privates.stopTime :
-					privates.clock.stopTime ;
-			},
-
-			configurable: true
-		},
-
 		status: {
 			get: function() {
-				var privates = this[$privates];
-				return privates.status;
-			},
+				var source   = this[$privates];
+				var stopTime = source.stopTime;
 
-			configurable: true
+				return stopTime !== undefined && stopTime < source.timer.now() ?
+					'done' :
+					source.status ;
+			}
 		}
 	});
 
@@ -626,10 +693,7 @@
 			var timer    = privates.timer;
 			var fns      = privates.fns;
 
-			var child = new CueStream(timer, this, events, id, fns, object);
-
-			this.then(child.stop);
-			return child;
+			return new CueStream(timer, this, events, id, fns, object);
 		},
 
 		cue: function(beat, fn) {

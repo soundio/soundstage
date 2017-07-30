@@ -20,9 +20,23 @@
 
 		this.stop = function(time) {
 			stopTime = time || audio.currentTime ;
+
+			var fn;
+			var n = fns.length;
+
+			while (n--) {
+				fn = fns.shift();
+				fn(stopTime);
+			}
+
 			return this;
 		};
 
+		var fns = [];
+
+		this.then = function(fn) {
+			fns.push(fn);
+		};
 
 //		Object.defineProperties(this, {
 //			state: {

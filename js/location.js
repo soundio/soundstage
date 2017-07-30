@@ -4,7 +4,7 @@
 	var Fn       = window.Fn;
 	var Event    = window.SoundstageEvent;
 
-	var privates = Symbol('privates');
+	var privates = Symbol('location');
 
 	var assign   = Object.assign;
 	var freeze   = Object.freeze;

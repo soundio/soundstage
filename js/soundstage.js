@@ -812,7 +812,7 @@
 		// Metronome
 
 		this.metronome = new Metronome(audio, data.metronome, this);
-		this.metronome.start(0);
+		//this.metronome.start(0);
 
 
 		// Methods
