@@ -62,12 +62,15 @@
 			audio: audio,
 			beat: 0
 		};
-var i = -1;
+
 		function init() {
 			var stream = new CueStream(timer, clock, sequencer.events, Fn.id, distributors);
 			// Ensure there is always a stream waiting by preparing a new
 			// stream when the previous one ends.
-			stream.then(reset);
+			stream.on({
+				stop:reset
+			});
+
 			privates.stream = stream;
 		}
 
@@ -88,9 +91,10 @@ var i = -1;
 		// Public
 
 		this.start = function(time, beat) {
-console.log('Sequencer: start()', time, beat);
 			var stream = privates.stream;
 			var status = stream.status;
+
+console.log('Sequencer: start()', time, beat, status);
 
 			// If stream is not waiting, stop it and start a new one
 			if (status !== 'waiting') {
@@ -100,7 +104,10 @@ console.log('Sequencer: start()', time, beat);
 
 			startTime = time || audio.currentTime ;
 
-			if (isDefined(beat)) { privates.beat = beat; }
+			if (typeof beat === 'number') {
+				privates.beat = beat;
+			}
+
 			var events = sequencer.events;
 
 			clock.start(startTime);
@@ -120,31 +127,32 @@ console.log('Sequencer: stop() ', time, status);
 			var stopTime = time || audio.currentTime ;
 			privates.beat = stream.beatAtTime(stopTime);
 
-			//stream.stop(stopTime);
+			stream.stop(stopTime);
 			clock.stop(stopTime);
 
 			// Log the state of Pool shortly after stop
-//			setTimeout(function() {
-//				var toArray = Fn.toArray;
-//
-//				console.log('Events ----------------------------');
-//				console.table(toArray(sequencer.events));
-//				console.log('Sequences -------------------------');
-//				console.table(
-//					toArray(sequencer.sequences)
-//					.map(function(sequence) {
-//						return {
-//							id: sequence.id,
-//							name: sequence.name,
-//							slug: sequence.slug,
-//							sequences: sequence.sequences.length,
-//							events: sequence.events.length
-//						};
-//					})
-//				);
-//				console.log('Pool ------------------------------');
-//				console.table(Pool.snapshot());
-//			}, 200);
+
+			setTimeout(function() {
+				var toArray = Fn.toArray;
+
+				console.log('Events ----------------------------');
+				console.table(toArray(sequencer.events));
+				console.log('Sequences -------------------------');
+				console.table(
+					toArray(sequencer.sequences)
+					.map(function(sequence) {
+						return {
+							id: sequence.id,
+							name: sequence.name,
+							slug: sequence.slug,
+							sequences: sequence.sequences.length,
+							events: sequence.events.length
+						};
+					})
+				);
+				console.log('Pool ------------------------------');
+				console.table(Pool.snapshot());
+			}, 500);
 
 			return this;
 		};
@@ -210,9 +218,10 @@ console.log('Sequencer: stop() ', time, status);
 			get: function() {
 				var privates = this[$privates];
 				var stream   = privates.stream;
+				var status   = stream.status;
 
-				return stream && stream.status !== 'waiting' ?
-					stream.beatAtTime(privates.audio) :
+				return stream && status !== 'waiting' && status !== 'done' ?
+					stream.beatAtTime(privates.audio.currentTime) :
 					this[$privates].beat ;
 			},
 
@@ -222,8 +231,10 @@ console.log('Sequencer: stop() ', time, status);
 				var stream    = privates.stream;
 
 				if (stream && stream.status !== 'waiting') {
-					stream.then(function(stopTime) {
-						sequencer.start(stopTime, beat);
+					stream.on({
+						stop: function(stopTime) {
+							sequencer.start(stopTime, beat);
+						}
 					});
 
 					this.stop();

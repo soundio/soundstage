@@ -9,6 +9,7 @@
 
 		var startTime  = 0;
 		var stopTime   = 0;
+		var children;
 
 		this.beatAtTime = function(time) { return time - startTime; };
 		this.timeAtBeat = function(beat) { return startTime + beat; };
@@ -20,23 +21,9 @@
 
 		this.stop = function(time) {
 			stopTime = time || audio.currentTime ;
-
-			var fn;
-			var n = fns.length;
-
-			while (n--) {
-				fn = fns.shift();
-				fn(stopTime);
-			}
-
 			return this;
 		};
 
-		var fns = [];
-
-		this.then = function(fn) {
-			fns.push(fn);
-		};
 
 //		Object.defineProperties(this, {
 //			state: {

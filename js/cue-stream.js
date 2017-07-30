@@ -40,6 +40,10 @@
 	var insertBy0       = insert(get0);
 	var isString        = function(string) { return typeof string === 'string'; };
 
+	var isRateEvent     = function(e) {
+		return e[1] === 'rate';
+	};
+
 	var WAITING         = 'waiting';
 	var CUEING          = 'cueing';
 	var PLAYING         = 'playing';
@@ -473,6 +477,7 @@ var w = 0;
 		this.inBuffer  = [];
 		this.outBuffer = [];
 		this.stops     = [];
+		this.children  = [];
 		this.status    = 'waiting';
 
 		//this.startTime = undefined;
@@ -530,7 +535,7 @@ var w = 0;
 			var source = this;
 			var id     = source.id;
 			var timer  = source.timer;
-			var stops  = source.stops;
+			var children = source.children;
 
 			if (id) {
 				timer.cancel(id);
@@ -538,12 +543,24 @@ var w = 0;
 
 			cancel(source.inBuffer, source.outBuffer, time);
 
-			var fn;
-			while (fn = stops.shift()) {
-				fn(time);
-			}
+			//var fn;
+			//while (fn = stops.shift()) {
+			//	fn(time);
+			//}
 
-			source.status = "done";
+			// We don't know exactly when a CueStream is done, because it
+			// depends on the audio clock, so we have no choice but to unbind
+			// 'done' child cuestreams as we find them.
+			var n = -1;
+			while (++n < children.length) {
+				if (children[n].status === 'done') {
+					children.splice(n, 1);
+					--n;
+				}
+				else {
+					children[n].stop(time)
+				}
+			}
 		}
 	});
 
@@ -566,9 +583,8 @@ var z = 'stream-' + (++w); //Fn.postpad(' ', 12, (generate[0] && generate[0].joi
 		}
 
 		function timeAtBeat(beat) {
-			return location && clock.timeAtBeat(startLoc + location.locAtBeat(beat));
+			return location && clock.timeAtBeat(location.locAtBeat(beat) + startLoc);
 		}
-
 
 		// Events
 
@@ -628,13 +644,21 @@ var z = 'stream-' + (++w); //Fn.postpad(' ', 12, (generate[0] && generate[0].joi
 		source.frame = frame;
 
 		stream.start = function(time, beat) {
-console.log('CueStream '+ z +' start() time', time, 'beat', beat || 0, 'startLoc', startLoc);
+			// If the stream is running do nothing
+			if (stream.status !== 'waiting') { return stream; }
 
 			source.startTime = time;
-			source.rates     = Stream.of();
+			source.rates = typeof generate === 'function' ?
+				Stream.of() :
+				Stream.from(generate.filter(isRateEvent)) ;
 
 			location = new Location(source.rates);
+			
+			// TODO: Rates is not populated yet, how do you expect
+			// to get anything useful out of this?
 			startLoc = clock.beatAtTime(time) - (beat ? location.locAtBeat(beat) : 0);
+
+//console.log('CueStream '+ z +' start() time', time, 'beat', beat || 0, 'loc', clock.beatAtTime(time), 'startLoc', startLoc);
 
 			// Start observing the timer
 			source.status = 'cueing';
@@ -655,7 +679,7 @@ console.log('CueStream '+ z +' start() time', time, 'beat', beat || 0, 'startLoc
 			// If we're setting the existing stopTime do nothing
 			if (time === source.stopTime) { return stream; }
 
-			console.log('CueStream '+ z +' stop() time', time);
+//console.log('CueStream '+ z +' stop() time', time);
 
 			source.stopTime = time;
 
@@ -667,14 +691,9 @@ console.log('CueStream '+ z +' start() time', time, 'beat', beat || 0, 'startLoc
 			return stream;
 		};
 
-		clock.then(stream.stop);
-
-		this.then = function(fn) {
-			source.stops.push(fn);
-		};
-
 		this.timeAtBeat = timeAtBeat;
 		this.beatAtTime = beatAtTime;
+		return stream;
 	}
 
 	defineProperties(CueStream.prototype, {
@@ -683,7 +702,7 @@ console.log('CueStream '+ z +' start() time', time, 'beat', beat || 0, 'startLoc
 				var source   = this[$privates];
 				var stopTime = source.stopTime;
 
-				return stopTime !== undefined && stopTime < source.timer.now() ?
+				return stopTime !== undefined && stopTime <= source.timer.now() ?
 					'done' :
 					source.status ;
 			}
@@ -695,8 +714,9 @@ console.log('CueStream '+ z +' start() time', time, 'beat', beat || 0, 'startLoc
 			var source = this[$privates];
 			var timer  = source.timer;
 			var fns    = source.fns;
-
-			return new CueStream(timer, this, events, id, fns, object);
+			var stream = new CueStream(timer, this, events, id, fns, object);
+			this.on(stream);
+			return stream;
 		},
 
 		cue: function(beat, fn) {
@@ -704,6 +724,11 @@ console.log('CueStream '+ z +' start() time', time, 'beat', beat || 0, 'startLoc
 			// Schedule a fn to fire on a given cue
 			insertBy0(source.inBuffer, Event(beat, "cue", fn));
 			return this;
+		},
+
+		on: function(stream) {
+			var source = this[$privates];
+			source.children.push(stream);
 		}
 	});
 

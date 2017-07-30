@@ -2,13 +2,16 @@
 	"use strict";
 
 	var assign      = Object.assign;
+	var define      = Object.defineProperties;
 	var AudioObject = window.AudioObject;
 
 	var defaults = {
 		duration: 0.03125,
 		tick:     72,
 		tock:     64,
-		source: {}
+		source:   {
+			gain: 0.25
+		}
 	};
 
 
@@ -19,7 +22,6 @@
 		var buffer    = [];
 		var playing   = false;
 		var stream;
-
 
 		// Private
 
@@ -43,24 +45,43 @@
 		// Public
 
 		this.start = function start() {
-			var stream = sequencer.create(generate, source);
-			sequencer.cue(0, stream.start);
+			if (playing) { return metronome; }
+			playing = true;
 
-			stream.then(function(t) {
-				if (!playing) { return; }
-				start();
+			var s = stream = sequencer.create(generate, source);
+			sequencer.cue(0, stream.start);
+			stream.on({
+				stop: function(t) {
+					if (playing) {
+						playing = false;
+						start();
+					}
+				}
 			});
 
-			playing = true;
-		}
+			return metronome;
+		};
 
 		this.stop = function stop(time) {
+			if (!playing) { return metronome; }
 			playing = false;
-			stream.stop(time || audio.currentTime);
-		}
 
-		this.tick = settings.tick;
-		this.tock = settings.tock;
+			stream.stop(time || audio.currentTime);
+			return metronome;
+		};
+
+		this.tick   = settings.tick;
+		this.tock   = settings.tock;
+		this.source = source;
+
+		define(this, {
+			status: {
+				get: function() {
+					var status = stream.status;
+					return status === 'done' ? 'waiting' : status ;
+				}
+			}
+		});
 
 		// Setup
 
@@ -75,7 +96,6 @@
 		if (settings.state === 'started') { this.start(); }
 	}
 
-	assign(Metronome.prototype);
 
 	// Export
 

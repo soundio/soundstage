@@ -463,7 +463,7 @@
 		},
 
 		"default": function(object, event) {
-			console.log('Distribute some other event?? Do nothing.');
+			console.log('Distribute wot? I dont know what to do with this:', event);
 		}
 	};
 
@@ -812,7 +812,7 @@
 		// Metronome
 
 		this.metronome = new Metronome(audio, data.metronome, this);
-		//this.metronome.start(0);
+		this.metronome.start(0);
 
 
 		// Methods
