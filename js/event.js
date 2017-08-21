@@ -33,7 +33,8 @@
 			assign(this, arguments);
 			var n = arguments.length - 1;
 			while (this[++n] !== undefined) { delete this[n]; }
-			this.idle  = false;
+			this.recordable = false;
+			this.idle       = false;
 		},
 
 		isIdle: function isIdle(object) {
@@ -48,9 +49,10 @@
 			return array;
 		}
 	}, {
-		time:   { writable: true },
-		object: { writable: true },
-		idle:   { writable: true }
+		time:       { writable: true },
+		object:     { writable: true },
+		recordable: { writable: true },
+		idle:       { writable: true }
 	}));
 
 	Event.of = Event;

@@ -12,8 +12,7 @@
 	var $privates       = Symbol('source');
 
 	var assign          = Object.assign;
-	var defineProperty  = Object.defineProperty;
-	var defineProperties = Object.defineProperties;
+	var define          = Object.defineProperties;
 	var add             = Fn.add;
 	var curry           = Fn.curry;
 	var by              = Fn.by;
@@ -291,6 +290,7 @@
 	function cancel(inBuffer, outBuffer, stopTime) {
 		// On stop stream
 
+		Soundstage.inspector &&
 		Soundstage.inspector.drawBar(stopTime, "red", 'stop');
 
 		// Stop notes that have been started before time and have not yet
@@ -308,6 +308,7 @@
 	function rebuffer(inBuffers, outBuffers, stopTime, assignTime) {
 		// On stop stream
 
+		Soundstage.inspector &&
 		Soundstage.inspector.drawBar(stopTime, "purple", 'stop');
 
 		// Cancel notes that have been cued to start after time, looping
@@ -324,7 +325,8 @@
 			// Push event back into cue buffer
 			mapPush(inBuffers, 'note', event);
 
-			if (Soundstage.inspector) { Soundstage.inspector.drawEvent(audio.currentTime, stopTime, "noteoff", event[2], 'blue'); }
+			Soundstage.inspector &&
+			Soundstage.inspector.drawEvent(audio.currentTime, stopTime, "noteoff", event[2], 'blue');
 		}
 
 		// Todo: That leaves notes that have been started before time and
@@ -665,9 +667,8 @@ var z = 'stream-' + (++w); //Fn.postpad(' ', 12, (generate[0] && generate[0].joi
 			wait(timer.currentTime);
 
 			// Log in timeline
-			if (Soundstage.inspector) {
-				Soundstage.inspector.drawBar(time, 'orange', 'CueStream.start ' + clock.constructor.name);
-			}
+			Soundstage.inspector &&
+			Soundstage.inspector.drawBar(time, 'orange', 'CueStream.start ' + clock.constructor.name);
 
 			return stream;
 		};
@@ -696,7 +697,7 @@ var z = 'stream-' + (++w); //Fn.postpad(' ', 12, (generate[0] && generate[0].joi
 		return stream;
 	}
 
-	defineProperties(CueStream.prototype, {
+	define(CueStream.prototype, {
 		status: {
 			get: function() {
 				var source   = this[$privates];

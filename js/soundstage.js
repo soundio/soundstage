@@ -17,7 +17,7 @@
 	var AudioObject    = window.AudioObject;
 	var Collection     = window.Collection;
 	var Event          = window.SoundstageEvent;
-	var EventStream    = window.EventStream;
+	var RecordStream   = window.RecordStream;
 	var Fn             = window.Fn;
 	var Metronome      = window.Metronome;
 	var MIDI           = window.MIDI;
@@ -25,10 +25,11 @@
 	var Sequencer      = window.Sequencer;
 	var Store          = window.Store;
 	var Stream         = window.Stream;
+	var events         = window.events;
+	var module         = window.importModule;
 
 	var assign         = Object.assign;
-	var defineProperty = Object.defineProperty;
-	var defineProperties = Object.defineProperties;
+	var define         = Object.defineProperties;
 	var getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 	var setPrototypeOf = Object.setPrototypeOf;
 	var cache          = Fn.cache;
@@ -43,14 +44,19 @@
 	var is             = Fn.is;
 	var isDefined      = Fn.isDefined;
 	var noop           = Fn.noop;
+	var pipe           = Fn.pipe;
 	var remove         = Fn.remove;
+	var requestTick    = Fn.requestTick;
 	var query          = Fn.query;
 	var slugify        = Fn.slugify;
+//	var notify         = events.notify;
 	var requestMedia   = AudioObject.requestMedia;
 
-	// A small latency added to incoming MIDI events to reduce timing jitter
-	// in scheduling web audio 'immediately'.
-	var jitterLatency  = 0.008;
+
+	// A small latency added to incoming events to reduce timing jitter
+	// caused by the soonest scheduling time being the next audio.currentTime,
+	// which updates every 128 samples. At 44.1kHz this works out at about 3ms.
+	var jitterLatency = 128 / 441000;
 
 	var get0      = get('0');
 	var getId     = get('id');
@@ -153,10 +159,11 @@
 			throw new Error('soundstage: Calling Soundstage.register(name, fn) but name already registered: ' + name);
 		}
 
-		registry[name] = [fn, defaults];
+		fn.defaults = defaults;
+		registry[name] = fn;
 	}
 
-	function assignSettings(object, settings) {
+	function assignUndefined(object, settings) {
 		var keys = Object.keys(settings);
 		var n = keys.length;
 		var key;
@@ -172,46 +179,51 @@
 		}
 	}
 
-	function create(audio, type, settings, sequencer, presets, output, objects) {
-		type = type || settings.type;
-
-		if (!registry[type]) {
-			throw new Error('soundstage: Calling Soundstage.create(type, settings) unregistered type: ' + type);
-		}
-
-		var object = new registry[type][0](audio, settings, sequencer, presets, output);
-
-		Object.defineProperty(object, 'id', {
-			value: settings && settings.id || createId(objects),
-			enumerable: true
+	function setup(object, path, settings, objects) {
+		define(object, {
+			'id': {
+				value: settings && settings.id || createId(objects),
+				enumerable: true
+			}
 		});
 
 		if (!object.type) {
 			// Type is not writable
-			Object.defineProperty(object, "type", {
-				value: type,
-				enumerable: true
+			define(object, {
+				"type": {
+					value: path,
+					enumerable: true
+				}
 			});
 		}
 
 		if (settings) {
-			assignSettings(object, settings);
+			assignUndefined(object, settings);
 		}
 
-		// Nasty workaround for fact that output objects need
-		// soundstage's output node.
-		//if (type === 'output') {
-		//	object.output = output;
-		//}
+		return object;
+	}
 
+	function create(audio, path, settings, sequencer, presets, output, objects) {
+		path = path || settings.type;
+
+		var Constructor = registry[path];
+		var defaults    = Constructor.defaults;
+
+		if (!Constructor) {
+			throw new Error('Soundstage: unregistered audio object "' + path + '".');
+		}
+
+		var object = new Constructor(audio, settings, sequencer, presets, output);
+		setup(object, path, settings, objects);
 		Soundstage.debug && console.log('Soundstage: created AudioObject', object.id, '"' + object.name + '"');
 
 		return object;
 	}
 
-	function retrieveDefaults(name) {
-		if (!registry[name]) { throw new Error('soundstage: Calling Soundstage.defaults(name) unregistered name: ' + name); }
-		return assign({}, registry[name][1]);
+	function retrieveDefaults(path) {
+		if (!registry[path]) { throw new Error('Soundstage: unregistered audio object "' + path + '".'); }
+		return assign({}, registry[path].defaults);
 	}
 
 
@@ -429,7 +441,7 @@
 
 	function timeAtDomTime(audio, time) {
 		var stamps = audio.getOutputTimestamp();
-		return (time - stamps.performanceTime) / 1000 + stamps.contextTime ;
+		return stamps.contextTime + (time - stamps.performanceTime) / 1000;
 	}
 
 	var eventDistributors = {
@@ -463,7 +475,7 @@
 		},
 
 		"default": function(object, event) {
-			console.log('Distribute wot? I dont know what to do with this:', event);
+			console.log('Soundstage: Cannot distribute unknown event type', event);
 		}
 	};
 
@@ -471,6 +483,41 @@
 	// Soundstage
 
 	var mediaInputs = [];
+
+	function isObjectOrId(object, id) {
+		return object === id || object.id === id ;
+	}
+
+	function synchronize(add, remove, array1, array2) {
+		// Changes in array2 are applied to array1
+		var n    = -1;
+		var o1, o2, i, value;
+
+		// Loop through the updated array
+		while (++n < array2.length) {
+			o1 = array1[n];
+			o2 = array2[n];
+
+			if (o1 !== undefined && o1 === o2) { continue; }
+
+			i = n;
+			while ((o1 = array1[++i]) !== undefined && o1 !== o2);
+
+			// If there are no more items in array1 to check against
+			// add a new object, else splice it out of the found index
+			o1 = i === array1.length ?
+				add(o2) :
+				array1.splice(i, 1)[0] ;
+
+			array1.splice(n, 0, o1);
+		}
+
+		// Reordering has pushed all removed sparkies to the end of the
+		// sparkies. Remove them.
+		while (array1.length > array2.length) {
+			remove(array1.pop());
+		}
+	}
 
 	var actions = Store.reducer({
 		objects: Store.actions({
@@ -509,8 +556,7 @@
 				var presets   = constants.presets;
 
 				update(function(data) {
-					var object = create(audio, data.type, data, sequencer, presets, output, objects);
-					return object;
+					return create(audio, data.type, data, sequencer, presets, output, objects);
 				}, objects, data.objects);
 
 				return objects;
@@ -624,7 +670,12 @@
 				var audio         = constants.audio;
 				var resolveObject = constants.resolveObject;
 				var distribute    = constants.distribute;
-				var array = data.midi;
+				var array         = data.midi;
+
+				function assignTime(event) {
+					event[0] = timeAtDomTime(audio, event[0]);
+					return event;
+				}
 
 				each(function(route) {
 					var object = resolveObject(route.target);
@@ -635,17 +686,22 @@
 						return;
 					}
 
-					route.stream = MIDI(route.select)
-					.map(Event.fromMIDI)
-					.map(function(event) {
-						event[0] = timeAtDomTime(audio, event[0]);
-						event.object = object;
+					function assignProps(event) {
+						event.object     = object;
+						event.recordable = true;
 						return event;
-					})
-					//.map(transform)
-					.each(distribute);
+					}
 
+					route.pipe = pipe(
+						Event.fromMIDI,
+						assignTime,
+						assignProps,
+						distribute
+					);
+
+					MIDI.on(route.select, route.pipe);
 					midi.push(route);
+
 					Soundstage.debug && console.log('Soundstage: created MIDI stream [' + route.select.join(', ') + '] to', object.id, '"' + object.name + '"');
 				}, array);
 
@@ -706,11 +762,12 @@
 
 		var soundstage = this;
 		var options    = assign({}, defaults, settings);
+		var promises   = [];
 
 
-		// Assign properties
+		// Assign:
 
-		Object.defineProperties(soundstage, {
+		define(soundstage, {
 			midi:        { value: new Collection([]), enumerable: true },
 			objects:     { value: new Collection([], { index: 'id' }), enumerable: true },
 			connections: { value: new Collection([]), enumerable: true },
@@ -721,7 +778,7 @@
 
 
 		// Initialise soundstage as an Audio Object with no inputs and
-		// a channel merger as an output
+		// a channel merger as an output. Assigns:
 		//
 		// audio:      audio context
 
@@ -733,7 +790,7 @@
 		Soundstage.inspector && Soundstage.inspector.drawAudioFromNode(output);
 
 
-		// Initialise soundstage as a Sequence
+		// Initialise soundstage as a Sequence. Assigns:
 		//
 		// name:       string
 		// sequences:  array
@@ -742,7 +799,7 @@
 		Sequence.call(this, data);
 
 
-		// Initialise soundstage as a Sequencer
+		// Initialise soundstage as a Sequencer. Assigns:
 		//
 		// start:      fn
 		// stop:       fn
@@ -756,13 +813,11 @@
 		// cue:        fn
 		// status:     string
 
-		var eventStream    = EventStream(audio, this);
 		var findObject     = findIn(this.objects);
 		var findSequence   = findIn(this.sequences);
 		var selectObject   = selectIn(this.objects);
 		var selectSequence = selectIn(this.sequences);
-
-		var distributors = assign({
+		var distributors   = assign({
 			"sequence": function(object, event, stream, transform) {
 				var type = typeof event[2];
 				var sequence = type === 'string' ?
@@ -806,10 +861,20 @@
 			}
 		}, eventDistributors);
 
-		Sequencer.call(this, audio, distributors, eventStream, this.sequences, this.events);
+		Sequencer.call(this, audio, distributors, this.sequences, this.events);
 
 
-		// Metronome
+
+
+		// Initialise as a recorder...
+
+		var recordStream   = RecordStream(this, this.sequences);
+
+
+
+
+
+		// Create metronome.
 
 		this.metronome = new Metronome(audio, data.metronome, this);
 		this.metronome.start(0);
@@ -835,8 +900,8 @@
 				timeAtBeat: soundstage.timeAtBeat.bind(soundstage),
 				beatAtBar:  soundstage.beatAtBar.bind(soundstage),
 				barAtBeat:  soundstage.barAtBeat.bind(soundstage),
-				beatAtLoc:  soundstage.beatAtLoc.bind(soundstage),
-				locAtBeat:  soundstage.locAtBeat.bind(soundstage),
+				//beatAtLoc:  soundstage.beatAtLoc.bind(soundstage),
+				//locAtBeat:  soundstage.locAtBeat.bind(soundstage),
 			},
 
 			output:     output,
@@ -845,34 +910,63 @@
 			distribute: function distribute(event) {
 				var object = event.object;
 				var result = (distributors[event[1]] || distributors.default)(object, event);
-				eventStream.push(event);
+
+				if (event.recordable /*&& object.record*/) {
+					requestTick(function() {
+						recordStream.push(event);
+					});
+				}
+
 				return result;
 			},
 
-			resolveObject: resolve(function(object, id) {
-				return object === id || object.id === id ;
-			}, this.objects),
+			resolveObject: resolve(isObjectOrId, this.objects),
 
 			resolveConnection: resolve(function(object, data) {
 				return (object.src === data.src || object.src.id === data.src)
 					&& (object.dst === data.dst || object.dst.id === data.dst) ;
-			}, this.connections)
+			}, this.connections),
+
+			readyPromises: promises
 		});
 
 		this[$store] = store.each(noop);
 
-		this.update(data);
+
+		// Notify when all components are loaded and ready
+
+//		Promise
+//		.all(promises)
+//		.then(function() {
+//			soundstage.status = 'waiting';
+//			notify(soundstage, 'ready');
+//		});
+
+
+		// Setup from data and notify when all components are loaded and ready
+
+		var loaded = this
+		.update(data)
+		.then(function(stage) {
+			console.log('Soundstage: ready');
+		});
+
+		this.ready = loaded.then.bind(loaded);
 	}
 
 	setPrototypeOf(Soundstage.prototype, AudioObject.prototype);
 
-	defineProperties(Soundstage.prototype, {
+	define(Soundstage.prototype, {
 		version: { value: 0 },
 		beat:   getOwnPropertyDescriptor(Sequencer.prototype, 'beat'),
 		status: getOwnPropertyDescriptor(Sequencer.prototype, 'status')
 	});
 
-	assign(Soundstage.prototype, Sequencer.prototype, {
+	assign(Soundstage.prototype, Sequencer.prototype, /*events.mixin,*/ {
+		timeAtDomTime: function(domTime) {
+			return timeAtDomTime(this.audio, domTime);
+		},
+
 		createInputs: function() {
 			var soundstage = this;
 
@@ -901,11 +995,16 @@
 		},
 
 		update: function(data) {
-			if (!data) { return this; }
-
 			// Accept data as a JSON string
 			data = typeof data === 'string' ? JSON.parse(data) : data ;
 
+			// Reject non-objects
+			if (typeof data !== 'object') { return this; }
+
+			// Treat null as an empty object
+			if (!data) { data = nothing; }
+
+			// Check version
 			if (data.version > 1) {
 				throw new Error('Soundstage: data version', data.version, 'not supported - you may need to upgrade Soundstage from github.com/soundio/soundstage');
 			}
@@ -920,21 +1019,47 @@
 			//		}
 			//	}
 
-			console.groupCollapsed('Soundstage: updating graph');
+			var stage    = this;
+			var promises = [];
 
-			if (data.name) { this.name = data.name; }
-			if (data.slug) { this.slug = data.slug; }
-			else { this.slug = this.slug || slugify(this.name); }
+			if (data.objects) {
+				console.group('Soundstage: import');
 
-			// Send action
-			this[$store].modify('update', data);
+				var ids = this.objects.map(get('id'));
 
-			//if (data.tempo) {
-			//	this.tempo = data.tempo;
-			//}
+				promises.push.apply(promises,
+					data.objects
+					.filter(function(settings) {
+						return !registry[settings.type];
+					})
+					.map(function(settings) {
+						console.log('Importing "' + settings.type + '"...');
+						return Soundstage.import(settings.type);
+					})
+				);
 
-			console.groupEnd();
-			return this;
+				console.groupEnd();
+			}
+
+			return Promise
+			.all(promises)
+			.then(function(constructors) {
+				console.groupCollapsed('Soundstage: updating graph');
+
+				if (data.name) { stage.name = data.name; }
+				if (data.slug) { stage.slug = data.slug; }
+				else { stage.slug = stage.slug || slugify(stage.name); }
+
+				//if (data.tempo) {
+				//	this.tempo = data.tempo;
+				//}
+
+				// Send action
+				stage[$store].modify('update', data);
+
+				console.groupEnd();
+				return stage;
+			});
 		},
 
 		clear: function() {
@@ -1079,6 +1204,15 @@
 
 		requestMedia:     requestMedia,
 		roundTripLatency: 0.020,
+
+		import: function(path) {
+			return module(path + '.js')
+			.then(function(module) {
+				register(path, module.default, module.default.defaults);
+				return module.default;
+			});
+		},
+
 		create:           create,
 		register:         register,
 		defaults:         retrieveDefaults,
@@ -1098,105 +1232,44 @@
 		features: assign({}, AudioObject.features)
 	});
 
-	defineProperty(Soundstage, 'audio', {
-		get: createAudio,
-		enumerable: true
+	define(Soundstage, {
+		'audio': {
+			get: createAudio,
+			enumerable: true
+		}
 	});
 
 
-	// Register base set of audio objects
+	// Register 'standard lib' of audio objects
 
 	each(function(def) {
-		Soundstage.register(slugify(def.name), def.fn, def.defaults);
+		Soundstage.register(def.path, def.fn, def.defaults);
 	}, [{
-		name: 'Input',
-		defaults: {},
-		fn: AudioObject.Input
+		path:     'input',
+		fn:       AudioObject.Input,
+		defaults: {}
 	}, {
-		name: 'Gain',
-		defaults: {},
-		fn: AudioObject.Gain
+		path:     'gain',
+		fn:       AudioObject.Gain,
+		defaults: {}
 	}, {
-		name: 'Pan',
+		path:     'pan',
+		fn:       AudioObject.Pan,
 		defaults: {
-			angle: { min: -1, max: 1, transform: 'linear' , value: 0 }
-		},
-		fn: AudioObject.Pan
+			angle: { min: -1, max: 1, transform: 'linear', value: 0 }
+		}
 	}, {
-		name: 'Sampler',
-		defaults: {},
-		fn: AudioObject.Sampler
+		path:     'tick',
+		fn:       AudioObject.Tick,
+		defaults: {}
 	}, {
-		name: 'Tick',
-		defaults: {},
-		fn: AudioObject.Tick
+		path:     'oscillator',
+		fn:       AudioObject.Oscillator,
+		defaults: {}
 	}, {
-		name: 'Oscillator',
-		defaults: {},
-		fn: AudioObject.Oscillator
-	}, {
-		name: 'Delay',
-		defaults: {
-			'delay':         { min: 0, max: 2, transform: 'linear', value: 0.020 }
-		},
-		fn: AudioObject.Delay
-	}, {
-		name: 'Saturate',
-		defaults: {
-			'frequency':     { min: 16,  max: 16384, transform: 'logarithmic', value: 1000 },
-			'drive':         { min: 0.5, max: 8,     transform: 'cubic',       value: 1 },
-			'wet':           { min: 0,   max: 2,     transform: 'cubic',       value: 1 }
-		},
-		fn: AudioObject.Saturate
-	}, {
-		name: 'Flanger',
-		defaults: {
-			'delay':         { min: 0,      max: 1,    transform: 'quadratic',   value: 0.012 },
-			'frequency':     { min: 0.0625, max: 256,  transform: 'logarithmic', value: 3 },
-			'depth':         { min: 0,      max: 0.25, transform: 'cubic',       value: 0.0015609922621756954 },
-			'feedback':      { min: 0,      max: 1,    transform: 'cubic',       value: 0.1 },
-			'wet':           { min: 0,      max: 1,    transform: 'cubic',       value: 1 },
-			'dry':           { min: 0,      max: 1,    transform: 'cubic',       value: 1 }
-		},
-		fn: AudioObject.Flanger
-	}, {
-		name: 'Filter',
-		defaults: {
-			'q':             { min: 0,   max: 100,   transform: 'quadratic',   value: 0.25 },
-			'frequency':     { min: 16,  max: 16000, transform: 'logarithmic', value: 16 },
-			'lfo-frequency': { min: 0.5, max: 64,    transform: 'logarithmic', value: 12 },
-			'lfo-depth':     { min: 0,   max: 2400,  transform: 'linear',      value: 0 },
-			'env-depth':     { min: 0,   max: 6400,  transform: 'linear',      value: 0 },
-			'env-attack':    { min: 0,   max: 0.01,  transform: 'quadratic',   value: 0.005 },
-			'env-decay':     { min: 0,   max: 0.01,  transform: 'quadratic',   value: 0.00125 }
-		},
-		fn: AudioObject.Filter
-	}, {
-		name: 'Tone Synth',
-		defaults: {
-			"filter-q":         { min: 0,   max: 100,   transform: 'quadratic',   value: 0.25 },
-			"filter-frequency": { min: 16,  max: 16000, transform: 'logarithmic', value: 16 },
-			"velocity-follow":  { min: -2,  max: 6,     transform: 'linear',      value: 0 }
-		},
-		fn: AudioObject.ToneSynth
-	}, {
-		name: 'Compress',
-		defaults: {
-			'threshold':     { min: -60, max: 0,   transform: 'linear' ,   value: -12   }, // dB
-			'knee':          { min: 0,   max: 40,  transform: 'linear' ,   value: 8     }, // dB
-			'ratio':         { min: 0,   max: 20,  transform: 'quadratic', value: 4     }, // dB input / dB output
-			'attack':        { min: 0,   max: 0.2, transform: 'quadratic', value: 0.020 }, // seconds
-			'release':       { min: 0,   max: 1,   transform: 'quadratic', value: 0.16  }  // seconds
-		},
-		fn: AudioObject.Compress
-	}, {
-		name: 'Signal Detector',
-		defaults: {},
-		fn: AudioObject.SignalDetector
-	}, {
-		name: 'Enveloper',
-		defaults: {},
-		fn: AudioObject.Enveloper
+		path:     'signal',
+		fn:       AudioObject.SignalDetector,
+		defaults: {}
 	}]);
 
 	window.Soundstage = Soundstage;

@@ -13,25 +13,30 @@ group('Location', function(test, log) {
 	// [time, "chord", root, mode, duration]
 	// [time, "sequence", name || events, target, duration, transforms...]
 
-	test('Test events: []', function(equals) {
+	test('Test events: []', function(equals, done) {
 		var location = new Location([]);
 
 		equals(0, location.beatAtLoc(0));
 		equals(0, location.locAtBeat(0));
 		equals(4, location.beatAtLoc(4));
 		equals(4, location.locAtBeat(4));
-	});
+		//equals(-1, location.locAtBeat(-1));
 
-	test('Test events: [[0, "rate", 4]]', function(equals) {
+		done();
+	}, 4);
+
+	test('Test events: [[0, "rate", 4]]', function(equals, done) {
 		var location = new Location([[0, "rate", 4]]);
 
 		equals(0,  location.beatAtLoc(0));
 		equals(0,  location.locAtBeat(0));
 		equals(16, location.beatAtLoc(4));
 		equals(1,  location.locAtBeat(4));
-	});
 
-	test('Test events: [[0, "rate", 4], [16, "rate", 2]]', function(equals) {
+		done();
+	}, 4);
+
+	test('Test events: [[0, "rate", 4], [16, "rate", 2]]', function(equals, done) {
 		var location = new Location([[0, "rate", 4], [16, "rate", 2]]);
 
 		equals(0,  location.beatAtLoc(0));
@@ -40,5 +45,7 @@ group('Location', function(test, log) {
 		equals(1,  location.locAtBeat(4));
 		equals(20, location.beatAtLoc(6));
 		equals(5,  location.locAtBeat(18));
-	});
+
+		done();
+	}, 6);
 });

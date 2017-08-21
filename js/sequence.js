@@ -5,9 +5,13 @@
 	var Collection = window.Collection;
 	
 	var assign     = Object.assign;
+	var compose    = Fn.compose;
 	var get        = Fn.get;
 	var isDefined  = Fn.isDefined;
+	var map        = Fn.map;
+	var postpad    = Fn.postpad;
 	var slugify    = Fn.slugify;
+	var toString   = Fn.toString;
 
 	function createId(objects) {
 		var ids = objects.map(get('id'));
@@ -77,6 +81,30 @@
 			events: this.events.length ? this.events : undefined
 		});
 	};
+
+	assign(Sequence, {
+		log: function(sequence) {
+			console[arguments[1] === false ? 'groupCollapsed' : 'group']('Sequence '
+				+ (sequence.id !== undefined ? sequence.id : '')
+				+ (sequence.id !== undefined && sequence.name ? ', ' : '')
+				+ (sequence.name ? '"' + sequence.name + '" ' : '')
+			);
+
+			sequence.sequences.forEach(function(sequence) {
+				Sequence.log(sequence, false);
+			});
+
+			console.log('events –––––––––––––––––––––––––––––');
+			console.log('beat      type      name      value');
+			console.log(''
+			  + sequence.events.map(function(event) {
+			  	return map(compose(postpad(' ', 8), toString), event).join('  ');
+			  }).join('\n')
+			);
+
+			console.groupEnd();
+		}
+	});
 
 	window.Sequence = Sequence;
 })(this);

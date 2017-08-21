@@ -4,14 +4,14 @@
 	var Fn       = window.Fn;
 	var Event    = window.SoundstageEvent;
 
-	var privates = Symbol('location');
-
 	var assign   = Object.assign;
 	var freeze   = Object.freeze;
 	var release  = Event.release;
 	var compose  = Fn.compose;
 	var get      = Fn.get;
 	var is       = Fn.is;
+
+	var $private = Symbol('location');
 
 	var get1     = get('1');
 	var isRate   = compose(is('rate'), get1);
@@ -76,15 +76,9 @@
 
 	function calcLocAtBeat(cache, functor, beat) {
 		var n = -1;
-		var e0, e1;
-//console.log(1, JSON.stringify(cache), beat);
-		while ((cache[++n] || functor.shift()) && beat >= cache[n][0]) {
-//console.log(2, JSON.stringify(cache));
-			e0 = cache[n];
-			//console.log(beat, cache);
-		}
-
-		e1 = cache[n];
+		while ((cache[++n] || functor.shift()) && beat >= cache[n][0]);
+		var e0 = cache[n - 1];
+		var e1 = cache[n];
 		return e0.loc + locAtBeat(e0, e1, beat - e0[0]);
 	}
 
@@ -97,10 +91,12 @@
 	// Location
 
 	function Location(events) {
-		var functor = Fn.prototype.isPrototypeOf(events) ? events : Fn.from(events) ;
 		var cache   = [];
+		var functor = Fn.prototype.isPrototypeOf(events) ?
+			events :
+			Fn.from(events) ;
 
-		this[privates] = {
+		this[$private] = {
 			cache:   cache,
 			functor: functor
 			.filter(isRate)
@@ -114,21 +110,23 @@
 
 	assign(Location.prototype, {
 		beatAtLoc: function(loc) {
-			var cache   = this[privates].cache;
-			var functor = this[privates].functor;
+			if (loc < 0) { throw new Error('Location: beatAtLoc(loc) does not accept -ve values.'); }
+			var cache   = this[$private].cache;
+			var functor = this[$private].functor;
 			return calcBeatAtLoc(cache, functor, loc);
 		},
 
 		locAtBeat: function(beat) {
-			var cache   = this[privates].cache;
-			var functor = this[privates].functor;
+			if (beat < 0) { throw new Error('Location: locAtBeat(beat) does not accept -ve values.'); }
+			var cache   = this[$private].cache;
+			var functor = this[$private].functor;
 			return calcLocAtBeat(cache, functor, beat);
 		},
 
 		// Todo: release event objects
 
 		//release: function() {
-		//	this[privates].cache.forEach(release);
+		//	this[$private].cache.forEach(release);
 		//}
 	});
 
