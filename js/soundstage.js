@@ -44,6 +44,7 @@
 	var is             = Fn.is;
 	var isDefined      = Fn.isDefined;
 	var noop           = Fn.noop;
+	var nothing        = Fn.nothing;
 	var pipe           = Fn.pipe;
 	var remove         = Fn.remove;
 	var requestTick    = Fn.requestTick;
@@ -756,12 +757,14 @@
 			return new Soundstage(data, settings);
 		}
 
+		data     = data || nothing;
+		settings = settings || nothing;
+
 		if (isDefined(data.version) && data.version !== this.version) {
 			throw new Error('Soundstage: version mismatch.', this.version, data.version);
 		}
 
 		var soundstage = this;
-		var options    = assign({}, defaults, settings);
 		var promises   = [];
 
 
@@ -782,8 +785,8 @@
 		//
 		// audio:      audio context
 
-		var audio  = options.audio || createAudio();
-		var output = createOutput(audio, options.output || audio.destination);
+		var audio  = settings.audio || createAudio();
+		var output = createOutput(audio, settings.output || audio.destination);
 
 		AudioObject.call(this, audio, undefined, output);
 		output.connect(audio.destination);
@@ -1198,6 +1201,7 @@
 		}));
 	}
 
+	var modules = {};
 
 	assign(Soundstage, {
 		debug: true,
@@ -1206,11 +1210,14 @@
 		roundTripLatency: 0.020,
 
 		import: function(path) {
-			return module(path + '.js')
-			.then(function(module) {
-				register(path, module.default, module.default.defaults);
-				return module.default;
-			});
+			// Don't request the module again if it's already been registered
+			return modules[path] || (
+				modules[path] = module(path + '.js')
+				.then(function(module) {
+					register(path, module.default, module.default.defaults);
+					return module.default;
+				})
+			);
 		},
 
 		create:           create,
