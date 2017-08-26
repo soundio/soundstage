@@ -1,8 +1,10 @@
-(function(Soundstage, AudioObject, Collection, app) {
+(function(window) {
 	"use strict";
 
-	var extend = Object.assign;
-	var automation = {};
+	var AudioObject = window.AudioObject;
+	var Collection  = window.Collection;
+
+	var assign = Object.assign;
 	var defaults = {};
 
 	function returnThis() { return this; }
@@ -11,14 +13,14 @@
 		return val !== undefined && val !== null;
 	}
 
-	function Track(audio, settings) {
+	function Chain(audio, settings, stage) {
 		// Enable use without the new keyword
-		if (this === undefined || !Track.prototype.isPrototypeOf(this)) {
-			return new Track(audio, settings);
+		if (this === undefined || !Chain.prototype.isPrototypeOf(this)) {
+			return new Chain(audio, settings);
 		}
 
 		var soundio = settings.soundio;
-		var options = extend({}, defaults, settings);
+		var options = assign({}, defaults, settings);
 		var track = this;
 
 		// Set up the track as an AudioObject
@@ -39,7 +41,7 @@
 
 		Collection.call(this, ids);
 
-		// Set up the track as a Track
+		// Set up the track as a Chain
 		Object.defineProperties(track, {
 			type: { value: 'track', enumerable: true },
 			name: { value: settings.name || 'track', enumerable: true, configurable: true, writable: true },
@@ -93,12 +95,8 @@
 		});
 	}
 
-	extend(Track.prototype, Collection.prototype, AudioObject.prototype);
+	assign(Chain.prototype, Collection.prototype, AudioObject.prototype);
 
-	function createTrack(audio, settings) {
-		return new Track(audio, settings);
-	}
+	window.Chain = Chain;
 
-	Soundstage.register('track', createTrack, automation);
-
-})(window.Soundstage, window.AudioObject, window.Collection, window.app);
+})(window);

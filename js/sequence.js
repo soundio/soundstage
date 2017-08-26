@@ -13,6 +13,12 @@
 	var slugify    = Fn.slugify;
 	var toString   = Fn.toString;
 
+
+
+	// Todo: move sequences property out of here and into Soundstage - Sequence
+	// is used by Track but track has regions collection, not sequences...
+
+
 	function createId(objects) {
 		var ids = objects.map(get('id'));
 		var id = -1;

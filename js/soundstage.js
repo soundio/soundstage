@@ -23,6 +23,9 @@
 	var MIDI           = window.MIDI;
 	var Sequence       = window.Sequence;
 	var Sequencer      = window.Sequencer;
+	var Track          = window.Track;
+	var Chain          = window.Chain;
+	var Graph          = window.Graph;
 	var Store          = window.Store;
 	var Stream         = window.Stream;
 	var events         = window.events;
@@ -793,6 +796,14 @@
 		Soundstage.inspector && Soundstage.inspector.drawAudioFromNode(output);
 
 
+		// Initialise soundstage as a plugin graph. Assigns:
+		//
+		// plugins:    array
+		// connects:   array
+
+		Graph.call(this, data);
+
+
 		// Initialise soundstage as a Sequence. Assigns:
 		//
 		// name:       string
@@ -903,6 +914,8 @@
 				timeAtBeat: soundstage.timeAtBeat.bind(soundstage),
 				beatAtBar:  soundstage.beatAtBar.bind(soundstage),
 				barAtBeat:  soundstage.barAtBeat.bind(soundstage),
+				on:         soundstage.on.bind(soundstage),
+				off:        soundstage.off.bind(soundstage)
 				//beatAtLoc:  soundstage.beatAtLoc.bind(soundstage),
 				//locAtBeat:  soundstage.locAtBeat.bind(soundstage),
 			},
@@ -965,7 +978,7 @@
 		status: getOwnPropertyDescriptor(Sequencer.prototype, 'status')
 	});
 
-	assign(Soundstage.prototype, Sequencer.prototype, /*events.mixin,*/ {
+	assign(Soundstage.prototype, Sequencer.prototype, events.mixin, {
 		timeAtDomTime: function(domTime) {
 			return timeAtDomTime(this.audio, domTime);
 		},
@@ -1276,6 +1289,14 @@
 	}, {
 		path:     'signal',
 		fn:       AudioObject.SignalDetector,
+		defaults: {}
+	}, {
+		path:     'track',
+		fn:       Track,
+		defaults: {}
+	}, {
+		path:     'chain',
+		fn:       Chain,
 		defaults: {}
 	}]);
 

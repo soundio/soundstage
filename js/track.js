@@ -1,191 +1,103 @@
-
 (function(window) {
 	"use strict";
-
-	var Fn          = window.Fn;
-	var Music       = window.Music;
+	
 	var AudioObject = window.AudioObject;
-	var Pool        = window.Pool;
-	var observe     = window.observe;
+	var Sequence    = window.Sequence;
+	var Sequencer   = window.Sequencer;
+	var Region      = window.Region;
+
 	var assign      = Object.assign;
-	var UnityNode   = AudioObject.UnityNode;
-	var fetchBuffer = AudioObject.fetchBuffer;
-
-	var get         = Fn.get;
-	var invoke      = Fn.invoke;
 	var noop        = Fn.noop;
-	var nothing     = Fn.nothing;
 
-	var get1        = get(1);
-
-
-	function dampNote(time, packets) {
-		var n = packets.length;
-		var packet, note;
-
-		while (n--) {
-			packet = packets[n];
-
-			// If region's dampDecay is not defined, or if it is set to 0,
-			// treat sample as a one-shot sound. ie, don't damp it.
-			if (!isDefined(packet[0].decay)) { continue; }
-
-			note = packet[1];
-			note.stop(time, packet[0].decay);
-
-			// This packet has been damped, so remove it.
-			//packets.splice(n, 1);
-		}
-	}
-
-	function muteNote(time, packets, muteDecay) {
-		var n = packets.length;
-		var packet, note;
-
-		while (n--) {
-			packet = packets[n];
-			note = packet[1];
-			note.stop(time, muteDecay);
-		}
-	}
+	var privates    = Symbol('track');
 
 
-	// Voice
+	function Track(audio, settings, stage) {
+		settings = settings || nothing;
 
-	var Voice = Pool({
-		name: 'Track Voice',
+		const track  = this;
 
-		create: function create(audio, buffer, loop, destination) {
-			this.audio = audio;
-			this.gain = audio.createGain();
-		},
+		// Initialise track as an Audio Object. Assigns:
+		//
+		// audio:      audio context
 
-		reset: function reset(audio, buffer, loop, destination) {
-			this.source = audio.createBufferSource();
-			this.source.buffer = buffer;
-			this.source.loop = loop;
-			this.source.connect(this.gain);
-			this.gain.disconnect();
-			this.gain.connect(destination);
-			this.startTime = 0;
-			this.stopTime  = Infinity;
-		},
+		const audio  = settings.audio;
+		const input  = audio.createGain();
+		const output = audio.createGain();
 
-		isIdle: function(note) {
-			var audio = note.audio;
-			// currentTime is the start of the next 128 sample frame, so add a
-			// frame duration to stopTime before comparing.
-			return audio.currentTime > note.stopTime + 128 / audio.sampleRate;
-		}
-	}, {
-		start: function(time) {
-			this.source.start(time);
-			this.gain.gain.cancelScheduledValues(time);
-			this.gain.gain.setValueAtTime(gain, time);
-			this.startTime = time;
-		},
+		AudioObject.call(this, audio, input, output);
+		input.connect(output);
 
-		stop: function(time, decay) {
-			// It hasn't played yet, but it is scheduled. Silence it by
-			// disconnecting it.
-			//if (time <= this.startTime) {
-			//	this.gain.gain.cancelScheduledValues(this.startTime);
-			//	this.gain.gain.setValueAtTime(0, this.startTime);
-			//	this.source.stop(this.startTime);
-			//	this.stopTime = this.startTime;
-			//}
-			//else {
-				// setTargetAtTime reduces the value exponentially according to the
-				// decay. If we set the timeout to decay x 11 we can be pretty sure
-				// the value is down at least -96dB.
-				// http://webaudio.github.io/web-audio-api/#widl-AudioParam-setTargetAtTime-void-float-target-double-startTime-float-timeConstant
-				this.stopTime = time + Math.ceil(decay * 11);
-				this.gain.gain.setTargetAtTime(0, time, decay);
-				this.source.stop(this.stopTime);
-			//}
-		},
+		// Initialise track as a Sequence. Assigns:
+		//
+		// name:       string
+		// sequences:  array
+		// events:     array
 
-		cancel: function(time) {
-			this.gain.disconnect();
-			this.gain.gain.cancelScheduledValues(time);
-			this.gain.gain.setValueAtTime(0, time);
-			this.source.stop(time);
-			this.stopTime = this.startTime;
-		}
-	});
+		Sequence.call(this, settings);
+
+		const regions
+			= this.regions
+			= (settings.regions || []).map(Region) ;
 
 
-	// Track
+		// Initialise track as a Sequencer. Assigns:
+		//
+		// start:      fn
+		// stop:       fn
+		// beatAtTime: fn
+		// timeAtBeat: fn
+		// beatAtLoc:  fn
+		// locAtBeat:  fn
+		// beatAtBar:  fn
+		// barAtBeat:  fn
+		// create:     fn
+		// cue:        fn
+		// status:     string
 
-	function Track(audio, settings, presets) {
-		if (!AudioObject.isAudioObject(this)) {
-			return new Track(audio, settings, presets);
-		}
+		const getRegion    = findIn(regions);
+		const distributors = assign({
+			"region": function(object, event, stream, transform) {
+				var type   = typeof event[2];
+				var region = getRegion(event[2]);
 
-		var options = assign({}, defaults, settings);
-		var buffers = {};
-		var object = this;
+				if (!region) {
+					console.warn('Soundstage: sequence not found', event);
+					return;
+				}
 
-		var unityNode  = UnityNode(audio);
-		var pitchNode  = audio.createGain();
-		var output     = audio.createGain();
+				var events = sequence.events;
 
-		// Maintain a map of currently playing notes and filters
-		var notes = {};
+				if (!events || !events.length) {
+					console.warn('Soundstage: sequence has no events', event);
+					return;
+				}
 
-		function fetchBufferN(n, url) {
-			fetchBuffer(audio, url)
-			.then(function(buffer) {
-				buffers[url] = buffer;
-			});
-		}
+				object = track;
 
-		AudioObject.call(this, audio, undefined, output, {
-			"gain": {
-				param: output.gain,
-				curve: 'linear',
-				duration: 0.006
-			},
-
-			"pan": {
-				param: pitchNode.gain,
-				curve: 'linear',
-				duration: 0.006
+				return stream
+				.create(events, transform, object)
+				.start(event[0]);
 			}
+		}, eventDistributors);
+
+		Sequencer.call(this, audio, distributors, this.regions, this.events);
+
+		stage.on('start', function() {
+			track.start(0);
 		});
 
-		this.start = function start(time, url) {
-			time = time || audio.currentTime;
-
-			var buffer = buffers[url];
-
-			if (!buffer) {
-				fetchbuffer(audio, url);
-			}
-
-			var voice = Voice(audio, buffer, false, output, options);
-			return voice.start(time);
-		};
-
-		this.stop = function stop(time, number) {
-			return this;
-		};
-
-		this.destroy = function() {
-			output.disconnect();
-		};
-
-		Object.defineProperties(this, {
-			"loaded": {
-				value: 0,
-				writable: true,
-				enumerable: false
-			}
+		stage.on('stop', function(time) {
+			track.stop(time);
 		});
-
-		return object;
 	}
 
 	Track.prototype = Object.create(AudioObject.prototype);
 
+	assign(Track.prototype, {
+		start: noop,
+		stop: noop
+	});
+
+	window.Track = Track;
 })(this);
