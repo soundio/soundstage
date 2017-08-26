@@ -7,10 +7,18 @@
 	var Region      = window.Region;
 
 	var assign      = Object.assign;
+	var curry       = Fn.curry;
 	var noop        = Fn.noop;
+	var nothing     = Fn.nothing;
 
 	var privates    = Symbol('track');
 
+	// Todo: Copied from soundstage.js - find some common place to put
+	// this?
+	var findIn = curry(function(objects, id) {
+		var hasId = compose(is(id), getId);
+		return find(hasId, objects);
+	});
 
 	function Track(audio, settings, stage) {
 		settings = settings || nothing;
@@ -21,7 +29,6 @@
 		//
 		// audio:      audio context
 
-		const audio  = settings.audio;
 		const input  = audio.createGain();
 		const output = audio.createGain();
 
@@ -38,7 +45,9 @@
 
 		const regions
 			= this.regions
-			= (settings.regions || []).map(Region) ;
+			= (settings.regions || []).map(function(data) {
+				Region(audio, data);
+			}) ;
 
 
 		// Initialise track as a Sequencer. Assigns:
@@ -75,11 +84,9 @@
 
 				object = track;
 
-				return stream
-				.create(events, transform, object)
-				.start(event[0]);
+				return region.start(event[0]);
 			}
-		}, eventDistributors);
+		}/*, eventDistributors*/);
 
 		Sequencer.call(this, audio, distributors, this.regions, this.events);
 

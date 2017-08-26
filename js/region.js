@@ -8,6 +8,7 @@
 
 	var assign      = Object.assign;
 	var noop        = Fn.noop;
+	var nothing     = Fn.nothing;
 
 	var Voice = Pool({
 		name: 'Region Voice',
@@ -76,17 +77,15 @@
 		}
 	});
 
-	function Region(data, settings, audio) {
+	function Region(audio, settings) {
 		if (this === undefined || this === window) {
 			// Soundstage has been called without the new keyword
-			return new Track(data, settings);
+			return new Region(audio, settings);
 		}
 
-		data     = data || nothing;
 		settings = settings || nothing;
 
 		var region = this;
-		var audio  = settings.audio;
 		var output = audio.createGain();
 
 		// Initialise buffer
@@ -94,7 +93,7 @@
 		var buffer;
 
 		AudioObject
-		.fetchBuffer(audio, data.path)
+		.fetchBuffer(audio, settings.path)
 		.then(function(buffer) {
 			buffer = buffer;
 			region.loaded = true;
@@ -106,7 +105,7 @@
 			console.log('Region: start()');
 
 			if (!buffer) {
-				console.warn('Region: start() buffer not loaded for path', data.path);
+				console.warn('Region: start() buffer not loaded for path', settings.path);
 				// Return this because it has a noop for .stop()
 				return this;
 			}
