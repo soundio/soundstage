@@ -208,7 +208,7 @@
 		return object;
 	}
 
-	function create(audio, path, settings, sequencer, presets, output, objects) {
+	function create(audio, path, settings, sequencer, output, objects) {
 		path = path || settings.type;
 
 		var Constructor = registry[path];
@@ -218,7 +218,7 @@
 			throw new Error('Soundstage: unregistered audio object "' + path + '".');
 		}
 
-		var object = new Constructor(audio, settings, sequencer, presets, output);
+		var object = new Constructor(audio, settings, sequencer, output);
 		setup(object, path, settings, objects);
 		Soundstage.debug && console.log('Soundstage: created AudioObject', object.id, '"' + object.name + '"');
 
@@ -529,7 +529,6 @@
 				var audio     = constants.audio;
 				var sequencer = constants.sequencer;
 				var output    = constants.output;
-				var presets   = constants.presets;
 				var type      = data.type;
 				var object;
 
@@ -545,7 +544,7 @@
 					}
 				}
 
-				object = create(audio, data.type, data, sequencer, presets, output, objects);
+				object = create(audio, data.type, data, sequencer, output, objects);
 				objects.push(object);
 
 				return objects;
@@ -557,10 +556,9 @@
 				var audio     = constants.audio;
 				var sequencer = constants.sequencer;
 				var output    = constants.output;
-				var presets   = constants.presets;
 
 				update(function(data) {
-					return create(audio, data.type, data, sequencer, presets, output, objects);
+					return create(audio, data.type, data, sequencer, output, objects);
 				}, objects, data.objects);
 
 				return objects;
@@ -767,8 +765,8 @@
 			throw new Error('Soundstage: version mismatch.', this.version, data.version);
 		}
 
-		var soundstage = this;
-		var promises   = [];
+		const soundstage = this;
+		const promises   = [];
 
 
 		// Assign:
@@ -777,7 +775,6 @@
 			midi:        { value: new Collection([]), enumerable: true },
 			objects:     { value: new Collection([], { index: 'id' }), enumerable: true },
 			connections: { value: new Collection([]), enumerable: true },
-			presets:     { value: Soundstage.presets, enumerable: true },
 			mediaChannelCount: { value: undefined, writable: true, configurable: true },
 			roundTripLatency:  { value: Soundstage.roundTripLatency, writable: true, configurable: true },
 		});
@@ -788,17 +785,28 @@
 		//
 		// audio:      audio context
 
-		var audio  = settings.audio || createAudio();
-		var output = createOutput(audio, settings.output || audio.destination);
+		const audio  = settings.audio || createAudio();
+		const output = createOutput(audio, settings.output || audio.destination);
 
 		AudioObject.call(this, audio, undefined, output);
 		output.connect(audio.destination);
 		Soundstage.inspector && Soundstage.inspector.drawAudioFromNode(output);
 
 
+		// Initialise audio regions. Assigns:
+		//
+		// regions:    array
+
+		const regions
+			= this.regions
+			= (settings.regions || []).map(function(data) {
+				return Region(audio, data);
+			});
+
+
 		// Initialise soundstage as a plugin graph. Assigns:
 		//
-		// plugins:    array
+		// plugs:      array
 		// connects:   array
 
 		Graph.call(this, data);
@@ -827,11 +835,11 @@
 		// cue:        fn
 		// status:     string
 
-		var findObject     = findIn(this.objects);
-		var findSequence   = findIn(this.sequences);
-		var selectObject   = selectIn(this.objects);
-		var selectSequence = selectIn(this.sequences);
-		var distributors   = assign({
+		const findObject     = findIn(this.objects);
+		const findSequence   = findIn(this.sequences);
+		const selectObject   = selectIn(this.objects);
+		const selectSequence = selectIn(this.sequences);
+		const distributors   = assign({
 			"sequence": function(object, event, stream, transform) {
 				var type = typeof event[2];
 				var sequence = type === 'string' ?
@@ -921,7 +929,6 @@
 			},
 
 			output:     output,
-			presets:    AudioObject.presets,
 
 			distribute: function distribute(event) {
 				var object = event.object;
@@ -949,19 +956,9 @@
 		this[$store] = store.each(noop);
 
 
-		// Notify when all components are loaded and ready
-
-//		Promise
-//		.all(promises)
-//		.then(function() {
-//			soundstage.status = 'waiting';
-//			notify(soundstage, 'ready');
-//		});
-
-
 		// Setup from data and notify when all components are loaded and ready
 
-		var loaded = this
+		const loaded = this
 		.update(data)
 		.then(function(stage) {
 			console.log('Soundstage: ready');
@@ -974,11 +971,11 @@
 
 	define(Soundstage.prototype, {
 		version: { value: 0 },
-		beat:   getOwnPropertyDescriptor(Sequencer.prototype, 'beat'),
-		status: getOwnPropertyDescriptor(Sequencer.prototype, 'status')
+		beat:          getOwnPropertyDescriptor(Sequencer.prototype, 'beat'),
+		status:        getOwnPropertyDescriptor(Sequencer.prototype, 'status')
 	});
 
-	assign(Soundstage.prototype, Sequencer.prototype, events.mixin, {
+	assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, events.mixin, {
 		timeAtDomTime: function(domTime) {
 			return timeAtDomTime(this.audio, domTime);
 		},
@@ -1024,16 +1021,6 @@
 			if (data.version > 1) {
 				throw new Error('Soundstage: data version', data.version, 'not supported - you may need to upgrade Soundstage from github.com/soundio/soundstage');
 			}
-
-			//	if (data && data.samplePatches && data.samplePatches.length) {
-			//		console.groupCollapsed('Soundstage: create sampler presets...');
-			//		if (typeof samplePatches === 'string') {
-			//			// Sample presets is a URL! Uh-oh.
-			//		}
-			//		else {
-			//			this.samplePatches.create.apply(this.connections, data.connections);
-			//		}
-			//	}
 
 			var stage    = this;
 			var promises = [];
@@ -1138,7 +1125,6 @@
 				events:      this.events.length ?      this.events :      undefined,
 				midi:        this.midi.length ?        this.midi :        undefined,
 				objects:     this.objects.length ?     this.objects :     undefined,
-				presets:     this.presets.length ?     this.presets :     undefined,
 				sequences:   this.sequences.length ?   this.sequences :   undefined
 			});
 		}
@@ -1236,7 +1222,6 @@
 		create:           create,
 		register:         register,
 		defaults:         retrieveDefaults,
-		presets:          Collection([], { index: "name" }),
 		fetchBuffer:      fetchBuffer,
 		isEvent:          isEvent,
 		toEventDuration:  toEventDuration,

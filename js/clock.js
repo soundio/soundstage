@@ -76,7 +76,11 @@
 //		});
 	}
 
-//	Clock.prototype = AudioObject.prototype;
+//	define(Clock.prototype, {
+//		timeAtDomTime: function(domTime) {
+//			return timeAtDomTime(this.audio, domTime);
+//		}
+//	});
 
 	window.Clock = Clock;
 })(this);

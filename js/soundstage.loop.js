@@ -121,10 +121,10 @@
 
 		// Audio nodes
 
-		var input = audio.createGain();
-		var output = audio.createGain();
-		var dry = audio.createGain();
-		var wet = audio.createGain();
+		var input     = audio.createGain();
+		var output    = audio.createGain();
+		var dry       = audio.createGain();
+		var wet       = audio.createGain();
 		var processor = audio.createScriptProcessor(bufferLength, 2, 2);
 
 		input.connect(dry);

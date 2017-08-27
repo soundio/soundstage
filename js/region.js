@@ -77,6 +77,95 @@
 		}
 	});
 
+
+
+	function createPlaybackNode(audio, buffer) {
+		var node = audio.createBufferSource();
+
+		// Zero out the rest of the buffer
+		//zero(looper.buffers, looper.n, Math.ceil(end * this.sampleRate));
+
+		node.loop = true;
+		node.sampleRate = audio.sampleRate;
+		node.buffer = buffer;
+
+		return node;
+	}
+
+	function File(audio, settings, clock) {
+		var length = settings.buffers[0].length;
+		var buffer = audio.createBuffer(2, length, audio.sampleRate);
+		var gain = audio.createGain();
+		var file = AudioObject(audio, false, gain, {
+			gain: { param: gain.gain }
+		});
+		var node;
+
+		buffer.getChannelData(0).set(settings.buffers[0]);
+		buffer.getChannelData(1).set(settings.buffers[1]);
+
+		function schedule(time) {
+			node = createPlaybackNode(audio, buffer);
+			node.loopStart = 0;
+			node.connect(gain);
+
+			var now = audio.currentTime;
+
+			node.start(now < time ? time : now - time);
+
+//			console.log('loop: scheduled time from now:', time - now);
+
+			if (!settings.loop) { return; }
+
+			if (settings.duration > buffer.duration) {
+				node.loop = false;
+				clock.cueTime(time + settings.duration, schedule);
+			}
+			else {
+				node.loop = true;
+				node.loopEnd = settings.duration;
+			}
+		}
+
+		function start(time) {
+			time = time || audio.currentTime;
+			schedule(time);
+			this.start = noop;
+			this.stop = stop;
+		}
+
+		function stop() {
+			node.stop();
+			this.start = start;
+			this.stop = noop;
+		}
+
+		Object.defineProperties(extend(file, {
+			start: start,
+			stop: noop,
+			destroy: function destroy() {
+				node.disconnect();
+				gain.disconnect();
+			}
+		}), {
+			type: {
+				value: 'file',
+				enumerable: true
+			},
+
+			buffer: {
+				value: buffer
+			}
+		});
+
+		file.offset = settings.offset;
+		file.duration = settings.duration;
+
+		return file;
+	}
+
+
+
 	function Region(audio, settings) {
 		if (this === undefined || this === window) {
 			// Soundstage has been called without the new keyword
@@ -86,7 +175,6 @@
 		settings = settings || nothing;
 
 		var region = this;
-		var output = audio.createGain();
 
 		// Initialise buffer
 
@@ -101,7 +189,7 @@
 
 		// Initialise region
 
-		this.start = function start(time, offset, loop) {
+		this.start = function start(time, loop, destination) {
 			console.log('Region: start()');
 
 			if (!buffer) {
@@ -110,12 +198,10 @@
 				return this;
 			}
 
-			var voice = new Voice(audio, buffer, loop, output);
+			var voice = new Voice(audio, buffer, loop, destination);
 			voice.start(time, regionGain, 0);
 			return voice;
 		};
-
-		this.output = output;
 	}
 
 	assign(Region.prototype, {
