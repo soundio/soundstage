@@ -1,132 +1,129 @@
 
-var worker = this;
+var worker      = this;
+var frames      = [];
+var framesLimit = 8;
+var recording   = false;
 
-var tickBuffers = [];
-var tickBuffersLimit = 8;
-var tickTime = 0;
-
-var recordDuration = 30;
-var recordTimeStart;
-var recordSampleCount = 0;
-var recordChannelCount = 0;
-var recordBuffers = [];
+var message = {
+	buffers:    [],
+	time:       0,
+	sampleRate: 0
+};
 
 function noop() {}
 
 function start(data) {
-	//console.log('START WORKER');
 	this.start = noop;
-	this.stop = stop;
+	this.stop  = stop;
 	this.clear = clear;
 
-	var time = recordTimeStart = data.time;
-	var rate = data.sampleRate;
+	message.time           = data.time;
+	message.buffers.length = 0;
 
-	recordBuffers.length = 0;
+	recording = true;
+}
 
-	// Fill recordBuffers with same number of buffers as tickBuffers, one
-	// for each channel.
-	var n = recordChannelCount = tickBuffers[0].length;
-	while (n--) {
-		recordBuffers.push(new Float32Array(recordDuration * rate));
-	}
-
-	// Work out how many samples we need from the past and fill
-	// recordBuffers with those samples from tickBuffers.
-	var samples = recordSampleCount = Math.floor((tickTime - time) * rate);
-	var l = tickBuffers.length;
-	var buffers = tickBuffers[--l];
-	var length = buffers[0].length;
-
-	while (samples > length) {
-		samples -= length;
-
-		n = recordChannelCount;
-		while (n--) {
-			recordBuffers[n].set(buffers[n], samples);
-		}
-
-		// Uh-oh. We've run out of buffers. There will be a short silence
-		// at the start of this recording.
-		if (l < 1) { return; }
-
-		buffers = tickBuffers[--l];
-		length = buffers[0].length;
-	}
-
-	n = recordChannelCount;
-	while (n--) {
-		recordBuffers[n].set(buffers[n].subarray(length - samples), 0);
-	}
+function frameDuration(frame) {
+	return frame.buffers[0].length / frame.sampleRate;
 }
 
 function stop(data) {
-	//console.log('STOP WORKER');
-	var time = data.time;
-	var rate = data.sampleRate;
+	const stopTime = data.time;
+	const buffers  = message.buffers;
 
-	// Work out how many samples we've recorded that we don't need, and reduce
-	// recordSampleCount accordingly.
-	recordSampleCount -= (tickTime - time) * rate;
+	var i = -1;
+	var frame, samples;
 
-	var buffers = [];
-	var n = recordChannelCount;
+	// Seek first frame
+	while ((frame = frames[++i]) && (frame.time + frameDuration(frame)) < message.time);
 
-	while (n--) {
-		buffers[n] = recordBuffers[n].subarray(0, recordSampleCount);
+	if (!frame) {
+		console.log('Recorder worker: There are no frames for the requested start time', message, frames);
+		return;
 	}
 
-	worker.postMessage({
-		type: 'data',
-		buffers: buffers,
-		time: recordTimeStart,
-		duration: buffers[0].length / rate,
-		sampleRate: data.sampleRate
-	});
+	const sampleRate
+		= message.sampleRate
+		= frame.sampleRate ;
 
+	const sampleLength
+		= Math.round((stopTime - message.time) * sampleRate);
+
+	// Create new buffers and copy partial first frame into start
+	const startSample
+		= Math.round((message.time - frame.time) * sampleRate);
+
+	const endSample
+		= frame.buffers[0].length;
+
+	for (n in buffers) {
+		// Set up new buffer
+		buffers[n] = new Float32Array(sampleLength);
+
+		// Copy partial frame into start of buffer
+		samples = frame.buffers[n].subarray(startSample, endSample);
+		buffers[n].set(samples, 0);
+	}
+
+	var sampleCount = endSample - startSample;
+
+	// Copy intermediate full frames into buffers
+	while ((frame = frames[++i]) && (frame.time + frameDuration(frame)) < stopTime) {
+		for (n in buffers) {
+			buffers[n].set(frame.buffers[n], sampleCount);
+		}
+
+		sampleCount += frame.buffers[0].length;
+	}
+
+	frame = frames[++i];
+
+	if (!frame) {
+		console.log('Recorder worker: There are no frames for the requested end time', message, frames)
+		return;
+	}
+
+	// Copy partial last frame into buffers
+	for (n in buffers) {
+		samples = frame.buffers[n].subarray(0, sampleLength - sampleCount);
+		buffers[n].set(samples, sampleCount);
+	}
+
+	recording = false;
+
+	// Send the data!
+	worker.postMessage(message);
 	clear.apply(this);
 }
 
 function clear() {
 	//console.log('CLEAR WORKER');
 	this.start = start;
-	this.stop = noop;
+	this.stop  = noop;
 	this.clear = noop;
 
-	recordTimeStart = undefined;
-	recordBuffers.length = 0;
+	recording  = false;
 }
 
-worker.onmessage = (function(types) {
+worker.onmessage = (function(actions) {
 	return function(e) {
-		if (!types[e.data.type]) {
-			console.warn('Action ' + e.data.type + ' not supported by loop worker.')
+		var action = e.data.action;
+
+		if (!actions[action]) {
+			console.warn('Action "' + action + '" not supported by recorder worker')
 			return;
 		}
 
-		types[e.data.type](e.data);
+		actions[action](e.data);
 	};
 })({
 	tick: function tick(data) {
-		// Store the buffers in tickBuffers
-		tickBuffers.push(data.buffers);
-		tickTime = data.time;
+		// Store the frame data
+		frames.push(data);
 
-		// Throw away old buffers
-		if (tickBuffers.length > tickBuffersLimit) {
-			tickBuffers.shift();
-		}
-
-		// If recording is activated, populate recordBuffers
-		var n;
-
-		if (recordTimeStart) {
-			n = recordChannelCount;
-			while (n--) {
-				recordBuffers[n].set(data.buffers[n], recordSampleCount);
-			}
-
-			recordSampleCount += data.buffers[0].length;
+		// If not recording limit the number of stored frames
+		if (!recording && frames.length > framesLimit) {
+			frames.splice(0, frames.length - framesLimit);
 		}
 	},
 

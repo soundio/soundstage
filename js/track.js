@@ -49,24 +49,19 @@
 
 		const recorder = new Recorder(audio, function(data) {
 			// Todo: move this to looper
-			if (stage.status === 'waiting') {
+			if (stage.status === 'waiting' && stage.beat === 0) {
 				//master.duration = data.buffers[0].length / data.sampleRate;
 				//master.time = data.time;
 			}
 
-			var id = createId(regions);
+			var id     = createId(regions);
+			var region = new Region(audio, data.buffer);
+			region.id  = id;
 
-			var region = new Region(audio, {
-				id:       id,
-				path:     undefined,
-				duration: data.duration,
-				// ?
-				time:     data.time
-			});
+			var beat   = stage.beatAtTime(data.time);
+			var event  = Event.of(beat, 'region', id);
 
-			var event = Event.of(data.time, 'region', id, track.id, 1);
-
-			regions.push(region);
+			stage.regions.push(region);
 			events.push(event);
 		});
 
@@ -141,7 +136,7 @@
 					return;
 				}
 
-				return region.start(event[0], event[4], wet);
+				return region.start(event[0], wet);
 			},
 
 			"recordon": function(object, event) {
@@ -157,13 +152,25 @@
 
 		Sequencer.call(this, audio, distributors, this.regions, this.events);
 
+		var start = this.start;
+		var stop  = this.stop;
+
+		this.start = function(time) {
+			start.apply(track, arguments);
+			recorder.start(time);
+		};
+
+		this.stop = function(time) {
+			recorder.stop(time);
+			start.apply(track, arguments);
+		};
+
 		stage.on('start', function(time) {
 			// Tracks are beat-locked to stage
 			track.start(time, stage.beatAtTime(time));
 		});
 
 		stage.on('stop', function(time) {
-			recorder.stop(time);
 			track.stop(time);
 		});
 	}

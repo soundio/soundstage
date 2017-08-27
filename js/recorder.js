@@ -1,16 +1,19 @@
 (function(window) {
 	"use strict";
 	
-	var assign      = Object.assign;
-	var define      = Object.defineProperties;
-	var compose     = Fn.compose;
-	var get         = Fn.get;
+	var assign       = Object.assign;
+	var define       = Object.defineProperties;
+	var compose      = Fn.compose;
+	var get          = Fn.get;
 
-	var workerPath  = './js/recorder.worker.js';
-	var processors  = [];
+	var workerPath   = './js/recorder.worker.js';
+	var processors   = [];
+	var bufferLength = 2048;
 
-	var bufferLength = 1024;
-
+	var message = {
+		action:  'tick',
+		buffers: []
+	};
 
 	function Recorder(audio, fn) {
 		const recorder  = this;
@@ -25,15 +28,11 @@
 		processors.push(processor);
 
 		processor.onaudioprocess = function(e){
-			worker.postMessage({
-				type:       'tick',
-				time:       audio.currentTime,
-				sampleRate: audio.sampleRate,
-				buffers: [
-					e.inputBuffer.getChannelData(0),
-					e.inputBuffer.getChannelData(1)
-				]
-			});
+			message.sampleRate = audio.sampleRate;
+			message.time       = e.playbackTime - (bufferLength / audio.sampleRate);
+			message.buffers[0] = e.inputBuffer.getChannelData(0);
+			message.buffers[1] = e.inputBuffer.getChannelData(1);
+			worker.postMessage(message);
 		};
 
 		this.start = function start(time) {
@@ -42,7 +41,12 @@
 			//latency = Soundstage.roundTripLatency + bufferLength / audio.sampleRate ;
 			//console.log('START');
 			time = time || audio.currentTime;
-			worker.postMessage({ type: 'start', time: time, sampleRate: audio.sampleRate });
+
+			worker.postMessage({
+				action: 'start',
+				time:   time
+			});
+
 			return this;
 		};
 
@@ -50,12 +54,16 @@
 			stopTime = time;
 			//console.log('STOP');
 			time = time || audio.currentTime;
-			worker.postMessage({ type: 'stop', time: time, sampleRate: audio.sampleRate });
+
+			worker.postMessage({
+				action: 'stop',
+				time: time
+			});
 		};
 
 		this.clear = function clear() {
 			//console.log('CLEAR');
-			worker.postMessage({ type: 'clear' });
+			worker.postMessage({ action: 'clear' });
 		};
 
 		define(this, {
@@ -70,7 +78,18 @@
 		});
 
 		// Listen to data prepared by worker and send it to the callback fn
-		worker.onmessage = compose(fn, get('data'));
+		worker.onmessage = function(e) {
+			var data   = e.data;
+			var n      = data.buffers.length;
+			var buffer = audio.createBuffer(n, data.buffers[0].length, data.sampleRate);
+
+			while (n--) {
+				buffer.getChannelData(n).set(data.buffers[n]);
+			}
+
+			data.buffer = buffer;
+			return data;
+		};
 	}
 
 	window.Recorder = Recorder;

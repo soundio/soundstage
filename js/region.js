@@ -10,22 +10,29 @@
 	var noop        = Fn.noop;
 	var nothing     = Fn.nothing;
 
+	var fadeIn      = 0.004;
+	var fadeOut     = 0.004;
+
 	var Voice = Pool({
 		name: 'Region Voice',
 
-		create: function create(audio, buffer, loop, destination) {
+		create: function create(audio, buffer, destination) {
 			this.audio = audio;
 			this.gain = audio.createGain();
+			this.fadeIn = fadeIn;
+			this.fadeOut = fadeOut;
 		},
 
-		reset: function reset(audio, buffer, loop, destination) {
+		reset: function reset(audio, buffer, destination) {
 			this.source && this.source.disconnect();
+			this.gain.disconnect();
+			
 			this.source = audio.createBufferSource();
 			this.source.buffer = buffer;
-			this.source.loop = loop;
+			this.source.loop = true;
 			this.source.connect(this.gain);
-			this.gain.disconnect();
 			this.gain.connect(destination);
+
 			this.startTime = 0;
 			this.stopTime  = Infinity;
 		},
@@ -37,138 +44,40 @@
 			return audio.currentTime > voice.stopTime + (128 / audio.sampleRate) / audio.sampleRate;
 		}
 	}, {
-		start: function(time, gain, detune) {
-			// WebAudio uses cents for detune where we use semitones.
-			// Bug: Chrome does not seem to support scheduling for detune...
-			//this.nodes[0].detune.setValueAtTime(detune * 100, time);
-			this.source.detune.value = detune * 100;
-			this.source.start(time);
+		start: function(time) {
 			this.gain.gain.cancelScheduledValues(time);
-			this.gain.gain.setValueAtTime(gain, time);
+			this.gain.gain.setValueAtTime(0, time);
+			this.gain.gain.linearRampToValueAtTime(1, time + fadeIn);
+			this.source.start(time);
 			this.startTime = time;
+
+			return this;
 		},
-	
-		stop: function(time, decay) {
-			// It hasn't played yet, but it is scheduled. Silence it by
-			// disconnecting it.
-			//if (time <= this.startTime) {
-			//	this.gain.gain.cancelScheduledValues(this.startTime);
-			//	this.gain.gain.setValueAtTime(0, this.startTime);
-			//	this.source.stop(this.startTime);
-			//	this.stopTime = this.startTime;
-			//}
-			//else {
-				// setTargetAtTime reduces the value exponentially according to the
-				// decay. If we set the timeout to decay x 11 we can be pretty sure
-				// the value is down at least -96dB.
-				// http://webaudio.github.io/web-audio-api/#widl-AudioParam-setTargetAtTime-void-float-target-double-startTime-float-timeConstant
-				this.stopTime = time + Math.ceil(decay * 11);
-				this.gain.gain.setTargetAtTime(0, time, decay);
-				this.source.stop(this.stopTime);
-			//}
+
+		stop: function(time) {
+			var stopTime = this.stopTime = time + fadeOut;
+			this.gain.gain.setValueAtTime(1, time);
+			this.gain.gain.linearRampToValueAtTime(0, stopTime);
+			this.source.stop(stopTime);
+
+			return this;
 		},
-	
+
 		cancel: function(time) {
 			this.gain.disconnect();
 			this.gain.gain.cancelScheduledValues(time);
 			this.gain.gain.setValueAtTime(0, time);
+
 			this.source.stop(time);
 			this.stopTime = this.startTime;
+			
+			return this;
 		}
 	});
 
-
-
-	function createPlaybackNode(audio, buffer) {
-		var node = audio.createBufferSource();
-
-		// Zero out the rest of the buffer
-		//zero(looper.buffers, looper.n, Math.ceil(end * this.sampleRate));
-
-		node.loop = true;
-		node.sampleRate = audio.sampleRate;
-		node.buffer = buffer;
-
-		return node;
-	}
-
-	function File(audio, settings, clock) {
-		var length = settings.buffers[0].length;
-		var buffer = audio.createBuffer(2, length, audio.sampleRate);
-		var gain = audio.createGain();
-		var file = AudioObject(audio, false, gain, {
-			gain: { param: gain.gain }
-		});
-		var node;
-
-		buffer.getChannelData(0).set(settings.buffers[0]);
-		buffer.getChannelData(1).set(settings.buffers[1]);
-
-		function schedule(time) {
-			node = createPlaybackNode(audio, buffer);
-			node.loopStart = 0;
-			node.connect(gain);
-
-			var now = audio.currentTime;
-
-			node.start(now < time ? time : now - time);
-
-//			console.log('loop: scheduled time from now:', time - now);
-
-			if (!settings.loop) { return; }
-
-			if (settings.duration > buffer.duration) {
-				node.loop = false;
-				clock.cueTime(time + settings.duration, schedule);
-			}
-			else {
-				node.loop = true;
-				node.loopEnd = settings.duration;
-			}
-		}
-
-		function start(time) {
-			time = time || audio.currentTime;
-			schedule(time);
-			this.start = noop;
-			this.stop = stop;
-		}
-
-		function stop() {
-			node.stop();
-			this.start = start;
-			this.stop = noop;
-		}
-
-		Object.defineProperties(extend(file, {
-			start: start,
-			stop: noop,
-			destroy: function destroy() {
-				node.disconnect();
-				gain.disconnect();
-			}
-		}), {
-			type: {
-				value: 'file',
-				enumerable: true
-			},
-
-			buffer: {
-				value: buffer
-			}
-		});
-
-		file.offset = settings.offset;
-		file.duration = settings.duration;
-
-		return file;
-	}
-
-
-
-	function Region(audio, settings) {
+	function Region(audio, buffer, settings) {
 		if (this === undefined || this === window) {
-			// Soundstage has been called without the new keyword
+			// Region has been called without the new keyword
 			return new Region(audio, settings);
 		}
 
@@ -176,20 +85,25 @@
 
 		var region = this;
 
+
 		// Initialise buffer
 
-		var buffer;
-
-		AudioObject
-		.fetchBuffer(audio, settings.path)
-		.then(function(buffer) {
-			buffer = buffer;
+		if (typeof buffer === 'string') {
+			AudioObject
+			.fetchBuffer(audio, buffer)
+			.then(function(buffer) {
+				buffer = buffer;
+				region.loaded = true;
+			});
+		}
+		else {
 			region.loaded = true;
-		});
+		}
+
 
 		// Initialise region
 
-		this.start = function start(time, loop, destination) {
+		this.start = function start(time, destination) {
 			console.log('Region: start()');
 
 			if (!buffer) {
@@ -198,10 +112,12 @@
 				return this;
 			}
 
-			var voice = new Voice(audio, buffer, loop, destination);
-			voice.start(time, regionGain, 0);
-			return voice;
+			var voice = new Voice(audio, buffer, destination);
+			return voice.start(time);
 		};
+
+		this.startSample = 0;
+		this.stopSample  = 0;
 	}
 
 	assign(Region.prototype, {

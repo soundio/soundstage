@@ -136,8 +136,8 @@ console.log('Sequencer: stop() ', time, status);
 
 		// Mix in Location
 		//
-		// beatAtLoc:     fn(n)
-		// locAtBeat:     fn(n)
+		// beatAtLoc:  fn(n)
+		// locAtBeat:  fn(n)
 
 		Location.call(this, events);
 
