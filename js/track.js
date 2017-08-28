@@ -54,15 +54,15 @@
 				//master.time = data.time;
 			}
 
-			var id     = createId(regions);
+			var id     = createId(stage.regions);
 			var region = new Region(audio, data.buffer);
 			region.id  = id;
-
-			var beat   = stage.beatAtTime(data.time);
+//console.log('TIME', stage.status, data.time, startBeat, stage.beatAtTime(data.time));
+var beat   = startBeat; //stage.beatAtTime(data.time);
 			var event  = Event.of(beat, 'region', id);
 
 			stage.regions.push(region);
-			events.push(event);
+			track.events.push(event);
 		});
 
 		input.connect(dry);
@@ -101,11 +101,11 @@
 
 		Sequence.call(this, settings);
 
-		const regions
-			= this.regions
-			= (settings.regions || []).map(function(data) {
-				return Region(audio, data);
-			}) ;
+		//const regions
+		//   = this.regions
+		//   = (settings.regions || []).map(function(data) {
+		//   	return Region(audio, data);
+		//   }) ;
 
 
 		// Initialise track as a Sequencer. Assigns:
@@ -122,7 +122,7 @@
 		// cue:        fn
 		// status:     string
 
-		const findRegion   = findIn(regions);
+		const findRegion   = findIn(stage.regions);
 		const distributors = assign({
 			"region": function(object, event) {
 				// Todo: get rid of object from this call, we can assume its
@@ -150,19 +150,35 @@
 			}
 		});
 
-		Sequencer.call(this, audio, distributors, this.regions, this.events);
+		Sequencer.call(this, audio, distributors, stage.regions, this.events);
 
 		var start = this.start;
 		var stop  = this.stop;
 
+// Todo: this is a bit of a hackaround for the fact that we can't store
+// beat anywhere ... we may have to pass it through Recorder worker just
+// to keep it together with the data that comes back ...
+var startBeat;
+
 		this.start = function(time) {
 			start.apply(track, arguments);
-			recorder.start(time);
+			//recorder.start(time);
 		};
 
 		this.stop = function(time) {
 			recorder.stop(time);
-			start.apply(track, arguments);
+			stop.apply(track, arguments);
+		};
+
+		this.record = function(time) {
+			time = time === undefined ?
+				audio.currentTime :
+				time ;
+
+//console.log('RECORD', time)
+startBeat = stage.beatAtTime(time);
+
+			return recorder.start(time);
 		};
 
 		stage.on('start', function(time) {
@@ -178,7 +194,7 @@
 	Track.prototype = Object.create(AudioObject.prototype);
 
 	define(Track.prototype, {
-		record: {
+		recording: {
 			get: function() {
 				var privates = this[$privates];
 				return !!privates.recorder.record;
@@ -186,10 +202,7 @@
 		}
 	});
 
-	assign(Track.prototype, {
-		start: noop,
-		stop: noop
-	});
+	assign(Track.prototype, Sequencer.prototype);
 
 	window.Track = Track;
 })(this);

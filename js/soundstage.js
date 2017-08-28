@@ -923,7 +923,8 @@
 				beatAtBar:  soundstage.beatAtBar.bind(soundstage),
 				barAtBeat:  soundstage.barAtBeat.bind(soundstage),
 				on:         soundstage.on.bind(soundstage),
-				off:        soundstage.off.bind(soundstage)
+				off:        soundstage.off.bind(soundstage),
+				regions:    soundstage.regions
 				//beatAtLoc:  soundstage.beatAtLoc.bind(soundstage),
 				//locAtBeat:  soundstage.locAtBeat.bind(soundstage),
 			},
@@ -975,7 +976,7 @@
 		status:        getOwnPropertyDescriptor(Sequencer.prototype, 'status')
 	});
 
-	assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, events.mixin, {
+	assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
 		timeAtDomTime: function(domTime) {
 			return timeAtDomTime(this.audio, domTime);
 		},

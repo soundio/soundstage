@@ -1,4 +1,6 @@
 
+console.log('Recorder: worker loaded.')
+
 var worker      = this;
 var frames      = [];
 var framesLimit = 8;
@@ -32,13 +34,13 @@ function stop(data) {
 	const buffers  = message.buffers;
 
 	var i = -1;
-	var frame, samples;
+	var n, frame, samples;
 
 	// Seek first frame
 	while ((frame = frames[++i]) && (frame.time + frameDuration(frame)) < message.time);
 
 	if (!frame) {
-		console.log('Recorder worker: There are no frames for the requested start time', message, frames);
+		console.log('Recorder: worker - no frames for requested start time', message, frames);
 		return;
 	}
 
@@ -56,7 +58,7 @@ function stop(data) {
 	const endSample
 		= frame.buffers[0].length;
 
-	for (n in buffers) {
+	for (n in frame.buffers) {
 		// Set up new buffer
 		buffers[n] = new Float32Array(sampleLength);
 
@@ -76,17 +78,15 @@ function stop(data) {
 		sampleCount += frame.buffers[0].length;
 	}
 
-	frame = frames[++i];
-
-	if (!frame) {
-		console.log('Recorder worker: There are no frames for the requested end time', message, frames)
-		return;
+	if (frame) {
+		// Copy partial last frame into buffers
+		for (n in buffers) {
+			samples = frame.buffers[n].subarray(0, sampleLength - sampleCount);
+			buffers[n].set(samples, sampleCount);
+		}
 	}
-
-	// Copy partial last frame into buffers
-	for (n in buffers) {
-		samples = frame.buffers[n].subarray(0, sampleLength - sampleCount);
-		buffers[n].set(samples, sampleCount);
+	else {
+		console.log('Recorder: worker run out of frames. last:', frames[frames.length - 1].time, frames[frames.length - 1].time + frameDuration(frames[frames.length - 1]), stopTime);
 	}
 
 	recording = false;
@@ -94,6 +94,7 @@ function stop(data) {
 	// Send the data!
 	worker.postMessage(message);
 	clear.apply(this);
+	
 }
 
 function clear() {
@@ -110,7 +111,7 @@ worker.onmessage = (function(actions) {
 		var action = e.data.action;
 
 		if (!actions[action]) {
-			console.warn('Action "' + action + '" not supported by recorder worker')
+			console.warn('Recorder: worker action "' + action + '" not supported');
 			return;
 		}
 

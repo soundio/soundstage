@@ -10,7 +10,7 @@
 
 	function increment(n) { return n + 1; }
 
-	function Output(audio, settings, presets, clock, output) {
+	function Output(audio, settings, stage, output) {
 		var options = assign({}, defaults, settings);
 		var input = audio.createChannelSplitter(2);
 		var channels = [];

@@ -12,6 +12,7 @@
 	var Pool      = window.Pool;
 	var Sequence  = window.Sequence;
 	var createId  = window.createId;
+	var Events    = window.Events;
 
 	var assign    = Object.assign;
 	var define    = Object.defineProperties;
@@ -20,6 +21,7 @@
 	var id        = Fn.id;
 	var insert    = Fn.insert;
 	var isDefined = Fn.isDefined;
+	var notify    = Events.notify;
 
 	var $private  = Symbol('sequencer');
 
@@ -59,10 +61,7 @@
 			var stream = new CueStream(timer, clock, sequencer.events, Fn.id, distributors);
 			// Ensure there is always a stream waiting by preparing a new
 			// stream when the previous one ends.
-			stream.on({
-				stop:reset
-			});
-
+			stream.on({ 'stop': reset });
 			privates.stream = stream;
 		}
 
@@ -70,6 +69,13 @@
 			var beat = sequencer.beatAtTime(time);
 			init();
 		}
+
+
+
+
+ 		// Initialise sequencer as an event emitter
+
+		Events.call(this);
 
 
 		// Public
@@ -88,7 +94,7 @@
 				time :
 				audio.currentTime ;
 
-			console.log('Sequencer: start()', startTime, beat, status, audio.state);
+console.log('Sequencer: start()', startTime, beat, status, audio.state);
 
 			if (typeof beat === 'number') {
 				privates.beat = beat;
@@ -98,7 +104,7 @@
 
 			clock.start(startTime);
 			stream.start(startTime, privates.beat);
-//			notify(this, 'start', startTime);
+			notify('start', startTime, this);
 
 			return this;
 		};
@@ -115,9 +121,9 @@ console.log('Sequencer: stop() ', time, status);
 			var stopTime = time || audio.currentTime ;
 			privates.beat = stream.beatAtTime(stopTime);
 
+			notify('stop', stopTime, this);
 			stream.stop(stopTime);
 			clock.stop(stopTime);
-//			notify(this, 'stop', stopTime);
 
 			// Log the state of Pool shortly after stop
 			if (DEBUG) {
@@ -198,7 +204,7 @@ console.log('Sequencer: stop() ', time, status);
 		}
 	});
 
-	assign(Sequencer.prototype, Location.prototype, Meter.prototype, {
+	assign(Sequencer.prototype, Location.prototype, Meter.prototype, Events.prototype, {
 		create: function(generator, object) {
 			var stream = this[$private].stream;
 			return stream.create(generator, id, object);

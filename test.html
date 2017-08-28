@@ -94,12 +94,50 @@
 	<script src="modules/dom/js/dom.js"></script>
 	<!--script src="js/soundstage-inspector.js"></script-->
 
-	<script src="fn/test/test.js"></script>
+	<!--script src="fn/test/test.js"></script>
 	<script src="midi/js/midi.test.js"></script>
 	<script src="midi/js/midi-functions.test.js"></script>
 	<script src="test/location.test.js"></script>
 	<script src="test/soundstage.import.test.js"></script>
 	<script src="test/soundstage.track.test.js"></script>
 	<!--script src="test/record-stream.test.js"></script-->
+
+	<script>
+	var stage = Soundstage({
+		name: 'Track test',
+
+		objects: [{
+			id: 1,
+			type: 'track'
+		}, {
+			id: 2,
+			type: 'input'
+		}, {
+			id: 3,
+			type: 'output'
+		}],
+
+		connections: [{
+			src: 2,
+			dst: 1
+		}, {
+			src: 1,
+			dst: 3
+		}]
+	});
+
+	setTimeout(function() {
+		stage.start();
+
+		track = stage.objects.find(1);
+		track.record();
+
+		setTimeout(function() {
+			stage.stop();
+			
+			console.log('done()');
+		}, 1000);
+	}, 2000);
+	</script>
 
 </body>
