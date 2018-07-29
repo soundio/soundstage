@@ -1,6 +1,3 @@
-[submodule "midi"]
-	path = midi
-	url = https://github.com/soundio/midi.git
 [submodule "collection"]
 	path = collection
 	url = https://github.com/stephband/collection.git
