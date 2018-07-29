@@ -1,5 +1,5 @@
 
-import { add, curry, by, choose, each, get, id, insert, multiply, noop, once, overload, pipe, rest, split, nothing } from '../../fn/fn.js';
+import { add, curry, by, choose, each, get, id, insert, multiply, noop, once, overload, pipe, rest, nothing } from '../../fn/fn.js';
 import { default as Event, release } from './event.js';
 import Location from './location.js';
 
@@ -100,9 +100,30 @@ var createTransform = choose({
 	}
 });
 
+function split(fn, array) {
+	if (!array.length) { return array; }
+
+	const output = [];
+	let n = 0;
+	let buffer = [array[n]];
+
+	output.push(buffer);
+
+	while (++n < array.length) {
+		if (fn(array[n])) {
+			buffer = [array[n]];
+			output.push(buffer);
+		}
+		else {
+			buffer.push(array[n]);
+		}
+	}
+
+	return output;
+}
+
 function createTransforms(event) {
 	var tokens = rest5(event);
-
 	var fns = split(isString, tokens).map(createTransform);
 	return event.length < 6 ? id : pipe.apply(null, fns);
 }
@@ -543,7 +564,7 @@ assign(CueSource.prototype, {
 	}
 });
 
-export function CueStream(timer, clock, generate, transform, fns, object) {
+export default function CueStream(timer, clock, generate, transform, fns, object) {
 	var stream     = this;
 	var startLoc   = 0;
 	var location;

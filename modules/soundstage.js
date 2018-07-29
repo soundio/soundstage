@@ -7,8 +7,7 @@ import { cache, compose, curry, each, equals, find, get, getPath, insert, is, is
 import config from './config.js';
 import { createId } from './utilities.js';
 import audioContext from './audio-context.js';
-import { AudioObject, requestMedia } from './audio-object.js';
-import Collection from './collection.js';
+import AudioObject, { requestMedia } from '../../audio-object/modules/audio-object.js';
 import Event from './event.js';
 import RecordStream from './record-stream.js';
 import Metronome from './metronome.js';
@@ -18,8 +17,9 @@ import Sequencer from './sequencer.js';
 import Track from './track.js';
 import Chain from './chain.js';
 import Graph from './graph.js';
-import Store from './store.js';
 
+var Store          = window.Store;
+var Collection     = window.Collection;
 var events         = window.events;
 var module         = window.importModule;
 

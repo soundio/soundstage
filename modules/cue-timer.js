@@ -32,7 +32,7 @@ function nextCueTime(time, t, isScrolling) {
 	return time + config.duration;
 }
 
-export function CueTimer(now) {
+export default function CueTimer(now) {
 	var duration        = config.duration;
 	var lookahead       = config.lookahead;
 	var scrollDuration  = config.scrollDuration;

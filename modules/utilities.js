@@ -24,7 +24,7 @@ export const generateUnique = curry(function(key, objects) {
 
 var bufferRequests = {};
 
-export default function fetchBuffer(audio, url) {
+export function fetchBuffer(audio, url) {
     return bufferRequests[url] || (bufferRequests[url] = new Promise(function(accept, reject) {
         var request = new XMLHttpRequest();
         request.open('GET', url, true);

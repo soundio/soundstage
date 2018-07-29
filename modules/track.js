@@ -1,7 +1,7 @@
 
 import { curry, noop, nothing } from '../../fn/fn.js';
-import { createId } from 'utilities.js';
-import { AudioObject } from '../../audio-object/audio-object.js';
+import { createId } from './utilities.js';
+import AudioObject from '../../audio-object/modules/audio-object.js';
 import Event     from './event.js';
 import Recorder  from './recorder.js';
 import Region    from './region.js';

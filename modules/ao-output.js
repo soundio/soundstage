@@ -1,5 +1,5 @@
 
-import { AudioObject } from './audio-object.js';
+import AudioObject from '../../audio-object/modules/audio-object.js';
 
 var Soundstage  = window.Soundstage;
 var assign      = Object.assign;

@@ -5,7 +5,6 @@
 	"use strict";
 
 	var assign    = Object.assign;
-	var Fn        = window.Fn;
 	var observe   = window.observe;
 	var unobserve = window.unobserve;
 	var mixin     = window.mixin;
@@ -18,6 +17,12 @@
 	// Utils
 
 	function returnThis() { return this; }
+
+	function isDefined(value) {
+	    // !!value is a fast out for non-zero numbers, non-empty strings
+	    // and other objects, the rest checks for 0, '', etc.
+	    return !!value || (value !== undefined && value !== null && !Number.isNaN(value));
+	}
 
 	// Each functions
 
@@ -110,7 +115,7 @@
 		var index = collection.index;
 
 		// If the object does not have an index key...
-		if (!Fn.isDefined(object[index])) {
+		if (!isDefined(object[index])) {
 			// ...check that it is not already in the
 			// collection before pushing it in.
 			if (collection.indexOf(object) === -1) {
@@ -123,7 +128,7 @@
 		// Insert the object in the correct index. TODO: we
 		// should use the sort function for this!
 		var l = collection.length;
-		while (collection[--l] && (collection[l][index] > object[index] || !Fn.isDefined(collection[l][index])));
+		while (collection[--l] && (collection[l][index] > object[index] || !isDefined(collection[l][index])));
 		splice(collection, l + 1, 0, object);
 	}
 
@@ -211,7 +216,7 @@
 		if (array === undefined) {
 			array = [];
 		}
-		else if (!Fn.isDefined(array.length)) {
+		else if (!isDefined(array.length)) {
 			settings = array;
 			array = [];
 		}
@@ -341,7 +346,7 @@
 		},
 
 		find: overloadByLength({
-			0: Fn.noop,
+			0: function noop() {},
 
 			1: function findObject(object) {
 				// Fast out. If object in collection, return it.

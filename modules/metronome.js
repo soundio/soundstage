@@ -1,5 +1,5 @@
 
-import AudioObject from './audio-object.js';
+import AudioObject from '../../audio-object/modules/audio-object.js';
 
 var assign      = Object.assign;
 var define      = Object.defineProperties;
@@ -14,7 +14,7 @@ var defaults = {
 };
 
 
-export function Metronome(audio, options, sequencer) {
+export default function Metronome(audio, options, sequencer) {
 	var metronome = this;
 	var settings  = assign({}, defaults, options);
 	var source    = AudioObject.Tick(audio, settings.source);

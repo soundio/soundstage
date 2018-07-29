@@ -2,12 +2,12 @@
 import { each, get, id, insert, isDefined, Pool } from '../../fn/fn.js';
 import { default as Sequence, log as logSequence } from './sequence.js';
 
+import { createId } from './utilities.js';
 import Clock from './clock.js';
 import CueStream from './cue-stream.js';
 import CueTimer from './cue-timer.js';
 import Location from './location.js';
 import Meter from './meter.js';
-import createId from './utilities.js';
 
 var DEBUG     = window.DEBUG;
 var notify    = window.Events;

@@ -6,13 +6,13 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 	<title>Soundstage</title>
-	
+
 	<link rel="stylesheet" href="http://stephen.band/bolt/css/normalise.css" />
 	<link rel="stylesheet" href="http://stephen.band/bolt/css/block.css" />
 	<link rel="stylesheet" href="http://stephen.band/bolt/css/text.css" />
 	<link rel="stylesheet" href="http://stephen.band/bolt/css/grid.css" />
 	<link rel="stylesheet" href="http://stephen.band/bolt/css/dom.css" />
-	
+
 	<link rel="stylesheet" href="css/soundstage-inspector.css" />
 
 	<script title="config">
@@ -51,70 +51,21 @@
 
 	<script src="polyfills/window.audiocontext.js"></script>
 	<script src="polyfills/navigator.getusermedia.js"></script>
-	
-	<script src="fn/polyfills/number.isnan.js"></script>
-	<script src="fn/polyfills/object.assign.js"></script>
-	<script src="fn/polyfills/object.setprototypeof.js"></script>
-	<script src="fn/js/fn.js"></script>
-	<script src="fn/js/stream.js"></script>
-	<script src="fn/js/store.js"></script>
-	<script src="fn/js/pool.js"></script>
-	<script src="fn/js/events.js"></script>
+
+	<script src="../fn/js/store.js"></script>
+	<script src="../fn/js/events.js"></script>
 
 	<script src="collection/js/observe.js"></script>
 	<script src="collection/js/collection.js"></script>
-	<script src="modules/music/music.js"></script>
 
-	<script src="audio-object/js/audio-object.js"></script>
-	<script src="audio-object/js/ao-tick.js"></script>
-	<script src="audio-object/js/ao-oscillator.js"></script>
-	<script src="audio-object/js/ao-filter.js"></script>
-	<script src="audio-object/js/ao-flanger.js"></script>
-	<script src="audio-object/js/ao-input.js"></script>
-	<script src="audio-object/js/ao-gain.js"></script>
-	<script src="audio-object/js/ao-saturate.js"></script>
-	<script src="audio-object/js/ao-compress.js"></script>
-	<script src="audio-object/js/ao-tone-synth.js"></script>
-	<script src="audio-object/js/ao-sampler.js"></script>
-	<script src="audio-object/js/ao-sampler-presets-gretsch-kit.js"></script>
-	<script src="audio-object/js/ao-sampler-presets-mis-piano.js"></script>
-	<script src="audio-object/js/ao-sampler-presets-fender-rhodes-mark-ii.js"></script>
-	<script src="audio-object/js/ao-signal-detector.js"></script>
-	<script src="audio-object/js/ao-enveloper.js"></script>
-
-	<script src="midi/js/midi.js"></script>
-	<script src="midi/js/midi-functions.js"></script>
-	<script src="midi/js/midi-setup.js"></script>
-
-	<script src="js/create-id.js"></script>
-	<script src="js/event.js"></script>
-	<script src="js/location.js"></script>
-	<script src="js/cue-timer.js"></script>
-	<script src="js/cue-stream.js"></script>
-	<script src="js/meter.js"></script>
-	<script src="js/clock.js"></script>
-	<script src="js/sequence.js"></script>
-	<script src="js/sequencer.js"></script>
-	<script src="js/record-stream.js"></script>
-	<script src="js/metronome.js"></script>
-
-	<script src="js/soundstage.js"></script>
-	<script src="js/soundstage.output.js"></script>
-	<script src="js/soundstage.track.js"></script>
-	<script src="js/soundstage.send.js"></script>
-	<script src="js/soundstage.loop.js"></script>
-	
-	<script src="modules/dom/js/dom.js"></script>
-	<script src="js/soundstage-inspector.js"></script>
-	
-	<script src="test/data-chromatic.js"></script>
-
-	<script>
-
-		var requestTick = Fn.requestTick;
+	<script type="module">
+		import { choose, compose, get, is, overload, requestTick } from '../fn/fn.js';
+		import { events, query, toKey } from '../dom/dom.js';
+		import Soundstage from './soundstage.js';
+		import './modules/inspector.js';
 
 		var stage = Soundstage({
-	
+
 			// Version
 			//
 			// If version is missing, data is assumed to be in the latest format
@@ -134,7 +85,7 @@
 			//   "slug":   slug
 			//   ...
 			// }
-	
+
 			"objects": [{
 				"id":          1,
 				"type":        "sampler",
@@ -292,15 +243,7 @@
 
 		// Start
 
-		var choose    = Fn.choose;
-		var compose   = Fn.compose;
-		var get       = Fn.get;
-		var is        = Fn.is;
-		var overload  = Fn.overload;
-		var toKey     = dom.toKey;
-
-		dom
-		.on('keydown', document)
+		events('keydown', document)
 		.each(overload(toKey, {
 			'0': function(e) {
 				stage.beat = 0;
@@ -312,8 +255,7 @@
 			}
 		}));
 
-		dom
-		.on('click', dom('#play-button')[0])
+		events('click', query('#play-button', document)[0])
 		.each(function() {
 			var toggle = stage.status === "waiting" ? 'start' : 'stop';
 			stage[toggle]();
@@ -324,11 +266,10 @@
 
 		var getTarget   = get('target');
 		var isRate      = compose(is('rate'), get('1'));
-		var tempoInput  = dom('#tempo-input')[0];
-		var tempoOutput = dom('#tempo-output')[0];
+		var tempoInput  = query('#tempo-input', document)[0];
+		var tempoOutput = query('#tempo-output', document)[0];
 
-		dom
-		.on('input', tempoInput)
+		events('input', tempoInput)
 		.map(getTarget)
 		.each(function(node) {
 			var rate
@@ -343,10 +284,9 @@
 
 		var getValue    = get('value');
 		var isMeter     = compose(is('meter'), get('1'));
-		var meterSelect = dom('#meter-select')[0];
+		var meterSelect = query('#meter-select', document)[0];
 
-		dom
-		.on('input', meterSelect)
+		events('input', meterSelect)
 		.map(getTarget)
 		.map(getValue)
 		.map(choose({
@@ -404,7 +344,7 @@
 		});
 
 
-		// Exose for debugging
+		// Expose for debugging
 
 		var audio = stage.audio;
 
