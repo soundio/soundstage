@@ -1,9 +1,3 @@
-[submodule "fn"]
-	path = fn
-	url = https://github.com/stephband/Fn.git
-[submodule "modules/dom"]
-	path = modules/dom
-	url = https://github.com/stephband/dom.git
 [submodule "midi"]
 	path = midi
 	url = https://github.com/soundio/midi.git
