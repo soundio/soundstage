@@ -8,9 +8,9 @@ import CueStream from './cue-stream.js';
 import CueTimer from './cue-timer.js';
 import Location from './location.js';
 import Meter from './meter.js';
+import Events from '../../fn/js/eventz.js';
 
 var DEBUG     = window.DEBUG;
-var notify    = window.Events;
 
 var assign    = Object.assign;
 var define    = Object.defineProperties;

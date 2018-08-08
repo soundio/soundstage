@@ -56,5 +56,3 @@ export default function Output(audio, settings, stage, output) {
 }
 
 Output.prototype = AudioObject.prototype;
-
-Soundstage.register('output', Output);

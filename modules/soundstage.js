@@ -2,7 +2,7 @@
 //
 // Soundstage(data, settings)
 
-import { cache, compose, curry, each, equals, find, get, getPath, insert, is, isDefined, noop, nothing, pipe, remove, requestTick, query, slugify, Stream } from '../../fn/fn.js';
+import { cache, compose, curry, each, equals, find, get, getPath, insert, is, isDefined, matches, noop, nothing, pipe, remove, requestTick, slugify, Stream } from '../../fn/fn.js';
 
 import config from './config.js';
 import { createId } from './utilities.js';
@@ -17,8 +17,8 @@ import Sequencer from './sequencer.js';
 import Track from './track.js';
 import Chain from './chain.js';
 import Graph from './graph.js';
+import Store from '../../fn/js/store.js';
 
-var Store          = window.Store;
 var Collection     = window.Collection;
 var events         = window.events;
 var module         = window.importModule;
@@ -33,7 +33,7 @@ var getId     = get('id');
 var insertBy0 = insert(get0);
 
 // Todo: obviously temporary.
-var isUrl     = Fn.noop;
+var isUrl     = noop;
 
 var $store = Symbol('store');
 
@@ -569,7 +569,7 @@ var actions = Store.reducer({
         "connect": function connect(connections, data, constants) {
             var resolve = constants.resolveObject;
 
-            if (query(connections, data).length) {
+            if (connections.filter(matches(data)).length) {
                 console.log('Soundstage: Connect failed. Source and dst already connected.');
                 return this;
             }
@@ -583,7 +583,7 @@ var actions = Store.reducer({
         },
 
         "disconnect": function disconnect(connections, data) {
-            var connected   = query(connections, data);
+            var connected = connections.filter(matches(data));
 
             if (connected.length === 0) { return connections; }
 
@@ -706,7 +706,7 @@ var actions = Store.reducer({
     })
 });
 
-export function Soundstage(data, settings) {
+export default function Soundstage(data, settings) {
     if (this === undefined || this === window) {
         // Soundstage has been called without the new keyword
         return new Soundstage(data, settings);
@@ -1093,9 +1093,11 @@ assign(Soundstage, {
     roundTripLatency: 0.020,
 
     import: function(path) {
+        path = /\.js$/.test(path) ? path : path + '.js' ;
+
         // Don't request the module again if it's already been registered
         return modules[path] || (
-            modules[path] = module(path + '.js')
+            modules[path] = import(path)
             .then(function(module) {
                 register(path, module.default, module.default.defaults);
                 return module.default;

@@ -12,7 +12,7 @@ function isDefined(val) {
 	return val !== undefined && val !== null;
 }
 
-export function Chain(audio, settings, stage) {
+export default function Chain(audio, settings, stage) {
 	// Enable use without the new keyword
 	if (this === undefined || !Chain.prototype.isPrototypeOf(this)) {
 		return new Chain(audio, settings);

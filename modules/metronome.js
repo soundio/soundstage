@@ -1,5 +1,6 @@
 
 import AudioObject from '../../audio-object/modules/audio-object.js';
+import Tick from '../../audio-object/modules/ao-tick.js';
 
 var assign      = Object.assign;
 var define      = Object.defineProperties;
@@ -17,7 +18,7 @@ var defaults = {
 export default function Metronome(audio, options, sequencer) {
 	var metronome = this;
 	var settings  = assign({}, defaults, options);
-	var source    = AudioObject.Tick(audio, settings.source);
+	var source    = Tick(audio, settings.source);
 	var buffer    = [];
 	var playing   = false;
 	var stream;
@@ -88,9 +89,9 @@ export default function Metronome(audio, options, sequencer) {
 	AudioObject.getOutput(source).connect(audio.destination);
 
 	// Plot output on debug timeline if it's available
-	if (Soundstage.inspector) {
-		Soundstage.inspector.drawAudioFromNode(AudioObject.getOutput(source));
-	}
+	//if (Soundstage.inspector) {
+	//	Soundstage.inspector.drawAudioFromNode(AudioObject.getOutput(source));
+	//}
 
 	if (settings.state === 'started') { this.start(); }
 }

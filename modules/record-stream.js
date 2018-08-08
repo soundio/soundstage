@@ -2,6 +2,7 @@
 import { get, id, insert, overload, Stream } from '../../fn/fn.js';
 import { createId } from './utilities.js';
 import { default as Event, release } from './event.js';
+import Sequencer from './sequencer.js';
 
 // Todo: clean up sharing betweeen Sequencer and record stream...
 var $private  = Sequencer.$private;

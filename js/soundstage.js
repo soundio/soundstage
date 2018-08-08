@@ -469,7 +469,7 @@
 		"noteon": function(object, event) {
 			return object.start(event[0], event[2], event[3]);
 		},
-		
+
 		"noteoff": function(object, event) {
 			return object.stop(event[0], event[2]);
 		},
@@ -630,7 +630,7 @@
 
 			"disconnect": function disconnect(connections, data) {
 				var connected   = query(connections, data);
-			
+
 				if (connected.length === 0) { return connections; }
 
 				each(function(connection) {
@@ -639,7 +639,7 @@
 					disconnect(connection.src, connection.dst, outputName, inputName, undefined, undefined, connections);
 					remove(connections, connection);
 				}, connected);
-			
+
 				return connections;
 			},
 
@@ -879,7 +879,7 @@
 			},
 
 			"meter": function(object, event) {
-				
+
 			}
 		}, eventDistributors);
 

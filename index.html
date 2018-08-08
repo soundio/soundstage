@@ -52,7 +52,6 @@
 	<script src="polyfills/window.audiocontext.js"></script>
 	<script src="polyfills/navigator.getusermedia.js"></script>
 
-	<script src="../fn/js/store.js"></script>
 	<script src="../fn/js/events.js"></script>
 
 	<script src="collection/js/observe.js"></script>
@@ -88,19 +87,19 @@
 
 			"objects": [{
 				"id":          1,
-				"type":        "sampler",
+				"type":        "/audio-object/modules/ao-sampler.js",
 				"name":        "Piano",
 				"sample-map":  "MIS Piano",
 				"filter-type": "off",
 				"recording":   true
 			}, {
 				"id":          2,
-				"type":        "output",
+				"type":        "/soundstage/modules/ao-output.js",
 				"name":        "Out 1-2",
 				"channels":    [0, 1]
 			}, {
 				"id":          3,
-				"type":        "input",
+				"type":        "/audio-object/modules/ao-input.js",
 				"name":        "In 1-2"
 			}],
 

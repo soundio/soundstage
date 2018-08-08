@@ -3,8 +3,10 @@ if (window.console && window.console.log) {
     console.log('Soundstage  - http://github.com/soundio/soundstage');
 }
 
+import { each } from '../../fn/fn.js';
+import Soundstage from './modules/soundstage.js';
 
-export * from './modules/soundstage.js';
+export default Soundstage;
 
 // Register 'standard lib' of audio objects
 
@@ -21,37 +23,37 @@ import Chain          from './modules/chain.js';
 each(function(def) {
     Soundstage.register(def.path, def.fn, def.defaults);
 }, [{
-    path:     'input',
+    path:     '../../audio-object/modules/ao-input.js',
     fn:       Input,
     defaults: {}
 }, {
-    path:     'gain',
+    path:     '../../audio-object/modules/ao-gain.js',
     fn:       Gain,
     defaults: {}
 }, {
-    path:     'pan',
+    path:     '../../audio-object/modules/ao-pan.js',
     fn:       Pan,
     defaults: {
         angle: { min: -1, max: 1, transform: 'linear', value: 0 }
     }
 }, {
-    path:     'tick',
+    path:     '../../audio-object/modules/ao-tick.js',
     fn:       Tick,
     defaults: {}
 }, {
-    path:     'oscillator',
+    path:     '../../audio-object/modules/ao-oscillator.js',
     fn:       Oscillator,
     defaults: {}
 }, {
-    path:     'signal',
+    path:     '../../audio-object/modules/ao-signal-detector.js',
     fn:       SignalDetector,
     defaults: {}
 }, {
-    path:     'track',
+    path:     './track.js',
     fn:       Track,
     defaults: {}
 }, {
-    path:     'chain',
+    path:     './chain.js',
     fn:       Chain,
     defaults: {}
 }]);

@@ -250,7 +250,7 @@ var n = 0;
 var c = colors[0];
 var frameY = 20;
 
-Soundstage.inspector = {
+export default {
 	drawCue: function(s1, s2) {
 		n = (n + 1) % 3;
 		c = colors[n];

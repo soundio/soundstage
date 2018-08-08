@@ -1,5 +1,5 @@
 
-import { add, curry, by, choose, each, get, id, insert, multiply, noop, once, overload, pipe, rest, nothing } from '../../fn/fn.js';
+import { add, curry, by, choose, each, get, id, insert, multiply, noop, once, overload, pipe, rest, nothing, Stream } from '../../fn/fn.js';
 import { default as Event, release } from './event.js';
 import Location from './location.js';
 
