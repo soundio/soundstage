@@ -22,7 +22,7 @@ function toEvent(audio, time, type, value) {
 
 
 /*
-ControlRoutes()
+Controls()
 
 Constructor for an array-like of ControlRoute objects. Has the methods:
 
@@ -72,7 +72,7 @@ function patchRoute(routes, route) {
     };
 }
 
-export default function ControlRoutes(Target, settings) {
+export default function Controls(Target, settings) {
     // Set up routes from data
     if (settings) {
         settings.reduce(function(routes, setting) {
@@ -92,14 +92,14 @@ export default function ControlRoutes(Target, settings) {
     print('Listening to ' + sources.filter(isKeyboardInputSource).length + ' keyboard controls and ' + sources.filter(isMIDIInputSource).length + ' MIDI controls');
 }
 
-define(ControlRoutes.prototype, {
+define(Controls.prototype, {
     length: {
         writable: true,
         value: 0
     }
 });
 
-assign(ControlRoutes.prototype, {
+assign(Controls.prototype, {
     create: function(source, target) {
 
     },

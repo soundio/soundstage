@@ -1,22 +1,23 @@
 
+/*
+AudioGraph()
+
+Constructs a graph of AudioObjects. The returned object hass two proerties:
+
+- `plugins`
+- `connections`
+
+*/
+
+
 import { print }    from './print.js';
 import { findById } from './utilities.js';
-import importPlugin from './import-plugin.js';
 import Connection   from './connection.js';
 
 const assign    = Object.assign;
 const define    = Object.defineProperties;
 
-function createPlugin(audio, settings) {
-    return importPlugin(settings.path).then(function(Constructor) {
-        const plugin = new Constructor(audio, settings);
-        plugin.id   = settings.id;
-        plugin.path = settings.path;
-        return plugin;
-    });
-}
-
-export default function AudioGraph(audio, output, data, done) {
+export default function AudioGraph(audio, types, data, done) {
 	const graph       = this;
     const plugins     = [];
     const connections = [];
@@ -37,10 +38,15 @@ export default function AudioGraph(audio, output, data, done) {
     // Load plugins
     Promise.all(
         data.plugins ?
-            data.plugins.map(function(settings) {
-                return createPlugin(audio, settings)
+            data.plugins.map(function(data) {
+                return (types[data.type] || types.default)(audio, data)
                 .then(function(plugin) {
-                    plugins.push(plugin);
+                    plugins.push({
+                        id: data.id,
+                        type: data.type,
+                        label: '',
+                        object: plugin
+                    });
                 });
             }) :
             nothing

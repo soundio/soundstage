@@ -1,5 +1,5 @@
 
-import AudioObject from '../../audio-object/modules/audio-object.js';
+import AudioObject from '../../../audio-object/modules/audio-object.js';
 
 var Soundstage  = window.Soundstage;
 var assign      = Object.assign;
@@ -9,7 +9,7 @@ var rautoname = /Out\s\d+\/\d+/;
 
 function increment(n) { return n + 1; }
 
-export default function Output(audio, settings, stage, output) {
+export default function Output(audio, settings, output) {
 	var options = assign({}, defaults, settings);
 	var input = audio.createChannelSplitter(2);
 	var channels = [];

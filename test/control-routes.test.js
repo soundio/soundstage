@@ -1,12 +1,12 @@
 import { test } from '../../fn/fn.js';
 import * as MIDI from '../../midi/midi.js';
-import ControlRoutes from '../modules/control-routes.js';
+import Controls from '../modules/controls.js';
 
-test('ControlRoutes()', function(run, print, fixture) {
+test('Controls()', function(run, print, fixture) {
     run('.learnMIDI(target)', function(equals, done) {
         const output = [0, 0.49606299212598426, 0];
 
-        const routes = new ControlRoutes();
+        const routes = new Controls();
         equals(0, routes.length);
 
         routes.learnMIDI({
@@ -36,7 +36,7 @@ test('ControlRoutes()', function(run, print, fixture) {
 
     run('.learnKey(target)', function(equals, done) {
         const output = [0, 1, 0, 3, 1];
-        const routes = new ControlRoutes();
+        const routes = new Controls();
 
         routes.learnKey({
             push: function(time, value) {

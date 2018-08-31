@@ -643,7 +643,7 @@ export default function Soundstage(data, settings) {
     define(this, {
         controls: {
             enumerable: true,
-            value: new ControlRoutes(data.controls)
+            value: new Controls(data.controls)
         }
     });
 

@@ -1,82 +1,86 @@
 
 import { get, isDefined }      from '../../fn/fn.js';
 import { getOutput, getInput } from '../../audio-object/modules/audio-object.js';
+import { print }               from './print.js';
 
-const assign    = Object.assign;
-const seal      = Object.seal;
 
-function connect(src, dst, outName, inName, outOutput, inInput) {
-    var outNode = getOutput(src, outName);
-    var inNode  = getInput(dst, inName);
+const assign = Object.assign;
+const seal   = Object.seal;
 
-    if (!outNode) {
-        console.warn('Soundstage: trying to connect src ' + src.type + ' with no output "' + outName + '". Dropping connection.');
+function connect(source, target, outName, inName, outputNumber, inputNumber) {
+    var outputNode = getOutput(source.object, outName);
+    var inputNode  = getInput(target.object, inName);
+
+    if (!outputNode) {
+        print('Trying to connect source ' + source.type + ' with no output "' + outName + '". Dropping connection.');
         return;
     }
 
-    if (!inNode) {
-        console.warn('Soundstage: trying to connect dst ' + dst.type + ' with no input "' + inName + '". Dropping connection.');
+    if (!inputNode) {
+        print('Trying to connect target ' + target.type + ' with no input "' + inName + '". Dropping connection.');
         return;
     }
 
-    if (isDefined(outOutput) && isDefined(inInput)) {
-        if (outOutput >= outNode.numberOfOutputs) {
-            console.warn('AudioObject: Trying to .connect() from a non-existent output (' +
-                outOutput + ') on output node {numberOfOutputs: ' + outNode.numberOfOutputs + '}. Dropping connection.');
+    if (isDefined(outputNumber) && isDefined(inputNumber)) {
+        if (outputNumber >= outputNode.numberOfOutputs) {
+            print('Trying to .connect() from a non-existent output (' +
+                outputNumber + ') on output node {numberOfOutputs: ' + outputNode.numberOfOutputs + '}. Dropping connection.');
             return;
         }
 
-        if (inInput >= inNode.numberOfInputs) {
-            console.warn('AudioObject: Trying to .connect() to a non-existent input (' +
-                inInput + ') on input node {numberOfInputs: ' + inNode.numberOfInputs + '}. Dropping connection.');
+        if (inputNumber >= inputNode.numberOfInputs) {
+            print('Trying to .connect() to a non-existent input (' +
+                inputNumber + ') on input node {numberOfInputs: ' + inputNode.numberOfInputs + '}. Dropping connection.');
             return;
         }
 
-        outNode.connect(inNode, outOutput, inInput);
+        outputNode.connect(inputNode, outputNumber, inputNumber);
     }
     else {
-        outNode.connect(inNode);
+        outputNode.connect(inputNode);
     }
 
-    Soundstage.debug && console.log('Soundstage: created connection ', src.id, '"' + src.name + '" to', dst.id, '"' + dst.name + '"');
+    print('connected', source.id, source.object, target.id, target.object);
 }
 
-function disconnect(src, dst, outName, inName, outOutput, inInput, connections) {
-    var outNode = AudioObject.getOutput(src, outName);
+function disconnect(source, target, outName, inName, outputNumber, inputNumber, connections) {
+    var outputNode = AudioObject.getOutput(source.object, outName);
 
-    if (!outNode) {
-        return console.warn('AudioObject: trying to .disconnect() from an object without output "' + outName + '".');
-    }
-
-    if (!dst) {
-        outNode.disconnect();
-        Soundstage.debug && console.log('Soundstage: disconnected', src.id, '"' + src.name + '" to', dst.id, '"' + dst.name + '"');
+    if (!outputNode) {
+        print('AudioObject: trying to .disconnect() from an object without output "' + outName + '".');
         return;
     }
 
-    var inNode = AudioObject.getInput(dst, inName);
+    if (!target) {
+        outputNode.disconnect();
+        print('disconnected', source.id, source.object, target.id, target.object);
+        return;
+    }
 
-    if (!inNode) {
-        return console.warn('AudioObject: trying to .disconnect() an object with no inputs.', dst);
+    var inputNode = AudioObject.getInput(target.object, inName);
+
+    if (!inputNode) {
+        print('trying to .disconnect() an object with no inputs.', target);
+        return;
     }
 
     if (AudioObject.features.disconnectParameters) {
-        outNode.disconnect(inNode, outOutput, inInput);
+        outputNode.disconnect(inputNode, outputNumber, inputNumber);
     }
     else {
-        disconnectDestination(src, outName, outNode, inNode, outOutput, inInput, connections);
+        disconnectDestination(source, outName, outputNode, inputNode, outputNumber, inputNumber, connections);
     }
 
-    Soundstage.debug && console.log('Soundstage: disconnected', src.id, '"' + src.name + '" to', dst.id, '"' + dst.name + '"');
+    print('disconnected', source.id, source.object, target.id, target.object);
 }
 
-function disconnectDestination(src, outName, outNode, inNode, outOutput, inInput, connections) {
-    outNode.disconnect();
+function disconnectDestination(source, outName, outputNode, inputNode, outputNumber, inputNumber, connections) {
+    outputNode.disconnect();
 
-    if (!inNode) { return; }
+    if (!inputNode) { return; }
 
     var connects = connections.filter(function(connect) {
-        return connect.src === src
+        return connect.source === source
             && connect.output === (outName || 'default') ;
     });
 
@@ -84,20 +88,20 @@ function disconnectDestination(src, outName, outNode, inNode, outOutput, inInput
 
     // Reconnect all entries apart from the node we just disconnected.
     var n = connects.length;
-    var dst;
+    var target;
 
     while (n--) {
-        dst = connects[n].dst;
-        inNode = AudioObject.getInput(dst, connects[n].input);
-        outNode.connect(inNode);
+        target = connects[n].target;
+        inputNode = AudioObject.getInput(target.object, connects[n].input);
+        outputNode.connect(inputNode);
     }
 }
 
-export default function Connection(resolve, settings) {
-    this.source = resolve(settings.source);
-    this.target = resolve(settings.target);
-    this.output = settings.output;
-    this.input  = settings.input;
+export default function Connection(resolve, setting) {
+    this.source = resolve(setting.source);
+    this.target = resolve(setting.target);
+    this.output = setting.output;
+    this.input  = setting.input;
 
     // Connect them up
     connect(this.source, this.target, 'default', 'default', this.output, this.input);

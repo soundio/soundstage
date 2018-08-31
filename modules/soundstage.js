@@ -1,11 +1,15 @@
 
 import { get, isDefined, map, nothing }   from '../../fn/fn.js';
-import AudioObject   from '../../audio-object/modules/audio-object.js';
+import AudioObject          from '../../audio-object/modules/audio-object.js';
+import requestInputSplitter from '../../audio-object/modules/request-input-splitter.js';
 
 import { print }     from './print.js';
 import audio         from './audio-context.js';
 import AudioGraph    from './audio-graph.js';
-import ControlRoutes from './control-routes.js';
+import Input         from './audio-objects/input.js';
+import Output        from './audio-objects/output.js';
+import requestPlugin from './request-plugin.js';
+import Controls      from './controls.js';
 import Sequence      from './sequence.js';
 import Sequencer     from './sequencer.js';
 import Metronome     from './metronome.js';
@@ -61,13 +65,13 @@ var eventDistributors = {
 
 // Soundstage
 
-function createOutput(audio, destination) {
+function createOutputMerger(audio, target) {
     // Safari sets audio.destination.maxChannelCount to
     // 0 - possibly something to do with not yet
     // supporting multichannel audio, but still annoying.
-    var count = destination.maxChannelCount > config.channelCountLimit ?
+    var count = target.maxChannelCount > config.channelCountLimit ?
         config.channelCountLimit :
-        destination.maxChannelCount ;
+        target.maxChannelCount ;
 
     var merger = audio.createChannelMerger(count);
 
@@ -83,8 +87,14 @@ function createOutput(audio, destination) {
     // Upmix/downmix incoming connections.
     merger.channelInterpretation = 'speakers';
 
-    merger.connect(destination);
+    merger.connect(target);
     return merger;
+}
+
+function createObject(audio, settings) {
+    return requestPlugin(settings.type).then(function(Constructor) {
+        return new Constructor(audio, settings);
+    });
 }
 
 export default function Soundstage(data, settings) {
@@ -106,7 +116,8 @@ export default function Soundstage(data, settings) {
     //
     // audio:      audio context
 
-    const output = createOutput(audio, settings.output || audio.destination);
+    const output = createOutputMerger(audio, settings.output || audio.destination);
+
     AudioObject.call(this, settings.audio || audio, undefined, output);
     Soundstage.inspector && Soundstage.inspector.drawAudioFromNode(output);
 
@@ -116,7 +127,21 @@ export default function Soundstage(data, settings) {
     // plugins:     array
     // connections: array
 
-    AudioGraph.call(this, audio, output, data, function done(stage) {
+    const types = {
+        input: function(audio, data) {
+            return requestInputSplitter(audio).then(function(input) {
+                return new Input(audio, data.object, input);
+            });
+        },
+
+        output: function(audio, data) {
+            return Promise.resolve(new Output(audio, data.object, output));
+        },
+
+        default: createObject
+    };
+
+    AudioGraph.call(this, audio, types, data, function done(stage) {
 
         // Initialise MIDI and keyboard controls. Assigns:
         //
@@ -125,7 +150,7 @@ export default function Soundstage(data, settings) {
         define(stage, {
             controls: {
                 enumerable: true,
-                value: new ControlRoutes(function Target(setting) {
+                value: new Controls(function Target(setting) {
                     return {
                         push: function(time, value) {
                             console.log(time, value);
