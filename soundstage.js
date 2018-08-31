@@ -1,9 +1,9 @@
 
-if (window.console && window.console.log) {
-    console.log('Soundstage  - http://github.com/soundio/soundstage');
-}
-
 import { each } from '../../fn/fn.js';
+import { print } from './modules/print.js';
+
+print(' - http://github.com/soundio/soundstage');
+
 import Soundstage from './modules/soundstage.js';
 
 export default Soundstage;
@@ -18,8 +18,8 @@ import Oscillator     from '../audio-object/modules/ao-oscillator.js';
 import SignalDetector from '../audio-object/modules/ao-signal-detector.js';
 
 import Track          from './modules/track.js';
-import Chain          from './modules/chain.js';
-
+//import Chain          from './modules/chain.js';
+/*
 each(function(def) {
     Soundstage.register(def.path, def.fn, def.defaults);
 }, [{
@@ -57,5 +57,6 @@ each(function(def) {
     fn:       Chain,
     defaults: {}
 }]);
+*/
 
 export { features, getInput, getOutput, isAudioContext, isAudioNode, isAudioParam, isAudioObject, requestMedia } from '../audio-object/modules/audio-object.js';

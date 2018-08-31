@@ -20,6 +20,21 @@ export const generateUnique = curry(function(key, objects) {
 });
 
 
+/*
+findById()
+
+*/
+
+
+function hasId(id) {
+    return (object) => object.id === id;
+}
+
+export const findById = curry(function findById(objects, id) {
+    return objects.find(hasId(id));
+});
+
+
 // Fetch audio buffer from a URL and decode it
 
 var bufferRequests = {};

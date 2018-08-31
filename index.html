@@ -1,34 +1,47 @@
 <!DOCTYPE html>
-<head>
-	<meta charset="utf-8" />
-	<meta name="author" content="@stephband" />
-	<meta name="description" content="Test page for Soundstage Repository" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<html lang="en">
+<head template-fn="import:package.json">
+    <meta charset="utf-8" />
+    <meta name="author" content="@{[author.twitter]}" />
+    <meta name="description" content="Documentation for {[title]}. {[description]}" />
+    <meta name="viewport" content="width=device-width" />
 
-	<title>Soundstage</title>
+    <title>{[title]}</title>
 
-	<link rel="stylesheet" href="http://stephen.band/bolt/css/normalise.css" />
-	<link rel="stylesheet" href="http://stephen.band/bolt/css/block.css" />
-	<link rel="stylesheet" href="http://stephen.band/bolt/css/text.css" />
-	<link rel="stylesheet" href="http://stephen.band/bolt/css/grid.css" />
-	<link rel="stylesheet" href="http://stephen.band/bolt/css/dom.css" />
+    <script>
+    document.documentElement.className = 'js';
+    window.DEBUG = true;
+    </script>
 
-	<link rel="stylesheet" href="css/soundstage-inspector.css" />
+    <link rel="shortcut icon" href="images/logo-64x64.ico" />
+    <link rel="icon" type="image/png" href="images/logo-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="images/logo-64x64.png" sizes="64x64">
+    <link rel="icon" type="image/png" href="images/logo-128x128.png" sizes="128x128">
 
-	<script title="config">
-		window.DEBUG = true;
-	</script>
-
-	<style>
-		body > .grid-block {
-			margin-left: 0;
-			margin-right: 0;
-		}
-	</style>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono:100,300,400,500,700" />
+    <link rel="stylesheet" href="../bolt/dist/bolt.css" />
+    <link rel="stylesheet" href="../dom/css/dom.css" />
+    <link rel="stylesheet" href="../fn/css/prism.cruncher.css" />
+    <link rel="stylesheet" href="../fn/css/docs.css" />
+    <link rel="stylesheet" href="../fn/css/tests.css" />
+    <link rel="stylesheet" href="css/theme.css" />
 </head>
 
 <body>
-	<div class="grid-block block">
+    <header template-fn="import:'package.json'" class="1-grid grid" id="header">
+        <h1 class="grid-0 midi-icon">{[title]} <span class="text-6">{[version]}</span></h1>
+
+        <div class="grid-1">
+            <p class="text-8">{[description]} <span id="support-hint" style="color: #bf004c;"></span></p>
+
+            <ul class="link-index index">
+        		<li><strong>repo:</strong> <a href="{[repository.url]}">{[repository.url]}</a></li>
+                <li><strong>bugs:</strong> <a href="{[bugs.url]}">{[bugs.url]}</a></li>
+        	</ul>
+        </div>
+    </header>
+
+	<!--div class="grid-block block">
 		<select class="grid-1/6 block" id="meter-select">
 			<option value="2/4">2/4</option>
 			<option value="3/4">3/4</option>
@@ -48,14 +61,6 @@
 		<div class="grid-1/6 block"></div
 		><button class="grid-2/3 block" id="play-button">Play / Stop</button>
 	</div>
-
-	<script src="polyfills/window.audiocontext.js"></script>
-	<script src="polyfills/navigator.getusermedia.js"></script>
-
-	<script src="../fn/js/events.js"></script>
-
-	<script src="collection/js/observe.js"></script>
-	<script src="collection/js/collection.js"></script>
 
 	<script type="module">
 		import { choose, compose, get, is, overload, requestTick } from '../fn/fn.js';
@@ -347,5 +352,20 @@
 
 		var audio = stage.audio;
 
-	</script>
+	</script-->
+
+	<script remove-template type="module" src="../fn/docs-build.js"></script>
+
+    <!-- Document interactivity -->
+    <script type="module">
+    import '../dom/js/dom.root.js';
+    import '../dom/js/dom.toggleable.js';
+    import Soundstage from './soundstage.js';
+    window.Soundstage = Soundstage;
+    </script>
+
+    <!-- Tests -->
+    <script type="module">
+    import './test/control-routes.test.js';
+    </script>
 </body>

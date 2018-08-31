@@ -3,7 +3,7 @@
   "title": "Soundstage",
   "version": "0.7.5",
   "homepage": "http://sound.io",
-  "description": "An object model and timing engine for the Web Audio API.",
+  "description": "An audio graph model, sequencing engine and JSON loader for the Web Audio API.",
   "author": {
     "name": "Stephen Band",
     "twitter": "stephband"

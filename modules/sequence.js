@@ -1,10 +1,10 @@
 
 import { Functor as Fn, compose, get, isDefined, map, postpad, slugify, toString } from '../../fn/fn.js';
+import { print }    from './print.js';
 import { createId } from './utilities.js';
 
-var Collection = window.Collection;
-var assign     = Object.assign;
 
+var assign     = Object.assign;
 
 // Sequence
 
@@ -42,23 +42,21 @@ export default function Sequence(data) {
 
         sequences: {
             enumerable: true,
-            value: new Collection(
-                data && data.sequences ? data.sequences.map(toSequence) : [],
-                { index: 'id' }
-            )
+            value: data && data.sequences ?
+                data.sequences.map(toSequence) :
+                []
         },
 
         events: {
             enumerable: true,
             writable:   true,
             value: data && data.events ?
-                data.events.length ?
-                    new Collection(data.events,	{ index: '0' }) :
-                    // This supports Functors, for just now
-                    data.events :
-                new Collection([], { index: '0' })
+                data.events :
+                []
         }
     });
+
+    print('Sequence set up');
 }
 
 Sequence.prototype.toJSON = function() {

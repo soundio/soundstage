@@ -1,11 +1,16 @@
 
 import { Functor as Fn, Pool, compose, get, noop, overload } from '../../fn/fn.js';
-import { pitchToFloat, toType } from '../../midi/midi.js';
+import { bytesToSignedFloat, toType } from '../../midi/midi.js';
 
 const assign           = Object.assign;
 const defineProperties = Object.defineProperties;
 const getData          = get('data');
 
+const pitchBendRange   = 2;
+
+function pitchToFloat(message) {
+	return bytesToSignedFloat(message[1], message[2]) * pitchBendRange;
+}
 
 // Event
 //
@@ -52,7 +57,7 @@ Event.from = function toEvent(data) {
 
 Event.fromMIDI = overload(compose(toType, getData), {
 	pitch: function(e) {
-		return Event(e.timeStamp, 'pitch', pitchToFloat(2, e.data));
+		return Event(e.timeStamp, 'pitch', pitchToFloat(e.data));
 	},
 
 	pc: function(e) {
