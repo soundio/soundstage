@@ -3,13 +3,12 @@ import { get, isDefined }      from '../../fn/fn.js';
 import { getOutput, getInput } from '../../audio-object/modules/audio-object.js';
 import { print }               from './print.js';
 
-
 const assign = Object.assign;
 const seal   = Object.seal;
 
 function connect(source, target, outName, inName, outputNumber, inputNumber) {
-    var outputNode = getOutput(source.object, outName);
-    var inputNode  = getInput(target.object, inName);
+    var outputNode = getOutput(source, outName);
+    var inputNode  = getInput(target, inName);
 
     if (!outputNode) {
         print('Trying to connect source ' + source.type + ' with no output "' + outName + '". Dropping connection.');
@@ -40,7 +39,8 @@ function connect(source, target, outName, inName, outputNumber, inputNumber) {
         outputNode.connect(inputNode);
     }
 
-    print('connected', source.id, source.object, target.id, target.object);
+    // Indicate successful connection (we hope)
+    return true;
 }
 
 function disconnect(source, target, outName, inName, outputNumber, inputNumber, connections) {
@@ -71,7 +71,8 @@ function disconnect(source, target, outName, inName, outputNumber, inputNumber, 
         disconnectDestination(source, outName, outputNode, inputNode, outputNumber, inputNumber, connections);
     }
 
-    print('disconnected', source.id, source.object, target.id, target.object);
+    // Indicate successful disconnection (we hope)
+    return true;
 }
 
 function disconnectDestination(source, outName, outputNode, inputNode, outputNumber, inputNumber, connections) {
@@ -97,20 +98,26 @@ function disconnectDestination(source, outName, outputNode, inputNode, outputNum
     }
 }
 
-export default function Connection(resolve, setting) {
-    this.source = resolve(setting.source);
-    this.target = resolve(setting.target);
-    this.output = setting.output;
-    this.input  = setting.input;
+export default function Connection(graph, sourceId, targetId, output, input) {
+    this.graph  = this;
+    this.source = graph.get(sourceId);
+    this.target = graph.get(targetId);
+    this.output = output;
+    this.input  = input;
+    seal(this);
 
     // Connect them up
-    connect(this.source, this.target, 'default', 'default', this.output, this.input);
-    seal(this);
+    if (connect(this.source.object, this.target.object, 'default', 'default', this.output, this.input)) {
+        graph.connections.push(this);
+    };
 }
 
 assign(Connection.prototype, {
-    destroy: function() {
-        disconnect(this.source, this.target, 'default', 'default', this.output, this.input);
+    remove: function() {
+        if (disconnect(this.source.object, this.target.object, 'default', 'default', this.output, this.input)) {
+            remove(this.graph.connections, this);
+        };
+        return this;
     },
 
     toJSON: function() {

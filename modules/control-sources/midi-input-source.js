@@ -17,41 +17,90 @@ and the methods:
 */
 
 import { id, noop } from '../../../fn/fn.js';
-import { on, off, toType, bytesToSignedFloat, int7ToFloat } from '../../../midi/midi.js';
+import { on, off, toType, bytesToSignedFloat, int7ToFloat, int14ToSignedFloat, numberToControl } from '../../../midi/midi.js';
 
 const define = Object.defineProperties;
 
 const pitchBendRange = 2;
 
-const data2 = {
-    pitch: function(message) {
-        return bytesToSignedFloat(message[1], message[2]) * pitchBendRange;
+function get1(object) {
+    return object[1];
+}
+
+// noteoff, noteon, polytouch, control, program, channeltouch, pitch
+const controlTypes = [
+    'noteoff',
+    'noteon',
+    'touch',
+    'param',
+    'patch',
+    'touch',
+    'param'
+];
+
+const controlParams = [
+    get1,
+    get1,
+    get1,
+
+    function control(message) {
+        return numberToControl(message[1]);
     },
 
-    control: function(message) {
-        return int7ToFloat(message[2]);
-    }
-};
+    get1,
 
-const transforms = {
-    'note': function(message) {
-        return message[0] < 144 ?
-            // noteoff
-            0 :
-            // noteon
-            int7ToFloat(message[2]) ;
+    function channeltouch() {
+        return 'noteparam';
+    },
+
+    function pitch(message) {
+        return 'pitch';
     }
-};
+];
+
+const controlValues = [
+    function noteoff(message) {
+        return 0;
+    },
+
+    function noten(message) {
+        return int7ToFloat(message[2]);
+    },
+
+    function polytouch(message) {
+        return int7ToFloat(message[2]);
+    },
+
+    function control(message) {
+        return int7ToFloat(message[2]);
+    },
+
+    noop,
+
+    function channeltouch(message) {
+        return int7ToFloat(message[2]);
+    },
+
+    function pitch(message) {
+        return pitchBendRange * bytesToSignedFloat(message[1], message[2]);
+    }
+];
 
 export default function MIDIInputSource(selector) {
     const handler = function handler(e) {
-        return fn(e.timeStamp, transform(e.data));
+        const n = Math.floor((e.data[0] - 128) / 16);
+        return fn(e.timeStamp, controlTypes[n], controlParams[n](e.data), controlValues[n](e.data));
     };
 
-    let transform = transforms.note;
+    let toControlValue = controlValues['note'];
     let fn;
 
     define(this, {
+        device: {
+            enumerable: true,
+            value: 'midi'
+        },
+
         port: {
             enumerable: true,
             get: function() { return selector.port; },
@@ -78,7 +127,6 @@ export default function MIDIInputSource(selector) {
             set: function(value) {
                 off(selector, handler);
                 selector[1] = value;
-                transform = transforms[value];
                 on(selector, handler);
             }
         },

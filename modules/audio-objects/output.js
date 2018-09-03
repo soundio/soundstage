@@ -49,7 +49,6 @@ export default function Output(audio, settings, output) {
 	});
 
 	this.channels = options.channels;
-	this.type = 'output';
 	this.destroy = function destroy() {
 		input.disconnect(output);
 	};

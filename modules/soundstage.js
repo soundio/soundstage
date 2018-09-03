@@ -5,9 +5,9 @@ import requestInputSplitter from '../../audio-object/modules/request-input-split
 
 import { print }     from './print.js';
 import audio         from './audio-context.js';
-import AudioGraph    from './audio-graph.js';
 import Input         from './audio-objects/input.js';
 import Output        from './audio-objects/output.js';
+import Graph         from './graph.js';
 import requestPlugin from './request-plugin.js';
 import Controls      from './controls.js';
 import Sequence      from './sequence.js';
@@ -141,21 +141,18 @@ export default function Soundstage(data, settings) {
         default: createObject
     };
 
-    AudioGraph.call(this, audio, types, data, function done(stage) {
+    Graph.call(this, audio, types, data);
 
-        // Initialise MIDI and keyboard controls. Assigns:
-        //
-        // controls:   array-like
 
+    // Initialise MIDI and keyboard controls. Assigns:
+    //
+    // controls:   array-like
+    this.ready(function graphReady(stage) {
         define(stage, {
             controls: {
                 enumerable: true,
-                value: new Controls(function Target(setting) {
-                    return {
-                        push: function(time, value) {
-                            console.log(time, value);
-                        }
-                    };
+                value: new Controls(function getTarget(id) {
+                    return stage.get(id);
                 }, data.controls)
             }
         });
@@ -253,7 +250,7 @@ export default function Soundstage(data, settings) {
 
     // Create metronome.
     this.metronome = new Metronome(this.audio, data.metronome, this);
-    this.metronome.start(0);
+    //this.metronome.start(0);
 
 
     // Define variables
@@ -340,7 +337,7 @@ define(Soundstage.prototype, {
     status:  getOwnPropertyDescriptor(Sequencer.prototype, 'status')
 });
 
-assign(Soundstage.prototype, Sequencer.prototype, AudioGraph.prototype, {
+assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
     timeAtDomTime: function(domTime) {
         var stamps = this.audio.getOutputTimestamp();
         return stamps.contextTime + (domTime - stamps.performanceTime) / 1000;

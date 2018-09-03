@@ -48,7 +48,7 @@ export default function Metronome(audio, options, sequencer) {
 		if (playing) { return metronome; }
 		playing = true;
 
-		var s = stream = sequencer.create(generate, source);
+		stream = sequencer.create(generate, source);
 		sequencer.cue(0, stream.start);
 		stream.on({
 			stop: function(t) {

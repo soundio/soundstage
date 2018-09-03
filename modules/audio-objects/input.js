@@ -31,8 +31,6 @@ export default function Input(audio, settings, input) {
 	AudioObject.call(this, audio, undefined, output);
 
 	Object.defineProperties(this, {
-		type: { value: 'input', enumerable: true },
-
 		channels: {
 			get: function() { return channels; },
 			set: function(array) {

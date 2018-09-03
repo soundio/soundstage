@@ -8,31 +8,23 @@ import { curry } from '../../fn/fn.js';
 export function createId(objects) {
     var ids = objects.map(get('id'));
     var id = -1;
-    while (ids.indexOf(++id) !== -1);
-    return id;
+    while (ids.indexOf(++id + '') !== -1);
+    return id + '';
 }
 
-export const generateUnique = curry(function(key, objects) {
-    var values = objects.map(get(key));
+export const generateUnique = function(key, values) {
     var value  = -1;
-    while (values.indexOf(++value) !== -1);
-    return value;
-});
-
-
-/*
-findById()
-
-*/
-
-
-function hasId(id) {
-    return (object) => object.id === id;
+    while (values.indexOf(++value + '') !== -1);
+    return value + '';
 }
 
-export const findById = curry(function findById(objects, id) {
-    return objects.find(hasId(id));
-});
+
+
+
+export function timeAtDomTime(audio, domTime) {
+    var stamps = audio.getOutputTimestamp();
+    return stamps.contextTime + (domTime - stamps.performanceTime) / 1000;
+}
 
 
 // Fetch audio buffer from a URL and decode it
