@@ -41,6 +41,44 @@
         </div>
     </header>
 
+
+
+
+    <section class="1-2-3-grid grid">
+        <header class="grid-0">
+            <h2 class="text-2" style="font-size: 1.875rem;">Functions</h2>
+            <pre><code class="language-js">// Import Soundstage
+import Soundstage from 'http://stephen.band/soundstage/soundstage.js';</code></pre>
+        </header>
+
+        <h2 class="text-3 grid-1">Soundstage()</h2>
+
+        <section class="grid-2">
+            <h3 class="text-4">Properties</h3>
+            <article template-fn="docs:'./modules/sequence.js?name','./modules/soundstage.js','./modules/graph.js?plugins,connections','./modules/sequence.js?events,sequences' each append:body" class="toggle-block block" toggleable id="{[id]}">
+                <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
+                    <a href="#{[id]}">
+                        <code template-fn="html:title" class="language-js"></code>
+                    </a>
+                </h3>
+            </article>
+        </section>
+
+        <section class="grid-3">
+            <h3 class="text-4">Methods</h3>
+            <article template-fn="docs:'./modules/graph.js?create,get','./modules/sequencer.js','./modules/location.js','./modules/meter.js','./modules/soundstage.js?timeAtDomTime' each append:body" class="toggle-block block" toggleable id="{[id]}">
+                <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
+                    <a href="#{[id]}">
+                        <code template-fn="html:title" class="language-js"></code>
+                    </a>
+                </h3>
+            </article>
+        </section>
+    </section>
+
+
+
+
 	<!--div class="grid-block block">
 		<select class="grid-1/6 block" id="meter-select">
 			<option value="2/4">2/4</option>
@@ -367,6 +405,7 @@
     <!-- Tests -->
     <script type="module">
     import './test/controls.test.js';
+    import './test/location.test.js';
     import './test/soundstage.test.js';
     </script>
 </body>

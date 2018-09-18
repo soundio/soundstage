@@ -9,6 +9,30 @@ Constructs a graph of AudioObjects. The returned object has two proerties:
 
 */
 
+/*
+.plugins()
+
+An array of audio graph nodes.
+*/
+
+/*
+.connections()
+
+An array of audio graph connections.
+*/
+
+/*
+.create(type, settings)
+
+Create a new node of `type`.
+*/
+
+/*
+.get(id)
+
+Return the plugin with `id`, or undefined.
+*/
+
 import { has, get, invoke, remove }  from '../../fn/fn.js';
 import { print }  from './print.js';
 import { generateUnique }  from './utilities.js';
@@ -18,7 +42,7 @@ import Connection from './graph-connection.js';
 const assign    = Object.assign;
 const define    = Object.defineProperties;
 
-export default function Graph(audio, requests, data, done) {
+export default function Graph(audio, requests, data, api) {
 	const graph       = this;
     const plugins     = [];
     const connections = [];
@@ -39,7 +63,7 @@ export default function Graph(audio, requests, data, done) {
     const promise = Promise.all(
         data.plugins ?
             data.plugins.map(function(data) {
-                return (requests[data.type] || requests.default)(audio, data)
+                return (requests[data.type] || requests.default)(audio, data, api)
                 .then(function(plugin) {
                     plugins.push(new Node(graph, data.type, data.id, plugin));
                 });

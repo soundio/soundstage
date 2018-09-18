@@ -1,3 +1,8 @@
+:root {
+    --code-bg: #172120;
+    --black-color: #acb9b8;
+}
+
 body,
 html {
     color: #acb9b8;
@@ -6,4 +11,12 @@ html {
 
 h1 {
     color: #d60a3f;;
+}
+
+code {
+    color: #d60a3f;
+}
+
+pre > code {
+    background-color: #161f1e;
 }

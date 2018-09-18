@@ -12,7 +12,7 @@ export default function Clock(audio) {
 	this.beatAtTime = function(time) { return time - startTime; };
 	this.timeAtBeat = function(beat) { return startTime + beat; };
 
-	this.start = function(time, beat) {
+	this.start = function(time) {
 		startTime = time || audio.currentTime ;
 		return this;
 	};

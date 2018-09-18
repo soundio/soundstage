@@ -283,7 +283,7 @@
 
 		buffer.forEach(release);
 
-		// Because length might be immutable... 
+		// Because length might be immutable...
 		if (buffer.length) { buffer.length = 0; }
 	}
 
@@ -499,7 +499,7 @@ var w = 0;
 			var cue       = this.cue;
 			var timer     = this.timer;
 			var startTime = this.startTime;
-			var now       = timer.now();			
+			var now       = timer.now();
 
 			cue.t2  = startTime > now ? startTime : now ;
 
@@ -511,7 +511,7 @@ var w = 0;
 					// Update cue
 					cue.t1 = cue.t2;
 					cue.t2 = time >= stopTime ? stopTime : time;
-				
+
 					return cue;
 				},
 
@@ -581,11 +581,11 @@ var z = 'stream-' + (++w); //Fn.postpad(' ', 12, (generate[0] && generate[0].joi
 		// Time
 
 		function beatAtTime(time) {
-			return location && location.beatAtLoc(clock.beatAtTime(time) - startLoc);
+			return location && location.beatAtLocation(clock.beatAtTime(time) - startLoc);
 		}
 
 		function timeAtBeat(beat) {
-			return location && clock.timeAtBeat(location.locAtBeat(beat) + startLoc);
+			return location && clock.timeAtBeat(location.locationAtBeat(beat) + startLoc);
 		}
 
 		// Events
@@ -655,7 +655,7 @@ var z = 'stream-' + (++w); //Fn.postpad(' ', 12, (generate[0] && generate[0].joi
 				Stream.from(generate.filter(isRateEvent)) ;
 
 			location = new Location(source.rates);
-			
+
 			// TODO: Rates is not populated yet, how do you expect
 			// to get anything useful out of this?
 			startLoc = clock.beatAtTime(time) - (beat ? location.locAtBeat(beat) : 0);

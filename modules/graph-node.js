@@ -1,5 +1,6 @@
 import { has, get, invoke, overload, remove }  from '../../fn/fn.js';
 import { print }  from './print.js';
+import { automate } from './params.js';
 import { generateUnique }  from './utilities.js';
 import { noteToNumber } from '../../midi/midi.js';
 import Connection from './graph-connection.js';
@@ -12,11 +13,15 @@ function getArg1() {
     return arguments[1];
 }
 
+function getNotes(number, node) {
+    return node.notes[number] || (node.notes[number] = []);
+}
+
 export default function GraphNode(graph, type, id, object) {
-	this.graph   = graph;
-	this.id      = id,
-	this.type    = type;
-	this.object  = object;
+    this.graph   = graph;
+    this.id      = id,
+    this.type    = type;
+    this.object  = object;
 
     define(this, {
         notes: {
@@ -29,74 +34,84 @@ export default function GraphNode(graph, type, id, object) {
 }
 
 define(GraphNode.prototype, {
-	recording: {
-		writable: true,
-		value: false
-	}
+    recording: {
+        writable: true,
+        value: false
+    }
 });
 
 assign(GraphNode.prototype, {
-	connect: function(target, output, input) {
-		const connection = new Connection(this.graph, this.id, target.id, output, input);
-		return this;
-	},
+    connect: function(target, output, input) {
+        const connection = new Connection(this.graph, this.id, target.id, output, input);
+        return this;
+    },
 
-	disconnect: function() {
-		this.graph.connections
-		.filter(has('source', this))
-		.forEach(invoke('remove', nothing));
-		return this;
-	},
+    disconnect: function() {
+        this.graph.connections
+        .filter(has('source', this))
+        .forEach(invoke('remove', nothing));
+        return this;
+    },
 
-	fire: function(time, type, param, value) {
-		const object = this.object;
+    control: function(time, type, param, value) {
+        const object = this.object;
 
-		if (this.recording) {
-			// Todo: generate event and send it to sequencer
-		}
+        if (this.recording) {
+            // Todo: generate event and send it to sequencer
+        }
 
-        this.cue(time, type, param, value)
-
-		return this;
-	},
+        this.cue(time, type, param, value);
+        return this;
+    },
 
     cue: overload(getArg1, {
+        'note': function(time, type, name, value) {
+            const number = typeof name === 'number' ? name : noteToNumber(name) ;
+            const note   = this.object.start(time, number, value) || this;
+            // Push the return value of start(), which may be a note node or
+            // the this.object node, or undefined, in which case push this.object
+            getNotes(number, this).push(note);
+            return note;
+        },
+
         'noteon': function(time, type, name, value) {
             const number = typeof name === 'number' ? name : noteToNumber(name) ;
-            (this.notes[number] || (this.notes[number] = [])).push(this.object.start(time, number, value));
+            // Push the return value of start(), which may be a note node or
+            // the this.object node, or undefined, in which case push this.object
+            getNotes(number, this).push(this.object.start(time, number, value) || this);
             return this;
         },
 
         'noteoff': function(time, type, name, value) {
             const number = typeof name === 'number' ? name : noteToNumber(name) ;
-            const object = this.notes[number].shift();
+            const object = getNotes(number, this).shift();
             object.stop(time, number, value);
             return this;
         },
 
         'noteparam': function(time, type, name, value) {
             const number = typeof name === 'number' ? name : noteToNumber(name) ;
-            const object = this.notes[number][0];
-            object.automate(time, number, value);
+            const param  = getParam(name, this.notes[number][0]);
+            automate(param, time, value);
             return this;
         },
 
         'param': function(time, type, name, value) {
-            //time, name, value, curve, duration
-            this.object.automate(time, name, value);
+            const param  = getParam(name, this.object);
+            automate(param, time, value);
             return this;
         },
 
         'default': function(time, type) {
-            print('Cannot cue unrecognised type', type)
+            print('Cannot cue unrecognised type "' + type + '". (Possible types: noteon, noteoff, noteparam, param).' )
         }
     }),
 
-	toJSON: function() {
-		return {
-			id:     this.id,
-			type:   this.type,
-			object: this.object
-		}
-	}
+    toJSON: function() {
+        return {
+            id:     this.id,
+            type:   this.type,
+            object: this.object
+        }
+    }
 });

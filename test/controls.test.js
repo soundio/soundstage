@@ -12,7 +12,7 @@ test('Controls()', function(run, print, fixture) {
         routes.learnMIDI({
             id: 0,
 
-            fire: function(time, type, name, value) {
+            control: function(time, type, name, value) {
                 equals(output.shift(), value);
             },
 
@@ -45,7 +45,7 @@ test('Controls()', function(run, print, fixture) {
         routes.learnKey({
             id: 0,
 
-            fire: function(time, type, name, value) {
+            control: function(time, type, name, value) {
                 equals(output.shift(), value);
             },
 

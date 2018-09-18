@@ -1,9 +1,10 @@
 
-import { get, isDefined, map, nothing }   from '../../fn/fn.js';
+import { compose, get, is, isDefined, map, nothing }   from '../../fn/fn.js';
 import AudioObject          from '../../audio-object/modules/audio-object.js';
 import requestInputSplitter from '../../audio-object/modules/request-input-splitter.js';
 
 import { print }     from './print.js';
+import { distributeEvent } from './distribute.js';
 import audio         from './audio-context.js';
 import Input         from './audio-objects/input.js';
 import Output        from './audio-objects/output.js';
@@ -21,47 +22,9 @@ const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 const setPrototypeOf = Object.setPrototypeOf;
 
 
-function hasId(id) {
-    return (object) => object.id === id;
+function isURL() {
+    return false;
 }
-
-// Events
-
-var eventDistributors = {
-
-    // Event types
-    //
-    // [time, "rate", number, curve]
-    // [time, "meter", numerator, denominator]
-    // [time, "note", number, velocity, duration]
-    // [time, "noteon", number, velocity]
-    // [time, "noteoff", number]
-    // [time, "param", name, value, curve]
-    // [time, "pitch", semitones]
-    // [time, "chord", root, mode, duration]
-    // [time, "sequence", name || events, target, duration, transforms...]
-
-    "note": function(object, event) {
-        return object.start(event[0], event[2], event[3]);
-    },
-
-    "noteon": function(object, event) {
-        return object.start(event[0], event[2], event[3]);
-    },
-
-    "noteoff": function(object, event) {
-        return object.stop(event[0], event[2]);
-    },
-
-    "param": function(object, event) {
-        return object.automate(event[0], event[2], event[3], event[4]);
-    },
-
-    "default": function(object, event) {
-        console.log('Soundstage: Cannot distribute unknown event type', event);
-    }
-};
-
 
 // Soundstage
 
@@ -116,6 +79,11 @@ export default function Soundstage(data, settings) {
     //
     // audio:      audio context
 
+/*
+.context()
+The audio context.
+*/
+
     const output = createOutputMerger(audio, settings.output || audio.destination);
 
     AudioObject.call(this, settings.audio || audio, undefined, output);
@@ -141,12 +109,31 @@ export default function Soundstage(data, settings) {
         default: createObject
     };
 
-    Graph.call(this, audio, types, data);
+    Graph.call(this, audio, types, data, {
+        //create:     this.create.bind(this),
+        cue:        this.cue.bind(this),
+        beatAtTime: this.beatAtTime.bind(this),
+        timeAtBeat: this.timeAtBeat.bind(this),
+        beatAtBar:  this.beatAtBar.bind(this),
+        barAtBeat:  this.barAtBeat.bind(this),
+        //on:         this.on.bind(this),
+        //off:        this.off.bind(this),
+        regions:    this.regions
+        //beatAtLoc:  this.beatAtLoc.bind(stage),
+        //locAtBeat:  this.locAtBeat.bind(stage),
+    });
 
 
     // Initialise MIDI and keyboard controls. Assigns:
     //
     // controls:   array-like
+
+/*
+.controls()
+
+An array-like list of controls.
+*/
+
     this.ready(function graphReady(stage) {
         define(stage, {
             controls: {
@@ -172,6 +159,12 @@ export default function Soundstage(data, settings) {
     //
     // regions:    array
 
+/*
+.regions()
+
+An array of audio regions.
+*/
+
     const regions
         = this.regions
         = (settings.regions || []).map(function(data) {
@@ -195,15 +188,14 @@ export default function Soundstage(data, settings) {
 
     const stage = this;
 
-    const distributors = assign({
+    const distributors = {
         "sequence": function(object, event, stream, transform) {
-            var type = typeof event[2];
-            var sequence = type === 'string' ?
-                isUrl(event[2]) ?
-                    fetchSequence(event[2]) :
-                getPath(event[2], stage.sequences) :
-            type === 'number' ?
-                stage.sequences.find(hasId(event[2])) :
+            const type = typeof event[2];
+
+            // Find the sequence
+            const sequence = type === 'string' ?
+                    isURL(event[2]) ? fetchSequence(event[2]) :
+                stage.sequences.find(compose(is(event[2]), get('id'))) :
             event[2] ;
 
             if (!sequence) {
@@ -211,19 +203,20 @@ export default function Soundstage(data, settings) {
                 return;
             }
 
-            var events = sequence.events;
-
+            // Get sequence events
+            const events = sequence.events;
             if (!events || !events.length) {
                 console.warn('Soundstage: sequence has no events', event);
                 return;
             }
 
-            object = isDefined(event[3]) ?
-                typeof event[3] === 'string' ?
-                    getPath(event[3], stage.plugins) :
-                stage.plugins.find(hasId(event[3])) :
-            object;
+            // Get the target object
+            if (isDefined(event[3])) {
+                const node = stage.get(event[3]);
+                object = node && node.object;
+            }
 
+            // If there is none, warn
             if (!object) {
                 console.warn('Soundstage: object not found', event);
                 return;
@@ -235,9 +228,11 @@ export default function Soundstage(data, settings) {
         },
 
         "meter": function(object, event) {
+            
+        },
 
-        }
-    }, eventDistributors);
+        'default': distributeEvent
+    };
 
     Sequencer.call(this, audio, distributors, this.sequences, this.events);
 
@@ -261,62 +256,7 @@ export default function Soundstage(data, settings) {
     });
 
 
-
-
-
-
-    // Set up store
     /*
-    const promises = [];
-
-    var store = Store(actions, this, {
-        // Private constants assigned to action objects
-        audio: audio,
-
-        // AudioObject constructors are given restricted access to a subset
-        // of sequencer functions
-        sequencer: {
-            create:     stage.create.bind(stage),
-            cue:        stage.cue.bind(stage),
-            beatAtTime: stage.beatAtTime.bind(stage),
-            timeAtBeat: stage.timeAtBeat.bind(stage),
-            beatAtBar:  stage.beatAtBar.bind(stage),
-            barAtBeat:  stage.barAtBeat.bind(stage),
-            on:         stage.on.bind(stage),
-            off:        stage.off.bind(stage),
-            regions:    stage.regions
-            //beatAtLoc:  stage.beatAtLoc.bind(stage),
-            //locAtBeat:  stage.locAtBeat.bind(stage),
-        },
-
-        output:     output,
-
-        distribute: function distribute(event) {
-            var object = event.object;
-            var result = (distributors[event[1]] || distributors.default)(object, event);
-
-            if (event.recordable) {
-                requestTick(function() {
-                    recordStream.push(event);
-                });
-            }
-
-            return result;
-        },
-
-        resolveObject: resolve(isObjectOrId, this.objects),
-
-        resolveConnection: resolve(function(object, data) {
-            return (object.src === data.src || object.src.id === data.src)
-                && (object.dst === data.dst || object.dst.id === data.dst) ;
-        }, this.connections),
-
-        readyPromises: promises
-    });
-
-    this[$store] = store.each(noop);
-
-
     // Setup from data and notify when all components are loaded and ready
 
     const loaded = this
@@ -337,126 +277,22 @@ define(Soundstage.prototype, {
     status:  getOwnPropertyDescriptor(Sequencer.prototype, 'status')
 });
 
+/*
+.timeAtDomTime(domTime)
+
+Returns audio context time at a given DOM time, where `domTime` is a time in
+seconds relative to window.performance.now().
+*/
+
 assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
     timeAtDomTime: function(domTime) {
-        var stamps = this.audio.getOutputTimestamp();
-        return stamps.contextTime + (domTime - stamps.performanceTime) / 1000;
+        return timeAtDomTime(this.audio, domTime);
     },
 
-    createInputs: function() {
-        var soundstage = this;
-
-        if (this.mediaChannelCount === undefined) {
-            requestMedia(this.audio)
-            .then(function(media) {
-                soundstage.mediaChannelCount = media.channelCount;
-                createInputObjects(soundstage, soundstage.mediaChannelCount);
-            });
-
-            createInputObjects(this, 2);
-        }
-        else {
-            createInputObjects(this, this.mediaChannelCount);
-        }
-
-        return this.inputs;
+    domTimeAtTime: function(domTime) {
+        return domTimeAtTime(this.audio, domTime);
     },
 
-    createOutputs: function() {
-        // Create as many additional mono and stereo outputs
-        // as the sound card will allow.
-        var output = AudioObject.getOutput(this);
-        createOutputObjects(this, output.channelCount);
-        return this.outputs;
-    },
-
-    update: function(data) {
-        // Accept data as a JSON string
-        data = typeof data === 'string' ? JSON.parse(data) : data ;
-
-        // Reject non-objects
-        if (typeof data !== 'object') { return this; }
-
-        // Treat null as an empty object
-        if (!data) { data = nothing; }
-
-        // Check version
-        if (data.version > 1) {
-            throw new Error('Soundstage: data version', data.version, 'not supported - you may need to upgrade Soundstage from github.com/soundio/soundstage');
-        }
-
-        var stage    = this;
-        var promises = [];
-
-        if (data.objects) {
-            console.group('Soundstage: import');
-
-            var ids = this.objects.map(get('id'));
-
-            promises.push.apply(promises,
-                data.objects
-                .filter(function(settings) {
-                    return !registry[settings.type];
-                })
-                .map(function(settings) {
-                    console.log('Importing "' + settings.type + '"...');
-                    return Soundstage.import(settings.type);
-                })
-            );
-
-            console.groupEnd();
-        }
-
-        return Promise
-        .all(promises)
-        .then(function(constructors) {
-            console.groupCollapsed('Soundstage: updating graph');
-
-            if (data.name) { stage.name = data.name; }
-            //if (data.slug) { stage.slug = data.slug; }
-            //else { stage.slug = stage.slug || slugify(stage.name); }
-
-            //if (data.tempo) {
-            //	this.tempo = data.tempo;
-            //}
-
-            // Send action
-            stage[$store].modify('update', data);
-
-            console.groupEnd();
-            return stage;
-        });
-    },
-
-    clear: function() {
-        Soundstage.debug && console.groupCollapsed('Soundstage: clear graph...');
-        this[$store].modify('clear');
-        Soundstage.debug && console.groupEnd();
-        return this;
-    },
-/*
-    connect: function(src, dst, output, input) {
-        this[$store].modify('connect', {
-            src:    src,
-            dst:    dst,
-            output: output,
-            input:  input
-        });
-
-        return this;
-    },
-
-    disconnect: function(src, dst, output, input) {
-        this[$store].modify('connect', {
-            src:    src,
-            dst:    dst,
-            output: output,
-            input:  input
-        });
-
-        return this;
-    },
-*/
     destroy: function() {
         // Destroy the playhead.
         //Head.prototype.destroy.call(this);

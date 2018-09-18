@@ -1,4 +1,34 @@
 
+/*
+.start(time, beat)
+
+Starts the sequencer from `beat` at `time`.
+*/
+
+/*
+.stop(time)
+
+Stops the sequencer `time`.
+*/
+
+/*
+.cue(beat, fn)
+
+Cues `fn` to be called on beat.
+*/
+
+/*
+.beatAtTime(time)
+
+Returns the beat at a given `time`.
+*/
+
+/*
+.timeAtBeat(beat)
+
+Returns the time at a given `beat`.
+*/
+
 import { each, get, id, insert, isDefined, Pool } from '../../fn/fn.js';
 import { default as Sequence, log as logSequence } from './sequence.js';
 
@@ -61,8 +91,6 @@ export default function Sequencer(audio, distributors, sequences, events) {
 		var beat = sequencer.beatAtTime(time);
 		init();
 	}
-
-
 
 
 	// Initialise sequencer as an event emitter
@@ -195,10 +223,10 @@ define(Sequencer.prototype, {
 });
 
 assign(Sequencer.prototype, Location.prototype, Meter.prototype, Events.prototype, {
-	create: function(generator, object) {
-		var stream = this[$private].stream;
-		return stream.create(generator, id, object);
-	},
+	//create: function(generator, object) {
+	//	var stream = this[$private].stream;
+	//	return stream.create(generator, id, object);
+	//},
 
 	cue: function(beat, fn) {
 		var stream = this[$private].stream;

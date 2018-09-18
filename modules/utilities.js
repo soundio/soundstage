@@ -1,5 +1,5 @@
 
-import { curry } from '../../fn/fn.js';
+import { curry, get } from '../../fn/fn.js';
 
 
 // Generate unique numbers from keys of objects in an array

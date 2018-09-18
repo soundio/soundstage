@@ -55,6 +55,10 @@ export const types = {
 };
 
 export const transforms = {
+    'pass': function linear(min, max, c, n) {
+        return n;
+    },
+
     'linear': function linear(min, max, c, n) {
         return n * (max - min) + min;
     },
@@ -115,9 +119,10 @@ export default function Control(controls, source, target, setting) {
         // Catch keys with no name
         if (!name && !data.name) { return; }
 
-        target.fire(
-            // time in audioContext timeframe
+        target.control(
+            // time in audioContext timeframe - support Audio Nodes
             target.object.context ? timeAtDomTime(target.object.context, timeStamp) :
+            // and Audio Objects, for just now at least
             target.object.audio ? timeAtDomTime(target.object.audio, timeStamp) :
             0,
 

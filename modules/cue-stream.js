@@ -501,31 +501,23 @@ assign(CueSource.prototype, {
 
 		cue.t2  = startTime > now ? startTime : now ;
 
-		var fn = pipe(
-			function toCue(time) {
-				var stopTime = source.stopTime;
-				source.id = undefined;
+		function fn(time) {
+			var stopTime = source.stopTime;
+			source.id = undefined;
 
-				// Update cue
-				cue.t1 = cue.t2;
-				cue.t2 = time >= stopTime ? stopTime : time;
+			// Update cue
+			cue.t1 = cue.t2;
+			cue.t2 = time >= stopTime ? stopTime : time;
 
-				return cue;
-			},
+			source.frame(cue);
 
-			source.frame,
-
-			function until(cue) {
-				var stopTime = source.stopTime;
-
-				if (cue.t2 >= stopTime) {
-					source.stop(stopTime);
-					return;
-				}
-
-				source.id = timer.request(fn);
+			if (cue.t2 >= stopTime) {
+				source.stop(stopTime);
+				return;
 			}
-		);
+
+			source.id = timer.request(fn);
+		}
 
 		source.status = 'playing';
 		fn(time);
@@ -579,11 +571,11 @@ var z = 'stream-' + (++w); //Fn.postpad(' ', 12, (generate[0] && generate[0].joi
 	// Time
 
 	function beatAtTime(time) {
-		return location && location.beatAtLoc(clock.beatAtTime(time) - startLoc);
+		return location && location.beatAtLocation(clock.beatAtTime(time) - startLoc);
 	}
 
 	function timeAtBeat(beat) {
-		return location && clock.timeAtBeat(location.locAtBeat(beat) + startLoc);
+		return location && clock.timeAtBeat(location.locationAtBeat(beat) + startLoc);
 	}
 
 	// Events
@@ -603,7 +595,8 @@ var z = 'stream-' + (++w); //Fn.postpad(' ', 12, (generate[0] && generate[0].joi
 
 	function frame(cue) {
 		// Cue generated events
-		source.generate(cue)
+		source
+		.generate(cue)
 		.map(Event.from)
 		.map(transform)
 		.map(assignTime)

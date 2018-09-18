@@ -102,15 +102,27 @@ export default function Location(events) {
 	};
 }
 
+/*
+.beatAtLocation(location)
+
+Returns the beat at a given `location`.
+*/
+
+/*
+.locationAtBeat(beat)
+
+Returns the location of a given `beat`.
+*/
+
 assign(Location.prototype, {
-	beatAtLoc: function(loc) {
+	beatAtLocation: function(loc) {
 		if (loc < 0) { throw new Error('Location: beatAtLoc(loc) does not accept -ve values.'); }
 		var cache   = this[$private].cache;
 		var functor = this[$private].functor;
 		return calcBeatAtLoc(cache, functor, loc);
 	},
 
-	locAtBeat: function(beat) {
+	locationAtBeat: function(beat) {
 		if (beat < 0) { throw new Error('Location: locAtBeat(beat) does not accept -ve values.'); }
 		var cache   = this[$private].cache;
 		var functor = this[$private].functor;

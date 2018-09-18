@@ -1,4 +1,22 @@
 
+/*
+.name()
+
+Name of the soundstage insance.
+*/
+
+/*
+.events()
+
+An array of events.
+*/
+
+/*
+.sequences()
+
+An array of sequences.
+*/
+
 import { Functor as Fn, compose, get, isDefined, map, postpad, slugify, toString } from '../../fn/fn.js';
 import { print }    from './print.js';
 import { createId } from './utilities.js';
@@ -56,7 +74,7 @@ export default function Sequence(data) {
         }
     });
 
-    print('Sequence set up');
+    print('Sequence set up with ' + this.events.length + ' events');
 }
 
 Sequence.prototype.toJSON = function() {

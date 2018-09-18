@@ -1,4 +1,14 @@
 
+/*
+Controls()
+
+Constructor for an array-like of Control objects. Has the methods:
+
+- learnMIDI
+- learnKey
+
+*/
+
 import { get, map, nothing } from '../../fn/fn.js';
 import push        from '../../fn/modules/lists/push.js';
 import { toKeyString, toKeyCode } from '../../../dom/dom.js';
@@ -20,18 +30,6 @@ function toEvent(audio, time, type, value) {
     this.recordable = true;
 }
 
-
-
-/*
-Controls()
-
-Constructor for an array-like of Control objects. Has the methods:
-
-- learnMIDI
-- learnKey
-
-*/
-
 function toMIDISelector(e) {
     const type = toType(e.data);
 
@@ -50,7 +48,7 @@ function toKeySelector(e) {
     };
 }
 
-function createRoute(controls, getTarget, setting) {
+function createControl(controls, getTarget, setting) {
     // Detect type of source - do we need to add a type field? Probably. To the
     // route or to the source? Hmmm. Maybe to the route. Maybe to the source.
     // Definitely the source. I think.
@@ -74,7 +72,7 @@ export default function Controls(getTarget, settings) {
     // Set up routes from data
     if (settings) {
         settings.reduce(function(routes, setting) {
-            const route = createRoute(controls, getTarget, setting);
+            const route = createControl(controls, getTarget, setting);
 
             // Add route to routes
             push(routes, route);
