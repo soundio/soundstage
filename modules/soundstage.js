@@ -84,11 +84,12 @@ export default function Soundstage(data, settings) {
 The audio context.
 */
 
-    const output = createOutputMerger(audio, settings.output || audio.destination);
+    const context     = settings.context || audio;
+    const destination = settings.output || context.destination;
+    const output      = createOutputMerger(context, destination);
 
-    AudioObject.call(this, settings.audio || audio, undefined, output);
+    AudioObject.call(this, context, undefined, output);
     Soundstage.inspector && Soundstage.inspector.drawAudioFromNode(output);
-
 
     // Initialise soundstage as a plugin graph. Assigns:
     //
@@ -96,20 +97,20 @@ The audio context.
     // connections: array
 
     const types = {
-        input: function(audio, data) {
-            return requestInputSplitter(audio).then(function(input) {
-                return new Input(audio, data.object, input);
+        input: function(context, data) {
+            return requestInputSplitter(context).then(function(input) {
+                return new Input(context, data.object, input);
             });
         },
 
-        output: function(audio, data) {
-            return Promise.resolve(new Output(audio, data.object, output));
+        output: function(context, data) {
+            return Promise.resolve(new Output(context, data.object, output));
         },
 
         default: createObject
     };
 
-    Graph.call(this, audio, types, data, {
+    Graph.call(this, context, types, data, {
         //create:     this.create.bind(this),
         cue:        this.cue.bind(this),
         beatAtTime: this.beatAtTime.bind(this),
@@ -168,7 +169,7 @@ An array of audio regions.
     const regions
         = this.regions
         = (settings.regions || []).map(function(data) {
-            return Region(audio, data);
+            return Region(context, data);
         });
 
 
@@ -228,13 +229,13 @@ An array of audio regions.
         },
 
         "meter": function(object, event) {
-            
+
         },
 
         'default': distributeEvent
     };
 
-    Sequencer.call(this, audio, distributors, this.sequences, this.events);
+    Sequencer.call(this, context, distributors, this.sequences, this.events);
 
     /*
     // Initialise as a recorder...
@@ -244,7 +245,7 @@ An array of audio regions.
 
 
     // Create metronome.
-    this.metronome = new Metronome(this.audio, data.metronome, this);
+    this.metronome = new Metronome(context, data.metronome, this);
     //this.metronome.start(0);
 
 

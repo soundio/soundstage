@@ -11,9 +11,11 @@ function increment(n) { return n + 1; }
 
 export default function Output(audio, settings, output) {
 	var options = assign({}, defaults, settings);
-	var input = audio.createChannelSplitter(2);
 	var channels = [];
 	var object = this;
+	var input = new ChannelSplitterNode(audio, {
+		numberOfOutputs: 2
+	});
 
 	AudioObject.call(this, audio, input);
 
@@ -34,7 +36,6 @@ export default function Output(audio, settings, output) {
 					// of channel in array. Ignore routings to channels the
 					// output does not have.
 					if (array[count] > output.channelCount) { continue; }
-
 					input.connect(output, count, array[count]);
 					channels[count] = array[count];
 				}
@@ -49,6 +50,7 @@ export default function Output(audio, settings, output) {
 	});
 
 	this.channels = options.channels;
+
 	this.destroy = function destroy() {
 		input.disconnect(output);
 	};

@@ -38,8 +38,8 @@ function getParamEvents(param) {
 	// Todo: I would love to use a WeakMap to store data about AudioParams,
 	// but FF refuses to allow AudioParams as WeakMap keys. So... lets use
 	// an expando *sigh*.
-	return param.soundstageEvents || (
-        param.soundstageEvents = [{ 0: 0, 1: param.value, 2: 'step' }]
+	return param.automationEvents || (
+        param.automationEvents = [{ 0: 0, 1: param.value, 2: 'step' }]
     );
 }
 
