@@ -1,6 +1,6 @@
 import { overload } from '../../fn/fn.js';
 import { noteToNumber } from '../../midi/midi.js';
-import { automate } from './params.js';
+import { automate } from './audio-param.js';
 
 function arg2() {
     return arguments[2];

@@ -1,6 +1,6 @@
 import { has, get, invoke, overload, remove }  from '../../fn/fn.js';
 import { print }  from './print.js';
-import { automate } from './params.js';
+import { automate } from './audio-param.js';
 import { distribute } from './distribute.js';
 import { generateUnique }  from './utilities.js';
 import { noteToNumber } from '../../midi/midi.js';
