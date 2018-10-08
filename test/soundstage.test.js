@@ -16,7 +16,7 @@ import Controls from '../modules/soundstage.js';
 const data = {
     plugins: [
         { id: '1', type: 'input' },
-        { id: '2', type: '/audio-object/modules/ao-tone-synth.js' },
+        { id: '2', type: '/soundstage/modules/audio-objects/tone-synth.js' },
         { id: '3', type: 'output' }
     ],
 

@@ -17,7 +17,10 @@ function drawY(box, ctx, y, color) {
 }
 
 export function drawYAxisAmplitude(ctx, box, color) {
-    drawY(box, ctx,  1,       color + '99');  //  0dB
+    ctx.lineWidth   = '1';
+    ctx.lineCap     = 'round';
+
+    drawY(box, ctx,  1,       color + '66');  //  0dB
     drawY(box, ctx,  0.5,     color + '22');  // -6dB
     drawY(box, ctx,  0.25,    color + '22');  // -12dB
     drawY(box, ctx,  0.125,   color + '22');  // -18dB
@@ -29,7 +32,7 @@ export function drawYAxisAmplitude(ctx, box, color) {
     drawY(box, ctx, -0.125,   color + '22');
     drawY(box, ctx, -0.25,    color + '22');
     drawY(box, ctx, -0.5,     color + '22');
-    drawY(box, ctx, -1,       color + '99');
+    drawY(box, ctx, -1,       color + '66');
 }
 
 export function drawPoint(box, ctx, x, y, color) {
@@ -43,9 +46,21 @@ export function drawPoint(box, ctx, x, y, color) {
     ctx.fill();
 }
 
-function drawWaveform(box, ctx, rate, data, color) {
+/*
+drawCurve(ctx, box, rate, data, color)
+
+ctx:   canvas context
+box:   array of 4 numbers describing view box
+rate:  data points per px
+data:  array of data points
+color: base color
+*/
+
+export function drawCurve(ctx, box, rate, data, color) {
     let n = 0;
 
+    ctx.lineWidth   = '1';
+    ctx.lineCap     = 'round';
     ctx.beginPath();
     ctx.moveTo(
         box[0],
@@ -63,10 +78,10 @@ function drawWaveform(box, ctx, rate, data, color) {
     ctx.strokeStyle = color;
     ctx.stroke();
 
-    // Now fill it
+    // Now complete its area and then fill it
     ctx.lineTo(
         box[0] + box[2],
-        box[1] + box[3] / 2
+        box[1] + (box[3] / 2) - (data[n - 1] * box[3] / 2)
     );
 
     ctx.lineTo(
@@ -77,23 +92,4 @@ function drawWaveform(box, ctx, rate, data, color) {
     //ctx.closePath();
     ctx.fillStyle = color + '2b';
     ctx.fill();
-
-}
-
-/*
-drawCurve(ctx, box, rate, data)
-
-ctx:  canvas context
-box:  array of 4 numbers describing view box
-rate: data points per px
-data: array of data points
-*/
-
-export function drawCurve(ctx, box, rate, data) {
-    // rate is data points per px
-
-    ctx.lineWidth   = '1';
-    ctx.lineCap     = 'round';
-
-    drawWaveform(box, ctx, rate, data, '#ffffff');
 }

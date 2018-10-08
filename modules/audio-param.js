@@ -78,12 +78,10 @@ function automateParamEvents(param, events, time, value, curve, decay) {
     // Todo: deal with -ve values.
 	if (curve === "exponential") {
 		if (value <= config.minExponentialValue) {
-console.log('YES', event0);
 			time = event0 ? event0.time : 0 ;
 			curve = "step";
 		}
 		else if (event0 && event0.value < config.minExponentialValue) {
-console.log('WOO', event0);
 			curve = "step";
 		}
 	}

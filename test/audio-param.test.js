@@ -9,7 +9,7 @@ test('Automation', function(run, print, fixture) {
     const ctx    = canvas.getContext('2d');
     const box    = [4, 4, 672, 299];
 
-    drawYAxisAmplitude(ctx, box, '#5588aa');
+    drawYAxisAmplitude(ctx, box, '#acb9b8');
 
     const gain  = new GainNode(audio);
     const param = gain.gain;
@@ -37,7 +37,7 @@ test('Automation', function(run, print, fixture) {
             equals(240, data.length, 'Should output data at 240 points/s');
 
             // Draw automation
-            drawCurve(ctx, box, 240/672, data);
+            drawCurve(ctx, box, 240/672, data, '#acb9b8');
             done();
         });
 	}, 1);
@@ -49,12 +49,12 @@ test('Automation', function(run, print, fixture) {
 
         while ((t = t + 0.015) < 1.1) {
             value = getValueAtTime(param, t);
-            drawPoint(box, ctx, box[0] + box[2] * t, box[1] + (box[3] / 2) - (value * box[3] / 2), 'red');
+            drawPoint(box, ctx, box[0] + box[2] * t, box[1] + (box[3] / 2) - (value * box[3] / 2), '#d60a3f');
         }
 
         done();
 	}, 0);
 }, function(){/*
     <canvas class="block" width="680" height="308" style="max-width: 100%"></canvas>
-    <p>Red dots should lie precisely on the automation curve.</p>
+    <p>Automation curve plotted from an offline render, red dots from getValueAtTime(). They should precisely align.</p>
 */});
