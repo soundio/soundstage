@@ -7,7 +7,18 @@ function drawBg(box, ctx, color) {
     ctx.fill();
 }
 
-function drawY(box, ctx, y, color) {
+/*
+drawY(ctx, box, y, color)
+
+Draws a line at y position.
+
+ctx:   canvas context
+box:   array of 4 numbers describing view box
+y:     y position
+color: color
+*/
+
+export function drawY(ctx, box, y, color) {
     ctx.strokeStyle = color;
     ctx.beginPath();
     ctx.moveTo(box[0], box[1] + (box[3] / 2) - (y * box[3] / 2));
@@ -16,24 +27,46 @@ function drawY(box, ctx, y, color) {
     ctx.stroke();
 }
 
+/*
+drawYAxisAmplitude(ctx, box, color)
+
+Draws Y axis lines from -1 to 1 ready to plot waveforms.
+
+ctx:   canvas context
+box:   array of 4 numbers describing view box
+color: color
+*/
+
 export function drawYAxisAmplitude(ctx, box, color) {
     ctx.lineWidth   = '1';
     ctx.lineCap     = 'round';
 
-    drawY(box, ctx,  1,       color + '66');  //  0dB
-    drawY(box, ctx,  0.5,     color + '22');  // -6dB
-    drawY(box, ctx,  0.25,    color + '22');  // -12dB
-    drawY(box, ctx,  0.125,   color + '22');  // -18dB
-    drawY(box, ctx,  0.0625,  color + '22');  // -24dB
-    drawY(box, ctx,  0.03125, color + '22'); // -30dB
-    drawY(box, ctx,  0,       color);
-    drawY(box, ctx, -0.03125, color + '22');
-    drawY(box, ctx, -0.0625,  color + '22');
-    drawY(box, ctx, -0.125,   color + '22');
-    drawY(box, ctx, -0.25,    color + '22');
-    drawY(box, ctx, -0.5,     color + '22');
-    drawY(box, ctx, -1,       color + '66');
+    drawY(ctx, box,  1,       color + '66');  //  0dB
+    drawY(ctx, box,  0.5,     color + '22');  // -6dB
+    drawY(ctx, box,  0.25,    color + '22');  // -12dB
+    drawY(ctx, box,  0.125,   color + '22');  // -18dB
+    drawY(ctx, box,  0.0625,  color + '22');  // -24dB
+    drawY(ctx, box,  0.03125, color + '22'); // -30dB
+    drawY(ctx, box,  0,       color);
+    drawY(ctx, box, -0.03125, color + '22');
+    drawY(ctx, box, -0.0625,  color + '22');
+    drawY(ctx, box, -0.125,   color + '22');
+    drawY(ctx, box, -0.25,    color + '22');
+    drawY(ctx, box, -0.5,     color + '22');
+    drawY(ctx, box, -1,       color + '66');
 }
+
+/*
+drawPoint(ctx, box, x, y, color)
+
+Draws a data point.
+
+ctx:   canvas context
+box:   array of 4 numbers describing view box
+x:     data points per px
+y:     array of data points
+color: color
+*/
 
 export function drawPoint(box, ctx, x, y, color) {
     ctx.strokeStyle = color;
@@ -48,6 +81,8 @@ export function drawPoint(box, ctx, x, y, color) {
 
 /*
 drawCurve(ctx, box, rate, data, color)
+
+Draws a filled automation curve.
 
 ctx:   canvas context
 box:   array of 4 numbers describing view box
