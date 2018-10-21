@@ -1,3 +1,6 @@
+
+import { last } from '../../fn/fn.js';
+
 // Config
 
 export const config = {
@@ -5,7 +8,11 @@ export const config = {
 
     // Value considered to be 0 for the purposes of scheduling
     // exponential curves.
-    minExponentialValue: 1.40130e-45
+    minExponentialValue: 1.40130e-45,
+
+    // Multiplier for duration of target events indicating roughly when
+    // they can be considered 'finished'
+    targetDurationFactor: 9
 };
 
 export const methodNames = {
@@ -136,6 +143,13 @@ export function automate(param, time, curve, value, decay) {
 	automateParamEvents(param, events, time, value, curve, decay);
 }
 
+export function getAutomationEndTime(events) {
+    const event = last(events);
+
+    return event[1] === 'target' ?
+        event[0] + event[3] * config.targetDurationFactor :
+        event[0] ;
+}
 
 // Get audio param value at time
 
@@ -162,7 +176,7 @@ const curves = {
 	}
 };
 
-function getEventsValueBetweenEvents(event1, event2, time) {
+function getValueBetweenEvents(event1, event2, time) {
 	var curve  = event2.curve;
 	return curves[curve](event1.value, event2.value, event1.time, event2.time, time, event1.duration);
 }
@@ -195,7 +209,7 @@ export function getEventsValueAtTime(events, time) {
 
 	if (time < event1.time) {
 		return event1.curve === "linear" || event1.curve === "exponential" ?
-			getEventsValueBetweenEvents(event0, event1, time) :
+			getValueBetweenEvents(event0, event1, time) :
 			getEventsValueAtEvent(events, n, time) ;
 	}
 }
@@ -209,8 +223,6 @@ export function getValueAtTime(param, time) {
 
 	return getEventsValueAtTime(events, time);
 }
-
-
 
 
 /*

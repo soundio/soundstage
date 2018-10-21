@@ -35,12 +35,7 @@ function call(value, fn) {
 }
 
 function thenAfterStop() {
-    throw new Error('Node: Cannot call .then(fn) after .stop(time).');
-}
-
-export function resolve(node) {
-    const privates = getPrivates(node);
-    privates.resolve && privates.resolve(node.context.currentTime);
+    throw new Error('Node: Cannot call .then(fn) more than one tick after .stop(time).');
 }
 
 const properties = {
@@ -49,27 +44,44 @@ const properties = {
     status:    { writable: true, value: undefined }
 };
 
+var id = 0;
+
 export default function PlayNode() {
     define(this, properties);
+    this.i = ++id;
+}
+
+function cueResolve(node, privates) {
+    const delay = node.stopTime - node.context.currentTime + config.promiseResolveDelay;
+    setTimeout(privates.resolve, delay * 1000, node.stopTime);
+    privates.promise = undefined;
+    privates.resolve = undefined;
 }
 
 assign(PlayNode.prototype, {
     reset: function() {
+        if (DEBUG && getPrivates(this).resolve) {
+            throw new Error('Unresolved promise');
+        }
+
         delete this.then;
         this.startTime = undefined;
         this.stopTime  = undefined;
-        this.status    = undefined;
+        //this.status    = 'ready';
     },
 
     start: function(time) {
         this.startTime = time;
+        //this.status    = 'pending';
         return this;
     },
 
     stop: function(time) {
         const privates = getPrivates(this);
 
+        // Clamp stopTime to startTime
         this.stopTime = time > this.startTime ? time : this.startTime ;
+        //this.status   = 'stopping';
 
         requestTick(() => {
             // Disabling .then(fn) on stop avoids us having to create promises
@@ -78,12 +90,13 @@ assign(PlayNode.prototype, {
             this.then = thenAfterStop;
 
             // Check whether a promise has been created and avoid scheduling
-            // a resolve if not. This means that .then(fn) calls after .stop() will
-            // be ignored if nothing is yet registered.
-            if (!privates.promise) { return; }
-
-            const delay = this.stopTime - this.context.currentTime + config.promiseResolveDelay;
-            setTimeout(resolve, delay * 1000, this);
+            // a resolve if not.
+            if (privates.promise) {
+                cueResolve(this, privates);
+            }
+            else {
+                this.status = 'done';
+            }
         });
 
         return this;
@@ -101,3 +114,16 @@ assign(PlayNode.prototype, {
         return privates.promise.then(fn);
     }
 });
+/*
+define(PlayNode.prototype, {
+    status: {
+        get: function() {
+            return this.startTime === undefined ? 'ready' :
+                this.startTime > this.context.currentTime ? 'pending' :
+                this.stopTime === undefined ? 'playing' :
+                this.stopTime > this.context.currentTime ? 'playing' :
+                'stopping' ;
+        }
+    }
+});
+*/

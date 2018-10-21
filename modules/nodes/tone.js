@@ -2,13 +2,14 @@ import { nothing } from '../../../fn/fn.js';
 import { getPrivates } from '../privates.js';
 import ContextPool from '../context-pool.js';
 import NodeGraph   from './node-graph.js';
-import PlayNode, { resolve } from './play-node.js';
-import { automate } from '../audio-param.js';
+import PlayNode from './play-node.js';
+import { automate, getAutomationEvents, getAutomationEndTime } from '../audio-param.js';
 import { assignSettings } from './assign-settings.js';
 
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
+const max    = Math.max;
 
 const graph = {
 	nodes: [{
@@ -114,7 +115,6 @@ function bell(n) {
 }
 
 function Tone(context, settings) {
-	console.log('NEW TONE')
 	NodeGraph.call(this, context, graph);
     PlayNode.call(this, context);
 
@@ -142,6 +142,11 @@ assign(Tone.prototype, PlayNode.prototype, NodeGraph.prototype, {
 	reset: function(context, settings) {
         PlayNode.prototype.reset.apply(this);
         assignSettings(this, defaults, settings);
+
+		// Purge automation events
+		//getAutomationEvents(this['env-1'].offset).length = 0;
+		//getAutomationEvents(this['env-2'].offset).length = 0;
+
 		return this;
 	},
 
@@ -163,26 +168,30 @@ assign(Tone.prototype, PlayNode.prototype, NodeGraph.prototype, {
 		return this;
 	},
 
-	stop: function(time, velocity) {
+	stop: function(time, frequency, velocity) {
         // Clamp stopTime to startTime
         time = time > this.startTime ? time : this.startTime;
-
-        // Todo: get ending time, err... duration, from envelope releases
-        const duration = 2;
 
 		//this.get('osc-1').stop(time + duration);
 		//this.get('osc-2').stop(time + duration);
 		this['env-1'].start(time, 'release', 1 + velocity * this['velocity-to-env-1-gain'], 1 + velocity * this['velocity-to-env-1-rate']);
-		this['env-1'].stop(time + duration);
 		this['env-2'].start(time, 'release', 1 + velocity * this['velocity-to-env-2-gain'], 1 + velocity * this['velocity-to-env-2-rate']);
-		this['env-2'].stop(time + duration);
 
-        PlayNode.prototype.stop.call(this, time + duration);
+		const stopTime = time + max(
+			getAutomationEndTime(this['env-1'].release),
+			getAutomationEndTime(this['env-1'].release)
+		);
+
+		this['env-1'].stop(stopTime);
+		this['env-2'].stop(stopTime);
+
+        PlayNode.prototype.stop.call(this, stopTime);
+
+		// Prevent filter feedback from ringing past note end
+		this.filterQ.setValueAtTime(stopTime, 0);
 
 		return this;
 	}
 });
 
-export default ContextPool(Tone, function isIdle(node) {
-	return node.startTime !== undefined && node.context.currentTime > node.stopTime;
-});
+export default Tone;

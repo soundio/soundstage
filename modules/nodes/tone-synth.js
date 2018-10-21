@@ -8,6 +8,7 @@ import Tone from './tone.js';
 import NodeGraph from './node-graph.js';
 import { automate } from '../audio-param.js';
 import { assignSettings } from './assign-settings.js';
+import { Pool } from '../context-pool.js';
 
 const DEBUG = window.DEBUG;
 const assign = Object.assign;
@@ -66,15 +67,27 @@ function isDefined(val) {
 	return val !== undefined && val !== null;
 }
 
+function isIdle(node) {
+	return node.startTime !== undefined && node.context.currentTime > node.stopTime;
+}
+
+function setup() {
+	this.get('pitchToDetune').connect(note['osc-1'].detune);
+	this.get('pitchToDetune').connect(note['osc-2'].detune);
+	this.get('frequency').connect(note.filterFrequency);
+	this.get('q').connect(note.filterQ);
+
+	note.connect(this.get('output'));
+}
+
 function ToneSynth(context, settings, stage) {
 	if (DEBUG) { printGroup('ToneSynth'); }
 
+	// Private
 	const privates = getPrivates(this);
 
+	// Graph
 	NodeGraph.call(this, context, graph);
-
-	// Private
-	privates.notes = [];
 
 	// Params
 	this.gain            = this.get('output').gain;
@@ -82,6 +95,7 @@ function ToneSynth(context, settings, stage) {
 	this.filterFrequency = this.get('frequency').offset;
 	this.filterQ         = this.get('q').offset;
 
+	// Start the constants
 	this.get('pitch').start();
 	this.get('frequency').start();
 	this.get('q').start();
@@ -98,12 +112,25 @@ function ToneSynth(context, settings, stage) {
 
 			set: function(type) {
 				filterType = type;
-				privates.notes.forEach(note => note.filter.type = filterType);
+				privates.notes.forEach((note) => {
+					if (!note.startTime) { return; }
+					if (note.stopTime < note.context.currentTime) { return; }
+					note.filter.type = filterType
+				});
 			}
 		}
 	});
 
 	define(this, properties);
+
+	// Note pool
+	privates.notes = new Pool(Tone, isIdle, (note) => {
+		this.get('pitchToDetune').connect(note['osc-1'].detune);
+		this.get('pitchToDetune').connect(note['osc-2'].detune);
+		this.get('frequency').connect(note.filterFrequency);
+		this.get('q').connect(note.filterQ);
+		note.connect(this.get('output'));
+	});
 
 	// Update settings
 	assignSettings(this, defaults, settings);
@@ -115,37 +142,39 @@ function ToneSynth(context, settings, stage) {
 assign(ToneSynth.prototype, NodeGraph.prototype, {
 	create: function() {
 		const privates = getPrivates(this);
-		const note = new Tone(this.context, this);
 
-		this.get('pitchToDetune').connect(note['osc-1'].detune);
-		this.get('pitchToDetune').connect(note['osc-2'].detune);
-		this.get('frequency').connect(note.filterFrequency);
-		this.get('q').connect(note.filterQ);
+		// Use this as the settings object
+		return privates.notes.create(this.context, this);
 
-		note.connect(this.get('output'));
+		// this.get('pitchToDetune').connect(note['osc-1'].detune);
+		// this.get('pitchToDetune').connect(note['osc-2'].detune);
+		// this.get('frequency').connect(note.filterFrequency);
+		// this.get('q').connect(note.filterQ);
+		//
+		// note.connect(this.get('output'));
 
-		note.then((time) => {
-			this.get('pitchToDetune').disconnect(note['osc-1'].detune);
-			this.get('pitchToDetune').disconnect(note['osc-2'].detune);
-			this.get('frequency').disconnect(note.filterFrequency);
-			this.get('q').disconnect(note.filterQ);
-
-			note.disconnect();
-			remove(privates.notes, note);
-		});
-
-		privates.notes.push(note);
-
-		return note;
+ 		// We don't need to disconnect notes if our pool is local
+		// to this synth
+		//
+		// note.then((time) => {
+		// 	this.get('pitchToDetune').disconnect(note['osc-1'].detune);
+		// 	this.get('pitchToDetune').disconnect(note['osc-2'].detune);
+		// 	this.get('frequency').disconnect(note.filterFrequency);
+		// 	this.get('q').disconnect(note.filterQ);
+		//
+ 		// 	note.disconnect();
+		// 	remove(privates.notes, note);
+		// });
+		//
+		// return note;
 	},
 
 	start: function(time, number, velocity) {
 		velocity = velocity === undefined ? 0.25 : velocity ;
 		var frequency = numberToFrequency(config.tuning, number);
-		return assign(
-			this.create().start(time, frequency, velocity),
-			{ name: number }
-		);
+		const note = this.create();
+		note.name - number;
+		return note.start(time, frequency, velocity);
 	},
 
 	stop: function(time, number, velocity) {
@@ -155,14 +184,16 @@ assign(ToneSynth.prototype, NodeGraph.prototype, {
 
 		// Stop all notes
 		if (!isDefined(number)) {
-			for (let note of privates.notes) {
+			privates.notes.forEach(() => {
 				note.stop(time, velocity);
-			}
+			});
 
 			return this;
 		}
 
-		const note = privates.notes.find(note => note.name === number);
+		const note = privates.notes.find((note) => {
+			note.name === number && note.startTime !== undefined && note.stopTime === undefined
+		});
 
 		if (note) {
 			note.stop(time, velocity);

@@ -50,7 +50,7 @@ export default class Envelope extends ConstantSourceNode {
             super.start.call(this, time);
         }
 
-        this.startTime = time;
+        this.startTime = this.startTime || time;
     }
 
     stop(time, name, gain, rate) {

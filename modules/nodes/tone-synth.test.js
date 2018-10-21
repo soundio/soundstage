@@ -71,7 +71,7 @@ test('ToneSynth', function(run, print, fixture) {
     run('ToneSynth(context, settings, stage)', function(equals, done) {
         var synth = new ToneSynth(context, settings);
         var t0 = context.currentTime;
-        var t1 = t0 + 12;
+        var t1 = t0 + 6;
 
         synth.connect(context.destination);
 
@@ -92,7 +92,7 @@ test('ToneSynth', function(run, print, fixture) {
             if (time > t1) { return; }
 
             synth
-            .start(context.currentTime + 0.1, 72, 1)
+            .start(context.currentTime + 0.1, 64, 1)
             .stop(context.currentTime + 0.3)
             .then(play2);
         }

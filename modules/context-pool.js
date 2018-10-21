@@ -1,5 +1,7 @@
 
-const DEBUG = true;
+const DEBUG  = true;
+const print  = DEBUG && console.log.bind(console, '%cPool %c%s', 'color: #b5002f; font-weight: 600;', 'color: #8e9e9d; font-weight: 300;');
+const assign = Object.assign;
 
 export function getContextPool(constructor, context) {
     // Todo: this could be WeakMap, but lets test on Map first
@@ -9,7 +11,6 @@ export function getContextPool(constructor, context) {
     if (!pool) {
         pool = [];
         pools.set(context, pool);
-        if (DEBUG) { console.log('Pool', constructor.name, pool); }
     }
 
     return pool;
@@ -23,17 +24,15 @@ export function emptyContextPool(constructor, context) {
     if (!pool) { return; }
 
     pool.length = 0;
-    if (DEBUG) { console.log('Context pool ' + constructor.name + ' emptied.', context); }
+    if (DEBUG) { print('Context pool ' + constructor.name + ' emptied.', context); }
 }
 
 export default function ContextPool(constructor, isIdle) {
-	return function Pool(context) {
+	return function Pooled(context) {
 		const pool = getContextPool(constructor, context);
-        console.log('Checking ' + constructor.name + ' pool of ', pool.length);
         let object = pool.find(isIdle);
 
 		if (object) {
-            console.log('REUSE!')
 			return object.reset ?
                 object.reset.apply(object, arguments) :
                 object ;
@@ -41,6 +40,76 @@ export default function ContextPool(constructor, isIdle) {
 
 		object = new constructor(...arguments);
 		pool.push(object);
+
+        if (DEBUG) { print('Created new ' + constructor.name + '() for pool of', pool.length); }
+
 		return object;
 	};
 }
+
+/*
+export function Pool(constructor, isIdle) {
+    const pool = [];
+
+    function Pooled() {
+        let object = pool.find(isIdle);
+
+		if (object) {
+			return object.reset ?
+                object.reset.apply(object, arguments) :
+                object ;
+		}
+
+		object = new constructor(...arguments);
+		pool.push(object);
+
+        if (DEBUG) { print('Created new ' + constructor.name + '() for pool of', pool.length); }
+
+		return object;
+	};
+}
+*/
+
+export function Pool(constructor, isIdle, setup) {
+    const pool = this.pool = [];
+
+    this.create = function Pooled() {
+        let object = pool.find(isIdle);
+
+        if (object) {
+            return object.reset ?
+                object.reset.apply(object, arguments) :
+                object ;
+        }
+
+        object = new constructor(...arguments);
+        setup && setup(object);
+        pool.push(object);
+
+        if (DEBUG) { print('Created new ' + constructor.name + '() for pool of', pool.length); }
+
+        return object;
+	};
+}
+
+assign(Pool.prototype, {
+    empty: function() {
+        this.pool.length = 0;
+    },
+
+    find: function(fn) {
+        return this.pool.find(fn);
+    },
+
+    filter: function(fn) {
+        return this.pool.filter(fn);
+    },
+
+    reduce: function(fn, value) {
+        return this.pool.reduce(fn, value);
+    },
+
+    forEach: function(fn) {
+        return this.pool.forEach(fn);
+    }
+});
