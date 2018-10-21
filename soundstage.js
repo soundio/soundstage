@@ -1,5 +1,6 @@
 
 // Red          #d60a3f
+// Muted red    #b5002f
 // Orange       #d8841d
 // Palegreen fg #acb9b8
 // Darkgreen bg #1c2726

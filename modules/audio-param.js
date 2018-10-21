@@ -130,7 +130,8 @@ curve - one of 'step', 'linear', 'exponential' or 'target'
 decay - where curve is 'target', decay is a time constant for the decay curve
 */
 
-export function automate(param, time, value, curve, decay) {
+export function automate(param, time, curve, value, decay) {
+    //console.log('AUTOMATE', arguments[5], time, curve, value, decay, param);
 	var events = getAutomationEvents(param);
 	automateParamEvents(param, events, time, value, curve, decay);
 }
@@ -241,19 +242,20 @@ export function requestBufferFromEvents(rate, t0, t1, events) {
 
     // Todo: calculate current start value
     if (events[n]) {
-        automate(param, events[n].time * sampleScale, events[n].value, events[n].curve, events[n].decay * sampleScale);
+        automate(param, events[n].time * sampleScale, events[n].curve, events[n].value, events[n].decay * sampleScale);
         //param.setValueAtTime(events[n].value, events[n].time * sampleScale);
     }
 
     // Process events from t0 to t1
     while (events[++n] && events[n].time < t1) {
-        automate(param, (events[n].time - t0) * sampleScale, events[n].value, events[n].curve, events[n].decay * sampleScale);
+        console.log(n, events[n]);
+        automate(param, (events[n].time - t0) * sampleScale, events[n].curve, events[n].value, events[n].decay && events[n].decay * sampleScale);
         //param[methodNames[events[n].curve]](events[n].value, (events[n].time - t0) * sampleScale, events[n].decay * sampleScale);
     }
 
     // Process final event following t1
     if (events[n]) {
-        automate(param, (events[n].time - t0) * sampleScale, events[n].value, events[n].curve, events[n].decay * sampleScale);
+        automate(param, (events[n].time - t0) * sampleScale, events[n].curve, events[n].value, events[n].decay * sampleScale);
         //param[methodNames[events[n].curve]](events[n].value, (events[n].time - t0) * sampleScale, events[n].decay * sampleScale);
     }
 

@@ -38,7 +38,7 @@ export const distributors = {
 
     'param': function(object, time, type, name, value) {
         const param = object[name];
-        automate(param, time, value);
+        automate(param, time, 'step', value);
         return object;
     },
 

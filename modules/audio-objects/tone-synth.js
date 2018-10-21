@@ -1,8 +1,7 @@
 
 import AudioObject from '../../../audio-object/modules/audio-object.js';
-
-import { automate, getValueAtTime } from '../audio-param.js';
-import { numberToFrequency, frequencyToNumber } from '../../../midi/midi.js';
+import { numberToFrequency } from '../../../midi/midi.js';
+import Tone from '../nodes/tone.js';
 
 var assign = Object.assign;
 
@@ -25,28 +24,41 @@ var defaults = {
 	"note-follow":        1,
 	"velocity-follow":    0.5,
 
-	"attack-events": [
-		// Gain
-		[0,     "param", "gain",     0,    "step"],
-		[0.002, "param", "gain",     1,    "linear"],
-		[4,     "param", "gain",     0.25, "exponential"],
+	gainEnvelope: [{
+		name: 'attack',
+		events: [
+			[0,     0,    "step"],
+			[0.002, 1,    "linear"],
+			[4,     0.25, "exponential"]
+		]
+	}, {
+		name: "release",
+		events: [
+			[0,     0,   "target", 0.1]
+		]
+	}],
 
-		// Filter cut-off
-		[0,     "param", "envelope", 0,   'step'],
-		[0.6,   "param", "envelope", 2,   'linear'],
-		[2.2,   "param", "envelope", 0.8, 'linear']
-	],
-
-	"release-events": [
-		// Gain
-		[0,     "param", "gain",     0,   "target", 0.1],
-
-		// Filter cut-off
-		[0.006, "param", "envelope", 1.75,   "linear"],
-		[0.166, "param", "envelope", 1.6667, "linear"],
-		[0.466, "param", "envelope", 0,      "linear"]
-	]
+	filterEnvelope: [{
+		name: 'attack',
+		events: [
+			[0,     0,   'step'],
+			[0.6,   2,   'linear'],
+			[2.2,   0.8, 'linear']
+		]
+	}, {
+		name: "release",
+		events: [
+			[0.006, 1.75,   "linear"],
+			[0.166, 1.6667, "linear"],
+			[0.466, 0,      "linear"]
+		]
+	}]
 };
+
+
+
+
+
 
 var sequenceSettings = { sort: by0 };
 
@@ -112,185 +124,72 @@ function ToneSynth(audio, settings) {
 		}
 	});
 
-	function createCachedOscillator(number, velocity, time) {
+	function createTone(number, velocity, time) {
 		if (osccache[number]) { return; }
 
-		var freq = numberToFrequency(config.tuning, number);
+		var note = new Tone(audio, options);
+		note.name = number;
 
-		var gainNode = audio.createGain();
-		gainNode.gain.setValueAtTime(0, time);
-		gainNode.connect(outputNode);
+		qNode.connect(note.get('filter').Q);
+		detuneNode.connect(note.get('osc-1').detune);
+		detuneNode.connect(note.get('osc-2').detune);
+		note.get('filter').connect(outputNode);
 
-		var filterNode = audio.createBiquadFilter();
-		filterNode.Q.setValueAtTime(0, time);
-		filterNode.type = object.filter;
-		filterNode.connect(gainNode);
-
-		qNode.connect(filterNode.Q);
-
-		var envelopeGainNode = audio.createGain();
-		envelopeGainNode.gain.setValueAtTime(1, time);
-		envelopeGainNode.connect(filterNode.frequency);
-
-		var velocityFollow = object['velocity-follow'];
-		var velocityFactor = 2 * velocity - 1;
-		var velocityMultiplierNode = audio.createGain();
-
-		velocityMultiplierNode.gain.setValueAtTime(1 + velocityFollow * velocityFactor, time);
-		velocityMultiplierNode.connect(envelopeGainNode.gain);
-
-		var envelopeNode = new ConstantSourceNode(audio);
-		envelopeNode.offset.setValueAtTime(0, time);
-		envelopeNode.connect(velocityMultiplierNode);
-
-		var noteFollow = object['note-follow'];
-		var noteFactor = numberToFrequency(number, 1);
-		var noteGainNode = audio.createGain();
-		noteGainNode.gain.setValueAtTime(Math.pow(noteFactor, noteFollow), time);
-		noteGainNode.connect(envelopeGainNode);
-
-		frequencyNode.connect(noteGainNode);
-
-		var osc1gain = audio.createGain();
-		osc1gain.gain.setValueAtTime(object['oscillator-1-gain'], time);
-		osc1gain.connect(filterNode);
-
-		var osc1 = audio.createOscillator();
-		osc1.frequency.setValueAtTime(freq, time);
-		osc1.type = object['oscillator-1'];
-		osc1.detune.setValueAtTime(bell(object.detune * 100), time);
-		osc1.connect(osc1gain);
-
-		detuneNode.connect(osc1.detune);
-
-		var osc2gain = audio.createGain();
-		osc2gain.gain.setValueAtTime(object['oscillator-2-gain'], time);
-		osc2gain.connect(filterNode);
-
-		var osc2 = audio.createOscillator();
-		osc2.frequency.setValueAtTime(freq, time);
-		osc2.type = object['oscillator-2'];
-		osc2.detune.setValueAtTime(bell(object.detune * 100) + object['oscillator-2-pitch'] * 100, time);
-		osc2.connect(osc2gain);
-
-		detuneNode.connect(osc2.detune);
-
-		var params = {
-			"envelope": envelopeNode.offset,
-			"gain":     gainNode.gain
+		note.stopped = function() {
+			qNode.disconnect(note.get('filter').Q);
+			detuneNode.disconnect(note.get('osc-1').detune);
+			detuneNode.disconnect(note.get('osc-2').detune);
+			note.get('filter').disconnect(outputNode);
 		};
 
-		var attack = object['attack-events'];
-		var n = -1;
-		var name, e, param;
+		notes.push(note);
 
-		// Set initial value
-		//for (name in params) {
-		//	param = params[name];
-		//	automate(param, time, 0, "step");
-		//}
-
-		// Cue up attack events on their params
-		while (++n < attack.length) {
-			e = attack[n];
-			param = params[e[2]];
-
-			if (param) {
-				automate(param, time + e[0], e[3], e[4] || "step", e[5]);
-			}
-		}
-
-		osc1.start(time);
-		osc2.start(time);
-
-		addToCache(number, [
-			gainNode,               // 0
-			filterNode,             // 1
-			envelopeGainNode,       // 2
-			velocityMultiplierNode, // 3
-			envelopeNode,           // 4
-			noteGainNode,           // 5
-			osc1,                   // 6
-			osc1gain,               // 7
-			osc2,                   // 8
-			osc2gain,               // 9
-			params                  // 10
-		]);
-
-		osc1.onended = function() {
-			qNode.disconnect(filterNode.Q);
-			frequencyNode.disconnect(noteGainNode);
-			detuneNode.disconnect(osc1.detune);
-			detuneNode.disconnect(osc2.detune);
-
-			gainNode.disconnect();
-			filterNode.disconnect();
-			envelopeGainNode.disconnect();
-			velocityMultiplierNode.disconnect();
-			envelopeNode.disconnect();
-			noteGainNode.disconnect();
-			osc1.disconnect();
-			osc1gain.disconnect();
-			osc2.disconnect();
-			osc2gain.disconnect();
-		};
-	}
-
-	function addToCache(number, cacheEntry) {
-		osccache[number] = cacheEntry;
-	}
-
-	function releaseNote(number, time) {
-		var cache = osccache[number];
-
-		if (!cache) { return; }
-
-		var params = cache[10];
-		var values = {};
-		var key;
-
-		for (key in params) {
-			params[key].cancelAndHoldAtTime(time);
-		}
-
-		// Cue up release events on their params
-		var release = object['release-events'];
-		var n = -1;
-		var e, param, tValue;
-
-		while (++n < release.length) {
-			e      = release[n];
-			param  = params[e[2]];
-			tValue = getValueAtTime(param, time);
-			if (param) {
-				// (param, time, value, curve, decay)
-				automate(param, time + e[0], e[3] * tValue, e[4] || "step", e[5]);
-			}
-		}
-
-		cache[6].stop(time + 2);
-		cache[8].stop(time + 2);
-
-		delete osccache[number];
+		return note;
 	}
 
 	this.start = function(time, number, velocity) {
 		velocity = velocity === undefined ? 0.25 : velocity ;
-		createCachedOscillator(number, velocity, time);
-		return this;
+		var frequency = numberToFrequency(config.tuning, number);
+
+		return createTone({
+			'osc-1': {
+				type:      'sine',
+				detune:    0,
+				frequency: frequency
+			},
+
+			'osc-2': {
+				type:      'sine',
+				detune:    0,
+				frequency: frequency
+			},
+
+			'env-1': {
+				attack:    options.attack,
+				release:   options.release
+			},
+
+			'env-2': {
+				attack:    options.attack,
+				release:   options.release
+			}
+		})
+		.start(time, frequency, velocity);
 	};
 
-	this.stop = function(time, number) {
+	this.stop = function(time, number, velocity) {
 		time = time || audio.currentTime;
 
+		// Stop all notes
 		if (!isDefined(number)) {
-			for (number in osccache) {
-				releaseNote(number, time);
+			for (let note of notes) {
+				note.stop(time, velocity);
 			}
+
 			return this;
 		}
 
-		releaseNote(number, time);
+		notes.find(note => note.name = number).stop(time, velocity);
 		return this;
 	};
 
@@ -314,8 +213,8 @@ function ToneSynth(audio, settings) {
 	this['filter'] = options['filter'];
 	this['note-follow'] = options['note-follow'];
 	this['velocity-follow'] = options['velocity-follow'];
-	this['attack-events'] = options["attack-events"];
-	this['release-events'] = options["release-events"];
+	//this['attack-events'] = options["attack-events"];
+	//this['release-events'] = options["release-events"];
 }
 
 // Mix AudioObject prototype into MyObject prototype

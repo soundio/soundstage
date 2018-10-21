@@ -116,7 +116,7 @@ export function drawCurve(ctx, box, rate, data, color) {
     // Now complete its area and then fill it
     ctx.lineTo(
         box[0] + box[2],
-        box[1] + (box[3] / 2) - (data[n - 1] * box[3] / 2)
+        box[1] + box[3] / 2
     );
 
     ctx.lineTo(
