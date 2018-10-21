@@ -3,6 +3,8 @@ const DEBUG  = true;
 const print  = DEBUG && console.log.bind(console, '%cPool %c%s', 'color: #b5002f; font-weight: 600;', 'color: #8e9e9d; font-weight: 300;');
 const assign = Object.assign;
 
+/*
+
 export function getContextPool(constructor, context) {
     // Todo: this could be WeakMap, but lets test on Map first
     const pools = constructor.pools || (constructor.pools = new Map());
@@ -47,7 +49,6 @@ export default function ContextPool(constructor, isIdle) {
 	};
 }
 
-/*
 export function Pool(constructor, isIdle) {
     const pool = [];
 
@@ -70,7 +71,7 @@ export function Pool(constructor, isIdle) {
 }
 */
 
-export function Pool(constructor, isIdle, setup) {
+export default function Pool(constructor, isIdle, setup) {
     const pool = this.pool = [];
 
     this.create = function Pooled() {
@@ -86,7 +87,9 @@ export function Pool(constructor, isIdle, setup) {
         setup && setup(object);
         pool.push(object);
 
-        if (DEBUG) { print('Created new ' + constructor.name + '() for pool of', pool.length); }
+        if (DEBUG) {
+            print('Created new ' + constructor.name + ' in ' + constructor.name + ' pool', pool.length);
+        }
 
         return object;
 	};

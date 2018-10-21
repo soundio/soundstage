@@ -111,5 +111,30 @@ test('ToneSynth', function(run, print, fixture) {
         play1(0);
         play2(0);
         play3(0);
-    }, 40);
+
+        setTimeout(done, 8000);
+    }, 17);
+
+    run('ToneSynth(context, settings, stage)', function(equals, done) {
+        var synth = new ToneSynth(context, settings);
+        var t0 = context.currentTime;
+        let t1;
+
+        synth.connect(context.destination);
+
+        function playScaleChromatic(time, root, range) {
+            equals('number', typeof time);
+
+            let n = -1;
+            while (++n < range) {
+                t1 = t0 + time + n / 20;
+
+                synth
+                .start(t1, root + n, 0.5)
+                .stop(t1 + 0.1)
+            }
+        }
+
+        playScaleChromatic(0, 36, 72);
+    }, 127);
 });

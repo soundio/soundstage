@@ -1,6 +1,5 @@
 import { nothing } from '../../../fn/fn.js';
 import { getPrivates } from '../privates.js';
-import ContextPool from '../context-pool.js';
 import NodeGraph   from './node-graph.js';
 import PlayNode from './play-node.js';
 import { automate, getAutomationEvents, getAutomationEndTime } from '../audio-param.js';

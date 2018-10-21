@@ -8,7 +8,7 @@ import Tone from './tone.js';
 import NodeGraph from './node-graph.js';
 import { automate } from '../audio-param.js';
 import { assignSettings } from './assign-settings.js';
-import { Pool } from '../context-pool.js';
+import Pool from '../pool.js';
 
 const DEBUG = window.DEBUG;
 const assign = Object.assign;
@@ -145,28 +145,6 @@ assign(ToneSynth.prototype, NodeGraph.prototype, {
 
 		// Use this as the settings object
 		return privates.notes.create(this.context, this);
-
-		// this.get('pitchToDetune').connect(note['osc-1'].detune);
-		// this.get('pitchToDetune').connect(note['osc-2'].detune);
-		// this.get('frequency').connect(note.filterFrequency);
-		// this.get('q').connect(note.filterQ);
-		//
-		// note.connect(this.get('output'));
-
- 		// We don't need to disconnect notes if our pool is local
-		// to this synth
-		//
-		// note.then((time) => {
-		// 	this.get('pitchToDetune').disconnect(note['osc-1'].detune);
-		// 	this.get('pitchToDetune').disconnect(note['osc-2'].detune);
-		// 	this.get('frequency').disconnect(note.filterFrequency);
-		// 	this.get('q').disconnect(note.filterQ);
-		//
- 		// 	note.disconnect();
-		// 	remove(privates.notes, note);
-		// });
-		//
-		// return note;
 	},
 
 	start: function(time, number, velocity) {
