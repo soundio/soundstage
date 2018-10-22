@@ -260,7 +260,7 @@ export function requestBufferFromEvents(rate, t0, t1, events) {
 
     // Process events from t0 to t1
     while (events[++n] && events[n].time < t1) {
-        console.log(n, events[n]);
+        //console.log(n, events[n]);
         automate(param, (events[n].time - t0) * sampleScale, events[n].curve, events[n].value, events[n].decay && events[n].decay * sampleScale);
         //param[methodNames[events[n].curve]](events[n].value, (events[n].time - t0) * sampleScale, events[n].decay * sampleScale);
     }

@@ -6,7 +6,7 @@ import requestInputSplitter from '../../audio-object/modules/request-input-split
 import { print }     from './print.js';
 import { distributeEvent } from './distribute.js';
 import audio         from './audio-context.js';
-import Input         from './audio-objects/input.js';
+import Input         from './nodes/input.js';
 import Output        from './nodes/output.js';
 import Graph         from './graph.js';
 import requestPlugin from './request-plugin.js';
