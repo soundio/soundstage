@@ -12,7 +12,7 @@ export default function Connection(graph, sourceId, targetId, sourceChan, target
     // Get source node
     //const sourceParts = sourceId.split('.');
     const sourceEntry  = graph.get(sourceId);
-    const sourceObject = sourceEntry.object;
+    const sourceObject = sourceEntry.data;
     const sourceNode   = AudioObject.prototype.isPrototypeOf(sourceObject) ?
         getOutput(sourceObject, 'default') :
         sourceObject ;
@@ -20,7 +20,7 @@ export default function Connection(graph, sourceId, targetId, sourceChan, target
     // Get target node or param
     //const targetParts = targetId.split('.');
     const targetEntry  = graph.get(targetId);
-    const targetObject = targetEntry.object;
+    const targetObject = targetEntry.data;
     const targetNode   = AudioObject.prototype.isPrototypeOf(targetObject) ?
         getInput(targetObject, 'default') :
         targetObject ;

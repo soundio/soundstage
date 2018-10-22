@@ -31,7 +31,7 @@ Returns the time at a given `beat`.
 
 import { each, get, id, insert, isDefined, Pool } from '../../fn/fn.js';
 import { default as Sequence, log as logSequence } from './sequence.js';
-
+import { getPrivates } from './utilities/privates.js';
 import { createId } from './utilities/utilities.js';
 import Transport from './transport.js';
 import Clock from './clock.js';
@@ -47,18 +47,6 @@ var assign    = Object.assign;
 var define    = Object.defineProperties;
 var notify    = Events.notify;
 
-var $private  = Symbol('sequencer');
-
-var get0      = get('0');
-var insertBy0 = insert(get0);
-
-function empty(object) {
-	var prop;
-	for (prop in object) {
-		object[prop] = undefined;
-	}
-}
-
 
 // Sequencer
 //
@@ -67,25 +55,58 @@ function empty(object) {
 // whence event streams sprout.
 
 export default function Sequencer(audio, distributors, sequences, events) {
-	var sequencer  = this;
 
+	// Transport is the base clock. It inherits from Clock and it provides
+	// these methods and properties:
+	//
+	// rate:           param
+	// tempo:          number
+	// startTime:      number || undefined
+	// stopTime:       number || undefined
+	// start:          fn
+	// stop:           fn
+	// beatAtTime:     fn
+	// timeAtBeat:     fn
+	// locationAtBeat: fn
+	// beatAtLocation: fn
+	//
+	// It also puts rateNode into privates
 
-	var clock      = new Clock(this);
-	var timer      = new CueTimer(function now() { return audio.currentTime; });
+	Transport.call(this, audio);
 
-	//Transport.call(this, audio);
-	//Clock.call(this, audio);
+	// Mix in Meter
+	//
+	// beatAtBar:  fn(n)
+	// barAtBeat:  fn(n)
+
+	Meter.call(this, events);
+
+	// Mix in Location
+	//
+	// beatAtLoc:  fn(n)
+	// locAtBeat:  fn(n)
+	//
+	//Location.call(this, events);
+
+	// Initialise sequencer as an event emitter
+	//
+	// on:  fn
+	// off: fn
+	//
+	//Events.call(this);
+
+	const timer = new CueTimer(function now() { return audio.currentTime; });
 
 	// Private
 
-	var privates = this[$private] = {
-		audio: audio,
-		startTime: 0,
-		beat: 0
-	};
+	const privates  = getPrivates(this);
+	const sequencer = this;
+
+	privates.startTime = 0;
+	privates.beat = 0;
 
 	function init() {
-		var stream = new CueStream(timer, clock, sequencer.events, id, distributors);
+		var stream = new CueStream(timer, sequencer, sequencer.events, id, distributors);
 		// Ensure there is always a stream waiting by preparing a new
 		// stream when the previous one ends.
 		stream.on({ 'stop': reset });
@@ -96,11 +117,6 @@ export default function Sequencer(audio, distributors, sequences, events) {
 		var beat = sequencer.beatAtTime(time);
 		init();
 	}
-
-
-	// Initialise sequencer as an event emitter
-
-	Events.call(this);
 
 
 	// Public
@@ -115,11 +131,13 @@ export default function Sequencer(audio, distributors, sequences, events) {
 			return this.start(time, beat);
 		}
 
-		var startTime = privates.startTime = time !== undefined ?
-			time :
-			audio.currentTime ;
+		Clock.prototype.start.call(this, time, beat);
 
-console.log('Sequencer: start()', startTime, beat, status, audio.state);
+		//var startTime = privates.startTime = time !== undefined ?
+		//	time :
+		//	audio.currentTime ;
+
+console.log('Sequencer: start()', this.startTime, beat, status, audio.state);
 
 		if (typeof beat === 'number') {
 			privates.beat = beat;
@@ -127,9 +145,9 @@ console.log('Sequencer: start()', startTime, beat, status, audio.state);
 
 		var events = sequencer.events;
 
-		clock.start(startTime);
-		stream.start(startTime, privates.beat);
-		notify('start', startTime, this);
+		//clock.start(this.startTime);
+		stream.start(this.startTime, privates.beat);
+		notify('start', this.startTime, this);
 
 		return this;
 	};
@@ -138,7 +156,7 @@ console.log('Sequencer: start()', startTime, beat, status, audio.state);
 		var stream = privates.stream;
 		var status = stream.status;
 
-console.log('Sequencer: stop() ', time, status);
+		console.log('Sequencer: stop() ', time, status);
 
 		// If stream is not yet playing do nothing
 		if (status === 'waiting') { return this; }
@@ -148,7 +166,8 @@ console.log('Sequencer: stop() ', time, status);
 
 		notify('stop', stopTime, this);
 		stream.stop(stopTime);
-		clock.stop(stopTime);
+
+		Clock.prototype.stop.call(this, time);
 
 		// Log the state of Pool shortly after stop
 		if (DEBUG) {
@@ -163,82 +182,24 @@ console.log('Sequencer: stop() ', time, status);
 	};
 
 
-	// Mix in Location
-	//
-	// beatAtLoc:  fn(n)
-	// locAtBeat:  fn(n)
-
-	Location.call(this, events);
-
-
-	// Mix in Meter
-	//
-	// beatAtBar:  fn(n)
-	// barAtBeat:  fn(n)
-
-	Meter.call(this, events);
-
-
 	// Init playback
 
 	init();
 }
 
-define(Sequencer.prototype, {
-	beat: {
-		get: function() {
-			var privates = this[$private];
-			var stream   = privates.stream;
-			var status   = stream.status;
-
-			return stream && status !== 'waiting' && status !== 'done' ?
-				stream.beatAtTime(privates.audio.currentTime) :
-				this[$private].beat ;
-		},
-
-		set: function(beat) {
-			var sequencer = this;
-			var privates  = this[$private];
-			var stream    = privates.stream;
-
-			if (stream && stream.status !== 'waiting') {
-				stream.on({
-					stop: function(stopTime) {
-						sequencer.start(stopTime, beat);
-					}
-				});
-
-				this.stop();
-				return;
-			}
-
-			privates.beat = beat;
-		},
-
-		// Make observable via get/set
-		configurable: true
-	},
-
-	status: {
-		get: function() {
-			var stream = this[$private].stream;
-			return stream ? stream.status : 'waiting' ;
-		}
-	}
-});
-
-assign(Sequencer.prototype, Location.prototype, Meter.prototype, Events.prototype, {
+assign(Sequencer.prototype, Transport.prototype, Meter.prototype, Events.prototype, {
 	//create: function(generator, object) {
 	//	var stream = this[$private].stream;
 	//	return stream.create(generator, id, object);
 	//},
 
 	cue: function(beat, fn) {
-		var stream = this[$private].stream;
+		var stream = getPrivates(this).stream;
 		stream.cue(beat, fn);
 		return this;
 	},
 
+	/*
 	beatAtTime: function(time) {
 		var stream = this[$private].stream;
 		return stream ? stream.beatAtTime(time) : undefined ;
@@ -248,8 +209,5 @@ assign(Sequencer.prototype, Location.prototype, Meter.prototype, Events.prototyp
 		var stream = this[$private].stream;
 		return stream ? stream.timeAtBeat(beat) : undefined ;
 	}
+	*/
 });
-
-// Todo: clean up sharing betweeen Sequencer and record stream...
-// Expose private symbol for use by record stream
-Sequencer.$private = $private;

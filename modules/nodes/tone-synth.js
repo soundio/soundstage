@@ -74,7 +74,9 @@ function isIdle(node) {
 
 function ToneSynth(context, settings, stage) {
 	if (DEBUG) { printGroup('ToneSynth'); }
-
+console.log('STAGE', stage);
+stage && stage.connect(new AnalyserNode(context), 'poo');
+stage && stage.connect(new AnalyserNode(context), 'rate');
 	// Private
 	const privates = getPrivates(this);
 

@@ -5,12 +5,12 @@ import AudioObject, { getOutput, getInput, isAudioParam } from '../../audio-obje
 
 export function connect(source, target, sourceChan, targetChan) {
     if (!source) {
-        print('Trying to connect source with no output "' + outName + '". Dropping connection.');
+        print('Trying to connect to undefined source. Dropping connection.');
         return;
     }
 
     if (!target) {
-        print('Trying to connect target with no input "' + inName + '". Dropping connection.');
+        print('Trying to connect to undefined target. Dropping connection.');
         return;
     }
 

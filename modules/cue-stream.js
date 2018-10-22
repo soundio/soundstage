@@ -658,8 +658,8 @@ var z = 'stream-' + (++w); //Fn.postpad(' ', 12, (generate[0] && generate[0].joi
 		wait(timer.currentTime);
 
 		// Log in timeline
-		Soundstage.inspector &&
-		Soundstage.inspector.drawBar(time, 'orange', 'CueStream.start ' + clock.constructor.name);
+		//Soundstage.inspector &&
+		//Soundstage.inspector.drawBar(time, 'orange', 'CueStream.start ' + clock.constructor.name);
 
 		return stream;
 	};

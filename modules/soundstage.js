@@ -1,16 +1,20 @@
 
 import { compose, get, is, isDefined, map, nothing }   from '../../fn/fn.js';
-import AudioObject          from '../../audio-object/modules/audio-object.js';
-import requestInputSplitter from '../../audio-object/modules/request-input-splitter.js';
+import AudioObject            from '../../audio-object/modules/audio-object.js';
+import requestInputSplitter   from '../../audio-object/modules/request-input-splitter.js';
 
 import { print }     from './utilities/print.js';
+import { getPrivates } from './utilities/privates.js';
 import { distributeEvent } from './distribute.js';
 import audio         from './audio-context.js';
+import constructors  from './constructors';
+import { connect, disconnect } from './connect.js';
 import Input         from './nodes/input.js';
 import Output        from './nodes/output.js';
 import Graph         from './graph.js';
 import requestPlugin from './request-plugin.js';
 import Controls      from './controls.js';
+import Transport     from './transport.js';
 import Sequence      from './sequence.js';
 import Sequencer     from './sequencer.js';
 import Metronome     from './metronome.js';
@@ -21,14 +25,13 @@ const define       = Object.defineProperties;
 const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 const setPrototypeOf = Object.setPrototypeOf;
 
-
 function isURL() {
     return false;
 }
 
 // Soundstage
 
-function createOutputMerger(audio, target) {
+function createOutputMerger(context, target) {
     // Safari sets audio.destination.maxChannelCount to
     // 0 - possibly something to do with not yet
     // supporting multichannel audio, but still annoying.
@@ -36,7 +39,7 @@ function createOutputMerger(audio, target) {
         config.channelCountLimit :
         target.maxChannelCount ;
 
-    var merger = audio.createChannelMerger(count);
+    var merger = context.createChannelMerger(count);
 
     // Used by meter-canvas controller - there is no way to automatically
     // determine the number of channels in a signal.
@@ -54,10 +57,13 @@ function createOutputMerger(audio, target) {
     return merger;
 }
 
-function createObject(audio, settings) {
-    return requestPlugin(settings.type).then(function(Constructor) {
-        return new Constructor(audio, settings);
-    });
+function requestAudioNode(context, settings, stage) {
+    const Node = constructors[settings.type];
+    return Node ?
+        Promise.resolve(new Node(context, settings, stage)) :
+        requestPlugin(settings.type).then(function(Constructor) {
+            return new Constructor(context, settings, stage);
+        });
 }
 
 export default function Soundstage(data, settings) {
@@ -79,20 +85,33 @@ export default function Soundstage(data, settings) {
     //
     // audio:      audio context
 
+    const stage       = this;
     const context     = settings.context || audio;
     const destination = settings.output || context.destination;
     const output      = createOutputMerger(context, destination);
 
-    AudioObject.call(this, context, undefined, output);
-    Soundstage.inspector && Soundstage.inspector.drawAudioFromNode(output);
+    //AudioObject.call(this, context, undefined, output);
+    //Soundstage.inspector && Soundstage.inspector.drawAudioFromNode(output);
+
+
+
+    // Initialise audio regions. Assigns:
+    //
+    // regions:    array
+
+    const regions
+        = this.regions
+        = (settings.regions || []).map(function(data) {
+            return Region(context, data);
+        });
 
 
     // Initialise soundstage as a plugin graph. Assigns:
     //
-    // plugins:     array
+    // nodes:       array
     // connections: array
 
-    const types = {
+    const requestTypes = {
         input: function(context, data) {
             return requestInputSplitter(context).then(function(input) {
                 return new Input(context, data.object, input);
@@ -103,21 +122,36 @@ export default function Soundstage(data, settings) {
             return Promise.resolve(new Output(context, data.object, output));
         },
 
-        default: createObject
+        default: requestAudioNode
     };
 
-    Graph.call(this, context, types, data, {
-        //create:     this.create.bind(this),
-        cue:        this.cue.bind(this),
-        beatAtTime: this.beatAtTime.bind(this),
-        timeAtBeat: this.timeAtBeat.bind(this),
-        beatAtBar:  this.beatAtBar.bind(this),
-        barAtBeat:  this.barAtBeat.bind(this),
+    Graph.call(this, context, requestTypes, data, {
+        // Whitelist an object of methods to pass to node
+        // constructors as a third argument.
+
+        cue:            this.cue.bind(this),
+        beatAtTime:     this.beatAtTime.bind(this),
+        timeAtBeat:     this.timeAtBeat.bind(this),
+        beatAtLocation: this.beatAtLocation.bind(this),
+        locationAtBeat: this.locationAtBeat.bind(this),
+        beatAtBar:      this.beatAtBar.bind(this),
+        barAtBeat:      this.barAtBeat.bind(this),
+        regions:        this.regions,
+
+        connect: function(target, outputName, targetChan) {
+            return outputName === 'rate' ?
+                connect(getPrivates(stage).rateNode, target, 0, targetChan) :
+                connect() ;
+        },
+
+        disconnect: function(outputName, target, outputChan, targetChan) {
+            if (outputName !== 'rate') { return; }
+            if (!target) { return; }
+            disconnect(getPrivates(stage).rateNode, target, 0, targetChan);
+        },
+
         //on:         this.on.bind(this),
         //off:        this.off.bind(this),
-        regions:    this.regions
-        //beatAtLoc:  this.beatAtLoc.bind(stage),
-        //locAtBeat:  this.locAtBeat.bind(stage),
     });
 
 
@@ -146,17 +180,6 @@ export default function Soundstage(data, settings) {
     Sequence.call(this, data);
 
 
-    // Initialise audio regions. Assigns:
-    //
-    // regions:    array
-
-    const regions
-        = this.regions
-        = (settings.regions || []).map(function(data) {
-            return Region(context, data);
-        });
-
-
     // Initialise soundstage as a Sequencer. Assigns:
     //
     // start:      fn
@@ -170,8 +193,6 @@ export default function Soundstage(data, settings) {
     // create:     fn
     // cue:        fn
     // status:     string
-
-    const stage = this;
 
     const distributors = {
         "sequence": function(object, event, stream, transform) {
@@ -236,6 +257,7 @@ export default function Soundstage(data, settings) {
     // Define variables
 
     define(this, {
+        context:           { value: context },
         mediaChannelCount: { value: undefined, writable: true, configurable: true },
         roundTripLatency:  { value: Soundstage.roundTripLatency, writable: true, configurable: true },
     });
@@ -254,12 +276,10 @@ export default function Soundstage(data, settings) {
     */
 }
 
-setPrototypeOf(Soundstage.prototype, AudioObject.prototype);
-
 define(Soundstage.prototype, {
     version: { value: 1 },
-    beat:    getOwnPropertyDescriptor(Sequencer.prototype, 'beat'),
-    status:  getOwnPropertyDescriptor(Sequencer.prototype, 'status')
+    beat:    getOwnPropertyDescriptor(Transport.prototype, 'beat'),
+    status:  getOwnPropertyDescriptor(Transport.prototype, 'status')
 });
 
 /*
@@ -271,11 +291,11 @@ seconds relative to window.performance.now().
 
 assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
     timeAtDomTime: function(domTime) {
-        return timeAtDomTime(this.audio, domTime);
+        return timeAtDomTime(this.context, domTime);
     },
 
     domTimeAtTime: function(domTime) {
-        return domTimeAtTime(this.audio, domTime);
+        return domTimeAtTime(this.context, domTime);
     },
 
     destroy: function() {

@@ -82,8 +82,8 @@ export function release(event) {
 	return event;
 };
 
-export function isRateEvent(e) { return e[1] === 'rate'; }
+export function isRateEvent(e)  { return e[1] === 'rate'; }
 export function isMeterEvent(e) { return e[1] === 'meter'; }
 
-export const toTime = get(0);
-export const toType = get(1);
+export const getTime = get(0);
+export const getType = get(1);

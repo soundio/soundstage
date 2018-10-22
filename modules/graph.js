@@ -4,13 +4,13 @@ Graph()
 
 Constructs a graph of AudioObjects. The returned object has two proerties:
 
-- `plugins`
+- `nodes`
 - `connections`
 
 */
 
 /*
-.plugins()
+.nodes()
 
 An array of audio graph nodes.
 */
@@ -33,7 +33,7 @@ Create a new node of `type`.
 Return the plugin with `id`, or undefined.
 */
 
-import { has, get, invoke, remove }  from '../../fn/fn.js';
+import { has, get, invoke, nothing, remove }  from '../../fn/fn.js';
 import { print }  from './utilities/print.js';
 import { generateUnique }  from './utilities/utilities.js';
 import Node       from './graph-node.js';
@@ -42,36 +42,38 @@ import Connection from './graph-connection.js';
 const assign    = Object.assign;
 const define    = Object.defineProperties;
 
+function addConnection(graph, setting) {
+	new Connection(graph, setting.source, setting.target, setting.output, setting.input);
+	return graph;
+}
+
 export default function Graph(audio, requests, data, api) {
 	const graph       = this;
-    const plugins     = [];
+    const nodes       = [];
     const connections = [];
 
 	define(this, {
-		plugins:     { enumerable: true, value: plugins },
+		nodes:       { enumerable: true, value: nodes },
 		connections: { enumerable: true, value: connections }
 	});
 
-    // Load plugins
+    // Load nodes
     const promise = Promise.all(
-        data.plugins ?
-            data.plugins.map(function(data) {
+        data.nodes ?
+            data.nodes.map(function(data) {
                 return (requests[data.type] || requests.default)(audio, data, api)
-                .then(function(plugin) {
-                    plugins.push(new Node(graph, data.type, data.id, plugin));
+                .then(function(object) {
+                    nodes.push(new Node(graph, data.type, data.id, object));
                 });
             }) :
             nothing
     )
     .then(function(loaders) {
         if (data.connections) {
-            data.connections.reduce(function(connections, setting) {
-                const connection = new Connection(graph, setting.source, setting.target, setting.output, setting.input);
-                return connections;
-            }, connections)
+            data.connections.reduce(addConnection, graph)
         }
 
-        print('Audio graph set up with ' + graph.plugins.length + ' plugins, ' + graph.connections.length + ' connections');
+        print('Audio graph set up with ' + graph.nodes.length + ' nodes, ' + graph.connections.length + ' connections');
 
         return graph;
     });
@@ -81,13 +83,13 @@ export default function Graph(audio, requests, data, api) {
 
 assign(Graph.prototype, {
 	get: function(id) {
-		return this.plugins.find(has('id', id));
+		return this.nodes.find(has('id', id));
 	},
 
 	create: function(type, settings) {
 		const plugin = {};
-		const id = generateUnique('id', this.plugins.map(get('id')));
-		this.plugins.push(new Node(this, type, id, plugin));
+		const id = generateUnique('id', this.nodes.map(get('id')));
+		this.nodes.push(new Node(this, type, id, plugin));
 		return plugin;
 	}
 });

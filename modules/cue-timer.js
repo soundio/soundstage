@@ -58,9 +58,9 @@ export default function CueTimer(now) {
 		fns = requests;
 
 		// For debugging
-		if (Soundstage.inspector) {
-			Soundstage.inspector.drawCue(now(), time);
-		}
+		//if (Soundstage.inspector) {
+		//	Soundstage.inspector.drawCue(now(), time);
+		//}
 	}
 
 	function frame() {

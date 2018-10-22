@@ -18,20 +18,13 @@ function getNotes(number, node) {
 }
 
 export default function GraphNode(graph, type, id, object) {
-    this.graph   = graph;
-    this.id      = id,
-    this.type    = type;
-    this.object  = object;
-
-    define(this, {
-        notes: {
-            writable: true,
-            value:    {}
-        }
-    });
-
+    this.graph = graph;
+    this.id    = id,
+    this.type  = type;
+    this.data  = object;
     seal(this);
 }
+
 /*
 define(GraphNode.prototype, {
     recording: {
@@ -52,6 +45,7 @@ assign(GraphNode.prototype, {
         .forEach(invoke('remove', nothing));
         return this;
     },
+
     /*
     control: function(time, type, param, value) {
         const object = this.object;
@@ -63,11 +57,12 @@ assign(GraphNode.prototype, {
         return distribute(this.object, time, type, param, value);
     },
     */
+
     toJSON: function() {
         return {
-            id:     this.id,
-            type:   this.type,
-            object: this.object
+            id:   this.id,
+            type: this.type,
+            data: this.data
         }
     }
 });

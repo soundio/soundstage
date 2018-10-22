@@ -1,5 +1,5 @@
 import { test } from '../../fn/fn.js';
-import Controls from '../modules/soundstage.js';
+import Soundstage from '../modules/soundstage.js';
 
 // Event types
 //
@@ -14,7 +14,7 @@ import Controls from '../modules/soundstage.js';
 // [time, "sequence", name || events, target, duration, transforms...]
 
 const data = {
-    plugins: [
+    nodes: [
         { id: '1', type: 'input' },
         { id: '2', type: '/soundstage/modules/nodes/tone-synth.js' },
         { id: '3', type: 'output' }
@@ -55,7 +55,7 @@ test('Soundstage()', function(run, print, fixture) {
     run('Soundstage()', function(equals, done) {
         stage.ready(function() {
             console.log(stage);
-            equals(JSON.stringify({"id":"1","type":"input","object":{"channels":[0,1],"name":"In 1/2"}}), JSON.stringify(stage.get('1')));
+            equals(JSON.stringify({"id":"1","type":"input","data":{"channels":[0,1],"name":"In 1/2"}}), JSON.stringify(stage.get('1')));
 
             setTimeout(function() {
                 stage.start();
