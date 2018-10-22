@@ -7,7 +7,7 @@ import { print }     from './print.js';
 import { distributeEvent } from './distribute.js';
 import audio         from './audio-context.js';
 import Input         from './audio-objects/input.js';
-import Output        from './audio-objects/output.js';
+import Output        from './nodes/output.js';
 import Graph         from './graph.js';
 import requestPlugin from './request-plugin.js';
 import Controls      from './controls.js';
@@ -79,17 +79,13 @@ export default function Soundstage(data, settings) {
     //
     // audio:      audio context
 
-/*
-.context()
-The audio context.
-*/
-
     const context     = settings.context || audio;
     const destination = settings.output || context.destination;
     const output      = createOutputMerger(context, destination);
 
     AudioObject.call(this, context, undefined, output);
     Soundstage.inspector && Soundstage.inspector.drawAudioFromNode(output);
+
 
     // Initialise soundstage as a plugin graph. Assigns:
     //
@@ -129,12 +125,6 @@ The audio context.
     //
     // controls:   array-like
 
-/*
-.controls()
-
-An array-like list of controls.
-*/
-
     this.ready(function graphReady(stage) {
         define(stage, {
             controls: {
@@ -159,12 +149,6 @@ An array-like list of controls.
     // Initialise audio regions. Assigns:
     //
     // regions:    array
-
-/*
-.regions()
-
-An array of audio regions.
-*/
 
     const regions
         = this.regions

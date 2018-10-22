@@ -22,7 +22,8 @@ function cueAutomation(param, events, time, gain, rate) {
     param.cancelAndHoldAtTime(time);
 
     for (let event of events) {
-        automate(param, time + event[0] / rate, event[1], event[2] * gain, event[3], arguments[5]);
+        // param, time, curve, value, decay
+        automate(param, time + event[0] / rate, event[1], event[2] * gain, event[3]);
     }
 }
 
