@@ -36,6 +36,7 @@ Provides the methods:
 
 import { getPrivates } from '../utilities/privates.js';
 import { print, printGroup, printGroupEnd } from './print.js';
+import { connect, disconnect } from '../connect.js';
 import Envelope from './envelope.js';
 
 const DEBUG  = window.DEBUG;
@@ -85,42 +86,7 @@ export function createNode(audio, type, settings) {
     return new constructors[type](audio, settings);
 }
 
-function connect(source, target, output, input) {
-    if (output > source.numberOfOutputs) {
-        console.warn('Connection failed from non-existent output ' + output + ' of source', source);
-        return;
-    }
-
-    if (typeof input === 'string') {
-        const param = target[input];
-
-        if (!param) {
-            console.warn('Connection failed to non-existent param ' + input + ' of target', target);
-            return;
-        }
-
-        source.connect(param, output || 0);
-        return;
-    }
-
-    if (input >= target.numberOfInputs) {
-        console.warn('Connection failed to non-existent input ' + input + ' of target', target);
-        return;
-    }
-
-    if (target.connect) {
-        source.connect(target, output || 0, input || 0);
-    }
-    else {
-        // AudioParams don't like having extra parameters passed in
-        source.connect(target);
-    }
-
-    print('connect', source.constructor.name, (output || 0), '–', target.constructor.name, (input || 0));
-}
-
 function createConnection(nodes, data) {
-
     // Split paths such as env.gain.0 to ['env', 'gain', 0]
     const srcPath = data.source.split('.');
     const source  = nodes[srcPath[0]];

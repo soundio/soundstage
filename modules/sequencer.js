@@ -33,6 +33,7 @@ import { each, get, id, insert, isDefined, Pool } from '../../fn/fn.js';
 import { default as Sequence, log as logSequence } from './sequence.js';
 
 import { createId } from './utilities/utilities.js';
+import Transport from './transport.js';
 import Clock from './clock.js';
 import CueStream from './cue-stream.js';
 import CueTimer from './cue-timer.js';
@@ -67,9 +68,13 @@ function empty(object) {
 
 export default function Sequencer(audio, distributors, sequences, events) {
 	var sequencer  = this;
-	var clock      = new Clock(audio);
+
+
+	var clock      = new Clock(this);
 	var timer      = new CueTimer(function now() { return audio.currentTime; });
 
+	//Transport.call(this, audio);
+	//Clock.call(this, audio);
 
 	// Private
 

@@ -81,3 +81,9 @@ export function release(event) {
 	event.idle = true;
 	return event;
 };
+
+export function isRateEvent(e) { return e[1] === 'rate'; }
+export function isMeterEvent(e) { return e[1] === 'meter'; }
+
+export const toTime = get(0);
+export const toType = get(1);

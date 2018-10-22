@@ -9,6 +9,7 @@ import NodeGraph from './node-graph.js';
 import { automate } from '../audio-param.js';
 import { assignSettings } from './assign-settings.js';
 import Pool from '../pool.js';
+import { connect, disconnect } from '../connect.js';
 
 const DEBUG = window.DEBUG;
 const assign = Object.assign;
@@ -71,15 +72,6 @@ function isIdle(node) {
 	return node.startTime !== undefined && node.context.currentTime > node.stopTime;
 }
 
-function setup() {
-	this.get('pitchToDetune').connect(note['osc-1'].detune);
-	this.get('pitchToDetune').connect(note['osc-2'].detune);
-	this.get('frequency').connect(note.filterFrequency);
-	this.get('q').connect(note.filterQ);
-
-	note.connect(this.get('output'));
-}
-
 function ToneSynth(context, settings, stage) {
 	if (DEBUG) { printGroup('ToneSynth'); }
 
@@ -125,11 +117,11 @@ function ToneSynth(context, settings, stage) {
 
 	// Note pool
 	privates.notes = new Pool(Tone, isIdle, (note) => {
-		this.get('pitchToDetune').connect(note['osc-1'].detune);
-		this.get('pitchToDetune').connect(note['osc-2'].detune);
-		this.get('frequency').connect(note.filterFrequency);
-		this.get('q').connect(note.filterQ);
-		note.connect(this.get('output'));
+		connect(this.get('pitchToDetune'), note['osc-1'].detune);
+		connect(this.get('pitchToDetune'), note['osc-2'].detune);
+		connect(this.get('frequency'), note.filterFrequency);
+		connect(this.get('q'), note.filterQ);
+		connect(note, this.get('output'));
 	});
 
 	// Update settings
