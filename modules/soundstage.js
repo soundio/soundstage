@@ -3,7 +3,7 @@ import { compose, get, is, isDefined, map, nothing }   from '../../fn/fn.js';
 import AudioObject          from '../../audio-object/modules/audio-object.js';
 import requestInputSplitter from '../../audio-object/modules/request-input-splitter.js';
 
-import { print }     from './print.js';
+import { print }     from './utilities/print.js';
 import { distributeEvent } from './distribute.js';
 import audio         from './audio-context.js';
 import Input         from './nodes/input.js';

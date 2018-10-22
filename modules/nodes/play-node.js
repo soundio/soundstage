@@ -18,8 +18,9 @@ And also, for internal use:
 - `.reset()`
 */
 
+import { print, printGroup, printGroupEnd } from './print.js';
 import { requestTick } from '../../../fn/fn.js';
-import { getPrivates } from '../privates.js';
+import { getPrivates } from '../utilities/privates.js';
 
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;
@@ -45,7 +46,9 @@ const properties = {
 };
 
 export default function PlayNode() {
+    if (DEBUG) { printGroup('PlayNode'); }
     define(this, properties);
+    if (DEBUG) { printGroupEnd(); }
 }
 
 function cueResolve(node, privates) {

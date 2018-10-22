@@ -1,7 +1,7 @@
 
 import { get, isDefined }      from '../../fn/fn.js';
 import AudioObject, { getOutput, getInput } from '../../audio-object/modules/audio-object.js';
-import { print }               from './print.js';
+import { print }               from './utilities/print.js';
 
 const assign = Object.assign;
 const seal   = Object.seal;

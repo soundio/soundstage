@@ -2,7 +2,7 @@
 //import AudioObject from '../../../context-object/modules/context-object.js';
 import { print, printGroup, printGroupEnd } from './print.js';
 import { remove } from '../../../fn/fn.js';
-import { getPrivates } from '../privates.js';
+import { getPrivates } from '../utilities/privates.js';
 import { numberToFrequency } from '../../../midi/midi.js';
 import Tone from './tone.js';
 import NodeGraph from './node-graph.js';

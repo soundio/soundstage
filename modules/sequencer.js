@@ -32,7 +32,7 @@ Returns the time at a given `beat`.
 import { each, get, id, insert, isDefined, Pool } from '../../fn/fn.js';
 import { default as Sequence, log as logSequence } from './sequence.js';
 
-import { createId } from './utilities.js';
+import { createId } from './utilities/utilities.js';
 import Clock from './clock.js';
 import CueStream from './cue-stream.js';
 import CueTimer from './cue-timer.js';

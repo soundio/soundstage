@@ -5,7 +5,7 @@
 import { cache, compose, curry, each, equals, find, get, getPath, insert, is, isDefined, matches, noop, nothing, pipe, remove, requestTick, slugify, Stream } from '../../fn/fn.js';
 
 import config from './config.js';
-import { createId } from './utilities.js';
+import { createId } from './utilities/utilities.js';
 import audioContext from './audio-context.js';
 import AudioObject, { requestMedia } from '../../audio-object/modules/audio-object.js';
 import Event from './event.js';

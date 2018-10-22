@@ -6,7 +6,7 @@
 // Darkgreen bg #1c2726
 
 import { each } from '../../fn/fn.js';
-import { print } from './modules/print.js';
+import { print } from './modules/utilities/print.js';
 
 print(' - http://github.com/soundio/soundstage');
 

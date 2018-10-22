@@ -34,7 +34,7 @@ Provides the methods:
 
 */
 
-import { getPrivates } from '../privates.js';
+import { getPrivates } from '../utilities/privates.js';
 import { print, printGroup, printGroupEnd } from './print.js';
 import Envelope from './envelope.js';
 

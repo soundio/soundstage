@@ -31,7 +31,7 @@ through a selectable transform function to a target stream.
 */
 
 import { id } from '../../fn/fn.js';
-import { timeAtDomTime } from './utilities.js';
+import { timeAtDomTime } from './utilities/utilities.js';
 import { Distribute }    from './distribute.js';
 
 const DEBUG  = false;

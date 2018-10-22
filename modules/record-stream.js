@@ -1,6 +1,6 @@
 
 import { get, id, insert, overload, Stream } from '../../fn/fn.js';
-import { createId } from './utilities.js';
+import { createId } from './utilities/utilities.js';
 import { default as Event, release } from './event.js';
 import Sequencer from './sequencer.js';
 

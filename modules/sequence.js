@@ -18,8 +18,8 @@ An array of sequences.
 */
 
 import { Functor as Fn, compose, get, isDefined, map, postpad, slugify, toString } from '../../fn/fn.js';
-import { print }    from './print.js';
-import { createId } from './utilities.js';
+import { print }    from './utilities/print.js';
+import { createId } from './utilities/utilities.js';
 
 
 var assign     = Object.assign;

@@ -34,8 +34,8 @@ Return the plugin with `id`, or undefined.
 */
 
 import { has, get, invoke, remove }  from '../../fn/fn.js';
-import { print }  from './print.js';
-import { generateUnique }  from './utilities.js';
+import { print }  from './utilities/print.js';
+import { generateUnique }  from './utilities/utilities.js';
 import Node       from './graph-node.js';
 import Connection from './graph-connection.js';
 

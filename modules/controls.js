@@ -13,7 +13,7 @@ import { get, map, nothing } from '../../fn/fn.js';
 import push        from '../../fn/modules/lists/push.js';
 import { toKeyString, toKeyCode } from '../../../dom/dom.js';
 import { on, off, toChannel, toType } from '../../midi/midi.js';
-import { print }           from './print.js';
+import { print }           from './utilities/print.js';
 import KeyboardInputSource, { isKeyboardInputSource } from './control-sources/keyboard-input-source.js';
 import MIDIInputSource, { isMIDIInputSource }     from './control-sources/midi-input-source.js';
 import Control from './control.js';
