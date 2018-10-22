@@ -32,7 +32,9 @@ through a selectable transform function to a target stream.
 
 import { id } from '../../fn/fn.js';
 import { timeAtDomTime } from './utilities.js';
+import { Distribute }    from './distribute.js';
 
+const DEBUG  = false;
 const A      = Array.prototype;
 const assign = Object.assign;
 const seal   = Object.seal;
@@ -114,35 +116,35 @@ export default function Control(controls, source, target, setting) {
 
     seal(this);
 
+    const distribute = Distribute(target.object);
+
     // Bind source output to route input
     source.each(function input(timeStamp, type, name, n) {
+        if (DEBUG) { console.log('INPUT', timeStamp, type, name, n); }
+
         // Catch keys with no name
         if (!name && !data.name) { return; }
 
-        target.control(
-            // time in audioContext timeframe - support Audio Nodes
-            target.object.context ? timeAtDomTime(target.object.context, timeStamp) :
-            // and Audio Objects, for just now at least
+        // time in audioContext timeframe
+        const time = target.object.context ? timeAtDomTime(target.object.context, timeStamp) :
+            // support Audio Objects, for just now at least
             target.object.audio ? timeAtDomTime(target.object.audio, timeStamp) :
-            0,
+            0 ;
 
-            // type
-            data.type ?
-                types[data.type] ?
-                    types[data.type](type, name, n) :
-                    data.type :
-                type,
+        // Select type based on data
+        type = data.type ?
+            types[data.type] ?
+                types[data.type](type, name, n) :
+                data.type :
+            type ;
 
-            // key
-            data.name ?
-                data.name :
-                name,
+        name = data.name || name ;
 
-            // value
-            transforms[data.transform] ?
-                transforms[data.transform](data.min, data.max, value, n) :
-                n
-        );
+        value = transforms[data.transform] ?
+            transforms[data.transform](data.min, data.max, value, n) :
+            n ;
+
+        distribute(time, type, name, value);
     });
 }
 

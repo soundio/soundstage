@@ -53,3 +53,27 @@ export function distributeEvent(object, event) {
     // How long is our longest event going to be? Hmm.
     return distribute(object, event[0], event[1], event[2], event[3], event[4], event[5]);
 };
+
+
+
+
+export function Distribute(target) {
+    const notes = {};
+
+    return function distributeEvents(time, type, name, value) {
+        if (type === 'noteon') {
+            if (notes[name]) { return; }
+            // target, time, type, name, value
+            notes[name] = distribute(target, time, type, name, value);
+        }
+        else if (type = 'noteoff') {
+            // Choose a note target where there is one
+            // target, time, type, name, value
+            distribute(notes[name] || target, time, type, name, value);
+            notes[name] = undefined;
+        }
+        else {
+            distribute(target, time, type, name, value);
+        }
+    };
+};

@@ -56,7 +56,6 @@ test('ToneSynth', function(run, print, fixture) {
 
     run('ToneSynth(context, settings, stage)', function(equals, done) {
         var synth = new ToneSynth(context, settings);
-
         synth.connect(context.destination);
 
         synth

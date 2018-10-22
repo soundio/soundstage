@@ -1,71 +1,63 @@
 
 import { get, isDefined }      from '../../fn/fn.js';
-import { getOutput, getInput } from '../../audio-object/modules/audio-object.js';
+import AudioObject, { getOutput, getInput } from '../../audio-object/modules/audio-object.js';
 import { print }               from './print.js';
 
 const assign = Object.assign;
 const seal   = Object.seal;
 
-function connect(source, target, outName, inName, outputNumber, inputNumber) {
-    var outputNode = getOutput(source, outName);
-    var inputNode  = getInput(target, inName);
-
-    if (!outputNode) {
-        print('Trying to connect source ' + source.type + ' with no output "' + outName + '". Dropping connection.');
+function connect(source, target, sourceChan, targetChan) {
+    if (!source) {
+        print('Trying to connect source with no output "' + outName + '". Dropping connection.');
         return;
     }
 
-    if (!inputNode) {
-        print('Trying to connect target ' + target.type + ' with no input "' + inName + '". Dropping connection.');
+    if (!target) {
+        print('Trying to connect target with no input "' + inName + '". Dropping connection.');
         return;
     }
 
-    if (isDefined(outputNumber) && isDefined(inputNumber)) {
-        if (outputNumber >= outputNode.numberOfOutputs) {
+    if (!target.numberOfInputs) {
+        print('Trying to connect target with no inputs. Dropping connection.');
+        return;
+    }
+
+    if (isDefined(sourceChan) && isDefined(targetChan)) {
+        if (sourceChan >= source.numberOfOutputs) {
             print('Trying to .connect() from a non-existent output (' +
-                outputNumber + ') on output node {numberOfOutputs: ' + outputNode.numberOfOutputs + '}. Dropping connection.');
+                sourceChan + ') on output node {numberOfOutputs: ' + source.numberOfOutputs + '}. Dropping connection.');
             return;
         }
 
-        if (inputNumber >= inputNode.numberOfInputs) {
+        if (targetChan >= target.numberOfInputs) {
             print('Trying to .connect() to a non-existent input (' +
-                inputNumber + ') on input node {numberOfInputs: ' + inputNode.numberOfInputs + '}. Dropping connection.');
+                targetChan + ') on input node {numberOfInputs: ' + target.numberOfInputs + '}. Dropping connection.');
             return;
         }
 
-        outputNode.connect(inputNode, outputNumber, inputNumber);
+        source.connect(target, sourceChan, targetChan);
     }
     else {
-        outputNode.connect(inputNode);
+        source.connect(target);
     }
 
     // Indicate successful connection (we hope)
     return true;
 }
 
-function disconnect(source, target, outName, inName, outputNumber, inputNumber, connections) {
-    var outputNode = AudioObject.getOutput(source.object, outName);
-
-    if (!outputNode) {
+function disconnect(source, target, sourceChan, targetChan, connections) {
+    if (!source) {
         print('AudioObject: trying to .disconnect() from an object without output "' + outName + '".');
         return;
     }
 
     if (!target) {
-        outputNode.disconnect();
         print('disconnected', source.id, source.object, target.id, target.object);
         return;
     }
 
-    var inputNode = AudioObject.getInput(target.object, inName);
-
-    if (!inputNode) {
-        print('trying to .disconnect() an object with no inputs.', target);
-        return;
-    }
-
     if (AudioObject.features.disconnectParameters) {
-        outputNode.disconnect(inputNode, outputNumber, inputNumber);
+        source.disconnect(target, sourceChan, targetChan);
     }
     else {
         disconnectDestination(source, outName, outputNode, inputNode, outputNumber, inputNumber, connections);
@@ -98,25 +90,61 @@ function disconnectDestination(source, outName, outputNode, inputNode, outputNum
     }
 }
 
-export default function Connection(graph, sourceId, targetId, output, input) {
-    this.graph  = this;
-    this.source = graph.get(sourceId);
-    this.target = graph.get(targetId);
-    this.output = output;
-    this.input  = input;
+export default function Connection(graph, sourceId, targetId, sourceChan, targetChan) {
+
+    // Get source node
+    //const sourceParts = sourceId.split('.');
+    const sourceEntry  = graph.get(sourceId);
+    const sourceObject = sourceEntry.object;
+    const sourceNode   = AudioObject.prototype.isPrototypeOf(sourceObject) ?
+        getOutput(sourceObject, 'default') :
+        sourceObject ;
+
+    // Get target node or param
+    //const targetParts = targetId.split('.');
+    const targetEntry  = graph.get(targetId);
+    const targetObject = targetEntry.object;
+    const targetNode   = AudioObject.prototype.isPrototypeOf(targetObject) ?
+        getInput(targetObject, 'default') :
+        targetObject ;
+
+    const targetParam  = targetChan
+        && !/^\d/.test(targetChan)
+        && targetNode[targetChan] ;
+
+    // Define properties
+    this.graph  = graph;
+    this.source = sourceEntry ;
+    this.target = targetEntry ;
+
+    if (sourceChan || targetChan) {
+        this.data = [
+            sourceChan && parseInt(sourceChan, 10) || 0,
+            targetChan && /^\d/.test(targetChan) && parseInt(targetChan, 10) || 0
+        ];
+    }
+
+    // Private properties
+    this.sourceNode  = sourceNode;
+    this.targetNode  = targetNode;
+    this.targetParam = targetParam;
+
+    // Make immutable
     seal(this);
 
     // Connect them up
-    if (connect(this.source.object, this.target.object, 'default', 'default', this.output, this.input)) {
+    if (connect(this.sourceNode, this.targetParam || this.targetNode, this.data && this.data[0], this.data && this.data[1])) {
         graph.connections.push(this);
-    };
+    }
 }
 
 assign(Connection.prototype, {
     remove: function() {
-        if (disconnect(this.source.object, this.target.object, 'default', 'default', this.output, this.input)) {
+        // Connect them up
+        if (disconnect(this.sourceNode, this.targetParam || this.targetNode, this.data && this.data[0], this.data && this.data[1])) {
             remove(this.graph.connections, this);
-        };
+        }
+
         return this;
     },
 
@@ -124,8 +152,7 @@ assign(Connection.prototype, {
         return {
             source: this.source.id,
             target: this.target.id,
-            output: this.output,
-            input:  this.input
+            data:   this.data
         }
     }
 });

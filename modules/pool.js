@@ -1,6 +1,6 @@
 
 const DEBUG  = true;
-const print  = DEBUG && console.log.bind(console, '%cPool %c%s', 'color: #b5002f; font-weight: 600;', 'color: #8e9e9d; font-weight: 300;');
+const printGroup = DEBUG && console.groupCollapsed.bind(console, '%cPool %c%s', 'color: #b5002f; font-weight: 600;', 'color: #8e9e9d; font-weight: 300;');
 const assign = Object.assign;
 
 /*
@@ -83,12 +83,16 @@ export default function Pool(constructor, isIdle, setup) {
                 object ;
         }
 
+        if (DEBUG) {
+            printGroup(constructor.name + ' for ' + constructor.name + ' pool', pool.length + 1);
+        }
+
         object = new constructor(...arguments);
         setup && setup(object);
         pool.push(object);
 
         if (DEBUG) {
-            print('Created new ' + constructor.name + ' in ' + constructor.name + ' pool', pool.length);
+            console.groupEnd();
         }
 
         return object;

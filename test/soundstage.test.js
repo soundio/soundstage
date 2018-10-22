@@ -21,7 +21,10 @@ const data = {
     ],
 
     connections: [
+        // Not possible, 2 has no inputs
         { source: '1', target: '2' },
+
+        // Tone synth to output
         { source: '2', target: '3' }
     ],
 
@@ -49,7 +52,7 @@ const data = {
 test('Soundstage()', function(run, print, fixture) {
     const stage = new Soundstage(data);
 
-    run('', function(equals, done) {
+    run('Soundstage()', function(equals, done) {
         stage.ready(function() {
             console.log(stage);
             equals(JSON.stringify({"id":"1","type":"input","object":{"channels":[0,1],"name":"In 1/2"}}), JSON.stringify(stage.get('1')));

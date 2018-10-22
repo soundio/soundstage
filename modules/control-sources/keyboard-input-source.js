@@ -17,6 +17,7 @@ import { toKeyString, toKeyCode } from '../../../dom/dom.js';
 
 const define    = Object.defineProperties;
 const keyRoutes = {};
+const keyStates = {};
 
 const keymap = {
     192: 43,
@@ -62,24 +63,35 @@ const keymap = {
     221: 74
 };
 
-function fire1(e, fn) {
+function fireNoteOn(e, fn) {
+    // Don't trigger keys that don't map to something
+    if (keymap[e.keyCode] === undefined) { return; }
     fn(e.timeStamp, 'noteon', keymap[e.keyCode], 0.75);
     return e;
 }
 
-function fire0(e, fn) {
+function fireNoteOff(e, fn) {
+    // Don't trigger keys that don't map to something
+    if (keymap[e.keyCode] === undefined) { return; }
     fn(e.timeStamp, 'noteoff', keymap[e.keyCode], 0);
     return e;
 }
 
 function keydown(e) {
-    keyRoutes[e.keyCode] && keyRoutes[e.keyCode].reduce(fire1, e);
-    keyRoutes['undefined'] && keyRoutes['undefined'].reduce(fire1, e);
+    // Track key states in order to avoid double triggering of noteons
+    // when a key is left depressed for some time
+    if (keyStates[e.keyCode]) { return; }
+    keyStates[e.keyCode] = true;
+    keyRoutes[e.keyCode] && keyRoutes[e.keyCode].reduce(fireNoteOn, e);
+    keyRoutes['undefined'] && keyRoutes['undefined'].reduce(fireNoteOn, e);
 }
 
 function keyup(e) {
-    keyRoutes[e.keyCode] && keyRoutes[e.keyCode].reduce(fire0, e);
-    keyRoutes['undefined'] && keyRoutes['undefined'].reduce(fire0, e);
+    // Track key states in order to avoid double triggering
+    if (!keyStates[e.keyCode]) { return; }
+    keyStates[e.keyCode] = false;
+    keyRoutes[e.keyCode] && keyRoutes[e.keyCode].reduce(fireNoteOff, e);
+    keyRoutes['undefined'] && keyRoutes['undefined'].reduce(fireNoteOff, e);
 }
 
 document.addEventListener('keydown', keydown);

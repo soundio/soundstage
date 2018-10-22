@@ -44,11 +44,8 @@ const properties = {
     status:    { writable: true, value: undefined }
 };
 
-var id = 0;
-
 export default function PlayNode() {
     define(this, properties);
-    this.i = ++id;
 }
 
 function cueResolve(node, privates) {
@@ -114,16 +111,3 @@ assign(PlayNode.prototype, {
         return privates.promise.then(fn);
     }
 });
-/*
-define(PlayNode.prototype, {
-    status: {
-        get: function() {
-            return this.startTime === undefined ? 'ready' :
-                this.startTime > this.context.currentTime ? 'pending' :
-                this.stopTime === undefined ? 'playing' :
-                this.stopTime > this.context.currentTime ? 'playing' :
-                'stopping' ;
-        }
-    }
-});
-*/

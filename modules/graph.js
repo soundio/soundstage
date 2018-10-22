@@ -48,15 +48,8 @@ export default function Graph(audio, requests, data, api) {
     const connections = [];
 
 	define(this, {
-		plugins:     {
-			enumerable: true,
-			value: plugins
-		},
-
-		connections: {
-			enumerable: true,
-			value: connections
-		}
+		plugins:     { enumerable: true, value: plugins },
+		connections: { enumerable: true, value: connections }
 	});
 
     // Load plugins

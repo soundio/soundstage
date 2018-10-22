@@ -89,16 +89,8 @@ function ToneSynth(context, settings, stage) {
 	// Graph
 	NodeGraph.call(this, context, graph);
 
-	// Params
-	this.gain            = this.get('output').gain;
-	this.pitch           = this.get('pitch').offset;
-	this.filterFrequency = this.get('frequency').offset;
-	this.filterQ         = this.get('q').offset;
-
-	// Start the constants
-	this.get('pitch').start();
-	this.get('frequency').start();
-	this.get('q').start();
+	// Properties
+	define(this, properties);
 
 	let filterType;
 
@@ -121,7 +113,15 @@ function ToneSynth(context, settings, stage) {
 		}
 	});
 
-	define(this, properties);
+	// Params
+	this.gain            = this.get('output').gain;
+	this.pitch           = this.get('pitch').offset;
+	this.filterFrequency = this.get('frequency').offset;
+	this.filterQ         = this.get('q').offset;
+
+	this.get('pitch').start();
+	this.get('frequency').start();
+	this.get('q').start();
 
 	// Note pool
 	privates.notes = new Pool(Tone, isIdle, (note) => {

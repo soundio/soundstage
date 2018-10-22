@@ -32,14 +32,14 @@ export default function GraphNode(graph, type, id, object) {
 
     seal(this);
 }
-
+/*
 define(GraphNode.prototype, {
     recording: {
         writable: true,
         value: false
     }
 });
-
+*/
 assign(GraphNode.prototype, {
     connect: function(target, output, input) {
         const connection = new Connection(this.graph, this.id, target.id, output, input);
@@ -52,7 +52,7 @@ assign(GraphNode.prototype, {
         .forEach(invoke('remove', nothing));
         return this;
     },
-
+    /*
     control: function(time, type, param, value) {
         const object = this.object;
 
@@ -62,7 +62,7 @@ assign(GraphNode.prototype, {
 
         return distribute(this.object, time, type, param, value);
     },
-
+    */
     toJSON: function() {
         return {
             id:     this.id,
