@@ -116,7 +116,7 @@ export default function Control(controls, source, target, setting) {
 
     seal(this);
 
-    const distribute = Distribute(target.object);
+    const distribute = Distribute(target.data);
 
     // Bind source output to route input
     source.each(function input(timeStamp, type, name, n) {
@@ -126,9 +126,9 @@ export default function Control(controls, source, target, setting) {
         if (!name && !data.name) { return; }
 
         // time in audioContext timeframe
-        const time = target.object.context ? timeAtDomTime(target.object.context, timeStamp) :
+        const time = target.data.context ? timeAtDomTime(target.data.context, timeStamp) :
             // support Audio Objects, for just now at least
-            target.object.audio ? timeAtDomTime(target.object.audio, timeStamp) :
+            target.data.audio ? timeAtDomTime(target.data.audio, timeStamp) :
             0 ;
 
         // Select type based on data

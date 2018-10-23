@@ -33,11 +33,33 @@ export function connect(source, target, sourceChan, targetChan) {
         }
 
         source.connect(target, sourceChan, targetChan);
-        print('connect', source.constructor.name, sourceChan, '–', target.constructor.name, targetChan);
+        print(
+            'connect',
+            source.constructor.name + ' (' + source.numberOfOutputs + ' output' + (source.numberOfOutputs === 1 ? '' : 's') + ')',
+            sourceChan,
+            '–',
+            target.constructor.name
+            + (target.setValueAtTime ? '' : ' ('
+            + target.numberOfInputs + ' input' + (target.numberOfInputs === 1 ? ', ' : 's, ')
+            + (target.channelCountMode === 'max' ? '' : target.channelCount + ' ch, ')
+            + target.channelCountMode
+            + ')'),
+            targetChan
+        );
     }
     else {
         source.connect(target);
-        print('connect', source.constructor.name, '–', target.constructor.name);
+        print(
+            'connect',
+            source.constructor.name + ' (' + source.numberOfOutputs + ' output' + (source.numberOfOutputs === 1 ? '' : 's') + ')',
+            '–',
+            target.constructor.name
+            + (target.setValueAtTime ? '' : ' ('
+            + target.numberOfInputs + ' input' + (target.numberOfInputs === 1 ? ', ' : 's, ')
+            + (target.channelCountMode === 'max' ? '' : target.channelCount + ' ch, ')
+            + target.channelCountMode
+            + ')')
+        );
     }
 
     // Indicate successful connection (we hope)

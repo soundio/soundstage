@@ -60,7 +60,7 @@ test('Envelope', function(run, print, fixture) {
         envelope.stop(1);
 
         offline.startRendering().then(function(buffer) {
-            console.log(buffer);
+            //console.log(buffer);
             const data = buffer.getChannelData(0);
             drawCurve(ctx, box, 22050 / box[2], data, '#acb9b8');
         });

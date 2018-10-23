@@ -75,8 +75,10 @@ export default function NodeGraph(context, data) {
     const privates = getPrivates(this);
     privates.nodes = nodes;
 
+    const output = this.get('output');
     define(this, {
-        context: { value: context }
+        context: { value: context },
+        numberOfOutputs: { value: output ? output.numberOfOutputs : 0 }
     });
 
     if (DEBUG) { printGroupEnd(); }

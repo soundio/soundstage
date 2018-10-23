@@ -1,4 +1,6 @@
 
+import { connect, disconnect } from '../connect.js';
+
 const assign = Object.assign;
 const define = Object.defineProperties;
 const rautoname = /Out\s\d+\/\d+/;
@@ -33,7 +35,7 @@ export default class Output extends ChannelSplitterNode {
 						// of channel in array. Ignore routings to channels the
 						// output does not have.
 						if (array[count] > output.channelCount) { continue; }
-						this.connect(output, count, array[count]);
+						connect(this, output, count, array[count]);
 						channels[count] = array[count];
 					}
 

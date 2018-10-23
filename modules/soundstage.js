@@ -40,10 +40,14 @@ function createOutputMerger(context, target) {
         config.channelCountLimit :
         target.maxChannelCount ;
 
-    var merger = context.createChannelMerger(count);
+    var merger = new ChannelMergerNode(context, {
+        numberOfInputs: count
+    });
 
     // Used by meter-canvas controller - there is no way to automatically
     // determine the number of channels in a signal.
+    //
+    // Huh? What about numberOfInputs?
     merger.outputChannelCount = count;
 
     // Make sure incoming connections do not change the number of
@@ -52,7 +56,7 @@ function createOutputMerger(context, target) {
     merger.channelCountMode = 'explicit';
 
     // Upmix/downmix incoming connections.
-    merger.channelInterpretation = 'speakers';
+    merger.channelInterpretation = 'discrete';
 
     merger.connect(target);
     return merger;

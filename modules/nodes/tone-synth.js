@@ -21,7 +21,12 @@ export const config = {
 
 const graph = {
 	nodes: [
-		{ id: 'output',        type: 'gain',     data: { gain:   1 } },
+		{ id: 'output',        type: 'gain',     data: {
+			channelInterpretation: 'speakers',
+			channelCountMode: 'explicit',
+			channelCount: 2,
+			gain: 1
+		}},
 		{ id: 'pitch',         type: 'constant', data: { offset: 0 } },
 		{ id: 'pitchToDetune', type: 'gain',     data: { gain: 100 } },
 		{ id: 'frequency',     type: 'constant', data: { offset: 0 } },
@@ -74,14 +79,12 @@ function isIdle(node) {
 
 function ToneSynth(context, settings, stage) {
 	if (DEBUG) { printGroup('ToneSynth'); }
-console.log('STAGE', stage);
-stage && stage.connect(new AnalyserNode(context), 'poo');
-stage && stage.connect(new AnalyserNode(context), 'rate');
-	// Private
-	const privates = getPrivates(this);
 
 	// Graph
 	NodeGraph.call(this, context, graph);
+
+	// Private
+	const privates = getPrivates(this);
 
 	// Properties
 	define(this, properties);
@@ -104,6 +107,10 @@ stage && stage.connect(new AnalyserNode(context), 'rate');
 					note.filter.type = filterType
 				});
 			}
+		},
+
+		numberOfOutputs: {
+			value: this.get('output').numberOfOutputs
 		}
 	});
 

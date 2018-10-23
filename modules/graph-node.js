@@ -3,7 +3,7 @@ import { print }  from './utilities/print.js';
 import { distribute } from './distribute.js';
 import { generateUnique }  from './utilities/utilities.js';
 import { noteToNumber } from '../../midi/midi.js';
-import Connection from './graph-connection.js';
+import Connection from './connection.js';
 
 const assign = Object.assign;
 const define = Object.defineProperties;

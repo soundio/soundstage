@@ -37,7 +37,7 @@ import { has, get, invoke, nothing, remove }  from '../../fn/fn.js';
 import { print }  from './utilities/print.js';
 import { generateUnique }  from './utilities/utilities.js';
 import Node       from './graph-node.js';
-import Connection from './graph-connection.js';
+import Connection from './connection.js';
 
 const assign    = Object.assign;
 const define    = Object.defineProperties;

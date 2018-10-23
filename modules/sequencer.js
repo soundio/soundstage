@@ -132,7 +132,7 @@ export default function Sequencer(audio, distributors, sequences, events) {
 			this.stop(time);
 			return this.start(time, beat);
 		}
-console.log('START', time);
+
 		Clock.prototype.start.call(this, time, beat);
 
 		//var startTime = privates.startTime = time !== undefined ?
