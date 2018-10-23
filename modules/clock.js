@@ -36,12 +36,12 @@ assign(Clock.prototype, {
 	},*/
 
 	beatAtLocation: function(location) {
-		const events = this.events.filter(isRateEvent);
+		const events = null;//this.events.filter(isRateEvent);
 		return beatAtLocation(events, location);
 	},
 
 	locationAtBeat: function(beat) {
-		const events = this.events.filter(isRateEvent);
+		const events = null;//this.events.filter(isRateEvent);
 		return locationAtBeat(events, beat);
 	},
 
@@ -62,7 +62,7 @@ assign(Clock.prototype, {
 	},
 
 	start: function(time, beat) {
-		this.startTime = time - this.locationAtBeat(beat);
+		this.startTime = time - (beat ? this.locationAtBeat(beat) : 0);
 		this.stopTime  = undefined;
 		return this;
 	},

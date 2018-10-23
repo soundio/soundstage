@@ -25,6 +25,7 @@ const define       = Object.defineProperties;
 const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 const setPrototypeOf = Object.setPrototypeOf;
 
+
 function isURL() {
     return false;
 }
@@ -57,13 +58,42 @@ function createOutputMerger(context, target) {
     return merger;
 }
 
-function requestAudioNode(context, settings, stage) {
+function requestAudioNode(context, settings, backstage) {
     const Node = constructors[settings.type];
     return Node ?
-        Promise.resolve(new Node(context, settings, stage)) :
+        Promise.resolve(new Node(context, settings, backstage)) :
         requestPlugin(settings.type).then(function(Constructor) {
-            return new Constructor(context, settings, stage);
+            return new Constructor(context, settings, backstage);
         });
+}
+
+function Backstage(stage) {
+    // Whitelist an object of methods to pass to node
+    // constructors as a third argument.
+
+    this.cue            = stage.cue.bind(stage);
+    this.beatAtTime     = stage.beatAtTime.bind(stage);
+    this.timeAtBeat     = stage.timeAtBeat.bind(stage);
+    this.beatAtLocation = stage.beatAtLocation.bind(stage);
+    this.locationAtBeat = stage.locationAtBeat.bind(stage);
+    this.beatAtBar      = stage.beatAtBar.bind(stage);
+    this.barAtBeat      = stage.barAtBeat.bind(stage);
+    this.regions        = stage.regions;
+    //on, off?
+
+    // Todo: work out how stages are going to .connect(), and
+    // sort out how to access rateNode (which comes from Transport(), BTW)
+    this.connect = function(target, outputName, targetChan) {
+        return outputName === 'rate' ?
+            connect(getPrivates(stage).rateNode, target, 0, targetChan) :
+            connect() ;
+    };
+
+    this.disconnect = function(outputName, target, outputChan, targetChan) {
+        if (outputName !== 'rate') { return; }
+        if (!target) { return; }
+        disconnect(getPrivates(stage).rateNode, target, 0, targetChan);
+    };
 }
 
 export default function Soundstage(data, settings) {
@@ -90,9 +120,7 @@ export default function Soundstage(data, settings) {
     const destination = settings.output || context.destination;
     const output      = createOutputMerger(context, destination);
 
-    //AudioObject.call(this, context, undefined, output);
     //Soundstage.inspector && Soundstage.inspector.drawAudioFromNode(output);
-
 
 
     // Initialise audio regions. Assigns:
@@ -106,7 +134,7 @@ export default function Soundstage(data, settings) {
         });
 
 
-    // Initialise soundstage as a plugin graph. Assigns:
+    // Initialise soundstage as a graph. Assigns:
     //
     // nodes:       array
     // connections: array
@@ -125,34 +153,9 @@ export default function Soundstage(data, settings) {
         default: requestAudioNode
     };
 
-    Graph.call(this, context, requestTypes, data, {
-        // Whitelist an object of methods to pass to node
-        // constructors as a third argument.
+    const backstage = new Backstage(this);
 
-        cue:            this.cue.bind(this),
-        beatAtTime:     this.beatAtTime.bind(this),
-        timeAtBeat:     this.timeAtBeat.bind(this),
-        beatAtLocation: this.beatAtLocation.bind(this),
-        locationAtBeat: this.locationAtBeat.bind(this),
-        beatAtBar:      this.beatAtBar.bind(this),
-        barAtBeat:      this.barAtBeat.bind(this),
-        regions:        this.regions,
-
-        connect: function(target, outputName, targetChan) {
-            return outputName === 'rate' ?
-                connect(getPrivates(stage).rateNode, target, 0, targetChan) :
-                connect() ;
-        },
-
-        disconnect: function(outputName, target, outputChan, targetChan) {
-            if (outputName !== 'rate') { return; }
-            if (!target) { return; }
-            disconnect(getPrivates(stage).rateNode, target, 0, targetChan);
-        },
-
-        //on:         this.on.bind(this),
-        //off:        this.off.bind(this),
-    });
+    Graph.call(this, context, requestTypes, data, backstage);
 
 
     // Initialise MIDI and keyboard controls. Assigns:

@@ -122,6 +122,8 @@ export default function Sequencer(audio, distributors, sequences, events) {
 	// Public
 
 	this.start = function(time, beat) {
+		time = time || this.context.currentTime;
+
 		var stream = privates.stream;
 		var status = stream.status;
 
@@ -130,7 +132,7 @@ export default function Sequencer(audio, distributors, sequences, events) {
 			this.stop(time);
 			return this.start(time, beat);
 		}
-
+console.log('START', time);
 		Clock.prototype.start.call(this, time, beat);
 
 		//var startTime = privates.startTime = time !== undefined ?
