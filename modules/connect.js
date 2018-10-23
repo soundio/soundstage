@@ -3,6 +3,34 @@ import { get, isDefined } from '../../fn/fn.js';
 import { print } from './nodes/print.js';
 import AudioObject, { getOutput, getInput, isAudioParam } from '../../audio-object/modules/audio-object.js';
 
+function sourceToString(node) {
+    return node.constructor.name.replace(/Node$/, '')
+    + (' ('
+    + node.numberOfOutputs + ' output' + (node.numberOfOutputs === 1 ? '' : 's')
+    //+ ', '
+    //+ (
+    //    node.channelCountMode === 'max' ? 'max' :
+    //    node.channelCountMode === 'explicit' ? node.channelCount :
+    //    (node.channelCount + ' ' + node.channelCountMode)
+    //)
+    //+ ' ch'
+    + ')');
+}
+
+function targetToString(node) {
+    return node.constructor.name.replace(/Node$/, '')
+    + (node.setValueAtTime ? '' : ' ('
+    + node.numberOfInputs + ' input' + (node.numberOfInputs === 1 ? ', ' : 's, ')
+    + (
+        node.channelCountMode === 'max' ? 'max' :
+        node.channelCountMode === 'explicit' ? node.channelCount :
+        (node.channelCount + ' ' + node.channelCountMode)
+    )
+    + ' ch, '
+    + node.channelInterpretation
+    + ')');
+}
+
 export function connect(source, target, sourceChan, targetChan) {
     if (!source) {
         print('Trying to connect to undefined source. Dropping connection.');
@@ -33,43 +61,11 @@ export function connect(source, target, sourceChan, targetChan) {
         }
 
         source.connect(target, sourceChan, targetChan);
-        print(
-            'connect',
-            source.constructor.name + ' (' + source.numberOfOutputs + ' output' + (source.numberOfOutputs === 1 ? '' : 's') + ')',
-            sourceChan,
-            '–',
-            target.constructor.name
-            + (target.setValueAtTime ? '' : ' ('
-            + target.numberOfInputs + ' input' + (target.numberOfInputs === 1 ? ', ' : 's, ')
-            + (
-                target.channelCountMode === 'max' ? 'max' :
-                target.channelCountMode === 'explicit' ? target.channelCount :
-                (target.channelCount + ' ' + target.channelCountMode)
-            )
-            + ' ch, '
-            + target.channelInterpretation
-            + ')'),
-            targetChan
-        );
+        print('connect', sourceToString(source), sourceChan, '–', targetToString(target), targetChan);
     }
     else {
         source.connect(target);
-        print(
-            'connect',
-            source.constructor.name + ' (' + source.numberOfOutputs + ' output' + (source.numberOfOutputs === 1 ? '' : 's') + ')',
-            '–',
-            target.constructor.name
-            + (target.setValueAtTime ? '' : ' ('
-            + target.numberOfInputs + ' input' + (target.numberOfInputs === 1 ? ', ' : 's, ')
-            + (
-                target.channelCountMode === 'max' ? 'max' :
-                target.channelCountMode === 'explicit' ? target.channelCount :
-                (target.channelCount + ' ' + target.channelCountMode)
-            )
-            + ' ch, '
-            + target.channelInterpretation
-            + ')')
-        );
+        print('connect', sourceToString(source), '–', targetToString(target));
     }
 
     // Indicate successful connection (we hope)

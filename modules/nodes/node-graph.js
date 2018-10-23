@@ -42,9 +42,10 @@ import constructors from '../constructors';
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
+const seal   = Object.seal;
 
-export function createNode(audio, type, settings) {
-    return new constructors[type](audio, settings);
+export function createNode(context, type, settings) {
+    return new constructors[type](context, settings);
 }
 
 function createConnection(nodes, data) {
@@ -64,22 +65,30 @@ function createConnection(nodes, data) {
 export default function NodeGraph(context, data) {
     if (DEBUG) { printGroup('GraphNode'); }
 
-    const nodes = {};
-
-    data.nodes && data.nodes.forEach(function(data) {
-        nodes[data.id] = createNode(context, data.type, data.data);
-    });
-
-    data.connections && data.connections.reduce(createConnection, nodes);
-
     const privates = getPrivates(this);
-    privates.nodes = nodes;
 
-    const output = this.get('output');
-    define(this, {
-        context: { value: context },
-        numberOfOutputs: { value: output ? output.numberOfOutputs : 0 }
-    });
+    // Create nodes
+    const nodes = privates.nodes = data.nodes && data.nodes.reduce(function(nodes, data) {
+        nodes[data.id] = createNode(context, data.type, data.data);
+        return nodes;
+    }, {});
+
+    // Include this in the graph if it is an audio node
+    if (AudioNode.prototype.isPrototypeOf(this)) {
+        nodes.self = this;
+    }
+
+    // Otherwise make it quack like an audio node
+    else {
+        const output = nodes['output'];
+        define(this, {
+            context: { value: context },
+            numberOfOutputs: { value: output ? output.numberOfOutputs : 0 }
+        });
+    }
+
+    seal(nodes);
+    data.connections && data.connections.reduce(createConnection, nodes);
 
     if (DEBUG) { printGroupEnd(); }
 }

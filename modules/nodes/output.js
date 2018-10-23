@@ -10,7 +10,7 @@ const defaults = {
 
 function increment(n) { return n + 1; }
 
-export default class Output extends ChannelSplitterNode {
+export default class OutputSplitter extends ChannelSplitterNode {
     constructor(context, settings, output) {
 		var options = assign({}, defaults, settings);
 		options.numberOfOutputs = options.channels.length || 2;
