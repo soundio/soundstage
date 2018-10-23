@@ -41,8 +41,13 @@ export function connect(source, target, sourceChan, targetChan) {
             target.constructor.name
             + (target.setValueAtTime ? '' : ' ('
             + target.numberOfInputs + ' input' + (target.numberOfInputs === 1 ? ', ' : 's, ')
-            + (target.channelCountMode === 'max' ? '' : target.channelCount + ' ch, ')
-            + target.channelCountMode
+            + (
+                target.channelCountMode === 'max' ? 'max' :
+                target.channelCountMode === 'explicit' ? target.channelCount :
+                (target.channelCount + ' ' + target.channelCountMode)
+            )
+            + ' ch, '
+            + target.channelInterpretation
             + ')'),
             targetChan
         );
@@ -56,8 +61,13 @@ export function connect(source, target, sourceChan, targetChan) {
             target.constructor.name
             + (target.setValueAtTime ? '' : ' ('
             + target.numberOfInputs + ' input' + (target.numberOfInputs === 1 ? ', ' : 's, ')
-            + (target.channelCountMode === 'max' ? '' : target.channelCount + ' ch, ')
-            + target.channelCountMode
+            + (
+                target.channelCountMode === 'max' ? 'max' :
+                target.channelCountMode === 'explicit' ? target.channelCount :
+                (target.channelCount + ' ' + target.channelCountMode)
+            )
+            + ' ch, '
+            + target.channelInterpretation
             + ')')
         );
     }
