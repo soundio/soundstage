@@ -7,6 +7,10 @@ test('Signal', function(run, print, fixture) {
         context.audioWorklet
         .addModule('/soundstage/modules/nodes/signal.worklet.js?3')
         .then(function() {
+
+            // Set up an oscillator into a signal detector and check it responds
+            // to  incoming signal. Then dosconnect it and check again.
+
             var osc  = new OscillatorNode(context);
             var gain = new GainNode(context, { channelCountMode: 'explicit', channelCount: 2, channelInterpretation: 'speakers' })
             var node = new SignalDetector(context, {}, {}, function(node, name) {
