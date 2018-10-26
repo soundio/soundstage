@@ -7,5 +7,9 @@ export default {
     // The maximum number of channels for the output node, a merger, of a
     // soundstage instance. If audioContext.destination's maxChannelCount
     // is lower, the output channelCount is set to that instead
-    channelCountLimit: 12
+    channelCountLimit: 12,
+
+    // Path used by various modules to find and load their web workers, as
+    // web workers require paths relative to the base document
+    basePath: '/soundstage/'
 };

@@ -34,7 +34,6 @@ import { default as Sequence, log as logSequence } from './sequence.js';
 import { getPrivates } from './utilities/privates.js';
 import { createId } from './utilities/utilities.js';
 import Transport from './transport.js';
-import Clock from './clock.js';
 import CueStream from './cue-stream.js';
 import CueTimer from './cue-timer.js';
 import Location from './location.js';
@@ -95,11 +94,13 @@ export default function Sequencer(audio, distributors, sequences, events) {
 	//
 	//Events.call(this);
 
-	const timer = new CueTimer(function now() { return audio.currentTime; });
-
 	// Private
 
 	const privates  = getPrivates(this);
+	const timer
+		= privates.timer
+		= new CueTimer(function now() { return audio.currentTime; });
+
 	const sequencer = this;
 
 	privates.startTime = 0;
@@ -133,7 +134,7 @@ export default function Sequencer(audio, distributors, sequences, events) {
 			return this.start(time, beat);
 		}
 
-		Clock.prototype.start.call(this, time, beat);
+		Transport.prototype.start.call(this, time, beat);
 
 		//var startTime = privates.startTime = time !== undefined ?
 		//	time :
@@ -169,7 +170,7 @@ console.log('Sequencer: start()', this.startTime, beat, status, audio.state);
 		notify('stop', stopTime, this);
 		stream.stop(stopTime);
 
-		Clock.prototype.stop.call(this, time);
+		Transport.prototype.stop.call(this, time);
 
 		// Log the state of Pool shortly after stop
 		if (DEBUG) {
@@ -190,26 +191,24 @@ console.log('Sequencer: start()', this.startTime, beat, status, audio.state);
 }
 
 assign(Sequencer.prototype, Transport.prototype, Meter.prototype, Events.prototype, {
-	//create: function(generator, object) {
-	//	var stream = this[$private].stream;
-	//	return stream.create(generator, id, object);
-	//},
+	create: function(generator, object) {
+		var stream = this[$private].stream;
+		return stream.create(generator, id, object);
+	},
+
+	sequence: function(events, distributors) {
+		const privates = getPrivates(this);
+
+		return Stream
+		.fromTimer(privates.timer)
+		.map(toEvents);
+
+		return new CueStream(privates.timer, this, events, id, distributors);
+	},
 
 	cue: function(beat, fn) {
 		var stream = getPrivates(this).stream;
 		stream.cue(beat, fn);
 		return this;
-	},
-
-	/*
-	beatAtTime: function(time) {
-		var stream = this[$private].stream;
-		return stream ? stream.beatAtTime(time) : undefined ;
-	},
-
-	timeAtBeat: function(beat) {
-		var stream = this[$private].stream;
-		return stream ? stream.timeAtBeat(beat) : undefined ;
 	}
-	*/
 });

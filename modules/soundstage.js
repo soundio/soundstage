@@ -85,6 +85,12 @@ function Backstage(stage) {
     this.regions        = stage.regions;
     //on, off?
 
+    define(this, {
+        beat: {
+            get: function() { return stage.beat; }
+        }
+    });
+
     // Todo: work out how stages are going to .connect(), and
     // sort out how to access rateNode (which comes from Transport(), BTW)
     this.connect = function(target, outputName, targetChan) {
@@ -98,6 +104,16 @@ function Backstage(stage) {
         if (!target) { return; }
         disconnect(getPrivates(stage).rateNode, target, 0, targetChan);
     };
+
+    this.start = function(time) {
+        // Start the transport
+        Clock.prototype.start.call(stage, time);
+    },
+
+    this.stop = function(time) {
+        // Stop the transport
+        Clock.prototype.stop.call(stage, time);
+    }
 }
 
 export default function Soundstage(data, settings) {

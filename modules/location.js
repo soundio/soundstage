@@ -1,5 +1,5 @@
 
-import { Functor as Fn, compose, get, is } from '../../fn/fn.js';
+import { Fn, compose, get, is } from '../../fn/fn.js';
 import { default as Event, release } from './event.js';
 
 var assign   = Object.assign;

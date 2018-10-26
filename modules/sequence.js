@@ -17,7 +17,7 @@ An array of events.
 An array of sequences.
 */
 
-import { Functor as Fn, compose, get, isDefined, map, postpad, slugify, toString } from '../../fn/fn.js';
+import { Fn, compose, get, isDefined, map, postpad, slugify, toString } from '../../fn/fn.js';
 import { print }    from './utilities/print.js';
 import { createId } from './utilities/utilities.js';
 

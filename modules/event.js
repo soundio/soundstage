@@ -1,5 +1,5 @@
 
-import { Functor as Fn, Pool, compose, get, noop, overload } from '../../fn/fn.js';
+import { Fn, Pool, compose, get, noop, overload } from '../../fn/fn.js';
 import { bytesToSignedFloat, toType } from '../../midi/midi.js';
 
 const assign           = Object.assign;

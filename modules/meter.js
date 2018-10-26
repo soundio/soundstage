@@ -11,7 +11,7 @@ Returns the beat at a given `bar`.
 Returns the bar at a given `beat`.
 */
 
-import { Functor as Fn, compose, get, is } from '../../fn/fn.js';
+import { Fn, compose, get, is } from '../../fn/fn.js';
 import { default as Sequence, log as logSequence } from './sequence.js';
 import { default as Event, release } from './event.js';
 
