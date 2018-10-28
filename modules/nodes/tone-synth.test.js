@@ -1,6 +1,6 @@
 import { test } from '../../../fn/fn.js';
 
-import context from '../audio-context.js';
+import context from '../context.js';
 import ToneSynth from './tone-synth.js';
 
 const settings =  {

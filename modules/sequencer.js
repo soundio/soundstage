@@ -77,15 +77,10 @@ export default function Sequencer(audio, distributors, sequences, events) {
 	//
 	// beatAtBar:  fn(n)
 	// barAtBeat:  fn(n)
+	//
+	// There is no point in calling this as it does nothing
 
 	//Meter.call(this, events);
-
-	// Mix in Location
-	//
-	// beatAtLoc:  fn(n)
-	// locAtBeat:  fn(n)
-	//
-	//Location.call(this, events);
 
 	// Initialise sequencer as an event emitter
 	//

@@ -37,14 +37,14 @@ test('Metronome', function(run, print, fixture) {
 
             events: [
                 [0, 'meter', 3, 1],
-                [9, 'meter', 5, 1]
+                [6, 'meter', 5, 1]
             ]
         })
         .ready(function(stage) {
             stage
             .get('metronome')
             .start(stage.context.currentTime)
-            .stop(stage.context.currentTime + 16);
+            .stop(stage.context.currentTime + 8);
 
             done();
         });

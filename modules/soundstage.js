@@ -6,7 +6,7 @@ import requestInputSplitter   from '../../audio-object/modules/request-input-spl
 import { print, printGroup, printGroupEnd }     from './utilities/print.js';
 import { getPrivates } from './utilities/privates.js';
 import { distributeEvent } from './distribute.js';
-import audio         from './audio-context.js';
+import audio         from './context.js';
 import constructors  from './constructors';
 import { connect, disconnect } from './connect.js';
 import Backstage     from './backstage.js';

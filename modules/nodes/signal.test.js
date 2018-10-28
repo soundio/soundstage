@@ -1,6 +1,6 @@
 import { test } from '../../../fn/fn.js';
 import SignalDetector from './signal.js';
-import context from '../audio-context.js';
+import context from '../context.js';
 
 test('Signal', function(run, print, fixture) {
     run('Signal(context, settings)', function(equals, done) {

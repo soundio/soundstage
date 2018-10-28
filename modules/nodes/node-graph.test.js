@@ -1,6 +1,6 @@
 import { test } from '../../../fn/fn.js';
 import NodeGraph from './node-graph.js';
-import context from '../audio-context.js';
+import context from '../context.js';
 
 test('NodeGraph', function(run, print, fixture) {
     run('NodeGraph(context, settings)', function(equals, done) {

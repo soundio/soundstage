@@ -1,6 +1,6 @@
 
 import { test } from '../../../fn/fn.js';
-import context from '../audio-context.js';
+import context from '../context.js';
 import Tick from './tick.js';
 
 test('Tick', function(run, print, fixture) {

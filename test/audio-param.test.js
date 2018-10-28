@@ -2,7 +2,7 @@ import { test } from '../../fn/fn.js';
 import { create, append, find } from '../../dom/dom.js';
 import { automate, getValueAtTime, getAutomationEvents, requestAutomationData } from '../modules/audio-param.js';
 import { drawYAxisAmplitude, drawCurve, drawPoint } from '../modules/canvas.js';
-import audio from '../modules/audio-context.js';
+import audio from '../modules/context.js';
 
 const quantizeStep16bit = (2 / 65536);
 const quantizeStep24bit = (2 / 16777216);

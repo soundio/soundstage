@@ -1,16 +1,12 @@
 
 import { id } from '../../fn/fn.js';
 import { getPrivates } from './utilities/privates.js';
-import { round } from './utilities/utilities.js';
+import Location from './loctation.js';
 import { isRateEvent } from './event.js';
 import { automate, getValueAtTime } from './audio-param.js';
 
 const assign = Object.assign;
 const define = Object.defineProperties;
-
-// Temp functions that play children at half speed (or double speed, not sure)
-const beatAtLocation = function(events, n) { return n * 1; };
-const locationAtBeat = function(events, n) { return n / 1; };
 
 const properties = {
 	startTime: { writable: true, value: undefined },
@@ -32,23 +28,7 @@ export default function Clock(context, transport) {
 	define(this, properties);
 };
 
-assign(Clock.prototype, {
-	beatAtLocation: function(location) {
-		const events = null;//this.events.filter(isRateEvent);
-
-		// Mitigate floating-point rounding errors by rounding
-		// to the nearest trillionth beat
-		return round(beatAtLocation(events, location));
-	},
-
-	locationAtBeat: function(beat) {
-		const events = null;//this.events.filter(isRateEvent);
-
-		// Mitigate floating-point rounding errors by rounding
-		// to the nearest trillionth location
-		return round(locationAtBeat(events, beat));
-	},
-
+assign(Clock.prototype, Location.prototype, {
 	beatAtTime: function(time) {
 		const privates  = getPrivates(this);
 		const transport = privates.transport;
