@@ -3,8 +3,9 @@
 // or force node-graph to work with promises... I don't think so. Load em for
 // the moment.
 
-import Envelope from './nodes/envelope.js';
-import Tick     from './nodes/tick.js';
+import Envelope  from './nodes/envelope.js';
+import Tick      from './nodes/tick.js';
+import Metronome from './nodes/metronome.js';
 
 export default {
     // https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/AnalyserNode
@@ -44,5 +45,7 @@ export default {
     // ./nodes/envelope.js
     'envelope': Envelope,
     // ./nodes/envelope.js
-    'tick': Tick
+    'tick': Tick,
+    // ./nodes/envelope.js
+    'metronome': Metronome
 };

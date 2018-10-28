@@ -18,8 +18,25 @@ export const generateUnique = function(key, values) {
     return value + '';
 }
 
+export function round(n) {
+    // Mitigate floating-point rounding errors by rounding to the nearest
+    // trillionth
+    return Math.round(1000000000000 * n) / 1000000000000;
+}
 
+export function isWaiting(object) {
+    return object.startTime === undefined;
+}
 
+export function isPlaying(object) {
+    return object.startTime !== undefined
+        && (object.stopTime === undefined || object.stopTime < object.context.currentTime);
+}
+
+export function isStopped(object) {
+    return object.startTime === undefined
+        || (object.stopTime !== undefined && object.stopTime <= object.context.currentTime);
+}
 
 export function timeAtDomTime(audio, domTime) {
     var stamps = audio.getOutputTimestamp();

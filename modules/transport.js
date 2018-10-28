@@ -13,7 +13,7 @@ export default function Transport(context) {
 	//	return new Transport(context);
 	//}
 
-	Clock.call(this);
+	Clock.call(this, context);
 
 	// Private
 	const privates = getPrivates(this);

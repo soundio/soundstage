@@ -1,5 +1,5 @@
 import { noop, todB, toLevel } from '../../../fn/fn.js';
-import { numberToFrequency } from '../../../midi/midi.js';
+import { numberToFrequency, noteToNumber } from '../../../midi/midi.js';
 
 var assign      = Object.assign;
 
@@ -108,7 +108,10 @@ export default function Tick(audio, options) {
 	this.gain      = settings.gain;
 
 	this.start = function(time, number, level) {
-		var frequency = numberToFrequency(number);
+		var frequency = typeof number === 'string' ?
+			numberToFrequency(440, noteToNumber(number)) :
+			numberToFrequency(440, number) ;
+
 		schedule(time || audio.currentTime, frequency, level, this.decay, this.resonance);
 		return this;
 	};
@@ -130,6 +133,14 @@ export default function Tick(audio, options) {
 		filter.disconnect();
 		gain.disconnect();
 		output.disconnect();
+	};
+
+	this.connect = function() {
+		return output.connect.apply(output, arguments);
+	};
+
+	this.disconnect = function() {
+		return output.disconnect.apply(output, arguments);
 	};
 }
 

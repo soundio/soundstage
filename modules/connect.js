@@ -33,24 +33,33 @@ function targetToString(node) {
 
 export function connect(source, target, sourceChan, targetChan) {
     if (!source) {
-        print('Trying to connect to undefined source. Dropping connection.');
+        if (DEBUG) { throw new Error('Trying to connect to source ' + source); }
+        else { print('Trying to connect to undefined source. Dropping connection.'); }
         return;
     }
 
     if (!target) {
-        print('Trying to connect to undefined target. Dropping connection.');
+        if (DEBUG) { throw new Error('Trying to connect to target ' + target); }
+        else { print('Trying to connect to undefined target. Dropping connection.'); }
         return;
     }
 
     if (!isAudioParam(target) && !target.numberOfInputs) {
-        print('Trying to connect target with no inputs. Dropping connection.');
+        if (DEBUG) { throw new Error('Trying to connect target with no inputs.'); }
+        else { print('Trying to connect target with no inputs. Dropping connection.'); }
         return;
     }
 
     if (isDefined(sourceChan) && isDefined(targetChan)) {
         if (sourceChan >= source.numberOfOutputs) {
-            print('Trying to .connect() from a non-existent output (' +
-                sourceChan + ') on output node {numberOfOutputs: ' + source.numberOfOutputs + '}. Dropping connection.');
+            if (DEBUG) {
+                throw new Error('Cannot .connect() from a non-existent output (' +
+                    sourceChan + ') on output node {numberOfOutputs: ' + source.numberOfOutputs);
+            }
+            else {
+                print('Trying to .connect() from a non-existent output (' +
+                    sourceChan + ') on output node {numberOfOutputs: ' + source.numberOfOutputs + '}. Dropping connection.');
+            }
             return;
         }
 

@@ -34,7 +34,6 @@ const graph = {
 	params: { gain: 'output.gain' }
 };
 
-// Declare some useful defaults
 const defaults = {
 	decay:     0.06,
 	resonance: 22,
@@ -52,8 +51,9 @@ const defaults = {
 };
 
 const properties = {
-	"tick":      { enumerable: true, writable: true },
-	"tock":      { enumerable: true, writable: true },
+	"tick":   { enumerable: true, writable: true },
+	"tock":   { enumerable: true, writable: true },
+ 	"events": { enumerable: true, writable: true },
 
     "resonance": {
         get: function() { return this.get('output').resonance; },
@@ -66,10 +66,11 @@ const properties = {
     }
 };
 
+
 function loopEvents(stage, events, buffer, times) {
 	const b1       = stage.beatAtTime(times.t1);
 	const b2       = stage.beatAtTime(times.t2);
-	const bar1     = stage.beatAtBar(bar1);
+	const bar1     = stage.barAtBeat(b1);
 	const bar2     = stage.barAtBeat(b2);
 
 	let bar        = bar1;
@@ -77,6 +78,8 @@ function loopEvents(stage, events, buffer, times) {
 	let localB1    = b1 - bar1Beat;
 	let localB2, bar2Beat;
 	let n = -1;
+
+	console.log('FRAME events', bar, localB1, events.length);
 
 	buffer.length = 0;
 
@@ -105,9 +108,10 @@ function loopEvents(stage, events, buffer, times) {
 		buffer.push(events[n]);
 	}
 
+	console.log('Buffer:', buffer.length);
+
 	return buffer;
 }
-
 
 
 export default function Metronome(context, settings, stage) {
@@ -120,6 +124,7 @@ export default function Metronome(context, settings, stage) {
 	// Private
 	const privates = getPrivates(this);
 	privates.voice = voice;
+	privates.stage = stage;
 
 	// Properties
 	define(this, properties);
@@ -133,20 +138,37 @@ export default function Metronome(context, settings, stage) {
 	if (DEBUG) { printGroupEnd(); }
 }
 
-assign(Metronome.prototype, {
+assign(Metronome.prototype, NodeGraph.prototype, {
 	start: function start(time) {
-		if (playing) { return metronome; }
-		playing = true;
+		//if (playing) { return metronome; }
+		//playing = true;
 
-		const privates = getPrivates(this);
-		const stage    = privates.stage;
-		const buffer   = [];
+		const privates  = getPrivates(this);
+		const stage     = privates.stage;
+		const metronome = this;
+		const voice     = this.get('output');
+		const buffer    = [];
+
+console.log('METRONOME START', this.events);
 
 		privates.sequence = stage
-		.clock()
+		.sequence()
 		.fold((buffer, data) => loopEvents(stage, this.events, buffer, data), buffer)
-		.each(distributeEvents(voice))
-		.start(time);
+		.chain(function(buffer) {
+			return buffer.map(function(event) {
+				event.time = stage.timeAtBeat(event[0]);
+				return event;
+			});
+		})
+		.each(function(e) {
+			console.log('EVENT', e)
+			//data.forEach(function(e) {
+				const options = metronome[e[1]];
+				console.log(e.time, options[0], options[1]);
+				voice.start(e.time, options[0], options[1]);
+			//});
+		})
+		.start(this.context.currentTime);
 
 		return this;
 	},

@@ -11,16 +11,14 @@ export default function Connection(graph, sourceId, targetId, sourceChan, target
 
     // Get source node
     //const sourceParts = sourceId.split('.');
-    const sourceEntry  = graph.get(sourceId);
-    const sourceObject = sourceEntry.data;
+    const sourceObject = graph.get(sourceId);
     const sourceNode   = AudioObject.prototype.isPrototypeOf(sourceObject) ?
         getOutput(sourceObject, 'default') :
         sourceObject ;
 
     // Get target node or param
     //const targetParts = targetId.split('.');
-    const targetEntry  = graph.get(targetId);
-    const targetObject = targetEntry.data;
+    const targetObject = graph.get(targetId);
     const targetNode   = AudioObject.prototype.isPrototypeOf(targetObject) ?
         getInput(targetObject, 'default') :
         targetObject ;
@@ -30,9 +28,12 @@ export default function Connection(graph, sourceId, targetId, sourceChan, target
         && targetNode[targetChan] ;
 
     // Define properties
-    this.graph  = graph;
-    this.source = sourceEntry ;
-    this.target = targetEntry ;
+    this.graph    = graph;
+    this.source   = sourceObject ;
+    this.target   = targetObject ;
+    this.sourceId = sourceId;
+    this.targetId = targetId;
+    this.targetParam = targetParam;
 
     if (sourceChan || targetChan) {
         this.data = [
@@ -41,16 +42,11 @@ export default function Connection(graph, sourceId, targetId, sourceChan, target
         ];
     }
 
-    // Private properties
-    this.sourceNode  = sourceNode;
-    this.targetNode  = targetNode;
-    this.targetParam = targetParam;
-
     // Make immutable
     seal(this);
 
     // Connect them up
-    if (connect(this.sourceNode, this.targetParam || this.targetNode, this.data && this.data[0], this.data && this.data[1])) {
+    if (connect(this.source, this.targetParam || this.target, this.data && this.data[0], this.data && this.data[1])) {
         graph.connections.push(this);
     }
 }
@@ -58,7 +54,7 @@ export default function Connection(graph, sourceId, targetId, sourceChan, target
 assign(Connection.prototype, {
     remove: function() {
         // Connect them up
-        if (disconnect(this.sourceNode, this.targetParam || this.targetNode, this.data && this.data[0], this.data && this.data[1])) {
+        if (disconnect(this.source, this.targetParam || this.target, this.data && this.data[0], this.data && this.data[1])) {
             remove(this.graph.connections, this);
         }
 
@@ -67,8 +63,8 @@ assign(Connection.prototype, {
 
     toJSON: function() {
         return {
-            source: this.source.id,
-            target: this.target.id,
+            source: this.sourceId,
+            target: this.targetId,
             data:   this.data
         }
     }

@@ -1,6 +1,7 @@
+import { log, logGroup, logGroupEnd } from '../utilities/print.js';
 import { automate } from '../audio-param.js';
 
-const DEBUG = false;
+const DEBUG = true;
 
 function assignSetting(node, key, value) {
     // Are we trying to get a value from an AudioParam? No no no.
@@ -11,6 +12,7 @@ function assignSetting(node, key, value) {
 
     // Does it quack like an AudioParam?
     if (node[key] && node[key].setValueAtTime) {
+        if (DEBUG) { log('param', key + ' =', value); }
         automate(node[key], node.context.currentTime, 'step', value, null, key);
     }
 
@@ -21,13 +23,15 @@ function assignSetting(node, key, value) {
 
     // Then set it as a property
     else {
+        if (DEBUG) { log('prop', key + ' =', value); }
         node[key] = value;
     }
 }
 
 export function assignSettings(node, defaults, settings) {
+    if (DEBUG) { logGroup('Settings'); }
     if (settings) {
-        if (DEBUG) { console.log('Assigning settings', settings) }
+        //if (DEBUG) { console.log('Assigning settings', settings) }
         for (let key in settings) {
             if (settings[key] && settings[key].setValueAtTime) { continue; }
     		// We want to assign only when a property has been declared, as we may
@@ -37,7 +41,7 @@ export function assignSettings(node, defaults, settings) {
     	}
     }
 
-    if (DEBUG) { console.log('Assigning defaults', defaults) }
+    //if (DEBUG) { console.log('Assigning defaults', defaults) }
     for (let key in defaults) {
 		// If we have already set this, or it's not settable, move on
 		if (
@@ -47,4 +51,5 @@ export function assignSettings(node, defaults, settings) {
 
         assignSetting(node, key, defaults[key]);
 	}
+    if (DEBUG) { logGroupEnd(); }
 }

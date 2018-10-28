@@ -62,7 +62,7 @@ assign(Meter.prototype, {
 		var cache   = this[privates].cache;
 		var functor = this[privates].functor;
 		var e = findPrevious(cache, functor, '0', beat);
-		return e[0] + (beat - e[0]) / e[2];
+		return e[0];// + (beat - e[0]) / e[2];
 	},
 
 	beatAtBar: function(bar) {

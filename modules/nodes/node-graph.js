@@ -63,7 +63,7 @@ function createConnection(nodes, data) {
 }
 
 export default function NodeGraph(context, data) {
-    if (DEBUG) { printGroup('GraphNode'); }
+    if (DEBUG) { printGroup('GraphNode', data.nodes && data.nodes.map(n => n.type).join(', ')); }
 
     const privates = getPrivates(this);
 

@@ -3,7 +3,7 @@ import { compose, get, is, isDefined, map, nothing }   from '../../fn/fn.js';
 import AudioObject            from '../../audio-object/modules/audio-object.js';
 import requestInputSplitter   from '../../audio-object/modules/request-input-splitter.js';
 
-import { print }     from './utilities/print.js';
+import { print, printGroup, printGroupEnd }     from './utilities/print.js';
 import { getPrivates } from './utilities/privates.js';
 import { distributeEvent } from './distribute.js';
 import audio         from './audio-context.js';
@@ -17,7 +17,6 @@ import Controls      from './controls.js';
 import Transport     from './transport.js';
 import Sequence      from './sequence.js';
 import Sequencer     from './sequencer.js';
-import Metronome     from './metronome.js';
 import config        from './config.js';
 
 const assign       = Object.assign;
@@ -75,13 +74,14 @@ function Backstage(stage) {
     // Whitelist an object of methods to pass to node
     // constructors as a third argument.
 
-    this.cue            = stage.cue.bind(stage);
     this.beatAtTime     = stage.beatAtTime.bind(stage);
     this.timeAtBeat     = stage.timeAtBeat.bind(stage);
     this.beatAtLocation = stage.beatAtLocation.bind(stage);
     this.locationAtBeat = stage.locationAtBeat.bind(stage);
     this.beatAtBar      = stage.beatAtBar.bind(stage);
     this.barAtBeat      = stage.barAtBeat.bind(stage);
+    this.sequence       = stage.sequence.bind(stage);
+    this.cue            = stage.cue.bind(stage);
     this.regions        = stage.regions;
     //on, off?
 
@@ -129,6 +129,8 @@ export default function Soundstage(data, settings) {
         throw new Error('Soundstage: data version mismatch.', this.version, data.version);
     }
 
+
+    if (DEBUG) { printGroup('Soundstage()'); }
 
     // Initialise soundstage as an Audio Object with no inputs and
     // a channel merger as an output. Assigns:
@@ -209,11 +211,10 @@ export default function Soundstage(data, settings) {
     // stop:       fn
     // beatAtTime: fn
     // timeAtBeat: fn
-    // beatAtLoc:  fn
-    // locAtBeat:  fn
+    // beatAtLocation: fn
+    // locationAtBeat: fn
     // beatAtBar:  fn
     // barAtBeat:  fn
-    // create:     fn
     // cue:        fn
     // status:     string
 
@@ -273,7 +274,7 @@ export default function Soundstage(data, settings) {
 
 
     // Create metronome.
-    this.metronome = new Metronome(context, data.metronome, this);
+    //this.metronome = new Metronome(context, data.metronome, this);
     //this.metronome.start(0);
 
 
@@ -297,6 +298,8 @@ export default function Soundstage(data, settings) {
 
     this.ready = loaded.then.bind(loaded);
     */
+
+    if (DEBUG) { printGroupEnd(); }
 }
 
 define(Soundstage.prototype, {

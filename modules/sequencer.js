@@ -129,10 +129,12 @@ export default function Sequencer(audio, distributors, sequences, events) {
 		var status = stream.status;
 
 		// If stream is not waiting, stop it and start a new one
-		if (status !== 'waiting') {
-			this.stop(time);
-			return this.start(time, beat);
-		}
+		//if (status !== 'waiting') {
+		//	this.stop(time);
+		//	return this.start(time, beat);
+		//}
+
+		console.log('Soundstage start()', this.startTime, beat, status, audio.state);
 
 		Transport.prototype.start.call(this, time, beat);
 
@@ -140,17 +142,15 @@ export default function Sequencer(audio, distributors, sequences, events) {
 		//	time :
 		//	audio.currentTime ;
 
-console.log('Sequencer: start()', this.startTime, beat, status, audio.state);
-
 		if (typeof beat === 'number') {
 			privates.beat = beat;
 		}
 
-		var events = sequencer.events;
+		//var events = sequencer.events;
 
 		//clock.start(this.startTime);
-		stream.start(this.startTime, privates.beat);
-		notify('start', this.startTime, this);
+		//stream.start(this.startTime, privates.beat);
+		//notify('start', this.startTime, this);
 
 		return this;
 	};
@@ -159,7 +159,9 @@ console.log('Sequencer: start()', this.startTime, beat, status, audio.state);
 		var stream = privates.stream;
 		var status = stream.status;
 
-		console.log('Sequencer: stop() ', time, status);
+		console.log('Soundstage stop() ', time, status);
+
+		Transport.prototype.stop.call(this, time);
 
 		// If stream is not yet playing do nothing
 		if (status === 'waiting') { return this; }
@@ -196,14 +198,24 @@ assign(Sequencer.prototype, Transport.prototype, Meter.prototype, Events.prototy
 		return stream.create(generator, id, object);
 	},
 
+	createTimeStream: function(events, distributors) {
+		const privates = getPrivates(this);
+		return Stream.fromTimer(privates.timer);
+	},
+
 	sequence: function(events, distributors) {
 		const privates = getPrivates(this);
+		const stream = Stream.fromTimer(privates.timer);
 
-		return Stream
-		.fromTimer(privates.timer)
-		.map(toEvents);
+		const _start = stream.start;
+		stream.start = (time) => {
+			Transport.prototype.start.call(this, time);
+			_start.apply(stream, arguments);
+		};
 
-		return new CueStream(privates.timer, this, events, id, distributors);
+		return stream;
+
+		//return new CueStream(privates.timer, this, events, id, distributors);
 	},
 
 	cue: function(beat, fn) {

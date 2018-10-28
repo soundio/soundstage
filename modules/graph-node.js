@@ -19,7 +19,7 @@ function getNotes(number, node) {
 
 export default function GraphNode(graph, type, id, object) {
     this.graph = graph;
-    this.id    = id,
+    this.id    = id;
     this.type  = type;
     this.data  = object;
     seal(this);

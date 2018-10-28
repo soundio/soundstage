@@ -83,7 +83,8 @@ export default function Graph(audio, requests, data, api) {
 
 assign(Graph.prototype, {
 	get: function(id) {
-		return this.nodes.find(has('id', id));
+		console.log('GET', id, this.nodes.find(has('id', id)));
+		return this.nodes.find(has('id', id)).data;
 	},
 
 	create: function(type, settings) {
