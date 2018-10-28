@@ -11,6 +11,6 @@ test('Tick', function(run, print, fixture) {
         var note = tick.start(context.currentTime + 0.2, 36, 1);
         var note = tick.start(context.currentTime + 0.4, 72, 1);
 
-        note.stop(context.currentTime + 1);
+        //note.stop(context.currentTime + 1);
     }, 1);
 });

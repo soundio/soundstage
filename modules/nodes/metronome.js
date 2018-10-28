@@ -1,7 +1,7 @@
 
 //import AudioObject from '../../../context-object/modules/context-object.js';
-import { print, printGroup, printGroupEnd } from './print.js';
-import { remove } from '../../../fn/fn.js';
+import { print, printGroup, printGroupEnd, log } from './print.js';
+import { remove, id } from '../../../fn/fn.js';
 import { getPrivates } from '../utilities/privates.js';
 import { numberToFrequency } from '../../../midi/midi.js';
 import Tick from './tick.js';
@@ -46,7 +46,11 @@ const defaults = {
         [0, 'tick'],
         [1, 'tock'],
         [2, 'tock'],
-        [3, 'tock']
+        [3, 'tock'],
+		[4, 'tock'],
+		[5, 'tock'],
+		[6, 'tock'],
+		[7, 'tock']
     ]
 };
 
@@ -67,9 +71,9 @@ const properties = {
 };
 
 
-function loopEvents(stage, events, buffer, times) {
-	const b1       = stage.beatAtTime(times.t1);
-	const b2       = stage.beatAtTime(times.t2);
+function loopEvents(stage, events, buffer, frame) {
+	const b1       = frame.b1;
+	const b2       = frame.b2;
 	const bar1     = stage.barAtBeat(b1);
 	const bar2     = stage.barAtBeat(b2);
 
@@ -79,7 +83,7 @@ function loopEvents(stage, events, buffer, times) {
 	let localB2, bar2Beat;
 	let n = -1;
 
-	console.log('FRAME events', bar, localB1, events.length);
+	//console.log('FRAME events', bar, localB1, events.length);
 
 	buffer.length = 0;
 
@@ -93,6 +97,7 @@ function loopEvents(stage, events, buffer, times) {
 		localB2  = bar2Beat - bar1Beat;
 
 		while (++n < events.length && events[n][0] < localB2) {
+			events[n].time = stage.timeAtBeat(events[n][0] + bar1Beat);
 			buffer.push(events[n]);
 		}
 
@@ -105,10 +110,12 @@ function loopEvents(stage, events, buffer, times) {
 	localB2  = b2 - bar1Beat;
 
 	while (++n < events.length && events[n][0] < localB2) {
+		//console.log('timeAtBeat', events[n][0], bar1Beat)
+		events[n].time = stage.timeAtBeat(bar1Beat + events[n][0]);
 		buffer.push(events[n]);
 	}
 
-	console.log('Buffer:', buffer.length);
+	if (buffer.length) { log('frame', frame.t1.toFixed(3) + '–' + frame.t2.toFixed(3) + 's (' + frame.b1.toFixed(3) + '–' + frame.b2.toFixed(3) + 'b)', buffer.length, buffer.map((e) => { return e[0].toFixed(3) + 'b ' + e[1]; }).join(', ')); }
 
 	return buffer;
 }
@@ -133,6 +140,7 @@ export default function Metronome(context, settings, stage) {
     this.gain = voice.gain;
 
 	// Update settings
+	console.log(settings);
 	assignSettings(this, defaults, settings);
 
 	if (DEBUG) { printGroupEnd(); }
@@ -140,48 +148,32 @@ export default function Metronome(context, settings, stage) {
 
 assign(Metronome.prototype, NodeGraph.prototype, {
 	start: function start(time) {
-		//if (playing) { return metronome; }
-		//playing = true;
-
 		const privates  = getPrivates(this);
 		const stage     = privates.stage;
 		const metronome = this;
 		const voice     = this.get('output');
 		const buffer    = [];
 
-console.log('METRONOME START', this.events);
+//console.log('METRO start   ', this.events);
 
 		privates.sequence = stage
 		.sequence()
 		.fold((buffer, data) => loopEvents(stage, this.events, buffer, data), buffer)
-		.chain(function(buffer) {
-			return buffer.map(function(event) {
-				event.time = stage.timeAtBeat(event[0]);
-				return event;
-			});
-		})
+		.chain(id)
 		.each(function(e) {
-			console.log('EVENT', e)
-			//data.forEach(function(e) {
-				const options = metronome[e[1]];
-				console.log(e.time, options[0], options[1]);
-				voice.start(e.time, options[0], options[1]);
-			//});
+			const options = metronome[e[1]];
+			//console.log(e.time, options[0], options[1]);
+			voice.start(e.time, options[0], options[1]);
 		})
-		.start(this.context.currentTime);
-
+		.start(time || this.context.currentTime);
+//console.log('METRO sequence', privates.sequence)
 		return this;
 	},
 
 	stop: function stop(time) {
 		const privates = getPrivates(this);
-
-		if (!playing) { return metronome; }
-		playing = false;
-
-		const privates = getPrivates(this);
-		privates.sequence.stop(time || audio.currentTime);
-
+//console.log('METRO stop    ', privates.sequence)
+		privates.sequence.stop(time || this.context.currentTime);
 		return this;
 	},
 

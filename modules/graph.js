@@ -12,13 +12,13 @@ Constructs a graph of AudioObjects. The returned object has two proerties:
 /*
 .nodes()
 
-An array of audio graph nodes.
+An array of context graph nodes.
 */
 
 /*
 .connections()
 
-An array of audio graph connections.
+An array of context graph connections.
 */
 
 /*
@@ -47,7 +47,7 @@ function addConnection(graph, setting) {
 	return graph;
 }
 
-export default function Graph(audio, requests, data, api) {
+export default function Graph(context, requests, data, api) {
 	const graph       = this;
     const nodes       = [];
     const connections = [];
@@ -61,7 +61,7 @@ export default function Graph(audio, requests, data, api) {
     const promise = Promise.all(
         data.nodes ?
             data.nodes.map(function(data) {
-                return (requests[data.type] || requests.default)(audio, data, api)
+                return (requests[data.type] || requests.default)(context, data, api)
                 .then(function(object) {
                     nodes.push(new Node(graph, data.type, data.id, object));
                 });
@@ -83,7 +83,7 @@ export default function Graph(audio, requests, data, api) {
 
 assign(Graph.prototype, {
 	get: function(id) {
-		console.log('GET', id, this.nodes.find(has('id', id)));
+		//console.log('GET', id, this.nodes.find(has('id', id)));
 		return this.nodes.find(has('id', id)).data;
 	},
 

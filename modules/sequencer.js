@@ -35,7 +35,7 @@ import { getPrivates } from './utilities/privates.js';
 import { createId } from './utilities/utilities.js';
 import Transport from './transport.js';
 import CueStream from './cue-stream.js';
-import CueTimer from './cue-timer.js';
+import Timer from './timer.js';
 import Location from './location.js';
 import Meter from './meter.js';
 import Events from '../../fn/js/eventz.js';
@@ -78,7 +78,7 @@ export default function Sequencer(audio, distributors, sequences, events) {
 	// beatAtBar:  fn(n)
 	// barAtBeat:  fn(n)
 
-	Meter.call(this, events);
+	//Meter.call(this, events);
 
 	// Mix in Location
 	//
@@ -99,7 +99,7 @@ export default function Sequencer(audio, distributors, sequences, events) {
 	const privates  = getPrivates(this);
 	const timer
 		= privates.timer
-		= new CueTimer(function now() { return audio.currentTime; });
+		= new Timer(function now() { return audio.currentTime; });
 
 	const sequencer = this;
 
@@ -193,10 +193,10 @@ export default function Sequencer(audio, distributors, sequences, events) {
 }
 
 assign(Sequencer.prototype, Transport.prototype, Meter.prototype, Events.prototype, {
-	create: function(generator, object) {
-		var stream = this[$private].stream;
-		return stream.create(generator, id, object);
-	},
+	//create: function(generator, object) {
+	//	var stream = this[$private].stream;
+	//	return stream.create(generator, id, object);
+	//},
 
 	createTimeStream: function(events, distributors) {
 		const privates = getPrivates(this);
@@ -205,17 +205,26 @@ assign(Sequencer.prototype, Transport.prototype, Meter.prototype, Events.prototy
 
 	sequence: function(events, distributors) {
 		const privates = getPrivates(this);
-		const stream = Stream.fromTimer(privates.timer);
+		const stream = Stream.fromTimer(privates.timer).tap((frame) => {
+			frame.b1 = this.beatAtTime(frame.t1);
+			frame.b2 = this.beatAtTime(frame.t2);
+		});
 
 		const _start = stream.start;
 		stream.start = (time) => {
 			Transport.prototype.start.call(this, time);
-			_start.apply(stream, arguments);
+			_start.call(stream, time || privates.timer.now());
+			return stream;
+		};
+
+		const _stop  = stream.stop;
+		stream.stop = (time) => {
+			_stop.call(stream, time || privates.timer.now());
+			//Transport.prototype.stop.call(this, time);
+			return stream;
 		};
 
 		return stream;
-
-		//return new CueStream(privates.timer, this, events, id, distributors);
 	},
 
 	cue: function(beat, fn) {

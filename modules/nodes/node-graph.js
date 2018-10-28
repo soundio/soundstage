@@ -35,7 +35,7 @@ Provides the methods:
 */
 
 import { getPrivates } from '../utilities/privates.js';
-import { print, printGroup, printGroupEnd } from './print.js';
+import { logGroup, logGroupEnd } from '../utilities/print.js';
 import { connect, disconnect } from '../connect.js';
 import constructors from '../constructors';
 
@@ -63,7 +63,7 @@ function createConnection(nodes, data) {
 }
 
 export default function NodeGraph(context, data) {
-    if (DEBUG) { printGroup('GraphNode', data.nodes && data.nodes.map(n => n.type).join(', ')); }
+    if (DEBUG) { logGroup('mixin', 'GraphNode', data.nodes && data.nodes.map(n => n.type).join(', ')); }
 
     const privates = getPrivates(this);
 
@@ -90,7 +90,7 @@ export default function NodeGraph(context, data) {
     seal(nodes);
     data.connections && data.connections.reduce(createConnection, nodes);
 
-    if (DEBUG) { printGroupEnd(); }
+    if (DEBUG) { logGroupEnd(); }
 }
 
 const blacklist = {

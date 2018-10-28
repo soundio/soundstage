@@ -1,7 +1,9 @@
 
+import { logGroup, logGroupEnd } from './utilities/print.js';
 import { remove } from '../../fn/fn.js';
 import globalConfig from './config.js';
 
+const DEBUG          = true;
 const assign         = Object.assign;
 const defineProperty = Object.defineProperty;
 
@@ -29,11 +31,11 @@ function stop() {
     active = false;
 }
 
-worker.onmessage = function frame(count) {
+worker.onmessage = function frame(e) {
     let n = -1;
 
     while (++n < timers.length) {
-        timers[n].frame(count);
+        timers[n].frame(e.data);
     }
 
     if (!timers.length) {

@@ -29,7 +29,7 @@ function assignSetting(node, key, value) {
 }
 
 export function assignSettings(node, defaults, settings) {
-    if (DEBUG) { logGroup('Settings'); }
+    if (DEBUG) { logGroup('assign', node.constructor.name, (settings ? Object.keys(settings).join(', ') : '')); }
     if (settings) {
         //if (DEBUG) { console.log('Assigning settings', settings) }
         for (let key in settings) {

@@ -34,6 +34,7 @@ define(GraphNode.prototype, {
 });
 */
 assign(GraphNode.prototype, {
+    /*
     connect: function(target, output, input) {
         const connection = new Connection(this.graph, this.id, target.id, output, input);
         return this;
