@@ -110,9 +110,9 @@ export default function Control(controls, source, target, setting) {
     let value;
 
     this.controls = controls;
-    this.source = source;
-    this.target = target;
-    this.data   = data;
+    this.source   = source;
+    this.target   = target;
+    this.data     = data;
 
     seal(this);
 
@@ -145,6 +145,7 @@ export default function Control(controls, source, target, setting) {
             n ;
 
         distribute(time, type, name, value);
+        target.record && target.record.push([time, type, name, value]);
     });
 }
 

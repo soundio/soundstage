@@ -29,7 +29,7 @@ Returns the beat at a given `time`.
 Returns the time at a given `beat`.
 */
 
-import { each, get, id, insert, isDefined, Pool } from '../../fn/fn.js';
+import { each, get, id, insert, isDefined, Pool, toArray, by } from '../../fn/fn.js';
 import { default as Sequence, log as logSequence } from './sequence.js';
 import { getPrivates } from './utilities/privates.js';
 import { createId } from './utilities/utilities.js';
@@ -40,12 +40,14 @@ import Location from './location.js';
 import Meter from './meter.js';
 import Events from '../../fn/js/eventz.js';
 
-var DEBUG     = window.DEBUG;
+var DEBUG    = window.DEBUG;
 
-var assign    = Object.assign;
-var define    = Object.defineProperties;
-var notify    = Events.notify;
+var assign   = Object.assign;
+var define   = Object.defineProperties;
+var notify   = Events.notify;
 
+
+const getBeat = get(0);
 
 // Sequencer
 //
@@ -222,7 +224,34 @@ assign(Sequencer.prototype, Transport.prototype, Meter.prototype, Events.prototy
 
 		return stream;
 	},
+	/*
+	record: function(graphId, sequenceId) {
+		const node = this.nodes.find((node) => node.id === graphId);
 
+		if (!node) {
+			console.log('Node not found');
+			return this;
+		}
+
+		const sequence = this.sequences.find((sequence) => sequence.id === sequenceId);
+		let events;
+
+		if (sequence) {
+			events = sequence.events;
+		}
+		else {
+			events = [];
+			this.sequences.push({
+				id:     sequenceId,
+				events: events
+			});
+		}
+
+		node.record = Stream.of()
+		.map((a) => assign({}, a, { 0: this.beatAtTime(a[0]) }))
+		.each((event) => insert(getBeat, events, event));
+	},
+	*/
 	cue: function(beat, fn) {
 		var stream = getPrivates(this).stream;
 		stream.cue(beat, fn);

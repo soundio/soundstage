@@ -10,11 +10,22 @@ const defaults = {
 
 function increment(n) { return n + 1; }
 
-export default class OutputSplitter extends ChannelSplitterNode {
+export default class OutputSplitter extends GainNode {
     constructor(context, settings, output) {
 		var options = assign({}, defaults, settings);
 		options.numberOfOutputs = options.channels.length || 2;
-		super(context, options);
+		options.channelCountMode = 'explicit';
+		options.channelCount = options.numberOfOutputs;
+
+		super(context, {
+			gain:                  1,
+			channelCountMode:      'explicit',
+			channelCount:          options.numberOfOutputs,
+			channelInterpretation: 'speakers'
+		});
+
+		const splitter = new ChannelSplitterNode(context, options);
+		this.connect(splitter);
 
 		var channels = [];
 
@@ -35,7 +46,7 @@ export default class OutputSplitter extends ChannelSplitterNode {
 						// of channel in array. Ignore routings to channels the
 						// output does not have.
 						if (array[count] > output.channelCount) { continue; }
-						connect(this, output, count, array[count]);
+						connect(splitter, output, count, array[count]);
 						channels[count] = array[count];
 					}
 
@@ -48,6 +59,7 @@ export default class OutputSplitter extends ChannelSplitterNode {
 			}
 		});
 
+		// Assign
 		this.channels = options.channels;
     }
 }
