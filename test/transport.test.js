@@ -7,7 +7,7 @@ import context from '../modules/context.js';
 test('Transport()', function(run, print, fixture) {
     run('transport.start()', function(equals, done) {
         const transport = new Transport(context);
-console.log(transport);
+
         // Let audio clock settle
         setTimeout(function() {
             const t = context.currentTime;

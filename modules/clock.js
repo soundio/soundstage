@@ -1,9 +1,9 @@
 
 import { id } from '../../fn/fn.js';
 import { getPrivates } from './utilities/privates.js';
-import Location from './loctation.js';
+import Location from './location.js';
 import { isRateEvent } from './event.js';
-import { automate, getValueAtTime } from './audio-param.js';
+import { automate, getValueAtTime } from './automate.js';
 
 const assign = Object.assign;
 const define = Object.defineProperties;
@@ -13,19 +13,17 @@ const properties = {
 	stopTime:  { writable: true, value: undefined }
 };
 
+function round(n) {
+	return Math.round(n * 1000000000000) / 1000000000000;
+}
+
 export default function Clock(context, transport) {
-	// Support using constructor without the `new` keyword
-	//if (!Clock.prototype.isPrototypeOf(this)) {
-	//	return new Clock(context, transport);
-	//}
-
-	this.context = context;
-
 	// Private
 	getPrivates(this).transport = transport;
 
 	// Properties
 	define(this, properties);
+	this.context = context;
 };
 
 assign(Clock.prototype, Location.prototype, {
@@ -42,7 +40,7 @@ assign(Clock.prototype, Location.prototype, {
 		const transport = privates.transport;
 		const startLoc  = transport.beatAtTime(this.startTime);
 		const beatLoc   = this.locationAtBeat(beat);
-		return transport.timeAtBeat(beatLoc + startLoc);
+		return round(transport.timeAtBeat(beatLoc + startLoc));
 	},
 
 	start: function(time, beat) {

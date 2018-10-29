@@ -105,7 +105,7 @@ Returns an object with an
 
 export default function Location(events) {
 	this.events = events;
-	getPrivates(this).locationCache = [];
+	//getPrivates(this).locationCache = [];
 }
 
 assign(Location.prototype, {

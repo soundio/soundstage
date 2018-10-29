@@ -1,11 +1,41 @@
 
-import { id } from '../../fn/fn.js';
+import { id, nothing } from '../../fn/fn.js';
 import { getPrivates } from './utilities/privates.js';
-import { automate, getValueAtTime } from './audio-param.js';
+import { automate, getValueAtTime } from './automate.js';
+import { isRateEvent } from './event.js';
 import Clock from './clock.js';
 
 const assign = Object.assign;
 const define = Object.defineProperties;
+
+function fillEventsBuffer(stage, events, buffer, frame) {
+	let event;
+
+	buffer.length = 0;
+
+	while(event = events.shift()) {
+		if (event[0] > frame.b2) {
+			if (event[3] === 'exponential') {
+				buffer.push(event);
+			}
+			else {
+				events.unshift(event);
+			}
+
+			break;
+		}
+
+		buffer.push(event);
+	}
+
+	return buffer;
+}
+
+function byBeat(a, b) {
+	return a[0] === b[0] ? 0 :
+		a[0] > b[0] ? 1 :
+		-1 ;
+}
 
 export default function Transport(context) {
 	// Support using constructor without the `new` keyword
@@ -31,6 +61,27 @@ assign(Transport.prototype, Clock.prototype, {
 
 	timeAtBeat: function(beat) {
 		return this.startTime + this.locationAtBeat(beat);
+	},
+
+	start: function(time) {
+		const privates = getPrivates(this);
+		const rateNode = privates.rateNode;
+		const buffer   = [];
+		const events   = this.events ?
+			this.events.filter(isRateEvent).sort(byBeat) :
+			nothing ;
+
+		Clock.prototype.start.apply(this, arguments);
+
+		if (!this.sequence) { return this; }
+
+		// Careful, we risk calling transport.start if we try starting this
+		// sequence here... sequence dependencies need to be sorted out...
+		privates.sequence = this
+		.sequence((frame) => fillEventsBuffer(this, events, buffer, frame))
+		.each((e) => automate(rateNode, e.time, e[3], e[2]));
+
+		return this;
 	}
 });
 

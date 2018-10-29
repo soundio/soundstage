@@ -6,7 +6,7 @@ import { getPrivates } from '../utilities/privates.js';
 import { numberToFrequency } from '../../../midi/midi.js';
 import Tick from './tick.js';
 import NodeGraph from './node-graph.js';
-import { automate } from '../audio-param.js';
+import { automate } from '../automate.js';
 import { assignSettings } from './assign-settings.js';
 import { connect, disconnect } from '../connect.js';
 
@@ -70,8 +70,26 @@ const properties = {
     }
 };
 
+const events = [];
 
-function loopEvents(stage, events, buffer, frame) {
+function Event(b1, beat, type) {
+	// A cheap object pool
+	let event = events.find((event) => event[0] < b1);
+
+	if (event) {
+		event[0] = beat;
+		event[1] = type;
+		return event;
+	}
+	else {
+		events.push(this);
+	}
+
+	this[0] = beat;
+	this[1] = type;
+}
+
+function fillEventsBuffer(stage, events, buffer, frame) {
 	const b1       = frame.b1;
 	const b2       = frame.b2;
 	const bar1     = stage.barAtBeat(b1);
@@ -97,8 +115,8 @@ function loopEvents(stage, events, buffer, frame) {
 		localB2  = bar2Beat - bar1Beat;
 
 		while (++n < events.length && events[n][0] < localB2) {
-			events[n].time = stage.timeAtBeat(events[n][0] + bar1Beat);
-			buffer.push(events[n]);
+			//events[n].time = stage.timeAtBeat(events[n][0] + bar1Beat);
+			buffer.push(new Event(b1, bar1Beat + events[n][0], events[n][1]));
 		}
 
 		bar += 1;
@@ -111,15 +129,14 @@ function loopEvents(stage, events, buffer, frame) {
 
 	while (++n < events.length && events[n][0] < localB2) {
 		//console.log('timeAtBeat', events[n][0], bar1Beat)
-		events[n].time = stage.timeAtBeat(bar1Beat + events[n][0]);
-		buffer.push(events[n]);
+		//events[n].time = stage.timeAtBeat(bar1Beat + events[n][0]);
+		buffer.push(new Event(b1, bar1Beat + events[n][0], events[n][1]));
 	}
 
 	if (buffer.length) { log('frame', frame.t1.toFixed(3) + '–' + frame.t2.toFixed(3) + 's (' + frame.b1.toFixed(3) + '–' + frame.b2.toFixed(3) + 'b)', buffer.length, buffer.map((e) => { return e[0].toFixed(3) + 'b ' + e[1]; }).join(', ')); }
 
 	return buffer;
 }
-
 
 export default function Metronome(context, settings, stage) {
 	if (DEBUG) { printGroup('Metronome'); }
@@ -154,25 +171,19 @@ assign(Metronome.prototype, NodeGraph.prototype, {
 		const voice     = this.get('output');
 		const buffer    = [];
 
-//console.log('METRO start   ', this.events);
-
 		privates.sequence = stage
-		.sequence()
-		.fold((buffer, data) => loopEvents(stage, this.events, buffer, data), buffer)
-		.chain(id)
-		.each(function(e) {
+		.sequence((data) => fillEventsBuffer(stage, this.events, buffer, data))
+		.each(function distribute(e) {
 			const options = metronome[e[1]];
-			//console.log(e.time, options[0], options[1]);
 			voice.start(e.time, options[0], options[1]);
 		})
 		.start(time || this.context.currentTime);
-//console.log('METRO sequence', privates.sequence)
+
 		return this;
 	},
 
 	stop: function stop(time) {
 		const privates = getPrivates(this);
-//console.log('METRO stop    ', privates.sequence)
 		privates.sequence.stop(time || this.context.currentTime);
 		return this;
 	},

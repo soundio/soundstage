@@ -2,7 +2,7 @@ import { nothing } from '../../../fn/fn.js';
 import { getPrivates } from '../utilities/privates.js';
 import NodeGraph   from './node-graph.js';
 import PlayNode from './play-node.js';
-import { automate, getAutomationEvents, getAutomationEndTime } from '../audio-param.js';
+import { automate, getAutomationEvents, getAutomationEndTime } from '../automate.js';
 import { assignSettings } from './assign-settings.js';
 
 const DEBUG  = window.DEBUG;

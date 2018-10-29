@@ -1,5 +1,5 @@
 import { log, logGroup, logGroupEnd } from '../utilities/print.js';
-import { automate } from '../audio-param.js';
+import { automate } from '../automate.js';
 
 const DEBUG = true;
 

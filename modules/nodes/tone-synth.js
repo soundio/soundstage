@@ -6,7 +6,7 @@ import { getPrivates } from '../utilities/privates.js';
 import { numberToFrequency } from '../../../midi/midi.js';
 import Tone from './tone.js';
 import NodeGraph from './node-graph.js';
-import { automate } from '../audio-param.js';
+import { automate } from '../automate.js';
 import { assignSettings } from './assign-settings.js';
 import Pool from '../pool.js';
 import { connect, disconnect } from '../connect.js';

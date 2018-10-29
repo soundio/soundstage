@@ -78,9 +78,7 @@ export default function Sequencer(audio, distributors, sequences, events) {
 	// beatAtBar:  fn(n)
 	// barAtBeat:  fn(n)
 	//
-	// There is no point in calling this as it does nothing
-
-	//Meter.call(this, events);
+	// There is no point in calling this as the constructor does nothing
 
 	// Initialise sequencer as an event emitter
 	//
@@ -129,7 +127,7 @@ export default function Sequencer(audio, distributors, sequences, events) {
 		//	return this.start(time, beat);
 		//}
 
-		console.log('Soundstage start()', this.startTime, beat, status, audio.state);
+		//console.log('Soundstage start()', this.startTime, beat, status, audio.state);
 
 		Transport.prototype.start.call(this, time, beat);
 
@@ -154,7 +152,7 @@ export default function Sequencer(audio, distributors, sequences, events) {
 		var stream = privates.stream;
 		var status = stream.status;
 
-		console.log('Soundstage stop() ', time, status);
+		//console.log('Soundstage stop() ', time, status);
 
 		Transport.prototype.stop.call(this, time);
 
@@ -193,26 +191,29 @@ assign(Sequencer.prototype, Transport.prototype, Meter.prototype, Events.prototy
 	//	return stream.create(generator, id, object);
 	//},
 
-	createTimeStream: function(events, distributors) {
+	sequence: function(toEventsBuffer) {
 		const privates = getPrivates(this);
-		return Stream.fromTimer(privates.timer);
-	},
-
-	sequence: function(events, distributors) {
-		const privates = getPrivates(this);
-		const stream = Stream.fromTimer(privates.timer).tap((frame) => {
+		const stream = Stream
+		.fromTimer(privates.timer)
+		.tap((frame) => {
 			frame.b1 = this.beatAtTime(frame.t1);
 			frame.b2 = this.beatAtTime(frame.t2);
+		})
+		.map(toEventsBuffer)
+		.chain(id)
+		.tap((event) => {
+			event.time = this.timeAtBeat(event[0]);
 		});
 
 		const _start = stream.start;
+		const _stop  = stream.stop;
+
 		stream.start = (time) => {
 			Transport.prototype.start.call(this, time);
 			_start.call(stream, time || privates.timer.now());
 			return stream;
 		};
 
-		const _stop  = stream.stop;
 		stream.stop = (time) => {
 			_stop.call(stream, time || privates.timer.now());
 			//Transport.prototype.stop.call(this, time);

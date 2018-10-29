@@ -1,5 +1,5 @@
 
-import { automate, getAutomationEvents } from '../audio-param.js';
+import { automate, getAutomationEvents } from '../automate.js';
 
 const assign = Object.assign;
 const create = Object.create;
