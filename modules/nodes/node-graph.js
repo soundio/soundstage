@@ -44,6 +44,18 @@ const assign = Object.assign;
 const define = Object.defineProperties;
 const seal   = Object.seal;
 
+const blacklist = {
+    //startTime: true,
+    //stopTime:  true,
+    channelCount: true,
+    channelCountMode: true,
+    channelInterpretation: true,
+    context:   true,
+    numberOfInputs: true,
+    numberOfOutputs: true,
+    onended: true
+};
+
 export function createNode(context, type, settings) {
     return new constructors[type](context, settings);
 }
@@ -92,18 +104,6 @@ export default function NodeGraph(context, data) {
 
     if (DEBUG) { logGroupEnd(); }
 }
-
-const blacklist = {
-    //startTime: true,
-    //stopTime:  true,
-    channelCount: true,
-    channelCountMode: true,
-    channelInterpretation: true,
-    context:   true,
-    numberOfInputs: true,
-    numberOfOutputs: true,
-    onended: true
-};
 
 assign(NodeGraph.prototype, {
     get: function(id) {

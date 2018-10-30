@@ -12,6 +12,7 @@ import { connect, disconnect } from './connect.js';
 import Backstage     from './backstage.js';
 import Input         from './nodes/input.js';
 import Output        from './nodes/output.js';
+import Metronome     from './nodes/metronome.js';
 import Graph         from './graph.js';
 import requestPlugin from './request-plugin.js';
 import Controls      from './controls.js';
@@ -116,21 +117,25 @@ export default function Soundstage(data, settings) {
     // nodes:       array
     // connections: array
 
+    const backstage = new Backstage(this);
+
     const requestTypes = {
         input: function(context, data) {
             return requestInputSplitter(context).then(function(input) {
-                return new Input(context, data.object, input);
+                return new Input(context, data.data, input);
             });
         },
 
+        metronome: function(context, data) {
+            return Promise.resolve(new Metronome(context, data.data, backstage));
+        },
+
         output: function(context, data) {
-            return Promise.resolve(new Output(context, data.object, output));
+            return Promise.resolve(new Output(context, data.data, output));
         },
 
         default: requestAudioNode
     };
-
-    const backstage = new Backstage(this);
 
     Graph.call(this, context, requestTypes, data, backstage);
 

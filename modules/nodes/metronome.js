@@ -10,6 +10,10 @@ import { automate } from '../automate.js';
 import { assignSettings } from './assign-settings.js';
 import { connect, disconnect } from '../connect.js';
 
+if (!NodeGraph.prototype.get) {
+	throw new Error('NodeGraph is not fully formed?')
+}
+
 const DEBUG = window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
@@ -140,7 +144,7 @@ function fillEventsBuffer(stage, events, buffer, frame) {
 
 export default function Metronome(context, settings, stage) {
 	if (DEBUG) { printGroup('Metronome'); }
-
+if (!stage.sequence) { throw new Error(); }
 	// Graph
 	NodeGraph.call(this, context, graph);
     const voice = this.get('output');
@@ -157,14 +161,13 @@ export default function Metronome(context, settings, stage) {
     this.gain = voice.gain;
 
 	// Update settings
-	console.log(settings);
 	assignSettings(this, defaults, settings);
 
 	if (DEBUG) { printGroupEnd(); }
 }
 
 assign(Metronome.prototype, NodeGraph.prototype, {
-	start: function start(time) {
+	start: function(time) {
 		const privates  = getPrivates(this);
 		const stage     = privates.stage;
 		const metronome = this;
@@ -182,13 +185,13 @@ assign(Metronome.prototype, NodeGraph.prototype, {
 		return this;
 	},
 
-	stop: function stop(time) {
+	stop: function(time) {
 		const privates = getPrivates(this);
 		privates.sequence.stop(time || this.context.currentTime);
 		return this;
 	},
 
-	destroy: function() {
+	/*destroy: function() {
 		const privates = getPrivates(this);
 
 		for (let note of privates.notes) {
@@ -197,7 +200,7 @@ assign(Metronome.prototype, NodeGraph.prototype, {
 
 		this.get('output').disconnect();
 		return this;
-	}
+	}*/
 });
 
 Metronome.defaults  = {

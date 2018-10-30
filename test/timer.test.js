@@ -1,5 +1,6 @@
-import { test } from '../../fn/fn.js';
+import { test, Stream } from '../../fn/fn.js';
 import Timer from '../modules/timer.js';
+import context from '../modules/context.js';
 
 test('Timer()', function(run, print, fixture) {
     function now() { return context.currentTime; }
