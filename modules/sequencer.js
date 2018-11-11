@@ -46,49 +46,6 @@ const define    = Object.defineProperties;
 const seedRateEvent  = { 0: 0, 1: 'rate' };
 const seedMeterEvent = { 0: 0, 1: 'meter', 2: 4, 3: 1 };
 
-function fillEventsBuffer(stage, events, buffer, frame) {
-	const b1 = frame.b1;
-	const b2 = frame.b2;
-
-	//console.log('FRAME events', bar, localB1, events.length);
-
-	buffer.length = 0;
-
-	// Ignore events before b1
-	while (++n < events.length && events[n][0] < localB1);
-	--n;
-
-
-
-	if (buffer.length) { log('frame', frame.t1.toFixed(3) + '–' + frame.t2.toFixed(3) + 's (' + frame.b1.toFixed(3) + '–' + frame.b2.toFixed(3) + 'b)', buffer.length, buffer.map((e) => { return e[0].toFixed(3) + 'b ' + e[1]; }).join(', ')); }
-
-	return buffer;
-}
-
-
-function fillRatesBuffer(stage, events, buffer, frame) {
-	let event;
-
-	buffer.length = 0;
-
-	while(event = events.shift()) {
-		if (event[0] > frame.b2) {
-			if (event[3] === 'exponential') {
-				buffer.push(event);
-			}
-			else {
-				events.unshift(event);
-			}
-
-			break;
-		}
-
-		buffer.push(event);
-	}
-
-	return buffer;
-}
-
 function byBeat(a, b) {
 	return a[0] === b[0] ? 0 :
 		a[0] > b[0] ? 1 :
@@ -260,6 +217,14 @@ function distributeData(data) {
 		if (command.stopCommand) {
 			targets.set(command, object);
 		}
+		else {
+			// Release back to pool
+			if (command.startCommand) {
+				pool.push(command.startCommand);
+			}
+
+			pool.push(command);
+		}
 	}
 }
 
@@ -338,13 +303,6 @@ assign(Sequencer.prototype, Clock.prototype, Meter.prototype, {
 			automate(rateNode, this.timeAtBeat(event[0]), event[3], event[2]);
 		}
 
-		// Careful, we risk calling transport.start if we try starting this
-		// sequence here... sequence dependencies need to be sorted out...
-		//privates.rateStream = this
-		//.sequence((frame) => fillRatesBuffer(this, events, buffer, frame))
-		//.each((e) => automate(privates.rateNode, e.time, e[3], e[2]));
-
-
 		return privates.transport.locationAtBeat(
 			privates.transport.beatAtTime(this.startTime) + beat
 		) - (this.startTime - transport.startTime);
@@ -392,17 +350,6 @@ assign(Sequencer.prototype, Clock.prototype, Meter.prototype, {
 		seedRateEvent[2]   = getValueAtTime(rateNode, time);
 		rates.reduce(assignTime, seedRateEvent);
 		rates.reduce(automateRate, rateNode);
-
-		// Set meters
-		const meters = this.events ?
-			this.events.filter(isMeterEvent).sort(byBeat) :
-			nothing ;
-
-		seedMeterEvent.time = time;
-		meters.reduce(assignTime, seedMeterEvent);
-		meters.reduce(function(transport, event) {
-			transport.setMeterAtTime(event.time, event[2], event[3]);
-		}, privates.transport);
 
 		// Stream events
 		const data = {
@@ -455,36 +402,10 @@ assign(Sequencer.prototype, Clock.prototype, Meter.prototype, {
 		return this;
 	},
 
-	sequence: function(eventsBuffer) {
+	sequence: function(toEventsBuffer) {
 		const privates = getPrivates(this);
-		const stream = Stream
-		.fromTimer(privates.timer)
-		.tap((frame) => {
-			frame.b1 = this.beatAtTime(frame.t1);
-			frame.b2 = this.beatAtTime(frame.t2);
-		})
-		.map(eventsBuffer)
-		.chain(id)
-		.tap((event) => {
-			event.time = this.timeAtBeat(event[0]);
-		});
-
-		const _start = stream.start;
-		const _stop  = stream.stop;
-
-		stream.start = (time) => {
-			privates.transport.start(time);
-			_start.call(stream, time || privates.timer.now());
-			return stream;
-		};
-
-		stream.stop = (time) => {
-			_stop.call(stream, time || privates.timer.now());
-			//Transport.prototype.stop.call(this, time);
-			return stream;
-		};
-
-		return stream;
+		const transport = privates.transport;
+		return transport.sequence(toEventsBuffer);
 	},
 
 	cue: function(beat, fn) {
