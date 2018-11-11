@@ -20,38 +20,38 @@ export const distributors = {
     // [time, "chord", root, mode, duration]
     // [time, "sequence", name || events, target, duration, transforms...]
 
-    'note': function(object, time, type, name, value) {
+    'note': function(target, time, type, name, value) {
         const number = typeof name === 'number' ? name : noteToNumber(name) ;
-        return object.start(time, number, value) || object;
+        return target.start(time, number, value) || target;
     },
 
-    'noteon': function(object, time, type, name, value) {
+    'noteon': function(target, time, type, name, value) {
         const number = typeof name === 'number' ? name : noteToNumber(name) ;
-        return object.start(time, number, value) || object;
+        return target.start(time, number, value) || target;
     },
 
-    'noteoff': function(object, time, type, name, value) {
+    'noteoff': function(target, time, type, name, value) {
         const number = typeof name === 'number' ? name : noteToNumber(name) ;
-        object.stop(time, number, value);
-        return object;
+        target.stop(time, number, value);
+        return target;
     },
 
-    'param': function(object, time, type, name, value) {
-        const param = object[name];
+    'param': function(target, time, type, name, value) {
+        const param = target[name];
         automate(param, time, 'step', value);
-        return object;
+        return target;
     },
 
-    'default': function(object, time, type) {
+    'default': function(target, time, type) {
         print('Cannot cue unrecognised type "' + type + '". (Possible types: noteon, noteoff, noteparam, param).' )
     }
 };
 
 export const distribute = overload(arg2, distributors);
 
-export function distributeEvent(object, event) {
+export function distributeEvent(target, event) {
     // How long is our longest event going to be? Hmm.
-    return distribute(object, event[0], event[1], event[2], event[3], event[4], event[5]);
+    return distribute(target, event[0], event[1], event[2], event[3], event[4], event[5]);
 };
 
 

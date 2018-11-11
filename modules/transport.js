@@ -1,60 +1,48 @@
 
-import { id, nothing } from '../../fn/fn.js';
+import { id, nothing, Stream } from '../../fn/fn.js';
 import { getPrivates } from './utilities/privates.js';
-import { automate, getValueAtTime } from './automate.js';
+import { automate, getValueAtTime, getAutomationEvents } from './automate.js';
+import { barAtBeat, beatAtBar } from './meter.js';
 import { isRateEvent } from './event.js';
+import { connect, disconnect } from './connect.js';
+import { automationBeatAtLocation, automationLocationAtBeat } from './location.js';
 import Clock from './clock.js';
 
 const assign = Object.assign;
 const define = Object.defineProperties;
+const rate0  = Object.freeze({ time: 0, value: 2, curve: 'step', loc: 0 });
+const meter0 = Object.freeze({ 0: 0, 1: 'meter', 2: 4, 3: 1 });
 
-function fillEventsBuffer(stage, events, buffer, frame) {
-	let event;
-
-	buffer.length = 0;
-
-	while(event = events.shift()) {
-		if (event[0] > frame.b2) {
-			if (event[3] === 'exponential') {
-				buffer.push(event);
-			}
-			else {
-				events.unshift(event);
-			}
-
-			break;
-		}
-
-		buffer.push(event);
-	}
-
-	return buffer;
-}
-
-function byBeat(a, b) {
-	return a[0] === b[0] ? 0 :
-		a[0] > b[0] ? 1 :
-		-1 ;
-}
-
-export default function Transport(context) {
-	// Support using constructor without the `new` keyword
-	//if (!Transport.prototype.isPrototypeOf(this)) {
-	//	return new Transport(context);
-	//}
-
-	Clock.call(this, context);
-
+export default function Transport(context, rateNode, timer) {
 	// Private
 	const privates = getPrivates(this);
-
-	// Params
-	const rateNode = new ConstantSourceNode(context, { offset: 2 });
 	privates.rateNode = rateNode;
-	this.rate = rateNode.offset;
+	privates.meters = [meter0];
+	privates.timer  = timer;
+
+	// Public
+	this.context = context;
 };
 
 assign(Transport.prototype, Clock.prototype, {
+	beatAtLocation: function(location) {
+		if (location < 0) { throw new Error('Location: beatAtLoc(loc) does not accept -ve values.'); }
+
+		const privates = getPrivates(this);
+		const events   = getAutomationEvents(privates.rateNode);
+
+		return automationBeatAtLocation(events, rate0, location);
+	},
+
+	locationAtBeat: function(beat) {
+		if (beat < 0) { throw new Error('Location: locAtBeat(beat) does not accept -ve values.'); }
+
+		const privates = getPrivates(this);
+		const events   = getAutomationEvents(privates.rateNode);
+
+		return automationLocationAtBeat(events, rate0, beat);
+	},
+
 	beatAtTime: function(time) {
 		return this.beatAtLocation(time - this.startTime);
 	},
@@ -63,26 +51,79 @@ assign(Transport.prototype, Clock.prototype, {
 		return this.startTime + this.locationAtBeat(beat);
 	},
 
-	start: function(time) {
+	beatAtBar: function(bar) {
 		const privates = getPrivates(this);
-		const rateNode = privates.rateNode;
-		const buffer   = [];
-		const events   = this.events ?
-			this.events.filter(isRateEvent).sort(byBeat) :
-			nothing ;
+		const meters   = privates.meters;
+		return beatAtBar(meters, bar);
+	},
 
-		Clock.prototype.start.apply(this, arguments);
+	barAtBeat: function(beat) {
+		const privates = getPrivates(this);
+		const meters   = privates.meters;
+		return barAtBeat(meters, beat);
+	},
 
-		if (!this.sequence) { return this; }
+	setMeterAtTime: function(time, num, den) {
+		const privates = getPrivates(this);
+		const meters   = privates.meters;
 
-		// Careful, we risk calling transport.start if we try starting this
-		// sequence here... sequence dependencies need to be sorted out...
-		privates.sequence = this
-		.sequence((frame) => fillEventsBuffer(this, events, buffer, frame))
-		.each((e) => automate(rateNode, e.time, e[3], e[2]));
+		// Shorten meters to time
+		let n = -1;
+		while (++n < meters.length) {
+			if (meters[n][0] >= time) {
+				meters.length = n;
+				break;
+			}
+		}
 
-		return this;
-	}
+		meters.push({ 0: time, 1: 'meter', 2: num, 3: den });
+		return true;
+	},
+
+	sequence: function(toEventsBuffer) {
+		const privates = getPrivates(this);
+		const stream = Stream
+		.fromTimer(privates.timer)
+		.tap((frame) => {
+			frame.b1 = this.beatAtTime(frame.t1);
+			frame.b2 = this.beatAtTime(frame.t2);
+		})
+		.map(toEventsBuffer)
+		.chain(id)
+		.tap((event) => {
+			event.time = this.timeAtBeat(event[0]);
+		});
+
+		const _start = stream.start;
+		const _stop  = stream.stop;
+
+		stream.start = (time) => {
+			this.start(time);
+			_start.call(stream, time || privates.timer.now());
+			return stream;
+		};
+
+		stream.stop = (time) => {
+			_stop.call(stream, time || privates.timer.now());
+			return stream;
+		};
+
+		return stream;
+	},
+
+	// Todo: work out how stages are going to .connect(), and
+    // sort out how to access rateNode (which comes from Transport(), BTW)
+    connect: function(target, outputName, targetChan) {
+        return outputName === 'rate' ?
+            connect(getPrivates(this).rateNode, target, 0, targetChan) :
+            connect() ;
+    },
+
+    disconnect: function(outputName, target, outputChan, targetChan) {
+        if (outputName !== 'rate') { return; }
+        if (!target) { return; }
+        disconnect(getPrivates(this).rateNode, target, 0, targetChan);
+    }
 });
 
 define(Transport.prototype, {

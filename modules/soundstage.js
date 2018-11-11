@@ -9,13 +9,13 @@ import { distributeEvent } from './distribute.js';
 import audio         from './context.js';
 import constructors  from './constructors';
 import { connect, disconnect } from './connect.js';
-import Backstage     from './backstage.js';
 import Input         from './nodes/input.js';
 import Output        from './nodes/output.js';
 import Metronome     from './nodes/metronome.js';
 import Graph         from './graph.js';
 import requestPlugin from './request-plugin.js';
 import Controls      from './controls.js';
+import Timer         from './timer.js';
 import Transport     from './transport.js';
 import Sequence      from './sequence.js';
 import Sequencer     from './sequencer.js';
@@ -63,12 +63,12 @@ function createOutputMerger(context, target) {
     return merger;
 }
 
-function requestAudioNode(context, settings, backstage) {
+function requestAudioNode(context, settings, transport) {
     const Node = constructors[settings.type];
     return Node ?
-        Promise.resolve(new Node(context, settings.data, backstage)) :
+        Promise.resolve(new Node(context, settings.data, transport)) :
         requestPlugin(settings.type).then(function(Constructor) {
-            return new Constructor(context, settings.data, backstage);
+            return new Constructor(context, settings.data, transport);
         });
 }
 
@@ -97,6 +97,9 @@ export default function Soundstage(data, settings) {
     const context     = settings.context || audio;
     const destination = settings.output || context.destination;
     const output      = createOutputMerger(context, destination);
+    const rateNode    = new ConstantSourceNode(context, { offset: 2 });
+    const timer       = new Timer(function now() { return context.currentTime; });
+    const transport   = new Transport(context, rateNode, timer);
 
     //Soundstage.inspector && Soundstage.inspector.drawAudioFromNode(output);
 
@@ -117,8 +120,6 @@ export default function Soundstage(data, settings) {
     // nodes:       array
     // connections: array
 
-    const backstage = new Backstage(this);
-
     const requestTypes = {
         input: function(context, data) {
             return requestInputSplitter(context).then(function(input) {
@@ -127,7 +128,7 @@ export default function Soundstage(data, settings) {
         },
 
         metronome: function(context, data) {
-            return Promise.resolve(new Metronome(context, data.data, backstage));
+            return Promise.resolve(new Metronome(context, data.data, transport));
         },
 
         output: function(context, data) {
@@ -137,7 +138,7 @@ export default function Soundstage(data, settings) {
         default: requestAudioNode
     };
 
-    Graph.call(this, context, requestTypes, data, backstage);
+    Graph.call(this, context, requestTypes, data, transport);
 
 
     // Initialise MIDI and keyboard controls. Assigns:
@@ -224,7 +225,7 @@ export default function Soundstage(data, settings) {
         'default': distributeEvent
     };
 
-    Sequencer.call(this, context, distributors, this.sequences, this.events);
+    Sequencer.call(this, context, rateNode, transport, distributors, this.sequences, this.events, timer);
 
     /*
     // Initialise as a recorder...

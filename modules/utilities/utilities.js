@@ -48,20 +48,19 @@ export function timeAtDomTime(audio, domTime) {
 
 var bufferRequests = {};
 
-export function fetchBuffer(audio, url) {
+export function fetchBuffer(context, url) {
     return bufferRequests[url] || (bufferRequests[url] = new Promise(function(accept, reject) {
         var request = new XMLHttpRequest();
         request.open('GET', url, true);
         request.responseType = 'arraybuffer';
 
         request.onload = function() {
-            audio.decodeAudioData(request.response, accept, reject);
+            context.decodeAudioData(request.response, accept, reject);
         }
 
         request.send();
     }));
 }
-
 
 
 // Information about events and collections of events

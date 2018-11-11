@@ -73,6 +73,8 @@ test('Metronome', function(run, print, fixture) {
             ]
         })
         .ready(function(stage) {
+            window.stage = stage;
+
             stage
             .get('metronome')
             .start(stage.context.currentTime)

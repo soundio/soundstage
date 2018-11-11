@@ -1,7 +1,7 @@
 
 import { log, logGroup, logGroupEnd } from './print.js';
 import { getPrivates } from '../utilities/privates.js';
-import Tone from './tone.js';
+import Sample from './buffer.js';
 import NotesNode from './notes-node.js';
 import NodeGraph from './node-graph.js';
 import { assignSettings } from './assign-settings.js';
@@ -62,12 +62,12 @@ const properties = {
 	'velocity-to-env-2-rate': { enumerable: true, writable: true }
 };
 
-export default function ToneSynth(context, settings, stage) {
-	if (DEBUG) { logGroup(new.target === ToneSynth ? 'Node' : 'mixin', 'ToneSynth'); }
+export default function Sampler(context, settings, stage) {
+	if (DEBUG) { logGroup(new.target === Sampler ? 'Node' : 'mixin', 'Sampler'); }
 
 	// Mixin
 	NodeGraph.call(this, context, graph);
-	NotesNode.call(this, context, stage, Tone);
+	NotesNode.call(this, context, stage, Sample);
 
 	// Properties
 	define(this, properties);
@@ -79,9 +79,4 @@ export default function ToneSynth(context, settings, stage) {
 }
 
 // Mix AudioObject prototype into MyObject prototype
-assign(ToneSynth.prototype, NodeGraph.prototype, NotesNode.prototype);
-
-//ToneSynth.defaults  = {
-//	filterQ:         { min: 0,   max: 100,   transform: 'quadratic',   value: 0.25 },
-//	filterFrequency: { min: 16,  max: 16000, transform: 'logarithmic', value: 16 }
-//};
+assign(Sampler.prototype, NodeGraph.prototype, NotesNode.prototype);

@@ -85,5 +85,11 @@ export function release(event) {
 export function isRateEvent(e)  { return e[1] === 'rate'; }
 export function isMeterEvent(e) { return e[1] === 'meter'; }
 
-export const getTime = get(0);
+export const getBeat = get(0);
 export const getType = get(1);
+
+export function getDuration(e)  {
+	return e[1] === 'note' ? e[4] :
+		e[1] === 'sequence' ? e[4] :
+		undfefined ;
+}
