@@ -91,5 +91,5 @@ export const getType = get(1);
 export function getDuration(e)  {
 	return e[1] === 'note' ? e[4] :
 		e[1] === 'sequence' ? e[4] :
-		undfefined ;
+		undefined ;
 }

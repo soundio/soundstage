@@ -41,10 +41,14 @@ test('Metronome', function(run, print, fixture) {
             ]
         })
         .ready(function(stage) {
+            const t = stage.context.currentTime;
+
             stage
             .get('metronome')
-            .start(stage.context.currentTime)
-            .stop(stage.context.currentTime + 8);
+            .start(t)
+            .stop(t + 8);
+
+            stage.start(t);
 
             setTimeout(done, 8000);
         });
@@ -73,12 +77,14 @@ test('Metronome', function(run, print, fixture) {
             ]
         })
         .ready(function(stage) {
-            window.stage = stage;
+            const t = stage.context.currentTime;
 
             stage
             .get('metronome')
-            .start(stage.context.currentTime)
-            .stop(stage.context.currentTime + 16);
+            .start(t)
+            .stop(t + 16);
+
+            stage.start(t);
 
             setTimeout(done, 16000);
         });

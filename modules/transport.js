@@ -63,20 +63,20 @@ assign(Transport.prototype, Clock.prototype, {
 		return barAtBeat(meters, beat);
 	},
 
-	setMeterAtTime: function(time, num, den) {
+	setMeterAtBeat: function(beat, bar, div) {
 		const privates = getPrivates(this);
 		const meters   = privates.meters;
 
 		// Shorten meters to time
 		let n = -1;
 		while (++n < meters.length) {
-			if (meters[n][0] >= time) {
+			if (meters[n][0] >= beat) {
 				meters.length = n;
 				break;
 			}
 		}
 
-		meters.push({ 0: time, 1: 'meter', 2: num, 3: den });
+		meters.push({ 0: beat, 1: 'meter', 2: bar, 3: div });
 		return true;
 	},
 

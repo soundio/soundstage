@@ -36,8 +36,9 @@ import { createId } from './utilities/utilities.js';
 import { isRateEvent, isMeterEvent, getDuration, getBeat } from './event.js';
 import { automate, getValueAtTime } from './automate.js';
 import Clock from './clock.js';
-import Location from './location.js';
+import Location, { locAtBeatEvents } from './location.js';
 import Meter from './meter.js';
+import { distribute } from './distribute.js';
 
 const DEBUG = window.DEBUG;
 
@@ -69,6 +70,7 @@ function Command(beat, type, event) {
 function processFrame(data, frame) {
 	if (frame.type === 'stop') {
 		// Todo: stop all events
+		console.log('Implement stop frames');
 		return data;
 	}
 
@@ -97,17 +99,23 @@ function processFrame(data, frame) {
 	--n;
 
 	// Grab meter events up to b2
+	// We do this first so that a generator might follow these changes
 	let m = n;
 	while (++m < events.length && events[m][0] < frame.b2) {
 		// Schedule meter events on transport
 		if (events[m][1] === 'meter') {
-			transport.setMeterAtTime(clock.timeAtBeat(events[m][0]), events[m][2], events[m][3]);
+			transport.setMeterAtBeat(events[m][0] + transport.beatAtTime(clock.startTime), events[m][2], events[m][3]);
 		}
 	}
 
 	// Grab events up to b2
 	while (++n < events.length && events[n][0] < frame.b2) {
-		let event     = events[n];
+		let event = events[n];
+
+		if (event[1] === 'meter' || event[1] === 'rate') {
+			continue;
+		}
+
 		let eventType = event[1];
 		let eventName = event[2];
 
@@ -132,7 +140,7 @@ function processFrame(data, frame) {
 		let eventName = event[2];
 
 		// Ignore non-param, non-exponential events
-		if (!event[1] === "param" && event[4] === "exponential") {
+		if (event[1] !== "param" && event[4] !== "exponential") {
 			continue;
 		}
 
@@ -171,7 +179,7 @@ function processFrame(data, frame) {
 	n = -1;
 	while (++n < buffer.length) {
 		let event = buffer[n];
-		let command = new Command(event[0], event[1] + 'on', event);
+		let command = new Command(event[0], event[1], event);
 		command.time = clock.timeAtBeat(command.beat);
 		commands.push(command);
 
@@ -185,12 +193,12 @@ function processFrame(data, frame) {
 			command.stopCommand = stopCommand;
 
 			// If the stop is in this frame
-			if (stop[0] < frame.b2) {
+			if (stopCommand[0] < frame.b2) {
 				stopCommand.time = clock.timeAtBeat(stopCommand.beat);
 				commands.push(stopCommand)
 			}
 			else {
-				stopCommands.push(stop);
+				stopCommands.push(stopCommand);
 			}
 		}
 	}
@@ -208,6 +216,7 @@ function distributeData(data) {
 	// Distribute commands
 	let n = -1;
 	while (++n < commands.length) {
+		let command = commands[n];
 		let target = command.startCommand ?
 			targets.get(command.startCommand) :
 			data.target ;
@@ -234,7 +243,8 @@ function assignTime(e0, e1) {
 }
 
 function automateRate(node, event) {
-	automate(node, event.time, event[2], event[3]);
+	console.log('automate rate', event);
+	automate(node.offset, event.time, event[3] || 'step', event[2]) ;
 	return node;
 }
 
@@ -290,6 +300,9 @@ assign(Sequencer.prototype, Clock.prototype, Meter.prototype, {
 		// Make sure rateNode automation is populated
 		const rates = privates.rates;
 		let event;
+
+
+		// COOOEEEE!! this needs a rewrite!!
 
 		while (rates[0] && rates[0][0] < beat) {
 			event = rates.shift();

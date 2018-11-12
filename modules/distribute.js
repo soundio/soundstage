@@ -1,3 +1,4 @@
+import { print } from './utilities/print.js';
 import { overload } from '../../fn/fn.js';
 import { noteToNumber } from '../../midi/midi.js';
 import { automate } from './automate.js';
