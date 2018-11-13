@@ -18,7 +18,7 @@ export const generateUnique = function(key, values) {
     return value + '';
 }
 
-export function round(n) {
+export function roundBeat(n) {
     // Mitigate floating-point rounding errors by rounding to the nearest
     // trillionth
     return Math.round(1000000000000 * n) / 1000000000000;

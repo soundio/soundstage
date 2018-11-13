@@ -42,7 +42,7 @@ function thenAfterStop() {
 const properties = {
     startTime: { writable: true, value: undefined },
     stopTime:  { writable: true, value: undefined },
-    status:    { writable: true, value: undefined }
+    //status:    { writable: true, value: undefined }
 };
 
 export default function PlayNode() {

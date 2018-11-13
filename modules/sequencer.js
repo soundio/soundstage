@@ -243,7 +243,7 @@ function assignTime(e0, e1) {
 }
 
 function automateRate(node, event) {
-	console.log('automate rate', event);
+	console.log('automate rate', node.context.currentTime, event);
 	automate(node.offset, event.time, event[3] || 'step', event[2]) ;
 	return node;
 }
@@ -394,14 +394,17 @@ assign(Sequencer.prototype, Clock.prototype, Meter.prototype, {
 		const stream   = privates.stream;
 		const rateNode = privates.rateNode;
 
-		//console.log('Soundstage stop() ', time, status);
+		// Hold automation for the rate node
+		automate(rateNode.offset, time, 'hold');
 
-		privates.beat = this.beatAtTime(time);
+		// Stop the stream
 		stream.stop(time);
-		privates.transport.stop(time);
 
-		// Set rates
-		//automate(rateNode, time, 'step', getValueAtTime(rateNode, time));
+		// Set this.stopTime
+		Clock.prototype.stop.call(this, time);
+
+		// Stop transport
+		privates.transport.stop(time);
 
 		// Log the state of Pool shortly after stop
 		//if (DEBUG) {

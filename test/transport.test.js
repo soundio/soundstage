@@ -1,12 +1,15 @@
-import { test } from '../../fn/fn.js';
-import Transport from '../modules/transport.js';
-import context from '../modules/context.js';
+import { test }      from '../../fn/fn.js';
+import Transport     from '../modules/transport.js';
+import Timer         from '../modules/timer.js';
+import context       from '../modules/context.js';
 
 // Transports default rate is 2!!
 
 test('Transport()', function(run, print, fixture) {
     run('transport.start()', function(equals, done) {
-        const transport = new Transport(context);
+        const rateNode    = new ConstantSourceNode(context, { offset: 2 });
+        const timer       = new Timer(function now() { return context.currentTime; });
+        const transport   = new Transport(context, rateNode, timer);
 
         // Let audio clock settle
         setTimeout(function() {
@@ -26,7 +29,9 @@ test('Transport()', function(run, print, fixture) {
     }, 7);
 
     run('transport.start(time)', function(equals, done) {
-        const transport = new Transport(context);
+        const rateNode    = new ConstantSourceNode(context, { offset: 2 });
+        const timer       = new Timer(function now() { return context.currentTime; });
+        const transport   = new Transport(context, rateNode, timer);
 
         // Let audio clock settle
         setTimeout(function() {
@@ -44,7 +49,9 @@ test('Transport()', function(run, print, fixture) {
     }, 7);
 
     run('transport.start(time).stop(time) ...start(time).stop(time)', function(equals, done) {
-        const transport = new Transport(context);
+        const rateNode    = new ConstantSourceNode(context, { offset: 2 });
+        const timer       = new Timer(function now() { return context.currentTime; });
+        const transport   = new Transport(context, rateNode, timer);
 
         // Let audio clock settle
         setTimeout(function() {

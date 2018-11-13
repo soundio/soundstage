@@ -101,6 +101,8 @@ export default function Soundstage(data, settings) {
     const timer       = new Timer(function now() { return context.currentTime; });
     const transport   = new Transport(context, rateNode, timer);
 
+    rateNode.start(0);
+
     //Soundstage.inspector && Soundstage.inspector.drawAudioFromNode(output);
 
 

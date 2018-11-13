@@ -19,7 +19,8 @@ export const methodNames = {
 	"step":        "setValueAtTime",
 	"linear":      "linearRampToValueAtTime",
 	"exponential": "exponentialRampToValueAtTime",
-	"target":      "setTargetAtTime"
+	"target":      "setTargetAtTime",
+    "hold":        "cancelAndHoldAtTime"
 };
 
 // Polyfill cancelAndHoldAtTime
@@ -91,12 +92,18 @@ function automateParamEvents(param, events, time, value, curve, decay) {
 		else if (event0 && event0.value < config.minExponentialValue) {
 			curve = "step";
 		}
-	}
 
-	// Schedule the param event - curve is shorthand for one of the
-	// automation methods
-	//param.cancelAndHoldAtTime(time);
-	param[methodNames[curve]](value, time, decay);
+        // Schedule the param event
+    	param.exponentialRampToValueAtTime(value, time, decay);
+	}
+    else if (curve === "hold") {
+        // Schedule the param event
+    	param.cancelAndHoldAtTime(time);
+    }
+    else {
+        // Schedule the param event
+    	param[methodNames[curve]](value, time, decay);
+    }
 
 	// Keep events organised as AudioParams do
 	var event = { time, value, curve, decay };

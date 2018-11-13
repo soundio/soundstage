@@ -8,7 +8,7 @@ test('Soundstage transport', function(run, print, fixture) {
 
         // Let audio clock settle
         setTimeout(function() {
-            const t         = context.currentTime;
+            const t = context.currentTime;
 
             stage.start();
 

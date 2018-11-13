@@ -1,6 +1,7 @@
 
 import { id, nothing, Stream } from '../../fn/fn.js';
 import { getPrivates } from './utilities/privates.js';
+import { roundBeat } from '../modules/utilities/utilities.js';
 import { automate, getValueAtTime, getAutomationEvents } from './automate.js';
 import { barAtBeat, beatAtBar } from './meter.js';
 import { isRateEvent } from './event.js';
@@ -31,7 +32,9 @@ assign(Transport.prototype, Clock.prototype, {
 		const privates = getPrivates(this);
 		const events   = getAutomationEvents(privates.rateNode);
 
-		return automationBeatAtLocation(events, rate0, location);
+		return roundBeat(
+			automationBeatAtLocation(events, rate0, location)
+		);
 	},
 
 	locationAtBeat: function(beat) {
