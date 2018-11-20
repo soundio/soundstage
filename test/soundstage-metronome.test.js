@@ -11,7 +11,7 @@ test('Metronome', function(run, print, fixture) {
     const ctx    = canvas.getContext('2d');
     const box    = [2, 2, 636, 355];
 
-    run('Metronome ', function(equals, done) {
+    run('Metronome meter', function(equals, done) {
         const meter = new Soundstage({
             nodes: [
                 { id: 'metronome', type: 'metronome' },
@@ -24,7 +24,8 @@ test('Metronome', function(run, print, fixture) {
 
             events: [
                 [0, 'meter', 3, 1],
-                [6, 'meter', 5, 1]
+                [6, 'meter', 5, 1],
+                [11, 'meter', 2, 1]
             ]
         })
         .ready(function(stage) {
@@ -41,7 +42,7 @@ test('Metronome', function(run, print, fixture) {
         });
     }, 0);
 
-    run('Meter([...]).beatAtBar()', function(equals, done) {
+    run('Metronome rate', function(equals, done) {
 
         //drawYAxisEnvelope(ctx, box, '#acb9b8', 3);
         drawYAxisAmplitude(ctx, box, '#acb9b8');
