@@ -5,7 +5,8 @@ import { default as Event, isRateEvent, release } from './event.js';
 
 var assign = Object.assign;
 var freeze = Object.freeze;
-var rate0  = freeze({ 0: 0, 1: 'rate', 2: 2, loc: 0 });
+var rate0  = freeze({ 0: 0, 1: 'rate', 2: 2, location: 0 });
+var automationDefaultEvent = freeze({ time: 0, curve: 'step', value: 1, beat: 0 });
 var get1   = get('1');
 
 
@@ -19,13 +20,8 @@ function exponentialBeatAtLocation(r0, r1, n, l) {
 	// n  = beat count from start to end
 	// l  = current location
 	var a = root(n, r1 / r0);
-	return -1 * log(a, (1 - l * Math.log(a) * r0));
-}
-
-function stepBeatAtLocation(r0, l) {
-	// r0 = start rate
-	// t  = current time
-	return l * r0;
+	var r =  -1 * log(a, (1 - l * Math.log(a) * r0));
+	return r;
 }
 
 function exponentialLocationAtBeat(r0, r1, n, b) {
@@ -38,18 +34,13 @@ function exponentialLocationAtBeat(r0, r1, n, b) {
 	return (1 - Math.pow(a, -b)) / (Math.log(a) * r0);
 }
 
-function stepLocationAtBeat(r0, b) {
-	// r0 = start rate
-	// b  = current beat
-	return b / r0;
-}
+
 
 function beatAtLocEvents(e0, e1, l) {
 	// Returns beat relative to e0[0], where l is location from e0 time
-	// Support automation events as well as meter events
 	return e1 && (e1[3] === "exponential" || e1.curve === "exponential") ?
 		exponentialBeatAtLocation(e0[2], e1[2], e1[0] - e0[0], l) :
-		stepBeatAtLocation(e0[2], l) ;
+		beatAtTimeStep(e0[2], l) ;
 }
 
 export function locAtBeatEvents(e0, e1, b) {
@@ -57,24 +48,9 @@ export function locAtBeatEvents(e0, e1, b) {
 	return b === 0 ? 0 :
 		e1 && e1[3] === "exponential" ?
 			exponentialLocationAtBeat(e0[2], e1[2], e1[0] - e0[0], b) :
-			stepLocationAtBeat(e0[2], b) ;
+			timeAtBeatStep(e0[2], b) ;
 }
 
-function automationBeatAtLoc(e0, e1, l) {
-	// Returns beat relative to e0[0], where l is location from e0 time
-	// Support automation events as well as meter events
-	return e1 && e1.curve === "exponential" ?
-		exponentialBeatAtLocation(e0.value, e1.value, e1.time - e0.time, l) :
-		stepBeatAtLocation(e0.value, l) ;
-}
-
-function automationLocAtBeat(e0, e1, b) {
-	// Returns time relative to e0 time, where b is beat from e0[0]
-	return b === 0 ? 0 :
-		e1 && e1.curve === "exponential" ?
-			exponentialLocationAtBeat(e0.value, e1.value, e1.time - e0.time, b) :
-			stepLocationAtBeat(e0.value, b) ;
-}
 
 /*
 .beatAtLocation(location)
@@ -97,8 +73,6 @@ export function beatAtLocation(events, event, location) {
 }
 
 
-
-
 /*
 .locationAtBeat(beat)
 
@@ -118,69 +92,122 @@ export function locationAtBeat(events, event, beat) {
 }
 
 
+
+export function beatAtTimeStep(value0, time) {
+	// value0 = start rate
+	// time   = current time
+	return time * value0;
+}
+
+export function timeAtBeatStep(value0, beat) {
+	// value0 = start rate
+	// beat   = current beat
+	return beat / value0;
+}
+
+export function beatAtTimeExponential(value0, value1, duration, time) {
+	// value0   = rate at start
+	// value1   = rate at end
+	// duration = time from start to end
+	// time     = current time
+	const n = value1 / value0;
+	const c = 1 / duration;
+	return value0 * (Math.pow(n, c * time) - 1) / (c * Math.log(n));
+}
+
+export function timeAtBeatExponential(value0, value1, beats, beat) {
+	// value0   = rate at start
+	// value1   = rate at end
+	// beats    = beats from start to end
+	// beat     = current beat
+	const n = value1 / value0;
+	return beats * Math.log(1 + beat * (n - 1) / beats) / (value0 * (n - 1));
+}
+
+export function rateAtTimeExponential(value0, value1, duration, time) {
+	/* Same algo as automation getValueAtTime - this is the curve
+	   descriptor after all. */
+	return value0 * Math.pow(value1 / value0, time / duration) ;
+}
+
+export function rateAtBeatExponential(value0, value1, beats, beat) {
+	// value0 = rate at start
+	// value1 = rate at end
+	// beats  = beat count from start to end
+	// beat   = current beat
+	const n = value1 / value0;
+	const a = Math.pow(n, 1 / beats);
+	const x = (1 - Math.pow(a, -beat)) / (1 - Math.pow(a, -beats));
+	return value0 * Math.pow(n, x) ;
+}
+
 /*
-Returns the beat at a given `location`.
+export function timeAtDurationExponential(value0, value1, beats) {
+	const n = value1 / value0;
+	return beats * loge(n) / (value0 * (n - 1));
+}
+
+export function timeAtBeatExponentialDuration(value0, value1, duration, beat) {
+	const n = value1 / value0;
+	const c = 1 / duration;
+	const logn = loge(n);
+	return duration * loge(1 + beat * c * logn / value0) / logn;
+}
 */
 
-export function automationBeatAtLocation(events, event, location) {
-	let locCount = 0;
+/*
+beatAtTimeAutomation(e0, e1, time)
+Returns the rate beat at a given `time`.
+*/
+
+function beatAtTimeAutomation(e0, e1, time) {
+	// Returns beat relative to e0[0], where l is location from e0 time
+	return time === e0.time ? 0 :
+		e1 && e1.curve === "exponential" ?
+			beatAtTimeExponential(e0.value, e1.value, e1.time - e0.time, time - e0.time) :
+			beatAtTimeStep(e0.value, time - e0.time) ;
+}
+
+export function beatAtTimeOfAutomation(events, seed = defaultAutomationEvent, time) {
+	let b = seed.beat || 0;
+	let n = -1;
+
+	while (events[++n] && events[n].time < time) {
+		b = events[n].beat || (
+			events[n].beat = b + beatAtTimeAutomation(seed, events[n], events[n].time)
+		);
+		seed = events[n];
+	}
+
+	return b + beatAtTimeAutomation(seed, events[n], time);
+}
+
+
+/*
+timeAtBeatAutomation(e0, e1, beat)
+Returns the time of a given rate `beat`.
+*/
+
+function timeAtBeatAutomation(e0, e1, beat) {
+	// Returns time relative to e0 time, where b is beat from e0[0]
+	return beat === e0.beat ? 0 :
+		e1 && e1.curve === "exponential" ?
+			timeAtBeatExponential(e0.value, e1.value, e1.beat - e0.beat, beat - e0.beat) :
+			timeAtBeatStep(e0.value, beat - (e0.beat || 0)) ;
+}
+
+export function timeAtBeatOfAutomation(events, seed = defaultAutomationEvent, beat) {
+	let b = seed.beat || 0;
 	let n = -1;
 
 	while (events[++n]) {
-		const loc = locCount + automationLocAtBeat(event, events[n], events[n].time - event.time);
-		if (loc >= location) { break; }
-		locCount = loc;
-		event = events[n];
+		b = events[n].beat || (
+			events[n].beat = b + beatAtTimeAutomation(seed, events[n], events[n].time)
+		);
+
+		if (b > beat) { break; }
+		seed = events[n];
 	}
 
-	return event.time + automationBeatAtLoc(event, events[n], location - locCount);
+	return seed.time + timeAtBeatAutomation(seed, events[n], beat);
 }
-
-/*
-Returns the location of a given `beat`.
-*/
-
-export function automationLocationAtBeat(events, event, beat) {
-	let loc = 0;
-	let n = -1;
-
-	while (events[++n] && events[n].time < beat) {
-		loc += automationLocAtBeat(event, events[n], events[n].time - event.time);
-		event = events[n];
-	}
-
-	return loc + automationLocAtBeat(event, events[n], beat - event.time);
-}
-
-/*
-Location(events)
-
-Returns an object with an
-*/
-
-export default function Location(events) {
-	this.events = events;
-	//getPrivates(this).locationCache = [];
-}
-
-assign(Location.prototype, {
-	beatAtLocation: function(location) {
-		if (location < 0) { throw new Error('Location: beatAtLocEvents(loc) does not accept -ve values.'); }
-
-		const events = this.events ?
-			this.events.filter(isRateEvent) :
-			nothing ;
-
-		return beatAtLocation(events, rate0, location);
-	},
-
-	locationAtBeat: function(beat) {
-		if (beat < 0) { throw new Error('Location: locAtBeatEvents(beat) does not accept -ve values.'); }
-
-		const events = this.events ?
-			this.events.filter(isRateEvent) :
-			nothing ;
-
-		return locationAtBeat(events, rate0, beat);
-	}
-});

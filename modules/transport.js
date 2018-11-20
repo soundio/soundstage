@@ -6,52 +6,56 @@ import { automate, getValueAtTime, getAutomationEvents } from './automate.js';
 import { barAtBeat, beatAtBar } from './meter.js';
 import { isRateEvent } from './event.js';
 import { connect, disconnect } from './connect.js';
-import { automationBeatAtLocation, automationLocationAtBeat } from './location.js';
+import { beatAtTimeOfAutomation, timeAtBeatOfAutomation } from './location.js';
 import Clock from './clock.js';
 
 const assign = Object.assign;
 const define = Object.defineProperties;
-const rate0  = Object.freeze({ time: 0, value: 2, curve: 'step', loc: 0 });
-const meter0 = Object.freeze({ 0: 0, 1: 'meter', 2: 4, 3: 1 });
 
-export default function Transport(context, rateNode, timer) {
+const defaultRateEvent  = Object.freeze({ time: 0, value: 2, curve: 'step', beat: 0 });
+const defaultMeterEvent = Object.freeze({ 0: 0, 1: 'meter', 2: 4, 3: 1 });
+
+const properties = {
+	startTime:     { writable: true, value: undefined },
+	startLocation: { writable: true, value: undefined },
+	stopTime:      { writable: true, value: undefined }
+};
+
+export default function Transport(context, rateParam, timer) {
 	// Private
 	const privates = getPrivates(this);
-	privates.rateNode = rateNode;
-	privates.meters = [meter0];
+	privates.rateParam = rateParam;
+	privates.meters = [defaultMeterEvent];
 	privates.timer  = timer;
 
-	// Public
+	// Properties
+	define(this, properties);
 	this.context = context;
 };
 
 assign(Transport.prototype, Clock.prototype, {
-	beatAtLocation: function(location) {
-		if (location < 0) { throw new Error('Location: beatAtLoc(loc) does not accept -ve values.'); }
-
-		const privates = getPrivates(this);
-		const events   = getAutomationEvents(privates.rateNode);
-
-		return roundBeat(
-			automationBeatAtLocation(events, rate0, location)
-		);
-	},
-
-	locationAtBeat: function(beat) {
-		if (beat < 0) { throw new Error('Location: locAtBeat(beat) does not accept -ve values.'); }
-
-		const privates = getPrivates(this);
-		const events   = getAutomationEvents(privates.rateNode);
-
-		return automationLocationAtBeat(events, rate0, beat);
-	},
-
 	beatAtTime: function(time) {
-		return this.beatAtLocation(time - this.startTime);
+		if (time < 0) { throw new Error('Location: beatAtLoc(loc) does not accept -ve values.'); }
+
+		const privates  = getPrivates(this);
+		const events    = getAutomationEvents(privates.rateParam);
+		// Cache startLocation as it is highly likely to be needed again
+		//console.log('transport.beatAtTime', this.startTime, defaultRateEvent, events);
+		const startBeat = this.startLocation || (this.startLocation = beatAtTimeOfAutomation(events, defaultRateEvent, this.startTime));
+		const timeBeat  = beatAtTimeOfAutomation(events, defaultRateEvent, time);
+
+		return roundBeat(timeBeat - startBeat);
 	},
 
 	timeAtBeat: function(beat) {
-		return this.startTime + this.locationAtBeat(beat);
+		if (beat < 0) { throw new Error('Location: locAtBeat(beat) does not accept -ve values.'); }
+
+		const privates  = getPrivates(this);
+		const events    = getAutomationEvents(privates.rateParam);
+		// Cache startLocation as it is highly likely to be needed again
+		const startBeat = this.startLocation || (this.startLocation = beatAtTimeOfAutomation(events, defaultRateEvent, this.startTime));
+
+		return timeAtBeatOfAutomation(events, defaultRateEvent, startBeat + beat);
 	},
 
 	beatAtBar: function(bar) {
@@ -101,7 +105,11 @@ assign(Transport.prototype, Clock.prototype, {
 		const _stop  = stream.stop;
 
 		stream.start = (time) => {
-			this.start(time);
+			// If clock is running, don't start it again
+			if (this.startTime === undefined || this.stopTime < this.context.currentTime) {
+				this.start(time);
+			}
+
 			_start.call(stream, time || privates.timer.now());
 			return stream;
 		};
@@ -115,17 +123,17 @@ assign(Transport.prototype, Clock.prototype, {
 	},
 
 	// Todo: work out how stages are going to .connect(), and
-    // sort out how to access rateNode (which comes from Transport(), BTW)
+    // sort out how to access rateParam (which comes from Transport(), BTW)
     connect: function(target, outputName, targetChan) {
         return outputName === 'rate' ?
-            connect(getPrivates(this).rateNode, target, 0, targetChan) :
+            connect(getPrivates(this).rateParam, target, 0, targetChan) :
             connect() ;
     },
 
     disconnect: function(outputName, target, outputChan, targetChan) {
         if (outputName !== 'rate') { return; }
         if (!target) { return; }
-        disconnect(getPrivates(this).rateNode, target, 0, targetChan);
+        disconnect(getPrivates(this).rateParam, target, 0, targetChan);
     }
 });
 

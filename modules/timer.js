@@ -8,8 +8,8 @@ const assign         = Object.assign;
 const defineProperty = Object.defineProperty;
 
 export const config = {
-	lookahead: 0.09,
-    interval:  0.09
+	lookahead: 0.12,
+    interval:  0.24
 };
 
 const worker = new Worker(globalConfig.basePath + 'modules/timer.worker.js');

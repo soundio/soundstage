@@ -36,7 +36,7 @@ import { createId } from './utilities/utilities.js';
 import { isRateEvent, isMeterEvent, getDuration, getBeat } from './event.js';
 import { automate, getValueAtTime } from './automate.js';
 import Clock from './clock.js';
-import Location, { locAtBeatEvents } from './location.js';
+import { locAtBeatEvents } from './location.js';
 import Meter from './meter.js';
 import { distribute } from './distribute.js';
 
@@ -83,7 +83,7 @@ function processFrame(data, frame) {
 	const targets      = data.targets;
 	const transport    = data.transport;
 
-	// This assumes rateNode is already populated, or is
+	// This assumes rateParam is already populated, or is
 	// populated dynamically
 	frame.b1 = clock.beatAtTime(frame.t1);
 	frame.b2 = clock.beatAtTime(frame.t2);
@@ -242,10 +242,9 @@ function assignTime(e0, e1) {
 	return e1;
 }
 
-function automateRate(node, event) {
-	console.log('automate rate', node.context.currentTime, event);
-	automate(node.offset, event.time, event[3] || 'step', event[2]) ;
-	return node;
+function automateRate(param, event) {
+	automate(param, event.time, event[3] || 'step', event[2]) ;
+	return param;
 }
 
 
@@ -255,7 +254,7 @@ function automateRate(node, event) {
 // and RecordStreams, which are read-once. It is the `master` object from
 // whence event streams sprout.
 
-export default function Sequencer(context, rateNode, transport, distributors, sequences, events, timer) {
+export default function Sequencer(context, rateParam, transport, distributors, timer) {
 
 	// The base Clock provides the properties:
 	//
@@ -275,7 +274,7 @@ export default function Sequencer(context, rateNode, transport, distributors, se
 
 	const privates = getPrivates(this);
 	privates.timer = timer;
-	privates.rateNode = rateNode;
+	privates.rateParam = rateParam;
 }
 
 assign(Sequencer.prototype, Clock.prototype, Meter.prototype, {
@@ -284,54 +283,20 @@ assign(Sequencer.prototype, Clock.prototype, Meter.prototype, {
 	//	return stream.create(generator, id, object);
 	//},
 
-	beatAtLocation: function(location) {
-		const privates = getPrivates(this);
-		// Sequencer is locked to rate of transport so no special rate
-		// processing to bugger about with to work out location
-		return privates.transport.beatAtTime(this.startTime + location)
-			 - privates.transport.beatAtTime(this.startTime) ;
-	},
-
-	locationAtBeat: function(beat) {
-		const privates = getPrivates(this);
-		// Sequencer is locked to rate of transport so no special rate
-		// processing to bugger about with to work out location.
-
-		// Make sure rateNode automation is populated
-		const rates = privates.rates;
-		let event;
-
-
-		// COOOEEEE!! this needs a rewrite!!
-
-		while (rates[0] && rates[0][0] < beat) {
-			event = rates.shift();
-			// Doesnt work does it
-			automate(rateNode, this.timeAtBeat(event[0]), event[3], event[2]);
-		}
-
-		if (rates[0] && rates[0][3] === 'exponential') {
-			event = rates.shift();
-			// Doesnt work does it
-			automate(rateNode, this.timeAtBeat(event[0]), event[3], event[2]);
-		}
-
-		return privates.transport.locationAtBeat(
-			privates.transport.beatAtTime(this.startTime) + beat
-		) - (this.startTime - transport.startTime);
-	},
-
 	beatAtTime: function(time) {
-		const privates = getPrivates(this);
-		return privates.transport.beatAtTime(time)
-			 - privates.transport.beatAtTime(this.startTime) ;
+		const transport     = getPrivates(this).transport;
+		const startLocation = this.startLocation
+		   || (this.startLocation = transport.beatAtTime(this.startTime)) ;
+
+		return transport.beatAtTime(time) - startLocation;
 	},
 
 	timeAtBeat: function(beat) {
-		const privates = getPrivates(this);
-		return privates.transport.timeAtBeat(
-			privates.transport.beatAtTime(this.startTime) + beat
-		);
+		const transport     = getPrivates(this).transport;
+		const startLocation = this.startLocation
+		   || (this.startLocation = transport.beatAtTime(this.startTime)) ;
+
+		return transport.timeAtBeat(startLocation + beat);
 	},
 
 	start: function(time, beat) {
@@ -341,18 +306,18 @@ assign(Sequencer.prototype, Clock.prototype, Meter.prototype, {
 		const privates  = getPrivates(this);
 		const stream    = privates.stream;
 		const events    = this.events;
-		const rateNode  = privates.rateNode;
+		const rateParam = privates.rateParam;
 
 		// If stream is not waiting, stop it and start a new one
 		if (stream) {
 			stream.stop(time);
 		}
 
-		// Set this.startTime
-		Clock.prototype.start.call(this, time, beat);
-
 		// Run transport, if it is not already
 		privates.transport.start(time, beat);
+
+		// Set this.startTime
+		Clock.prototype.start.call(this, time, beat);
 
 		// Set rates
 		const rates = this.events ?
@@ -360,9 +325,9 @@ assign(Sequencer.prototype, Clock.prototype, Meter.prototype, {
 			nothing ;
 
 		seedRateEvent.time = time;
-		seedRateEvent[2]   = getValueAtTime(rateNode, time);
+		seedRateEvent[2]   = getValueAtTime(rateParam, time);
 		rates.reduce(assignTime, seedRateEvent);
-		rates.reduce(automateRate, rateNode);
+		rates.reduce(automateRate, rateParam);
 
 		// Stream events
 		const data = {
@@ -392,10 +357,10 @@ assign(Sequencer.prototype, Clock.prototype, Meter.prototype, {
 
 		const privates = getPrivates(this);
 		const stream   = privates.stream;
-		const rateNode = privates.rateNode;
+		const rateParam = privates.rateParam;
 
 		// Hold automation for the rate node
-		automate(rateNode.offset, time, 'hold');
+		automate(rateParam, time, 'hold');
 
 		// Stop the stream
 		stream.stop(time);

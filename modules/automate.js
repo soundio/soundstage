@@ -19,8 +19,7 @@ export const methodNames = {
 	"step":        "setValueAtTime",
 	"linear":      "linearRampToValueAtTime",
 	"exponential": "exponentialRampToValueAtTime",
-	"target":      "setTargetAtTime",
-    "hold":        "cancelAndHoldAtTime"
+	"target":      "setTargetAtTime"
 };
 
 // Polyfill cancelAndHoldAtTime
@@ -65,6 +64,10 @@ export function getParam(name, node) {
 }
 
 export function getAutomationEvents(param) {
+    if (DEBUG && !AudioParam.prototype.isPrototypeOf(param)) {
+        throw new Error('Not an AudioParam ' + JSON.stringify(param));
+    }
+
 	// Todo: I would love to use a WeakMap to store data about AudioParams,
 	// but FF refuses to allow AudioParams as WeakMap keys. So... lets use
 	// an expando *sigh*.
@@ -99,6 +102,10 @@ function automateParamEvents(param, events, time, value, curve, decay) {
     else if (curve === "hold") {
         // Schedule the param event
     	param.cancelAndHoldAtTime(time);
+        value = getValueAtTime(param, time);
+        curve = event1 && event1.curve === 'exponential' ?
+            'exponential' :
+            'step' ;
     }
     else {
         // Schedule the param event

@@ -46,7 +46,7 @@ export function drawYAxisAmplitude(ctx, box, color) {
     drawY(ctx, box,  0.25,    color + '22');  // -12dB
     drawY(ctx, box,  0.125,   color + '22');  // -18dB
     drawY(ctx, box,  0.0625,  color + '22');  // -24dB
-    drawY(ctx, box,  0.03125, color + '22'); // -30dB
+    drawY(ctx, box,  0.03125, color + '22');  // -30dB
     drawY(ctx, box,  0,       color);
     drawY(ctx, box, -0.03125, color + '22');
     drawY(ctx, box, -0.0625,  color + '22');

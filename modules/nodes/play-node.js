@@ -67,12 +67,10 @@ assign(PlayNode.prototype, {
         delete this.then;
         this.startTime = undefined;
         this.stopTime  = undefined;
-        //this.status    = 'ready';
     },
 
     start: function(time) {
         this.startTime = time;
-        //this.status    = 'pending';
         return this;
     },
 
@@ -81,7 +79,6 @@ assign(PlayNode.prototype, {
 
         // Clamp stopTime to startTime
         this.stopTime = time > this.startTime ? time : this.startTime ;
-        //this.status   = 'stopping';
 
         requestTick(() => {
             // Disabling .then(fn) on stop avoids us having to create promises

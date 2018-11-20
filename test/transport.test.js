@@ -9,7 +9,7 @@ test('Transport()', function(run, print, fixture) {
     run('transport.start()', function(equals, done) {
         const rateNode    = new ConstantSourceNode(context, { offset: 2 });
         const timer       = new Timer(function now() { return context.currentTime; });
-        const transport   = new Transport(context, rateNode, timer);
+        const transport   = new Transport(context, rateNode.offset, timer);
 
         // Let audio clock settle
         setTimeout(function() {
@@ -22,16 +22,14 @@ test('Transport()', function(run, print, fixture) {
             equals(t + 0.5, transport.timeAtBeat(1));
             equals(0, transport.beatAtTime(t));
             equals(2, transport.beatAtTime(t + 1));
-            equals(0, transport.beatAtLocation(0));
-            equals(2, transport.beatAtLocation(1));
             done();
         }, 500);
-    }, 7);
+    }, 5);
 
     run('transport.start(time)', function(equals, done) {
         const rateNode    = new ConstantSourceNode(context, { offset: 2 });
         const timer       = new Timer(function now() { return context.currentTime; });
-        const transport   = new Transport(context, rateNode, timer);
+        const transport   = new Transport(context, rateNode.offset, timer);
 
         // Let audio clock settle
         setTimeout(function() {
@@ -42,16 +40,14 @@ test('Transport()', function(run, print, fixture) {
             equals(1.5, transport.timeAtBeat(1));
             equals(0, transport.beatAtTime(1));
             equals(2, transport.beatAtTime(2));
-            equals(0, transport.beatAtLocation(0));
-            equals(2, transport.beatAtLocation(1));
             done();
         }, 500);
-    }, 7);
+    }, 5);
 
     run('transport.start(time).stop(time) ...start(time).stop(time)', function(equals, done) {
         const rateNode    = new ConstantSourceNode(context, { offset: 2 });
         const timer       = new Timer(function now() { return context.currentTime; });
-        const transport   = new Transport(context, rateNode, timer);
+        const transport   = new Transport(context, rateNode.offset, timer);
 
         // Let audio clock settle
         setTimeout(function() {
@@ -68,9 +64,6 @@ test('Transport()', function(run, print, fixture) {
             equals(0, transport.beatAtTime(time + 1));
             equals(2, transport.beatAtTime(time + 2));
             equals(4, transport.beatAtTime(time + 3));
-            equals(0, transport.beatAtLocation(0));
-            equals(2, transport.beatAtLocation(1));
-            equals(4, transport.beatAtLocation(2));
 
             setTimeout(function() {
                 transport
@@ -84,12 +77,9 @@ test('Transport()', function(run, print, fixture) {
                 equals(0, transport.beatAtTime(time + 2));
                 equals(2, transport.beatAtTime(time + 3));
                 equals(4, transport.beatAtTime(time + 4));
-                equals(0, transport.beatAtLocation(0));
-                equals(2, transport.beatAtLocation(1));
-                equals(4, transport.beatAtLocation(2));
 
                 done();
             }, 3000);
         }, 500);
-    }, 20);
+    }, 14);
 });

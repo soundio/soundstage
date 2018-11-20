@@ -1,16 +1,20 @@
 
 import { id } from '../../fn/fn.js';
 import { getPrivates } from './utilities/privates.js';
-import Location from './location.js';
+import { beatAtLocation, locationAtBeat } from './location.js';
 import { isRateEvent } from './event.js';
 import { automate, getValueAtTime } from './automate.js';
 
 const assign = Object.assign;
 const define = Object.defineProperties;
+const freeze = Object.freeze;
+
+const rate0  = freeze({ 0: 0, 1: 'rate', 2: 1, location: 0 });
 
 const properties = {
-	startTime: { writable: true, value: undefined },
-	stopTime:  { writable: true, value: undefined }
+	startTime:     { writable: true, value: undefined },
+	startLocation: { writable: true, value: undefined },
+	stopTime:      { writable: true, value: undefined }
 };
 
 function round(n) {
@@ -23,24 +27,38 @@ export default function Clock(context, transport) {
 
 	// Properties
 	define(this, properties);
-	this.context = context;
+
+	if (!this.context) {
+		this.context = context;
+	}
 };
 
-assign(Clock.prototype, Location.prototype, {
+assign(Clock.prototype, {
 	beatAtTime: function(time) {
+		if (time < 0) { throw new Error('Location: beatAtLocEvents(loc) does not accept -ve values.'); }
+
 		const privates  = getPrivates(this);
 		const transport = privates.transport;
-		const startLoc  = transport.beatAtTime(this.startTime);
+		const startLoc  = this.startLocation || (this.startLocation = transport.beatAtTime(this.startTime));
 		const timeLoc   = transport.beatAtTime(time);
-		return this.beatAtLocation(timeLoc - startLoc);
+		const events    = this.events ?
+			this.events.filter(isRateEvent) :
+			nothing ;
+
+		return beatAtLocation(events, rate0, timeLoc - startLoc);
 	},
 
 	timeAtBeat: function(beat) {
 		const privates  = getPrivates(this);
 		const transport = privates.transport;
-		const startLoc  = transport.beatAtTime(this.startTime);
-		const beatLoc   = this.locationAtBeat(beat);
-		return round(transport.timeAtBeat(beatLoc + startLoc));
+		const startLoc  = this.startLocation || (this.startLocation = transport.beatAtTime(this.startTime));
+		const events    = this.events ?
+			this.events.filter(isRateEvent) :
+			nothing ;
+
+		const beatLoc   = locationAtBeat(events, rate0, beat);
+
+		return round(transport.timeAtBeat(startLoc + beatLoc));
 	},
 
 	start: function(time, beat) {
@@ -56,21 +74,15 @@ assign(Clock.prototype, Location.prototype, {
 		}
 
 		time = time !== undefined ? time : this.context.currentTime ;
-		this.startTime = time - (beat ? this.locationAtBeat(beat) : 0);
-		this.stopTime  = undefined;
+
+		this.startTime     = time;  // - (beat ? this.locationAtBeat(beat) : 0);
+		this.startLocation = undefined;
+		this.stopTime      = undefined;
+
 		return this;
 	},
 
 	stop: function(time) {
-		// If clock is stopped, don't stop it again
-		// ...
-		// On second thoughts, maybe its fine to reschedule a stop
-		//
-		//if (this.stopTime !== undefined || this.startTime === undefined) {
-		//	if (DEBUG) { console.warn('Attempted clock.stop() when clock is already stopped (or scheduled to stop)'); }
-		//	return this;
-		//}
-
 		this.stopTime = time;
 		return this;
 	}

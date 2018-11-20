@@ -72,38 +72,46 @@ function requestAudioNode(context, settings, transport) {
         });
 }
 
-export default function Soundstage(data, settings) {
+export default function Soundstage(data = nothing, settings = nothing) {
     if (!Soundstage.prototype.isPrototypeOf(this)) {
         // Soundstage has been called without the new keyword
         return new Soundstage(data, settings);
     }
 
-    data     = data || nothing;
-    settings = settings || nothing;
-
     if (isDefined(data.version) && data.version !== this.version) {
         throw new Error('Soundstage: data version mismatch.', this.version, data.version);
     }
 
-
     if (DEBUG) { printGroup('Soundstage()'); }
 
-    // Initialise soundstage as an Audio Object with no inputs and
-    // a channel merger as an output. Assigns:
-    //
-    // audio:      audio context
-
     const stage       = this;
+    const privates    = getPrivates(this);
     const context     = settings.context || audio;
     const destination = settings.output || context.destination;
     const output      = createOutputMerger(context, destination);
     const rateNode    = new ConstantSourceNode(context, { offset: 2 });
-    const timer       = new Timer(function now() { return context.currentTime; });
-    const transport   = new Transport(context, rateNode, timer);
+    const rateParam   = rateNode.offset;
+    const timer       = new Timer(() => context.currentTime);
+    const transport   = new Transport(context, rateParam, timer);
+
+
+    // Private
+
+    privates.outputs = {
+        default: output,
+        rate:    rateNode
+    };
 
     rateNode.start(0);
 
-    //Soundstage.inspector && Soundstage.inspector.drawAudioFromNode(output);
+
+    // Properties
+
+    define(this, {
+        context:           { value: context },
+        mediaChannelCount: { value: undefined, writable: true, configurable: true },
+        roundTripLatency:  { value: Soundstage.roundTripLatency, writable: true, configurable: true },
+    });
 
 
     // Initialise audio regions. Assigns:
@@ -227,7 +235,7 @@ export default function Soundstage(data, settings) {
         'default': distributeEvent
     };
 
-    Sequencer.call(this, context, rateNode, transport, distributors, this.sequences, this.events, timer);
+    Sequencer.call(this, context, rateParam, transport, distributors, timer);
 
     /*
     // Initialise as a recorder...
@@ -240,27 +248,6 @@ export default function Soundstage(data, settings) {
     //this.metronome = new Metronome(context, data.metronome, this);
     //this.metronome.start(0);
 
-
-    // Define variables
-
-    define(this, {
-        context:           { value: context },
-        mediaChannelCount: { value: undefined, writable: true, configurable: true },
-        roundTripLatency:  { value: Soundstage.roundTripLatency, writable: true, configurable: true },
-    });
-
-
-    /*
-    // Setup from data and notify when all components are loaded and ready
-
-    const loaded = this
-    .update(data)
-    .then(function(stage) {
-        console.log('Soundstage: ready');
-    });
-
-    this.ready = loaded.then.bind(loaded);
-    */
 
     if (DEBUG) { printGroupEnd(); }
 }
@@ -279,6 +266,26 @@ seconds relative to window.performance.now().
 */
 
 assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
+    connect: function(input, port, channel) {
+        const outputs = getPrivates(this).outputs;
+        let output = typeof port === 'string' ? outputs[port] : outputs.default ;
+
+        if (!output) { throw new Error('Output "' + port + '" not found'); }
+        connect(output, input, typeof port === 'string' ? 0 : port, channel);
+
+        return input;
+    },
+
+    disconnect: function(input, port) {
+        const outputs = getPrivates(this).outputs;
+        let output = typeof port === 'string' ? outputs[port] : outputs.default ;
+
+        if (!port) { throw new Error('Output "' + port + '" not found'); }
+        disconnect(output, input, typeof port === 'string' ? 0 : port, channel);
+
+        return this;
+    },
+
     timeAtDomTime: function(domTime) {
         return timeAtDomTime(this.context, domTime);
     },

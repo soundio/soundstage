@@ -144,7 +144,8 @@ function fillEventsBuffer(stage, events, buffer, frame) {
 
 export default function Metronome(context, settings, stage) {
 	if (DEBUG) { printGroup('Metronome'); }
-if (!stage.sequence) { throw new Error(); }
+	if (!stage.sequence) { throw new Error('Metronome requires access to transport.'); }
+
 	// Graph
 	NodeGraph.call(this, context, graph);
     const voice = this.get('output');
