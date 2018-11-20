@@ -1,6 +1,6 @@
 import { test } from '../../fn/fn.js';
 import { timeAtBeatExponential, rateAtBeatExponential,
-	beatAtTimeExponential, rateAtTimeExponential, locAtBeatEvents,
+	beatAtTimeExponential, rateAtTimeExponential, timeAtBeatOfEvents,
 	beatAtLocation, locationAtBeat, beatAtTimeOfAutomation,
 	timeAtBeatOfAutomation } from '../modules/location.js';
 
@@ -68,7 +68,7 @@ test('Location', function(run, print) {
 		var events = [[0, "rate", 4, "step"], [16, "rate", 2, "exponential"]];
 		var seed   = [0, "rate", 2];
 
-		equals(0,  beatAtLocation(events, seed, 0));
+		equals(0,    beatAtLocation(events, seed, 0));
 		equals(true, beatAtLocation(events, seed, 1) > 2 && beatAtLocation(events, seed, 1) < 4);
 		equals(true, beatAtLocation(events, seed, 2) > 4 && beatAtLocation(events, seed, 2) < 8);
 		equals(true, beatAtLocation(events, seed, 4) > 8 && beatAtLocation(events, seed, 2) < 16);

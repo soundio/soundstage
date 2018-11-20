@@ -10,7 +10,7 @@ test('Metronome', function(run, print, fixture) {
     const canvas = find('canvas', fixture);
     const ctx    = canvas.getContext('2d');
     const box    = [2, 2, 636, 355];
-/*
+
     run('Metronome ', function(equals, done) {
         const meter = new Soundstage({
             nodes: [
@@ -40,7 +40,7 @@ test('Metronome', function(run, print, fixture) {
             setTimeout(done, 8200);
         });
     }, 0);
-*/
+
     run('Meter([...]).beatAtBar()', function(equals, done) {
 
         //drawYAxisEnvelope(ctx, box, '#acb9b8', 3);
@@ -63,12 +63,12 @@ test('Metronome', function(run, print, fixture) {
 
                 events: [
                     [0,  'meter', 3, 1],
-                    [0,  'rate', 2],
-                    [4,  'rate', 2],
-                    [20, 'rate', 10,   'exponential'],
-                    [28, 'rate', 0.75, 'exponential'],
-                    [30, 'rate', 4,    'step'],
-                    [42, 'rate', 5,    'exponential']
+                    [0,  'rate', 3],
+                    [3,  'rate', 3],
+                    [21, 'rate', 10,  'exponential'],
+                    [30, 'rate', 0.8, 'exponential'],
+                    [33, 'rate', 0.8, 'step'],
+                    [51, 'rate', 6,   'exponential']
                 ]
             })
             .ready(function(stage) {

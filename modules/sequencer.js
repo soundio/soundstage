@@ -36,7 +36,7 @@ import { createId } from './utilities/utilities.js';
 import { isRateEvent, isMeterEvent, getDuration, getBeat } from './event.js';
 import { automate, getValueAtTime } from './automate.js';
 import Clock from './clock.js';
-import { locAtBeatEvents } from './location.js';
+import { timeAtBeatOfEvents } from './location.js';
 import Meter from './meter.js';
 import { distribute } from './distribute.js';
 
@@ -238,7 +238,7 @@ function distributeData(data) {
 }
 
 function assignTime(e0, e1) {
-	e1.time = e0.time + locAtBeatEvents(e0, e1, e1[0] - e0[0]);
+	e1.time = e0.time + timeAtBeatOfEvents(e0, e1, e1[0] - e0[0]);
 	return e1;
 }
 

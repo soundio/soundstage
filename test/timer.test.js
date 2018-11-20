@@ -160,8 +160,8 @@ test('Timer()', function(run, print, fixture) {
         }, 500);
 
         setTimeout(function() {
-            // Crude test... we've had at least 4 frames?
-            equals(true, n > 4);
+            // Crude test... we've had at least 3 frames?
+            equals(true, n >= 3, n);
             done();
         }, 2000);
 	});
@@ -219,8 +219,8 @@ test('Timer()', function(run, print, fixture) {
         });
 
         setTimeout(function() {
-            // Crude test... we've had at least 4 frames?
-            equals(true, n > 4);
+            // Crude test... we've had at least 3 frames?
+            equals(true, n >= 3);
             s.stop(startTime + 0.5);
         }, 500);
 

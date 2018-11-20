@@ -23,7 +23,7 @@ export default class Recorder extends AudioWorkletNode {
 
         this.port.onmessage = (e) => {
             if (e.data.type === 'done') {
-console.log('DONE', e.data.buffers);
+//console.log('DONE', e.data.buffers);
                 this.buffers = e.data.buffers;
                 notify(this, 'buffers');
 
@@ -52,7 +52,7 @@ console.log('DONE', e.data.buffers);
 
     stop(time) {
         time = time || this.context.currentTime;
-
+//console.log('STOP', time, this.port);
         this.port.postMessage({
             type: 'stop',
             bufferLength: Math.round((time - this.startTime) * this.context.sampleRate)

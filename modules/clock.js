@@ -35,7 +35,7 @@ export default function Clock(context, transport) {
 
 assign(Clock.prototype, {
 	beatAtTime: function(time) {
-		if (time < 0) { throw new Error('Location: beatAtLocEvents(loc) does not accept -ve values.'); }
+		if (time < 0) { throw new Error('Clock.beatAtTime(time) does not accept -ve time values'); }
 
 		const privates  = getPrivates(this);
 		const transport = privates.transport;
