@@ -1,93 +1,42 @@
+
 {
-  "name": "soundstage",
-  "title": "Soundstage",
-  "version": "0.8.0",
-  "homepage": "http://sound.io",
-  "description": "An audio node graph, sequencing engine, MIDI controller and JSON schema for the Web Audio API.",
-  "author": {
-    "name": "Stephen Band",
-    "twitter": "stephband"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/soundio/soundstage.git"
-  },
-  "keywords": [
-    "javascript",
-    "browser",
-    "web",
-    "audio",
-    "sound",
-    "soundio",
-    "soundstage",
-    "sequence"
-  ],
-  "bugs": {
-    "url": "https://github.com/soundio/soundstage/issues"
-  },
-  "dependencies": {
-    "audio-object": "latest"
-  },
-  "scripts": {
-    "test": "node_modules/karma/bin/karma start"
-  },
-  "license": "MIT",
-  "sourceFiles": [
-	"polyfills/window.audiocontext.js",
-	"polyfills/navigator.getusermedia.js",
-	"fn/polyfills/number.isnan.js",
-	"fn/polyfills/object.assign.js",
-	"fn/polyfills/object.setprototypeof.js",
-	"fn/js/fn.js",
-	"fn/js/stream.js",
-	"fn/js/store.js",
-	"fn/js/pool.js",
-	"fn/js/events.js",
-	"collection/js/observe.js",
-	"collection/js/collection.js",
-	"modules/music/music.js",
-	"modules/audio-object/js/audio-object.js",
-	"modules/audio-object/js/ao-tick.js",
-	"modules/audio-object/js/ao-oscillator.js",
-	"modules/audio-object/js/ao-sampler.js",
-	"modules/audio-object/js/ao-sampler-presets-gretsch-kit.js",
-	"modules/audio-object/js/ao-sampler-presets-mis-piano.js",
-	"modules/audio-object/js/ao-sampler-presets-fender-rhodes-mark-ii.js",
-	"modules/midi/js/midi.js",
-	"modules/midi/js/midi-utils.js",
-	"js/distribute.js",
-	"clock/js/cue-timer.js",
-	"clock/js/cue-stream.js",
-	"clock/js/clock.js",
-	"js/sequence.js",
-	"js/soundstage.js",
-	"js/soundstage.midi.js",
-	"js/soundstage.objects.js",
-	"js/soundstage.input.js",
-	"js/soundstage.output.js",
-	"js/soundstage.track.js",
-	"js/soundstage.send.js",
-	"js/soundstage.filter.js",
-	"js/soundstage.flange.js",
-	"js/soundstage.gain.js",
-	"js/soundstage.loop.js",
-	"js/soundstage.saturate.js",
-	"js/soundstage.compress.js",
-	"js/soundstage.envelope.js",
-	"js/soundstage.tone-synth.js"
-  ],
-  "testFiles": [
-    "test/module.js",
-    "test/test-clock.js",
-    "test/test-midi.js",
-    "test/test-connections.js",
-    "test/test-sequence.js",
-    "test/test-audio-objects.js"
-  ],
-  "devDependencies": {
-    "eslint": "^3.19.0"
-  },
-  "scripts": {
-    "lint": "eslint js/*.js"
-  }
+    "name": "soundstage",
+    "title": "Soundstage",
+    "version": "0.8.0",
+    "homepage": "http://sound.io",
+    "description": "An audio node graph, sequencing engine, MIDI controller and JSON schema for the Web Audio API.",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/soundio/soundstage.git"
+    },
+    "author": {
+        "name": "Stephen Band",
+        "url": "http://stephen.band",
+        "twitter": "stephband"
+    },
+    "bugs": {
+      "url": "https://github.com/soundio/soundstage/issues"
+    },
+    "licenses": [],
+    "main":   "build/soundstage-cjs.js",
+    "module": "soundstage.js",
+    "keywords": [
+        "javascript",
+        "browser",
+        "web",
+        "audio",
+        "sound",
+        "soundio",
+        "soundstage",
+        "sequence"
+    ],
+    "devDependencies": {
+        "eslint": "^4.4.1",
+        "rollup": "^0.58.2"
+    },
+    "scripts": {
+        "lint": "eslint js/*.js",
+        "build-cjs": "rollup soundstage.js --o build/soundstage-cjs-0.8.0js --f cjs",
+        "build-closure": "rollup soundstage.js --o build/soundstage-iife0.8.0.js --f iife --n Fn"
+    }
 }
