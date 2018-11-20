@@ -1,9 +1,9 @@
 {
   "name": "soundstage",
   "title": "Soundstage",
-  "version": "0.7.5",
+  "version": "0.8.0",
   "homepage": "http://sound.io",
-  "description": "An audio graph model, sequencing engine and JSON loader for the Web Audio API.",
+  "description": "An audio node graph, sequencing engine, MIDI controller and JSON schema for the Web Audio API.",
   "author": {
     "name": "Stephen Band",
     "twitter": "stephband"
