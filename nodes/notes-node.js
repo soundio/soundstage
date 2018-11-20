@@ -1,14 +1,14 @@
 
-//import AudioObject from '../../../context-object/modules/context-object.js';
+//import AudioObject from '../../context-object/modules/context-object.js';
 import { log, logGroup, logGroupEnd } from './print.js';
-import { remove } from '../../../fn/fn.js';
-import { getPrivates } from '../utilities/privates.js';
-import { numberToFrequency } from '../../../midi/midi.js';
+import { remove } from '../../fn/fn.js';
+import { getPrivates } from '../modules/utilities/privates.js';
+import { numberToFrequency } from '../../midi/midi.js';
 import NodeGraph from './node-graph.js';
-import { automate } from '../automate.js';
-import { assignSettings } from './assign-settings.js';
-import Pool from '../pool.js';
-import { connect, disconnect } from '../connect.js';
+import { automate } from '../modules/automate.js';
+import { assignSettings } from '../modules/assign-settings.js';
+import Pool from '../modules/pool.js';
+import { connect, disconnect } from '../modules/connect.js';
 
 const DEBUG = window.DEBUG;
 const assign = Object.assign;

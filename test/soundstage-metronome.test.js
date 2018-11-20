@@ -1,6 +1,6 @@
 import { test, noop } from '../../fn/fn.js';
 import { find } from '../../../dom/dom.js';
-import Recorder from '../modules/nodes/recorder.js';
+import Recorder from '../nodes/recorder.js';
 import { drawYAxisAmplitude, drawCurve, drawPoint } from '../modules/canvas.js';
 import Soundstage from '../soundstage.js';
 import context    from '../modules/context.js';
@@ -48,7 +48,7 @@ test('Metronome', function(run, print, fixture) {
         drawYAxisAmplitude(ctx, box, '#acb9b8');
 
         context.audioWorklet
-        .addModule('/soundstage/modules/nodes/recorder.worklet.js')
+        .addModule('/soundstage/nodes/recorder.worklet.js')
         .then(function() {
             var recorder = new Recorder(context, { duration: 60 });
 

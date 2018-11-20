@@ -1,5 +1,5 @@
-import { noop, todB, toLevel } from '../../../fn/fn.js';
-import { numberToFrequency, noteToNumber } from '../../../midi/midi.js';
+import { noop, todB, toLevel } from '../../fn/fn.js';
+import { numberToFrequency, noteToNumber } from '../../midi/midi.js';
 
 var assign      = Object.assign;
 

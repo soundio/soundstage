@@ -34,10 +34,10 @@ Provides the methods:
 
 */
 
-import { getPrivates } from '../utilities/privates.js';
-import { logGroup, logGroupEnd } from '../utilities/print.js';
-import { connect, disconnect } from '../connect.js';
-import constructors from '../constructors';
+import { getPrivates } from '../modules/utilities/privates.js';
+import { logGroup, logGroupEnd } from '../modules/utilities/print.js';
+import { connect, disconnect } from '../modules/connect.js';
+import constructors from '../modules/constructors';
 
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;

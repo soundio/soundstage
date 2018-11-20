@@ -1,6 +1,6 @@
-import { test } from '../../../fn/fn.js';
+import { test } from '../../fn/fn.js';
 import Tone from './tone.js';
-import context from '../context.js';
+import context from '../modules/context.js';
 
 test('Tone', function(run, print, fixture) {
     run('Tone(context, settings)', function(equals, done) {

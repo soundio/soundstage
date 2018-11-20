@@ -1,6 +1,6 @@
 
-import { noop, nothing } from '../../../fn/fn.js';
-import { getPrivates } from '../utilities/privates.js';
+import { noop, nothing } from '../../fn/fn.js';
+import { getPrivates } from '../modules/utilities/privates.js';
 
 const assign = Object.assign;
 

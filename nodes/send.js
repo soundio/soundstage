@@ -1,5 +1,5 @@
-import { getPrivates } from '../utilities/privates.js';
-import { assignSettings } from './assign-settings.js';
+import { getPrivates } from '../modules/utilities/privates.js';
+import { assignSettings } from '../modules/assign-settings.js';
 import GraphNode from './node-graph.js';
 
 var assign = Object.assign;

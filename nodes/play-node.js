@@ -18,9 +18,9 @@ And also, for internal use:
 - `.reset()`
 */
 
-import { logGroup, logGroupEnd } from '../utilities/print.js';
-import { requestTick } from '../../../fn/fn.js';
-import { getPrivates } from '../utilities/privates.js';
+import { logGroup, logGroupEnd } from '../modules/utilities/print.js';
+import { requestTick } from '../../fn/fn.js';
+import { getPrivates } from '../modules/utilities/privates.js';
 
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;

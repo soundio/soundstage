@@ -1,11 +1,11 @@
-import { test } from '../../../fn/fn.js';
+import { test } from '../../fn/fn.js';
 import SignalDetector from './signal.js';
-import context from '../context.js';
+import context from '../modules/context.js';
 
 test('Signal', function(run, print, fixture) {
     run('Signal(context, settings)', function(equals, done) {
         context.audioWorklet
-        .addModule('/soundstage/modules/nodes/signal.worklet.js?3')
+        .addModule('/soundstage/nodes/signal.worklet.js?3')
         .then(function() {
 
             // Set up an oscillator into a signal detector and check it responds

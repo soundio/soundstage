@@ -1,8 +1,8 @@
-import { test } from '../../../fn/fn.js';
-import { create, append, find } from '../../../dom/dom.js';
+import { test } from '../../fn/fn.js';
+import { create, append, find } from '../../dom/dom.js';
 import Recorder from './recorder.js';
-import context from '../context.js';
-import { drawYAxisAmplitude, drawCurve, drawPoint } from '../canvas.js';
+import context from '../modules/context.js';
+import { drawYAxisAmplitude, drawCurve, drawPoint } from '../modules/canvas.js';
 
 test('Recorder', function(run, print, fixture) {
     const canvas = find('canvas', fixture);
@@ -13,7 +13,7 @@ test('Recorder', function(run, print, fixture) {
 
     run('Recorder(context, settings)', function(equals, done) {
         context.audioWorklet
-        .addModule('/soundstage/modules/nodes/recorder.worklet.js')
+        .addModule('/soundstage/nodes/recorder.worklet.js')
         .then(function() {
             var osc  = new OscillatorNode(context, { frequency: 200 });
             var node = new Recorder(context, {

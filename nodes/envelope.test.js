@@ -1,9 +1,9 @@
-import { test } from '../../../fn/fn.js';
-import { create, append, find } from '../../../dom/dom.js';
-import { getValueAtTime, getAutomationEvents, requestAutomationData } from '../automate.js';
+import { test } from '../../fn/fn.js';
+import { create, append, find } from '../../dom/dom.js';
+import { getValueAtTime, getAutomationEvents, requestAutomationData } from '../modules/automate.js';
 import Envelope from './envelope.js';
-import { drawYAxisAmplitude, drawCurve, drawPoint } from '../canvas.js';
-import audio from '../context.js';
+import { drawYAxisAmplitude, drawCurve, drawPoint } from '../modules/canvas.js';
+import audio from '../modules/context.js';
 
 test('Envelope', function(run, print, fixture) {
     const canvas = find('canvas', fixture);

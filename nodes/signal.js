@@ -1,5 +1,5 @@
 
-import { noop, nothing } from '../../../fn/fn.js';
+import { noop, nothing } from '../../fn/fn.js';
 
 const assign = Object.assign;
 

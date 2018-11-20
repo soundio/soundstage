@@ -1,14 +1,14 @@
 
-//import AudioObject from '../../../context-object/modules/context-object.js';
+//import AudioObject from '../../context-object/modules/context-object.js';
 import { print, printGroup, printGroupEnd, log } from './print.js';
-import { remove, id } from '../../../fn/fn.js';
-import { getPrivates } from '../utilities/privates.js';
-import { numberToFrequency } from '../../../midi/midi.js';
+import { remove, id } from '../../fn/fn.js';
+import { getPrivates } from '../modules/utilities/privates.js';
+import { numberToFrequency } from '../../midi/midi.js';
 import Tick from './tick.js';
 import NodeGraph from './node-graph.js';
-import { automate } from '../automate.js';
-import { assignSettings } from './assign-settings.js';
-import { connect, disconnect } from '../connect.js';
+import { automate } from '../modules/automate.js';
+import { assignSettings } from '../modules/assign-settings.js';
+import { connect, disconnect } from '../modules/connect.js';
 
 if (!NodeGraph.prototype.get) {
 	throw new Error('NodeGraph is not fully formed?')

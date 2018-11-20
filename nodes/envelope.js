@@ -1,5 +1,5 @@
 
-import { automate, getAutomationEvents } from '../automate.js';
+import { automate, getAutomationEvents } from '../modules/automate.js';
 
 const assign = Object.assign;
 const create = Object.create;

@@ -19,7 +19,7 @@
 // }
 
 import AudioObject from '../../audio-object.js';
-import { noteToNumber, numberToFrequency } from '../../../../music/music.js';
+import { noteToNumber, numberToFrequency } from '../../../music/music.js';
 
 
 // Note: URLs are temporary! They will change.

@@ -16,7 +16,7 @@ import Soundstage from '../modules/soundstage.js';
 const data = {
     nodes: [
         { id: '1', type: 'input' },
-        { id: '2', type: '/soundstage/modules/nodes/tone-synth.js' },
+        { id: '2', type: '/soundstage/nodes/tone-synth.js' },
         { id: '3', type: 'output' }
     ],
 

@@ -1,5 +1,5 @@
 
-import { connect, disconnect } from '../connect.js';
+import { connect, disconnect } from '../modules/connect.js';
 
 const assign = Object.assign;
 const define = Object.defineProperties;

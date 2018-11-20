@@ -1,9 +1,9 @@
-import { nothing } from '../../../fn/fn.js';
-import { getPrivates } from '../utilities/privates.js';
+import { nothing } from '../../fn/fn.js';
+import { getPrivates } from '../modules/utilities/privates.js';
 import NodeGraph   from './node-graph.js';
 import PlayNode from './play-node.js';
-import { automate, getAutomationEvents, getAutomationEndTime } from '../automate.js';
-import { assignSettings } from './assign-settings.js';
+import { automate, getAutomationEvents, getAutomationEndTime } from '../modules/automate.js';
+import { assignSettings } from '../modules/assign-settings.js';
 
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;

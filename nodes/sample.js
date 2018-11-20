@@ -1,7 +1,7 @@
 
 import Pool from '../pool.js';
-import { requestBuffer } from '../utilities/requests.js';
-import { automate, getAutomationEvents } from '../automate.js';
+import { requestBuffer } from '../modules/utilities/requests.js';
+import { automate, getAutomationEvents } from '../modules/automate.js';
 
 const assign = Object.assign;
 const create = Object.create;
