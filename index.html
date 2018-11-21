@@ -400,24 +400,26 @@ import Soundstage from 'http://stephen.band/soundstage/soundstage.js';</code></p
     <!-- Tests -->
     <script type="module">
 
-    import './test/transport.test.js';
-    import './test/location.test.js';
+//    import './test/transport.test.js';
+//    import './test/location.test.js';
 //    import './test/meter.test.js';
-    import './test/timer.test.js';
+//    import './test/timer.test.js';
 //    import './test/controls.test.js';
 
-    import './test/audio-param.test.js';
+//    import './test/audio-param.test.js';
 //    import './nodes/node-graph.test.js';
 //    import './nodes/tick.test.js';
 //    import './nodes/signal.test.js';
 //    import './nodes/recorder.test.js';
 //    import './nodes/envelope.test.js';
+    import './test/sample.test.js';
+    import './test/sampler-voice.test.js';
 //    import './nodes/tone.test.js';
-    import './nodes/tone-synth.test.js';
+//    import './nodes/tone-synth.test.js';
 
 //    import './test/soundstage.test.js';
-    import './test/soundstage-transport.test.js';
-    import './test/soundstage-metronome.test.js';
+//    import './test/soundstage-transport.test.js';
+//    import './test/soundstage-metronome.test.js';
 
 
     import * as Fn from '../fn/fn.js';
@@ -431,6 +433,10 @@ import Soundstage from 'http://stephen.band/soundstage/soundstage.js';</code></p
 
     import Soundstage from './soundstage.js';
     window.Soundstage = Soundstage;
+
+    import { frequencyToNumber, numberToFrequency } from '../midi/midi.js';
+    window.frequencyToNumber = frequencyToNumber;
+    window.numberToFrequency = numberToFrequency;
 
     //import context from './modules/context.js';
     //window.context = context;
