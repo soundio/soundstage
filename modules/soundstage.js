@@ -254,8 +254,9 @@ export default function Soundstage(data = nothing, settings = nothing) {
 
 define(Soundstage.prototype, {
     version: { value: 1 },
-    beat:    getOwnPropertyDescriptor(Transport.prototype, 'beat'),
-    status:  getOwnPropertyDescriptor(Transport.prototype, 'status')
+    tempo: getOwnPropertyDescriptor(Sequencer.prototype, 'tempo'),
+    meter: getOwnPropertyDescriptor(Sequencer.prototype, 'meter'),
+    //status:  getOwnPropertyDescriptor(Transport.prototype, 'status')
 });
 
 /*

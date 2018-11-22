@@ -44,6 +44,7 @@ const DEBUG = window.DEBUG;
 
 const assign    = Object.assign;
 const define    = Object.defineProperties;
+
 const seedRateEvent  = { 0: 0, 1: 'rate' };
 const seedMeterEvent = { 0: 0, 1: 'meter', 2: 4, 3: 1 };
 
@@ -277,12 +278,34 @@ export default function Sequencer(context, rateParam, transport, distributors, t
 	privates.rateParam = rateParam;
 }
 
-assign(Sequencer.prototype, Clock.prototype, Meter.prototype, {
-	//create: function(generator, object) {
-	//	var stream = this[$private].stream;
-	//	return stream.create(generator, id, object);
-	//},
+define(Sequencer.prototype, {
+	tempo: {
+		get: function() {
+			const transport = getPrivates(this).transport;
+			return getValueAtTime(transport.rate, transport.currentTime) * 60;
+		},
 
+		set: function(tempo) {
+			const transport = getPrivates(this).transport;
+			// param, time, curve, value, decay
+			automate(transport.rate, transport.currentTime, 'step', tempo / 60);
+		}
+	},
+
+	meter: {
+		get: function() {
+			const transport = getPrivates(this).transport;
+			return transport.getMeterAtTime(transport.currentTime);
+		},
+
+		set: function(meter) {
+			const transport = getPrivates(this).transport;
+			transport.setMeterAtTime(meter, transport.currentTime)
+		}
+	}
+});
+
+assign(Sequencer.prototype, Clock.prototype, Meter.prototype, {
 	beatAtTime: function(time) {
 		const transport     = getPrivates(this).transport;
 		const startLocation = this.startLocation

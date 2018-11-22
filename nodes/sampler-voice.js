@@ -15,11 +15,11 @@ const define = Object.defineProperties;
 const max    = Math.max;
 
 const graph = {
-	nodes: [{
-		id:    'amplitude-gain',
-		type:  'gain',
+    nodes: [{
+        id:    'amplitude-gain',
+        type:  'gain',
         data: { gain: 0 }
-	}, {
+    }, {
 		id:    'amplitude-env',
 		type:  'envelope',
         data: { attack: [], release: [] }
