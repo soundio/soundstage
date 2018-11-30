@@ -12,6 +12,7 @@ test('Sampler', function(run, print, fixture) {
             var t = context.currentTime;
             const voice = sampler.start(t, 36);
             voice.stop(t + 0.4, 36);
+            console.log('voice', voice);
             done();
         }, 3000)
     }, 0);
@@ -36,6 +37,14 @@ test('Sampler', function(run, print, fixture) {
             ]
         });
 
+        // Wait for crap to laod
+        setTimeout(function() {
+            const voice = stage
+            .get('sampler')
+            .start(stage.context.currentTime, 36, 1);
 
-    }, 0);
+            equals(voice.stop !== stage.stop, true);
+            done();
+        }, 1000);
+    }, 1);
 });

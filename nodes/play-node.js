@@ -91,9 +91,9 @@ assign(PlayNode.prototype, {
             if (privates.promise) {
                 cueResolve(this, privates);
             }
-            else {
-                this.status = 'done';
-            }
+            //else {
+            //    this.status = 'done';
+            //}
         });
 
         return this;
