@@ -20,28 +20,22 @@ export const config = {
 
 const graph = {
 	nodes: [
-		{ id: 'output',        type: 'gain',     data: {
+		{ id: 'output',    type: 'gain',     data: {
 			channelInterpretation: 'speakers',
 			channelCountMode: 'explicit',
 			channelCount: 2,
 			gain: 1
 		}},
-		{ id: 'pitch',         type: 'constant', data: { offset: 0 } },
-		{ id: 'pitchToDetune', type: 'gain',     data: { gain: 100 } },
-		{ id: 'frequency',     type: 'constant', data: { offset: 0 } },
-		{ id: 'q',             type: 'constant', data: { offset: 0 } },
+		{ id: 'gain',      type: 'constant', data: { offset: 0 } },
+		{ id: 'pitch',     type: 'constant', data: { offset: 0 } },
+		{ id: 'detune',    type: 'gain',     data: { gain: 100 } },
+		{ id: 'frequency', type: 'constant', data: { offset: 0 } },
+		{ id: 'q',         type: 'constant', data: { offset: 0 } }
 	],
 
 	connections: [
-		{ source: 'pitch', target: 'pitchToDetune' }
-	],
-
-	params: {
-		gain:            'output.gain',
-		pitch:           'pitch.offset',
-		filterFrequency: 'frequency.offset',
-		filterQ:         'q.offset'
-	}
+		{ source: 'pitch', target: 'detune' }
+	]
 };
 
 const properties = {
@@ -50,8 +44,10 @@ const properties = {
 
 // Declare some useful defaults
 var defaults = {
-	"gain":   0.5,
-	"pitch":  0
+	pitch:     0,
+	frequency: 120,
+	Q:         1,
+	output:    1
 };
 
 function by0(a, b) {
@@ -66,7 +62,7 @@ function isIdle(node) {
 	return node.startTime !== undefined && node.context.currentTime > node.stopTime;
 }
 
-export default function NotesNode(context, settings, Voice) {
+export default function NotesNode(context, settings, stage, Voice, setup) {
 	if (DEBUG) { logGroup(new.target === NotesNode ? 'Node' : 'mixin', 'NotesNode'); }
 
 	// Graph
@@ -104,23 +100,19 @@ export default function NotesNode(context, settings, Voice) {
 	});
 
 	// Params
-	this.gain            = this.get('output').gain;
-	this.pitch           = this.get('pitch').offset;
-	this.filterFrequency = this.get('frequency').offset;
-	this.filterQ         = this.get('q').offset;
+	this.gain      = this.get('gain').offset;
+	this.pitch     = this.get('pitch').offset;
+	this.frequency = this.get('frequency').offset;
+	this.Q         = this.get('q').offset;
+	this.output    = this.get('output').gain;
 
+	this.get('gain').start();
 	this.get('pitch').start();
 	this.get('frequency').start();
 	this.get('q').start();
 
 	// Note pool
-	privates.notes = new Pool(Voice, isIdle, (note) => {
-		connect(this.get('pitchToDetune'), note['osc-1'].detune);
-		connect(this.get('pitchToDetune'), note['osc-2'].detune);
-		connect(this.get('frequency'), note.filterFrequency);
-		connect(this.get('q'), note.filterQ);
-		connect(note, this.get('output'));
-	});
+	privates.notes = new Pool(Voice, isIdle, setup);
 
 	// Update settings
 	assignSettings(this, defaults, settings);
@@ -129,11 +121,12 @@ export default function NotesNode(context, settings, Voice) {
 }
 
 // Mix AudioObject prototype into MyObject prototype
-assign(NotesNode.prototype, {
+assign(NotesNode.prototype, NodeGraph.prototype, {
 	create: function() {
 		const privates = getPrivates(this);
 
 		// Use this as the settings object
+		// Todo: is this wise? Dont we want the settings object?
 		return privates.notes.create(this.context, this);
 	},
 
@@ -168,17 +161,5 @@ assign(NotesNode.prototype, {
 		}
 
 		return this;
-	},
-	/*
-	destroy: function() {
-		const privates = getPrivates(this);
-
-		for (let note of privates.notes) {
-			note.disconnect();
-		}
-
-		this.get('output').disconnect();
-		return this;
 	}
-	*/
 });

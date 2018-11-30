@@ -11,12 +11,20 @@ const create = Object.create;
 // Time multiplier to wait before we accept target value has 'arrived'
 const decayFactor = 12;
 
+const properties = {
+    path:      { enumerable: true, writable: true },
+    beginTime: { enumerable: true, writable: true },
+    loopTime:  { enumerable: true, writable: true },
+    endTime:   { enumerable: true, writable: true },
+    nominalFrequency: { enumerable: true, writable: true }
+};
+
 const defaults = {
     nominalFrequency: 440,
-    trim:      0,
-    loop:      false,
-    loopStart: 0,
-    loopEnd:   0.2
+    //beginTime: undefined,
+    //loopTime:  undefined,
+    //endTime:   undefined
+    gain: 1
 };
 
 const gainOptions = { gain: 1 };
@@ -24,12 +32,14 @@ const gainOptions = { gain: 1 };
 export default class Sample extends GainNode {
     constructor(context, options) {
         super(context, gainOptions);
+
+        define(this, properties);
         assign(this, defaults, options);
 
         const privates = getPrivates(this);
 
-        if (typeof this.url === 'string') {
-            privates.request = requestBuffer(context, this.url)
+        if (typeof this.path === 'string') {
+            privates.request = requestBuffer(context, this.path)
             .then((buffer) => { privates.buffer = buffer; })
             .catch((e) => { console.warn(e); });
         }
@@ -65,21 +75,21 @@ export default class Sample extends GainNode {
 
         const nominalNote = frequencyToNumber(440, this.nominalFrequency);
         const note        = frequencyToNumber(440, frequency);
-        const detune      = note - nominalNote;
+        const pitch       = note - nominalNote;
 
         // WebAudio uses cents for detune where we use semitones.
 		// Bug: Chrome does not seem to support scheduling for detune...
-        source.detune.setValueAtTime(detune * 100, time);
+        source.detune.setValueAtTime(pitch * 100, time);
         source.connect(this);
 
         if (privates.buffer) {
             source.buffer = privates.buffer;
-            source.start(time);
+            source.start(time, this.beginTime || 0, this.endTime && (this.endTime - this.beginTime));
         }
         else {
             this.then(() => {
                 source.buffer = privates.buffer;
-                source.start(time);
+                source.start(time, this.beginTime || 0);
             });
         }
 

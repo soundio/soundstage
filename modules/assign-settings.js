@@ -30,26 +30,29 @@ function assignSetting(node, key, value) {
 
 export function assignSettings(node, defaults, settings) {
     if (DEBUG) { logGroup('assign', node.constructor.name, (settings ? Object.keys(settings).join(', ') : '')); }
+
+    const keys = {};
+
     if (settings) {
-        //if (DEBUG) { console.log('Assigning settings', settings) }
         for (let key in settings) {
+            // Ignore AudioParams
             if (settings[key] && settings[key].setValueAtTime) { continue; }
+
     		// We want to assign only when a property has been declared, as we may
     		// pass composite options (options for more than one node) into this.
-    		if (!node.hasOwnProperty(key)) { continue; }
-            assignSetting(node, key, settings[key]);
+    		if (node.hasOwnProperty(key) && settings[key] !== undefined) {
+                assignSetting(node, key, settings[key]);
+                keys[key] = true;
+            }
     	}
     }
 
-    //if (DEBUG) { console.log('Assigning defaults', defaults) }
     for (let key in defaults) {
 		// If we have already set this, or it's not settable, move on
-		if (
-            (settings && key in settings && !(settings[key] && settings[key].setValueAtTime))
-            || !node.hasOwnProperty(key)
-        ) { continue; }
-
-        assignSetting(node, key, defaults[key]);
+		if (!keys[key]) {
+            assignSetting(node, key, defaults[key]);
+        }
 	}
+
     if (DEBUG) { logGroupEnd(); }
 }

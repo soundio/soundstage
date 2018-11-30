@@ -67,7 +67,13 @@ export default function ToneSynth(context, settings, stage) {
 
 	// Mixin
 	NodeGraph.call(this, context, graph);
-	NotesNode.call(this, context, stage, Tone);
+	NotesNode.call(this, context, stage, Tone, (note) => {
+		connect(this.get('pitchToDetune'), note['osc-1'].detune);
+		connect(this.get('pitchToDetune'), note['osc-2'].detune);
+		connect(this.get('frequency'), note.filterFrequency);
+		connect(this.get('q'), note.filterQ);
+		connect(note, this.get('output'));
+	});
 
 	// Properties
 	define(this, properties);
