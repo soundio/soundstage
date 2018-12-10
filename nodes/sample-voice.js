@@ -140,6 +140,14 @@ export default function SampleVoice(context, settings) {
 assign(SampleVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 	reset: function(context, settings) {
         this.get('detune').disconnect();
+
+        // Disconnect sources
+        const sources = privates.sources;
+        let n = sources.length;
+        while (n--) {
+            sources[n].disconnect();
+        }
+
         PlayNode.prototype.reset.apply(this);
         assignSettings(this, defaults, settings);
         //console.log('SampleVoice', settings.map, this.map);
@@ -177,7 +185,7 @@ assign(SampleVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 		return this;
 	},
 
-	stop: function(time, frequency, velocity) {
+	stop: function(time, note, velocity) {
         const privates = getPrivates(this);
 
         // Clamp stopTime to startTime

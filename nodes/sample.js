@@ -53,6 +53,7 @@ export default class Sample extends GainNode {
 
 	reset(context, options) {
 		const privates = getPrivates(this);
+
         // Discard the old source node
 		privates.source && privates.source.disconnect();
 	}
