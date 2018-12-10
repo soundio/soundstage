@@ -4,7 +4,7 @@ import AudioObject            from '../../audio-object/modules/audio-object.js';
 import requestInputSplitter   from '../../audio-object/modules/request-input-splitter.js';
 
 import { print, printGroup, printGroupEnd }     from './utilities/print.js';
-import { getPrivates } from './utilities/privates.js';
+import { Privates } from './utilities/privates.js';
 import { distributeEvent } from './distribute.js';
 import audio         from './context.js';
 import constructors  from './constructors';
@@ -85,7 +85,7 @@ export default function Soundstage(data = nothing, settings = nothing) {
     if (DEBUG) { printGroup('Soundstage()'); }
 
     const stage       = this;
-    const privates    = getPrivates(this);
+    const privates    = Privates(this);
     const context     = settings.context || audio;
     const destination = settings.output || context.destination;
     const output      = createOutputMerger(context, destination);
@@ -268,7 +268,7 @@ seconds relative to window.performance.now().
 
 assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
     connect: function(input, port, channel) {
-        const outputs = getPrivates(this).outputs;
+        const outputs = Privates(this).outputs;
         let output = typeof port === 'string' ? outputs[port] : outputs.default ;
 
         if (!output) { throw new Error('Output "' + port + '" not found'); }
@@ -278,7 +278,7 @@ assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
     },
 
     disconnect: function(input, port) {
-        const outputs = getPrivates(this).outputs;
+        const outputs = Privates(this).outputs;
         let output = typeof port === 'string' ? outputs[port] : outputs.default ;
 
         if (!port) { throw new Error('Output "' + port + '" not found'); }

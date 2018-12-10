@@ -1,5 +1,5 @@
 import { nothing } from '../../fn/fn.js';
-import { getPrivates } from '../modules/utilities/privates.js';
+import { Privates } from '../modules/utilities/privates.js';
 import NodeGraph   from './node-graph.js';
 import PlayNode from './play-node.js';
 import { automate, getAutomationEvents, getAutomationEndTime } from '../modules/automate.js';

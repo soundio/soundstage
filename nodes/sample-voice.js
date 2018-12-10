@@ -1,7 +1,7 @@
 import Sample from './sample.js';
 
 import { nothing } from '../../fn/fn.js';
-import { getPrivates } from '../modules/utilities/privates.js';
+import { Privates } from '../modules/utilities/privates.js';
 import NodeGraph   from './node-graph.js';
 import PlayNode from './play-node.js';
 import { automate, getAutomationEvents, getAutomationEndTime } from '../modules/automate.js';
@@ -13,27 +13,13 @@ const define = Object.defineProperties;
 const max    = Math.max;
 
 const graph = {
-    nodes: [{
-        id:    'detune',
-        type:  'constant',
-        data: { offset: 0 }
-    }, {
-        id:    'gain',
-        type:  'gain',
-        data: { gain: 0 }
-    }, {
-		id:    'gainEnvelope',
-		type:  'envelope',
-        data: { attack: [], release: [] }
-	}, {
-		id:    'output',
-        type:  'biquad-filter',
-		data: { type: 'lowpass', frequency: 100, detune: 0, Q: 0.4 }
-	}, {
-		id:    'frequencyEnvelope',
-		type:  'envelope',
-        data: { attack: [], release: [] }
-	}],
+    nodes: [
+        { id: 'detune',            type: 'constant',      data: { offset: 0 }},
+        { id: 'gain',              type: 'gain',          data: { gain: 0 }},
+        { id: 'gainEnvelope',      type: 'envelope',      data: { attack: [], release: [] }},
+        { id: 'output',            type: 'biquad-filter', data: { type: 'lowpass', frequency: 100, detune: 0, Q: 0.4 }},
+        { id: 'frequencyEnvelope', type: 'envelope',      data: { attack: [], release: [] }}
+    ],
 
 	connections: [
         { source: 'gain',              target: 'output' },
@@ -42,7 +28,13 @@ const graph = {
     ]
 };
 
-
+const properties = {
+	map:                           { enumerable: true, writable: true },
+    gainEnvelopeFromVelocity:      { enumerable: true, writable: true },
+    gainRateFromVelocity:          { enumerable: true, writable: true },
+    frequencyEnvelopeFromVelocity: { enumerable: true, writable: true },
+    frequencyRateFromVelocity:     { enumerable: true, writable: true }
+};
 
 const defaults = {
     gain: 0,
@@ -84,21 +76,9 @@ const defaults = {
 };
 
 
-const properties = {
-	map:                           { enumerable: true, writable: true },
-    gainEnvelopeFromVelocity:      { enumerable: true, writable: true },
-    gainRateFromVelocity:          { enumerable: true, writable: true },
-    frequencyEnvelopeFromVelocity: { enumerable: true, writable: true },
-    frequencyRateFromVelocity:     { enumerable: true, writable: true }
-};
-
-
 function bell(n) {
 	return n * (Math.random() + Math.random() - 1);
 }
-
-
-
 
 function createSamples(destination, map, time, note=69, velocity=1) {
     return map
@@ -142,10 +122,13 @@ assign(SampleVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
         this.get('detune').disconnect();
 
         // Disconnect sources
+        const privates = Privates(this);
         const sources = privates.sources;
-        let n = sources.length;
-        while (n--) {
-            sources[n].disconnect();
+        if (sources) {
+            let n = sources.length;
+            while (n--) {
+                sources[n].disconnect();
+            }
         }
 
         PlayNode.prototype.reset.apply(this);
@@ -160,7 +143,7 @@ assign(SampleVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
         }
 
         // Get regions from map
-        const privates = getPrivates(this);
+        const privates = Privates(this);
         const gain     = this.get('gain');
         const filter   = this.get('output');
 
@@ -186,7 +169,7 @@ assign(SampleVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 	},
 
 	stop: function(time, note, velocity) {
-        const privates = getPrivates(this);
+        const privates = Privates(this);
 
         // Clamp stopTime to startTime
         time = time > this.startTime ? time : this.startTime;

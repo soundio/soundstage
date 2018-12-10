@@ -2,7 +2,7 @@
 //import AudioObject from '../../context-object/modules/context-object.js';
 import { print, printGroup, printGroupEnd, log } from './print.js';
 import { remove, id } from '../../fn/fn.js';
-import { getPrivates } from '../modules/utilities/privates.js';
+import { Privates } from '../modules/utilities/privates.js';
 import { numberToFrequency } from '../../midi/midi.js';
 import Tick from './tick.js';
 import NodeGraph from './node-graph.js';
@@ -151,7 +151,7 @@ export default function Metronome(context, settings, stage) {
     const voice = this.get('output');
 
 	// Private
-	const privates = getPrivates(this);
+	const privates = Privates(this);
 	privates.voice = voice;
 	privates.stage = stage;
 
@@ -169,7 +169,7 @@ export default function Metronome(context, settings, stage) {
 
 assign(Metronome.prototype, NodeGraph.prototype, {
 	start: function(time) {
-		const privates  = getPrivates(this);
+		const privates  = Privates(this);
 		const stage     = privates.stage;
 		const metronome = this;
 		const voice     = this.get('output');
@@ -187,13 +187,13 @@ assign(Metronome.prototype, NodeGraph.prototype, {
 	},
 
 	stop: function(time) {
-		const privates = getPrivates(this);
+		const privates = Privates(this);
 		privates.sequence.stop(time || this.context.currentTime);
 		return this;
 	},
 
 	/*destroy: function() {
-		const privates = getPrivates(this);
+		const privates = Privates(this);
 
 		for (let note of privates.notes) {
 			note.disconnect();

@@ -34,7 +34,7 @@ Provides the methods:
 
 */
 
-import { getPrivates } from '../modules/utilities/privates.js';
+import { Privates } from '../modules/utilities/privates.js';
 import { logGroup, logGroupEnd } from '../modules/utilities/print.js';
 import { connect, disconnect } from '../modules/connect.js';
 import constructors from '../modules/constructors';
@@ -77,7 +77,7 @@ function createConnection(nodes, data) {
 export default function NodeGraph(context, data) {
     if (DEBUG) { logGroup('mixin', 'GraphNode', data.nodes && data.nodes.map(n => n.type).join(', ')); }
 
-    const privates = getPrivates(this);
+    const privates = Privates(this);
 
     // Create nodes
     const nodes = privates.nodes = data.nodes && data.nodes.reduce(function(nodes, data) {
@@ -107,7 +107,7 @@ export default function NodeGraph(context, data) {
 
 assign(NodeGraph.prototype, {
     get: function(id) {
-        const privates = getPrivates(this);
+        const privates = Privates(this);
         return privates.nodes && privates.nodes[id];
     },
 

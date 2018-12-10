@@ -1,7 +1,7 @@
 
 import Pool from '../modules/pool.js';
 import { requestBuffer } from '../modules/utilities/requests.js';
-import { getPrivates } from '../modules/utilities/privates.js';
+import { Privates } from '../modules/utilities/privates.js';
 import { automate, getAutomationEvents } from '../modules/automate.js';
 import { numberToFrequency, frequencyToNumber } from '../../midi/midi.js';
 import { assignSettings } from '../modules/assign-settings.js';
@@ -38,7 +38,7 @@ export default class Sample extends GainNode {
         define(this, properties);
         assignSettings(this, defaults, options);
 
-        const privates = getPrivates(this);
+        const privates = Privates(this);
 
         if (typeof this.path === 'string') {
             privates.request = requestBuffer(context, this.path)
@@ -52,19 +52,19 @@ export default class Sample extends GainNode {
     }
 
 	reset(context, options) {
-		const privates = getPrivates(this);
+		const privates = Privates(this);
 
         // Discard the old source node
 		privates.source && privates.source.disconnect();
 	}
 
     then(fn) {
-		const privates = getPrivates(this);
+		const privates = Privates(this);
 		return privates.request.then(fn);
 	}
 
     start(time, frequency = defaults.nominalFrequency, velocity = 1) {
-        const privates = getPrivates(this);
+        const privates = Privates(this);
 
         time = time || this.context.currentTime;
 
@@ -104,7 +104,7 @@ export default class Sample extends GainNode {
     }
 
     stop(time) {
-		const privates = getPrivates(this);
+		const privates = Privates(this);
 
         time = time || this.context.currentTime;
         time = time > this.startTime ? time : this.startTime ;

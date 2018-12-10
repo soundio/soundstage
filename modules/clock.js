@@ -1,6 +1,6 @@
 
 import { id } from '../../fn/fn.js';
-import { getPrivates } from './utilities/privates.js';
+import { Privates } from './utilities/privates.js';
 import { beatAtLocation, locationAtBeat } from './location.js';
 import { isRateEvent } from './event.js';
 import { automate, getValueAtTime } from './automate.js';
@@ -23,7 +23,7 @@ function round(n) {
 
 export default function Clock(context, transport) {
 	// Private
-	getPrivates(this).transport = transport;
+	Privates(this).transport = transport;
 
 	// Properties
 	define(this, properties);
@@ -37,7 +37,7 @@ assign(Clock.prototype, {
 	beatAtTime: function(time) {
 		if (time < 0) { throw new Error('Clock.beatAtTime(time) does not accept -ve time values'); }
 
-		const privates  = getPrivates(this);
+		const privates  = Privates(this);
 		const transport = privates.transport;
 		const startLoc  = this.startLocation || (this.startLocation = transport.beatAtTime(this.startTime));
 		const timeLoc   = transport.beatAtTime(time);
@@ -49,7 +49,7 @@ assign(Clock.prototype, {
 	},
 
 	timeAtBeat: function(beat) {
-		const privates  = getPrivates(this);
+		const privates  = Privates(this);
 		const transport = privates.transport;
 		const startLoc  = this.startLocation || (this.startLocation = transport.beatAtTime(this.startTime));
 		const events    = this.events ?

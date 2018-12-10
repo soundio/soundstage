@@ -2,7 +2,7 @@
 //import AudioObject from '../../context-object/modules/context-object.js';
 import { log, logGroup, logGroupEnd } from './print.js';
 import { remove } from '../../fn/fn.js';
-import { getPrivates } from '../modules/utilities/privates.js';
+import { Privates } from '../modules/utilities/privates.js';
 import { numberToFrequency } from '../../midi/midi.js';
 import NodeGraph from './node-graph.js';
 import { automate } from '../modules/automate.js';
@@ -69,7 +69,7 @@ export default function NotesNode(context, settings, Voice, setup) {
 	NodeGraph.call(this, context, graph);
 
 	// Private
-	const privates = getPrivates(this);
+	const privates = Privates(this);
 
 	// Properties
 	define(this, properties);
@@ -123,7 +123,7 @@ export default function NotesNode(context, settings, Voice, setup) {
 // Mix AudioObject prototype into MyObject prototype
 assign(NotesNode.prototype, NodeGraph.prototype, {
 	start: function(time, number, velocity = 1) {
-		const privates = getPrivates(this);
+		const privates = Privates(this);
 
 		// Use this as the settings object
 		// Todo: is this wise? Dont we want the settings object?
@@ -136,7 +136,7 @@ assign(NotesNode.prototype, NodeGraph.prototype, {
 	},
 
 	stop: function(time, number, velocity) {
-		const privates = getPrivates(this);
+		const privates = Privates(this);
 
 		time = time || this.context.currentTime;
 

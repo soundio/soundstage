@@ -1,6 +1,6 @@
 
 import { Fn, compose, get, is, nothing } from '../../fn/fn.js';
-import { getPrivates } from './utilities/privates.js';
+import { Privates } from './utilities/privates.js';
 import { default as Event, isRateEvent, release } from './event.js';
 
 var assign = Object.assign;

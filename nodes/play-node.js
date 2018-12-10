@@ -20,7 +20,7 @@ And also, for internal use:
 
 import { logGroup, logGroupEnd } from '../modules/utilities/print.js';
 import { requestTick } from '../../fn/fn.js';
-import { getPrivates } from '../modules/utilities/privates.js';
+import { Privates } from '../modules/utilities/privates.js';
 
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;
@@ -60,7 +60,7 @@ function cueResolve(node, privates) {
 
 assign(PlayNode.prototype, {
     reset: function() {
-        if (DEBUG && getPrivates(this).resolve) {
+        if (DEBUG && Privates(this).resolve) {
             throw new Error('Unresolved promise');
         }
 
@@ -75,7 +75,7 @@ assign(PlayNode.prototype, {
     },
 
     stop: function(time) {
-        const privates = getPrivates(this);
+        const privates = Privates(this);
 
         // Clamp stopTime to startTime
         this.stopTime = time > this.startTime ? time : this.startTime ;
@@ -100,7 +100,7 @@ assign(PlayNode.prototype, {
     },
 
     then: function(fn) {
-        const privates  = getPrivates(this);
+        const privates  = Privates(this);
 
         if (!privates.promise) {
             privates.promise = new Promise((resolve, reject) => {

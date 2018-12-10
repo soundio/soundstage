@@ -1,4 +1,4 @@
-import { getPrivates } from '../modules/utilities/privates.js';
+import { Privates } from '../modules/utilities/privates.js';
 import { assignSettings } from '../modules/assign-settings.js';
 import GraphNode from './node-graph.js';
 
@@ -40,17 +40,17 @@ export default class Send extends GainNode {
     }
 
 	get mute() {
-		return !!getPrivates(this).mute;
+		return !!Privates(this).mute;
 	}
 
 	set mute(bool) {
 		const mute  = this.get('mute');
 		const state = bool === true;
 
-		if (getPrivates(this).mute === state) { return; }
+		if (Privates(this).mute === state) { return; }
 
 		mute.linearRampToValueAtTime(state ? 0 : 1, this.context.currentState + config.muteDuration);
-		getPrivates(this).mute = state;
+		Privates(this).mute = state;
 	}
 
 	connect(target, sourceName, targetInput) {

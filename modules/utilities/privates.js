@@ -1,5 +1,5 @@
 const $privates = Symbol('privates');
 
-export function getPrivates(object) {
+export function Privates(object) {
     return object[$privates] || (object[$privates] = {});
 }

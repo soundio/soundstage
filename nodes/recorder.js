@@ -1,6 +1,6 @@
 
 import { noop, nothing } from '../../fn/fn.js';
-import { getPrivates } from '../modules/utilities/privates.js';
+import { Privates } from '../modules/utilities/privates.js';
 
 const assign = Object.assign;
 
@@ -15,7 +15,7 @@ export default class Recorder extends AudioWorkletNode {
     constructor(context, settings, stage = nothing, notify = noop) {
         super(context, 'recorder');
         const node     = this;
-        const privates = getPrivates(this);
+        const privates = Privates(this);
 
         this.startTime = undefined;
         this.stopTime  = undefined;
@@ -63,7 +63,7 @@ export default class Recorder extends AudioWorkletNode {
     }
 
     then(fn) {
-        const privates = getPrivates(this);
+        const privates = Privates(this);
 
         if (!privates.promise) {
             privates.promise = new Promise((resolve, reject) => {

@@ -4,7 +4,7 @@ import Recorder from '../nodes/recorder.js';
 import { drawYAxisAmplitude, drawCurve, drawPoint } from '../modules/canvas.js';
 import Soundstage from '../soundstage.js';
 import context    from '../modules/context.js';
-import { getPrivates } from '../modules/utilities/privates.js';
+import { Privates } from '../modules/utilities/privates.js';
 
 test('Metronome', function(run, print, fixture) {
     const canvas = find('canvas', fixture);

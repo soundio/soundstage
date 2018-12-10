@@ -1,6 +1,6 @@
 
 import { id, nothing, Stream } from '../../fn/fn.js';
-import { getPrivates } from './utilities/privates.js';
+import { Privates } from './utilities/privates.js';
 import { roundBeat } from '../modules/utilities/utilities.js';
 import { automate, getValueAtTime, getAutomationEvents } from './automate.js';
 import { barAtBeat, beatAtBar } from './meter.js';
@@ -23,7 +23,7 @@ const properties = {
 
 export default function Transport(context, rateParam, timer) {
 	// Private
-	const privates = getPrivates(this);
+	const privates = Privates(this);
 	privates.rateParam = rateParam;
 	privates.meters = [defaultMeterEvent];
 	privates.timer  = timer;
@@ -37,7 +37,7 @@ assign(Transport.prototype, Clock.prototype, {
 	beatAtTime: function(time) {
 		if (time < 0) { throw new Error('Location: beatAtLoc(loc) does not accept -ve values.'); }
 
-		const privates  = getPrivates(this);
+		const privates  = Privates(this);
 		const events    = getAutomationEvents(privates.rateParam);
 		// Cache startLocation as it is highly likely to be needed again
 		//console.log('transport.beatAtTime', this.startTime, defaultRateEvent, events);
@@ -50,7 +50,7 @@ assign(Transport.prototype, Clock.prototype, {
 	timeAtBeat: function(beat) {
 		if (beat < 0) { throw new Error('Location: locAtBeat(beat) does not accept -ve values.'); }
 
-		const privates  = getPrivates(this);
+		const privates  = Privates(this);
 		const events    = getAutomationEvents(privates.rateParam);
 		// Cache startLocation as it is highly likely to be needed again
 		const startBeat = this.startLocation || (this.startLocation = beatAtTimeOfAutomation(events, defaultRateEvent, this.startTime));
@@ -59,19 +59,19 @@ assign(Transport.prototype, Clock.prototype, {
 	},
 
 	beatAtBar: function(bar) {
-		const privates = getPrivates(this);
+		const privates = Privates(this);
 		const meters   = privates.meters;
 		return beatAtBar(meters, bar);
 	},
 
 	barAtBeat: function(beat) {
-		const privates = getPrivates(this);
+		const privates = Privates(this);
 		const meters   = privates.meters;
 		return barAtBeat(meters, beat);
 	},
 
 	setMeterAtBeat: function(beat, bar, div) {
-		const privates = getPrivates(this);
+		const privates = Privates(this);
 		const meters   = privates.meters;
 
 		// Shorten meters to time
@@ -88,7 +88,7 @@ assign(Transport.prototype, Clock.prototype, {
 	},
 
 	sequence: function(toEventsBuffer) {
-		const privates = getPrivates(this);
+		const privates = Privates(this);
 		const stream = Stream
 		.fromTimer(privates.timer)
 		.tap((frame) => {
@@ -126,21 +126,21 @@ assign(Transport.prototype, Clock.prototype, {
     // sort out how to access rateParam (which comes from Transport(), BTW)
     connect: function(target, outputName, targetChan) {
         return outputName === 'rate' ?
-            connect(getPrivates(this).rateParam, target, 0, targetChan) :
+            connect(Privates(this).rateParam, target, 0, targetChan) :
             connect() ;
     },
 
     disconnect: function(outputName, target, outputChan, targetChan) {
         if (outputName !== 'rate') { return; }
         if (!target) { return; }
-        disconnect(getPrivates(this).rateParam, target, 0, targetChan);
+        disconnect(Privates(this).rateParam, target, 0, targetChan);
     }
 });
 
 define(Transport.prototype, {
 	beat: {
 		get: function() {
-			var privates = getPrivates(this);
+			var privates = Privates(this);
 			var stream   = privates.stream;
 			var status   = stream.status;
 
@@ -151,7 +151,7 @@ define(Transport.prototype, {
 
 		set: function(beat) {
 			var sequencer = this;
-			var privates  = getPrivates(this);
+			var privates  = Privates(this);
 			var stream    = privates.stream;
 
 			if (stream && stream.status !== 'waiting') {
@@ -188,7 +188,7 @@ define(Transport.prototype, {
 
 	status: {
 		get: function() {
-			var stream = getPrivates(this).stream;
+			var stream = Privates(this).stream;
 			return stream ? stream.status : 'waiting' ;
 		}
 	}

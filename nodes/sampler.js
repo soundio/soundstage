@@ -2,7 +2,7 @@
 import { log, logGroup, logGroupEnd } from './print.js';
 import { get } from '../../fn/fn.js';
 import { fetchBuffer } from '../modules/utilities/utilities.js';
-import { getPrivates } from '../modules/utilities/privates.js';
+import { Privates } from '../modules/utilities/privates.js';
 import NotesNode from './notes-node.js';
 import { assignSettings } from '../modules/assign-settings.js';
 import { connect, disconnect } from '../modules/connect.js';
@@ -34,14 +34,15 @@ const properties = {
 		enumerable: true,
 
 		get: function() {
-			return getPrivates(this).path;
+			return Privates(this).path;
 		},
 
 		set: function(value) {
 			const context  = this.context;
-			const privates = getPrivates(this);
+			const privates = Privates(this);
 			const setMap   = (map) => {
-				preloadBuffers(context, map.data).then(() => {
+				preloadBuffers(context, map.data)
+				.then(() => {
 					log('Sampler', 'loaded buffers for map', value);
 				});
 
@@ -82,11 +83,9 @@ export default function Sampler(context, settings) {
 
 	// Mixin
 	NotesNode.call(this, context, settings, SampleVoice, (voice) => {
-		// console.log('VOICE', voice);
 		connect(this.get('gain'), voice.gain);
 		connect(this.get('frequency'), voice.frequency);
 		connect(this.get('Q'), voice.Q);
-		// pitch
 		connect(this.get('detune'), voice.detune);
 		connect(voice, this.get('output'));
 	});

@@ -31,7 +31,7 @@ Returns the time at a given `beat`.
 
 import { each, get, id, insert, isDefined, Pool, toArray, by } from '../../fn/fn.js';
 import { default as Sequence, log as logSequence } from './sequence.js';
-import { getPrivates } from './utilities/privates.js';
+import { Privates } from './utilities/privates.js';
 import { createId } from './utilities/utilities.js';
 import { isRateEvent, isMeterEvent, getDuration, getBeat } from './event.js';
 import { automate, getValueAtTime } from './automate.js';
@@ -273,7 +273,7 @@ export default function Sequencer(context, rateParam, transport, distributors, t
 
 	// Private
 
-	const privates = getPrivates(this);
+	const privates = Privates(this);
 	privates.timer = timer;
 	privates.rateParam = rateParam;
 }
@@ -281,12 +281,12 @@ export default function Sequencer(context, rateParam, transport, distributors, t
 define(Sequencer.prototype, {
 	tempo: {
 		get: function() {
-			const transport = getPrivates(this).transport;
+			const transport = Privates(this).transport;
 			return getValueAtTime(transport.rate, transport.currentTime) * 60;
 		},
 
 		set: function(tempo) {
-			const transport = getPrivates(this).transport;
+			const transport = Privates(this).transport;
 			// param, time, curve, value, decay
 			automate(transport.rate, transport.currentTime, 'step', tempo / 60);
 		}
@@ -294,12 +294,12 @@ define(Sequencer.prototype, {
 
 	meter: {
 		get: function() {
-			const transport = getPrivates(this).transport;
+			const transport = Privates(this).transport;
 			return transport.getMeterAtTime(transport.currentTime);
 		},
 
 		set: function(meter) {
-			const transport = getPrivates(this).transport;
+			const transport = Privates(this).transport;
 			transport.setMeterAtTime(meter, transport.currentTime)
 		}
 	}
@@ -307,7 +307,7 @@ define(Sequencer.prototype, {
 
 assign(Sequencer.prototype, Clock.prototype, Meter.prototype, {
 	beatAtTime: function(time) {
-		const transport     = getPrivates(this).transport;
+		const transport     = Privates(this).transport;
 		const startLocation = this.startLocation
 		   || (this.startLocation = transport.beatAtTime(this.startTime)) ;
 
@@ -315,7 +315,7 @@ assign(Sequencer.prototype, Clock.prototype, Meter.prototype, {
 	},
 
 	timeAtBeat: function(beat) {
-		const transport     = getPrivates(this).transport;
+		const transport     = Privates(this).transport;
 		const startLocation = this.startLocation
 		   || (this.startLocation = transport.beatAtTime(this.startTime)) ;
 
@@ -326,7 +326,7 @@ assign(Sequencer.prototype, Clock.prototype, Meter.prototype, {
 		time = time || this.context.currentTime;
 
 		const sequencer = this;
-		const privates  = getPrivates(this);
+		const privates  = Privates(this);
 		const stream    = privates.stream;
 		const events    = this.events;
 		const rateParam = privates.rateParam;
@@ -378,7 +378,7 @@ assign(Sequencer.prototype, Clock.prototype, Meter.prototype, {
 	stop: function(time) {
 		time = time || this.context.currentTime;
 
-		const privates = getPrivates(this);
+		const privates = Privates(this);
 		const stream   = privates.stream;
 		const rateParam = privates.rateParam;
 
@@ -407,13 +407,13 @@ assign(Sequencer.prototype, Clock.prototype, Meter.prototype, {
 	},
 
 	sequence: function(toEventsBuffer) {
-		const privates = getPrivates(this);
+		const privates = Privates(this);
 		const transport = privates.transport;
 		return transport.sequence(toEventsBuffer);
 	},
 
 	cue: function(beat, fn) {
-		var stream = getPrivates(this).stream;
+		var stream = Privates(this).stream;
 		stream.cue(beat, fn);
 		return this;
 	}

@@ -1,6 +1,6 @@
 
 import { log, logGroup, logGroupEnd } from './print.js';
-import { getPrivates } from '../modules/utilities/privates.js';
+import { Privates } from '../modules/utilities/privates.js';
 import Tone from './tone.js';
 import NotesNode from './notes-node.js';
 import NodeGraph from './node-graph.js';
