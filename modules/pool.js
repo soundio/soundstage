@@ -84,7 +84,7 @@ export default function Pool(constructor, isIdle, setup) {
         }
 
         if (DEBUG) {
-            printGroup(constructor.name + ' for ' + constructor.name + ' pool', pool.length + 1);
+            printGroup('  ' + constructor.name + ' for pool', pool.length + 1);
         }
 
         object = new constructor(...arguments);

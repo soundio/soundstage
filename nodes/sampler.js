@@ -1,5 +1,7 @@
 
 import { log, logGroup, logGroupEnd } from './print.js';
+import { get } from '../../fn/fn.js';
+import { fetchBuffer } from '../modules/utilities/utilities.js';
 import { getPrivates } from '../modules/utilities/privates.js';
 import NotesNode from './notes-node.js';
 import { assignSettings } from '../modules/assign-settings.js';
@@ -22,24 +24,69 @@ var defaults = {
 };
 
 const properties = {
-	sampleMap:         { enumerable: true, writable: true },
 	gain:              { enumerable: true, writable: true },
 	gainEnvelope:      { enumerable: true, writable: true },
 	frequency:         { enumerable: true, writable: true },
 	frequencyEnvelope: { enumerable: true, writable: true },
-	//Q:                 { enumerable: true, writable: true },
-	//detune:            { enumerable: true, writable: true },
-	level:             { enumerable: true, writable: true }
+	level:             { enumerable: true, writable: true },
+	map:               { enumerable: true, writable: true },
+	path: {
+		enumerable: true,
+
+		get: function() {
+			return getPrivates(this).path;
+		},
+
+		set: function(value) {
+			const context  = this.context;
+			const privates = getPrivates(this);
+			const setMap   = (map) => {
+				preloadBuffers(context, map.data).then(() => {
+					log('Sampler', 'loaded buffers for map', value);
+				});
+
+				privates.path = value;
+				this.map      = map;
+			};
+
+			//log('Sampler', 'loading buffers for map', value);
+
+			if (/\.js$/.test(value)) {
+				import(value)
+				.then(get('default'))
+				.then(setMap);
+			}
+			else {
+				fetch(value)
+				.then((response) => {
+					response.json()
+					.then(setMap);
+				});
+			}
+		}
+	}
 };
 
-export default function Sampler(context, settings, stage) {
+function preloadBuffers(context, data) {
+	return Promise.all(
+		data
+		.map(get('path'))
+		.map((path) => {
+			return fetchBuffer(context, path);
+		})
+	);
+}
+
+export default function Sampler(context, settings) {
 	if (DEBUG) { logGroup(new.target === Sampler ? 'Node' : 'mixin', 'Sampler'); }
 
 	// Mixin
-	NotesNode.call(this, context, settings, stage, SampleVoice, (voice) => {
+	NotesNode.call(this, context, settings, SampleVoice, (voice) => {
+		// console.log('VOICE', voice);
 		connect(this.get('gain'), voice.gain);
 		connect(this.get('frequency'), voice.frequency);
-		connect(this.get('q'), voice.Q);
+		connect(this.get('Q'), voice.Q);
+		// pitch
 		connect(this.get('detune'), voice.detune);
 		connect(voice, this.get('output'));
 	});

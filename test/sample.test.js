@@ -5,7 +5,7 @@ import Sample from '../nodes/sample.js';
 test('Sample', function(run, print, fixture) {
     run('Sample(context, settings)', function(equals, done) {
         var sample = new Sample(context, {
-            url: '/soundstage/audio/bassdrum.wav',
+            path: '/soundstage/audio/bassdrum.wav',
             nominalFrequency: 440,
             //loop: true,
             //loopStart: 0,

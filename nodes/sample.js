@@ -4,9 +4,11 @@ import { requestBuffer } from '../modules/utilities/requests.js';
 import { getPrivates } from '../modules/utilities/privates.js';
 import { automate, getAutomationEvents } from '../modules/automate.js';
 import { numberToFrequency, frequencyToNumber } from '../../midi/midi.js';
+import { assignSettings } from '../modules/assign-settings.js';
 
 const assign = Object.assign;
 const create = Object.create;
+const define = Object.defineProperties;
 
 // Time multiplier to wait before we accept target value has 'arrived'
 const decayFactor = 12;
@@ -34,7 +36,7 @@ export default class Sample extends GainNode {
         super(context, gainOptions);
 
         define(this, properties);
-        assign(this, defaults, options);
+        assignSettings(this, defaults, options);
 
         const privates = getPrivates(this);
 
@@ -69,20 +71,24 @@ export default class Sample extends GainNode {
             = privates.source
             = new AudioBufferSourceNode(this.context, this) ;
 
+        source.connect(this);
+
         this.startTime = time;
+        this.detune    = source.detune;
 		this.gain.cancelScheduledValues(time);
 		this.gain.setValueAtTime(velocity, time);
 
+        // Work out the detune factor
         const nominalNote = frequencyToNumber(440, this.nominalFrequency);
         const note        = frequencyToNumber(440, frequency);
         const pitch       = note - nominalNote;
 
         // WebAudio uses cents for detune where we use semitones.
-		// Bug: Chrome does not seem to support scheduling for detune...
-        source.detune.setValueAtTime(pitch * 100, time);
-        source.connect(this);
+		// Bug (old?): Chrome does not seem to support scheduling for detune...
+        this.detune.setValueAtTime(pitch * 100, time);
 
         if (privates.buffer) {
+            console.log('REBUFFER', privates.buffer);
             source.buffer = privates.buffer;
             source.start(time, this.beginTime || 0, this.endTime && (this.endTime - this.beginTime));
         }
@@ -103,7 +109,15 @@ export default class Sample extends GainNode {
         time = time > this.startTime ? time : this.startTime ;
         this.stopTime = time;
 
-		privates.source.stop(time);
+        if (privates.buffer) {
+            privates.source.stop(time);
+        }
+        else {
+            this.then(() => {
+                privates.source.stop(time);
+            });
+        }
+
 		return this;
     }
 

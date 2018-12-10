@@ -7,8 +7,6 @@ import PlayNode from './play-node.js';
 import { automate, getAutomationEvents, getAutomationEndTime } from '../modules/automate.js';
 import { assignSettings } from '../modules/assign-settings.js';
 
-import map from './sampler/sample-maps/gretsch-kit.js';
-
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
@@ -50,8 +48,14 @@ const defaults = {
     gain: 0,
 
     gainEnvelope: {
-        attack:  [[0, 'step', 1]],
-        release: [[0, 'target', 0, 4]]
+        attack:  [
+            [0, 'step', 1]
+        ],
+        release: [
+            [0, 'target', 0, 0.06]
+        ],
+        gainFromVelocity: 1,
+        rateFromVelocity: 0
     },
 
     gainEnvelopeFromVelocity: 1,
@@ -60,8 +64,15 @@ const defaults = {
     frequency: 100,
 
     frequencyEnvelope: {
-        attack:  [[0, 'step', 1]],
-        release: [[0, 'target', 0, 4]]
+        attack:  [
+            [0,     'step', 640],
+            [0.004, 'exponential', 4200]
+        ],
+        release: [
+            [0, 'target', 640, 0.06]
+        ],
+        gainFromVelocity: 0,
+        rateFromVelocity: 0
     },
 
     frequencyEnvelopeFromVelocity: 1000,
@@ -74,7 +85,7 @@ const defaults = {
 
 
 const properties = {
-	sampleMap:                     { enumerable: true, writable: true },
+	map:                           { enumerable: true, writable: true },
     gainEnvelopeFromVelocity:      { enumerable: true, writable: true },
     gainRateFromVelocity:          { enumerable: true, writable: true },
     frequencyEnvelopeFromVelocity: { enumerable: true, writable: true },
@@ -98,14 +109,10 @@ function createSamples(destination, map, time, note=69, velocity=1) {
         && region.velocityRange[region.velocityRange.length - 1] >= velocity ;
     })
     .map((region) => {
-        const sample = new Sample(destination.context, region.sample);
+        const sample = new Sample(destination.context, region);
         // Set gain based on velocity and sensitivity
-
-
         // Todo interpolate gain frim velocity and note ranges
         sample.gain.setValueAtTime(1, time);
-
-
         return sample;
     });
 }
@@ -124,26 +131,42 @@ export default function SampleVoice(context, settings) {
     this.Q                 = this.get('output').Q;
     this.detune            = this.get('detune').offset;
 
+    // Properties
+    define(this, properties);
+
     this.reset(context, settings);
 }
 
 assign(SampleVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 	reset: function(context, settings) {
+        this.get('detune').disconnect();
         PlayNode.prototype.reset.apply(this);
         assignSettings(this, defaults, settings);
+        //console.log('SampleVoice', settings.map, this.map);
+        return this;
 	},
 
 	start: function(time, note, velocity) {
+        if (!this.map) {
+            throw new Error('Sampler .map not defined, start() called')
+        }
+
         // Get regions from map
-        const gain    = this.get('gain');
-        const filter  = this.get('output');
-        const sources = createSamples(gain, map.data, time, note, velocity);
+        const privates = getPrivates(this);
+        const gain     = this.get('gain');
+        const filter   = this.get('output');
+
+        const sources
+            = privates.sources
+            = createSamples(gain, this.map.data, time, note, velocity) ;
 
         let n = sources.length;
+
         while (n--) {
-            this.get('detune').connect(sources[n].detune);
             sources[n].connect(gain);
             sources[n].start(time, numberToFrequency(440, note));
+            // Note this must be done after
+            this.get('detune').connect(sources[n].detune);
         }
 
 		this.gainEnvelope.start(time, 'attack', velocity * this.gainEnvelopeFromVelocity, velocity * this.gainRateFromVelocity);
@@ -155,6 +178,8 @@ assign(SampleVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 	},
 
 	stop: function(time, frequency, velocity) {
+        const privates = getPrivates(this);
+
         // Clamp stopTime to startTime
         time = time > this.startTime ? time : this.startTime;
 
@@ -168,13 +193,21 @@ assign(SampleVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 			getAutomationEndTime(this.frequencyEnvelope.release)
 		);
 
+        // Stop sources
+        const sources = privates.sources;
+
+        let n = sources.length;
+        while (n--) {
+            sources[n].stop(stopTime);
+        }
+
 		this.gainEnvelope.stop(stopTime);
 		this.frequencyEnvelope.stop(stopTime);
 
         PlayNode.prototype.stop.call(this, stopTime);
 
 		// Prevent filter feedback from ringing past note end
-		this.Q.setValueAtTime(stopTime, 0);
+		//this.Q.setValueAtTime(stopTime, 0);
 
 		return this;
 	}

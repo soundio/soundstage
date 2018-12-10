@@ -30,7 +30,7 @@ const graph = {
 		{ id: 'pitch',     type: 'constant', data: { offset: 0 } },
 		{ id: 'detune',    type: 'gain',     data: { gain: 100 } },
 		{ id: 'frequency', type: 'constant', data: { offset: 0 } },
-		{ id: 'q',         type: 'constant', data: { offset: 0 } }
+		{ id: 'Q',         type: 'constant', data: { offset: 0 } }
 	],
 
 	connections: [
@@ -62,7 +62,7 @@ function isIdle(node) {
 	return node.startTime !== undefined && node.context.currentTime > node.stopTime;
 }
 
-export default function NotesNode(context, settings, stage, Voice, setup) {
+export default function NotesNode(context, settings, Voice, setup) {
 	if (DEBUG) { logGroup(new.target === NotesNode ? 'Node' : 'mixin', 'NotesNode'); }
 
 	// Graph
@@ -103,13 +103,13 @@ export default function NotesNode(context, settings, stage, Voice, setup) {
 	this.gain      = this.get('gain').offset;
 	this.pitch     = this.get('pitch').offset;
 	this.frequency = this.get('frequency').offset;
-	this.Q         = this.get('q').offset;
+	this.Q         = this.get('Q').offset;
 	this.output    = this.get('output').gain;
 
 	this.get('gain').start();
 	this.get('pitch').start();
 	this.get('frequency').start();
-	this.get('q').start();
+	this.get('Q').start();
 
 	// Note pool
 	privates.notes = new Pool(Voice, isIdle, setup);
@@ -122,20 +122,17 @@ export default function NotesNode(context, settings, stage, Voice, setup) {
 
 // Mix AudioObject prototype into MyObject prototype
 assign(NotesNode.prototype, NodeGraph.prototype, {
-	create: function() {
+	start: function(time, number, velocity = 1) {
 		const privates = getPrivates(this);
 
 		// Use this as the settings object
 		// Todo: is this wise? Dont we want the settings object?
-		return privates.notes.create(this.context, this);
-	},
+		const note = privates.notes.create(this.context, this);
 
-	start: function(time, number, velocity) {
-		velocity = velocity === undefined ? 0.25 : velocity ;
-		var frequency = numberToFrequency(config.tuning, number);
-		const note = this.create();
-		note.name - number;
-		return note.start(time, frequency, velocity);
+		//var frequency = numberToFrequency(config.tuning, number);
+		//note.name - number;
+		//console.log('NOTE', number, velocity);
+		return note.start(time, number, velocity);
 	},
 
 	stop: function(time, number, velocity) {
