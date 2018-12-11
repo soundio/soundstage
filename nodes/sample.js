@@ -14,11 +14,18 @@ const define = Object.defineProperties;
 const decayFactor = 12;
 
 const properties = {
+    startTime: { writable: true },
+    stopTime:  { writable: true },
     path:      { enumerable: true, writable: true },
+    attack:    { enumerable: true, writable: true },
+    release:   { enumerable: true, writable: true },
+    mute:      { enumerable: true, writable: true },
     beginTime: { enumerable: true, writable: true },
     loopTime:  { enumerable: true, writable: true },
     endTime:   { enumerable: true, writable: true },
-    nominalFrequency: { enumerable: true, writable: true }
+    nominalFrequency: { enumerable: true, writable: true },
+    velocityRange:    { enumerable: true, writable: true },
+    gainFromVelocity: { enumerable: true, writable: true }
 };
 
 const defaults = {
@@ -26,17 +33,24 @@ const defaults = {
     //beginTime: undefined,
     //loopTime:  undefined,
     //endTime:   undefined
-    gain: 1
+    //gain:    1,
+    attack:  0.000,
+    release: undefined,
+    mute:    0.012,
+    velocityRange: [0, 1],
+    gain:    1,
+    gainFromVelocity: 0
 };
 
 const gainOptions = { gain: 1 };
 
+const sourceOptions = {};
+
+
 export default class Sample extends GainNode {
     constructor(context, options) {
         super(context, gainOptions);
-
         define(this, properties);
-        assignSettings(this, defaults, options);
 
         const privates = Privates(this);
 
@@ -48,56 +62,70 @@ export default class Sample extends GainNode {
         // Todo: implement buffer playing
         //else {}
 
-		this.reset(context, options);
+        this.reset(context, options);
     }
 
-	reset(context, options) {
-		const privates = Privates(this);
+    reset(context, options) {
+        const privates = Privates(this);
 
         // Discard the old source node
-		privates.source && privates.source.disconnect();
-	}
+        privates.source && privates.source.disconnect();
+        privates.buffer = options.buffer;
+        privates.gain   = options.gain;
+        this.release    = undefined;
 
-    then(fn) {
-		const privates = Privates(this);
-		return privates.request.then(fn);
-	}
+        this.gain.setValueAtTime(0, this.context.currentTime);
+
+        assignSettings(this, defaults, options);
+    }
 
     start(time, frequency = defaults.nominalFrequency, velocity = 1) {
         const privates = Privates(this);
 
         time = time || this.context.currentTime;
 
-        const source
-            = privates.source
-            = new AudioBufferSourceNode(this.context, this) ;
-
-        source.connect(this);
-
-        this.startTime = time;
-        this.detune    = source.detune;
-		this.gain.cancelScheduledValues(time);
-		this.gain.setValueAtTime(velocity, time);
+        if (!privates.buffer) {
+            throw new Error('Sample has no buffer');
+        }
 
         // Work out the detune factor
         const nominalNote = frequencyToNumber(440, this.nominalFrequency);
         const note        = frequencyToNumber(440, frequency);
         const pitch       = note - nominalNote;
 
-        // WebAudio uses cents for detune where we use semitones.
-		// Bug (old?): Chrome does not seem to support scheduling for detune...
-        this.detune.setValueAtTime(pitch * 100, time);
+        // This is k-rate.
+        sourceOptions.detune       = pitch * 100;
+        // This is a-rate. Just sayin'. Todo.
+        sourceOptions.playbackRate = 1; // frequency / this.nominalFrequency;
 
-        if (privates.buffer) {
-            console.log('REBUFFER', privates.buffer);
-            source.buffer = privates.buffer;
-            source.start(time, this.beginTime || 0, this.endTime && (this.endTime - this.beginTime));
+        sourceOptions.loop         = false;
+        sourceOptions.loopStart    = 0;
+        sourceOptions.loopEnd      = 0;
+        sourceOptions.buffer       = privates.buffer;
+
+        const source
+            = privates.source
+            = new AudioBufferSourceNode(this.context, sourceOptions) ;
+
+        source.connect(this);
+        source.start(time, this.beginTime || 0);
+
+        this.detune    = source.detune;
+        this.rate      = source.playbackRate;
+        this.startTime = time;
+
+        velocity = (velocity - this.velocityRange[0]) /
+            (this.velocityRange[this.velocityRange.length - 1] - this.velocityRange[0]);
+
+        // Schedule the attack envelope
+        this.gain.cancelScheduledValues(time);
+
+        if (this.attack) {
+            this.gain.setValueAtTime(0, time);
+            this.gain.linearRampToValueAtTime(privates.gain + (this.gainFromVelocity * velocity), time + this.attack);
         }
         else {
-            this.then(() => {
-                source.buffer = privates.buffer;
-                source.start(time, this.beginTime || 0);
-            });
+            this.gain.setValueAtTime(privates.gain + (this.gainFromVelocity * velocity), time);
         }
 
         return this;
@@ -108,16 +136,18 @@ export default class Sample extends GainNode {
 
         time = time || this.context.currentTime;
         time = time > this.startTime ? time : this.startTime ;
-        this.stopTime = time;
 
-        if (privates.buffer) {
-            privates.source.stop(time);
+        // Schedule the release
+        if (this.release) {
+            this.stopTime = time + this.release;
+            this.gain.setTargetAtTime(0, time, this.release / 9);
         }
         else {
-            this.then(() => {
-                privates.source.stop(time);
-            });
+            //console.log('duration', privates.source.duration);
+            this.stopTime = this.startTime + (privates.buffer.length / this.context.sampleRate);
         }
+
+        privates.source.stop(this.stopTime);
 
 		return this;
     }

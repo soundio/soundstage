@@ -40,9 +40,9 @@ const properties = {
 		set: function(value) {
 			const context  = this.context;
 			const privates = Privates(this);
-			const setMap   = (map) => {
+			const setMap = (map) => {
 				preloadBuffers(context, map.data)
-				.then(() => {
+				.then((regions) => {
 					log('Sampler', 'loaded buffers for map', value);
 				});
 
@@ -69,11 +69,15 @@ const properties = {
 };
 
 function preloadBuffers(context, data) {
+	const descriptor = {};
+
 	return Promise.all(
-		data
-		.map(get('path'))
-		.map((path) => {
-			return fetchBuffer(context, path);
+		data.map((region) => {
+			return fetchBuffer(context, region.path).then((buffer) => {
+				descriptor.value = buffer;
+				Object.defineProperty(region, 'buffer', descriptor);
+				return region;
+			});
 		})
 	);
 }

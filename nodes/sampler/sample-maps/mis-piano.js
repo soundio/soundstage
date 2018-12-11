@@ -18,8 +18,7 @@
 //   phaseAlign: 100      // Aligns the first 100ms of this sample with others with which it is cross-faded
 // }
 
-import AudioObject from '../../audio-object.js';
-import { noteToNumber, numberToFrequency } from '../../../music/music.js';
+import { noteToNumber, numberToFrequency } from '../../../../midi/midi.js';
 
 
 // Note: URLs are temporary! They will change.
@@ -39,22 +38,27 @@ function createSample(name, dynamic) {
 	var frequency = numberToFrequency(number);
 
 	return {
-		url: base + dynamic + '.' + name + extension,
-		frequency: frequency,
+		path: base + dynamic + '.' + name + extension,
+		nominalFrequency: numberToFrequency(440, number),
 		noteRange: [
 			number - (name === 'C2' ? 6 : (name[name.length - 1] === '2' || name[name.length - 1] === '3' || name[name.length - 1] === '4' || name[name.length - 1] === '5' || name[name.length - 1] === '6') ? 2 : 6),
 			number,
 			number + ((name[name.length - 1] === '2' || name[name.length - 1] === '3' || name[name.length - 1] === '4' || name[name.length - 1] === '5') ? 2 : 6)
 		],
+
 		velocityRange: dynamic === 'pp' ? ppVelocity :
 		               dynamic === 'mf' ? mfVelocity :
 		               ffVelocity ,
-		velocitySensitivity: 0.5,
+
+		gainFromVelocity: 1,
 		gain: dynamic === 'pp' ? ppGain :
 		      dynamic === 'mf' ? mfGain :
 		      ffGain ,
-		muteDecay: 0.2,
-		decay: 0.08,
+
+		attack:  0.001,
+		release: 0.072,
+		mute:    0.2,
+
 		// Allow 6 full wavelengths or 12ms, whichever is greater
 		phaseAlign: Math.max(6 / frequency, 0.012)
 	};
@@ -64,9 +68,7 @@ var notes    = ['C1', 'C2', 'E2', 'Ab2', 'C3', 'E3', 'Ab3', 'C4', 'E4', 'Ab4', '
 var dynamics = ['pp', 'mf', 'ff'];
 
 export default {
-	type:    'ao-sampler-map',
-	version: 0,
-	name:    'MIS Piano',
+	label: 'MIS Piano',
 	data: notes
 		.map(function(name) {
 			return dynamics.map(function(dynamic) {

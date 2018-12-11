@@ -37,21 +37,18 @@ export default class Envelope extends ConstantSourceNode {
         //assign(this, options, defaults);
     }
 
-    start(time, name, gain, rate) {
+    start(time, name, gain = 1, rate = 1) {
         time = time || this.context.currentTime;
-        gain = gain || 1;
-        rate = rate || 1;
 
-        let event;
+        if (!this[name]) { return; }
 
         //console.log('START', name, time, name, gain, rate, this.startTime);
         cueAutomation(this.offset, this[name], time, gain, rate, 'ConstantSource.offset');
 
         if (!this.startTime) {
             super.start.call(this, time);
+            this.startTime = time;
         }
-
-        this.startTime = this.startTime || time;
     }
 
     stop(time, name, gain, rate) {

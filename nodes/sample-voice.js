@@ -44,7 +44,7 @@ const defaults = {
             [0, 'step', 1]
         ],
         release: [
-            [0, 'target', 0, 0.06]
+            //[0, 'target', 0, 0.06]
         ],
         gainFromVelocity: 1,
         rateFromVelocity: 0
@@ -80,30 +80,54 @@ function bell(n) {
 	return n * (Math.random() + Math.random() - 1);
 }
 
-function createSamples(destination, map, time, note=69, velocity=1) {
-    return map
+function updateSources(sources, destination, map, time, note = 69, velocity = 1) {
+    sources.length = 0;
+
+    // Neuter velocity 0s - they dont seem to get filtered below
+    return velocity === 0 ? sources :
+    map
     .filter((region) => {
         return region.noteRange[0] <= note
         && region.noteRange[region.noteRange.length - 1] >= note
         && region.velocityRange[0] <= velocity
         && region.velocityRange[region.velocityRange.length - 1] >= velocity ;
     })
-    .map((region) => {
-        const sample = new Sample(destination.context, region);
+    .reduce((sources, region, i) => {
+        // Samples are pooled here, so each SampleVoice has it's own pool.
+        // Add a new source to the pool if there is not yet one available
+        // at this index.
+        if (!sources[i]) {
+            sources[i] = new Sample(destination.context, region);
+            sources[i].connect(destination);
+        }
+        else {
+            sources[i].reset(destination.context, region);
+        }
+
         // Set gain based on velocity and sensitivity
         // Todo interpolate gain frim velocity and note ranges
-        sample.gain.setValueAtTime(1, time);
-        return sample;
-    });
+        //sources[i].gain.setValueAtTime(1, time);
+
+        sources.length = i + 1;
+        return sources;
+    }, sources);
 }
 
-
-
-
 export default function SampleVoice(context, settings) {
-	NodeGraph.call(this, context, graph);
+    const privates = Privates(this);
+
+    // Setup the node graph. Assigns:
+    // get: fn
+    NodeGraph.call(this, context, graph);
+
+    // Setup as playable node. Assigns:
+    // .start(time)
+    // .stop(time)
+    // .startTime
+    // .stopTime
     PlayNode.call(this, context);
 
+    // Assign audio nodes and params
     this.gain              = this.get('gain').gain;
     this.gainEnvelope      = this.get('gainEnvelope');
     this.frequency         = this.get('output').frequency;
@@ -114,61 +138,46 @@ export default function SampleVoice(context, settings) {
     // Properties
     define(this, properties);
 
+    privates.sources = { length: 0 };
     this.reset(context, settings);
 }
 
 assign(SampleVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 	reset: function(context, settings) {
-        this.get('detune').disconnect();
-
-        // Disconnect sources
-        const privates = Privates(this);
-        const sources = privates.sources;
-        if (sources) {
-            let n = sources.length;
-            while (n--) {
-                sources[n].disconnect();
-            }
-        }
-
         PlayNode.prototype.reset.apply(this);
         assignSettings(this, defaults, settings);
-        //console.log('SampleVoice', settings.map, this.map);
         return this;
 	},
 
-	start: function(time, note, velocity) {
+	start: function(time, note, velocity = 1) {
         if (!this.map) {
             throw new Error('Sampler .map not defined, start() called')
         }
 
         // Get regions from map
         const privates = Privates(this);
+        const sources  = privates.sources;
         const gain     = this.get('gain');
         const filter   = this.get('output');
 
-        const sources
-            = privates.sources
-            = createSamples(gain, this.map.data, time, note, velocity) ;
+        updateSources(sources, gain, this.map.data, time, note, velocity) ;
 
         let n = sources.length;
-
         while (n--) {
-            sources[n].connect(gain);
             sources[n].start(time, numberToFrequency(440, note));
-            // Note this must be done after
+            // Note this must be done after, as source.detune is replaced
+            // when the new buffer source is created internally
             this.get('detune').connect(sources[n].detune);
         }
 
-		this.gainEnvelope.start(time, 'attack', velocity * this.gainEnvelopeFromVelocity, velocity * this.gainRateFromVelocity);
-		this.frequencyEnvelope.start(time, 'attack', velocity * this.frequencyEnvelopeFromVelocity, velocity * this.frequencyRateFromVelocity);
-
+		this.gainEnvelope.start(time, 'attack', 1 + velocity * this.gainEnvelopeFromVelocity, 1 + velocity * this.gainRateFromVelocity);
+		this.frequencyEnvelope.start(time, 'attack', 1 + velocity * this.frequencyEnvelopeFromVelocity, 1 + velocity * this.frequencyRateFromVelocity);
 		PlayNode.prototype.start.call(this, time);
 
 		return this;
 	},
 
-	stop: function(time, note, velocity) {
+	stop: function(time, note, velocity = 1) {
         const privates = Privates(this);
 
         // Clamp stopTime to startTime
@@ -179,22 +188,20 @@ assign(SampleVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 		this.gainEnvelope.start(time, 'release', 1 + velocity * this.gainEnvelopeFromVelocity, 1 + velocity * this.gainRateFromVelocity);
 		this.frequencyEnvelope.start(time, 'release', 1 + velocity * this.frequencyEnvelopeFromVelocity, 1 + velocity * this.frequencyRateFromVelocity);
 
-		const stopTime = time + max(
-			getAutomationEndTime(this.gainEnvelope.release),
-			getAutomationEndTime(this.frequencyEnvelope.release)
-		);
-
         // Stop sources
         const sources = privates.sources;
-
         let n = sources.length;
+        let stopTime;
+
         while (n--) {
-            sources[n].stop(stopTime);
+            sources[n].stop(time);
+            stopTime = sources[n].stopTime > stopTime ?
+                sources[n].stopTime :
+                stopTime ;
         }
 
-		this.gainEnvelope.stop(stopTime);
-		this.frequencyEnvelope.stop(stopTime);
-
+        this.gainEnvelope.stop(stopTime);
+        this.frequencyEnvelope.stop(stopTime);
         PlayNode.prototype.stop.call(this, stopTime);
 
 		// Prevent filter feedback from ringing past note end

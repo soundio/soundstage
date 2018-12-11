@@ -160,9 +160,11 @@ export function automate(param, time, curve, value, decay) {
 export function getAutomationEndTime(events) {
     const event = last(events);
 
-    return event[1] === 'target' ?
-        event[0] + event[3] * config.targetDurationFactor :
-        event[0] ;
+    return event ?
+        event[1] === 'target' ?
+            event[0] + event[3] * config.targetDurationFactor :
+        event[0] :
+    0 ;
 }
 
 // Get audio param value at time
