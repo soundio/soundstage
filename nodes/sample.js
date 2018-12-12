@@ -93,8 +93,11 @@ export default class Sample extends GainNode {
         const note        = frequencyToNumber(440, frequency);
         const pitch       = note - nominalNote;
 
-        // This is k-rate.
+        // This is k-rate. Detune is k-rate on bufferSourceNodes. It is
+        // a-rate on other nodes, according to MDN, so you can be excused
+        // some confusion.
         sourceOptions.detune       = pitch * 100;
+
         // This is a-rate. Just sayin'. Todo.
         sourceOptions.playbackRate = 1; // frequency / this.nominalFrequency;
 

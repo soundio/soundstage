@@ -8,35 +8,34 @@ import { assignSettings } from '../modules/assign-settings.js';
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
-const max    = Math.max;
 
 const graph = {
 	nodes: [{
-		id:    'osc-1',
+		id:    'osc1',
 		type:  'oscillator'
 	}, {
-		id:    'osc-1-env',
+		id:    'osc1env',
 		type:  'gain',
         // Must be 0 - envelope is controlled by signal into this param
 		data: { gain: 0 }
 	}, {
-		id:    'osc-1-gain',
+		id:    'osc1-gain',
 		type:  'gain',
 		data: { gain: 1 }
 	}, {
-		id:    'osc-2',
+		id:    'osc2',
 		type:  'oscillator'
 	}, {
-		id:    'osc-2-env',
+		id:    'osc2env',
 		type:  'gain',
         // Must be 0 - envelope is controlled by signal into this param
 		data: { gain: 0 }
 	}, {
-		id:    'osc-2-gain',
+		id:    'osc2-gain',
 		type:  'gain',
 		data: { gain: 0 }
 	}, {
-		id:    'output',
+		id:    'filter',
 		type:  'biquad-filter',
 		data: {
 			type: 'lowpass',
@@ -44,31 +43,37 @@ const graph = {
 			Q: 0.6
 		}
 	}, {
-		id:    'env-1',
+		id:    'gainEnvelope',
 		type:  'envelope'
 	}, {
-		id:    'env-2',
+		id:    'frequencyEnvelope',
 		type:  'envelope'
 	}],
 
 	connections: [
-        { source: 'osc-1',      target: 'osc-1-env' },
-        { source: 'osc-1-env',  target: 'osc-1-gain' },
-        { source: 'osc-1-gain', target: 'output' },
-        { source: 'osc-2',      target: 'osc-2-env' },
-        { source: 'osc-2-env',  target: 'osc-2-gain' },
-        { source: 'osc-2-gain', target: 'output' },
-        { source: 'env-1',      target: 'osc-1-env.gain' },
-        { source: 'env-1',      target: 'osc-2-env.gain' },
-        { source: 'env-2',      target: 'output.frequency' }
-    ]
+        { source: 'osc1',      target: 'osc1env' },
+        { source: 'osc1env',   target: 'osc1-gain' },
+        { source: 'osc1-gain', target: 'filter' },
+        { source: 'osc2',      target: 'osc2env' },
+        { source: 'osc2env',   target: 'osc2-gain' },
+        { source: 'osc2-gain', target: 'filter' },
+        { source: 'gainEnvelope',      target: 'osc1env.gain' },
+        { source: 'gainEnvelope',      target: 'osc2env.gain' },
+        //{ source: 'frequencyEnvelope', target: 'filter.frequency' }
+    ],
+
+	output: 'osc1env'
 };
 
 const defaults = {
-    'osc-1': { type: 'sine', detune: 0 },
-    'osc-2': { type: 'square', detune: -1212 },
+	sources: [
+		{ type: 'sine', detune: 0 },
+	    { type: 'square', detune: -1212 }
+	],
 
-    'env-1': {
+	gain: 1,
+	gainFromVelocity: 0.125,
+    gainEnvelope: {
         attack: [
             [0,   "step",   0],
             [0.8, "linear", 1],
@@ -76,11 +81,16 @@ const defaults = {
         ],
 
         release: [
-            [0,   "target", 0, 0.1]
-        ]
+            [0,   "target", 0, 1]
+        ],
+
+		gainFromVelocity: 0,
+		rateFromVelocity: 0
     },
 
-    'env-2': {
+	frequency: 30,
+	frequencyFromVelocity: 0,
+    frequencyEnvelope: {
         attack: [
             [0,   "step",   0],
             [0.3, "linear", 3000],
@@ -88,18 +98,18 @@ const defaults = {
         ],
 
         release: [
-            [0.08, "exponential", 8000],
-            [0.4,  "linear", 0     ]
-        ]
+            [0.08, "target", 0, 2]
+        ],
+
+		gainFromVelocity: 0,
+		rateFromVelocity: 0,
     },
 
-    'filterFrequency': 30,
-    'filterQ': 6,
+    Q: 6,
 
-    'osc-1-gain': 0.5,
-    'osc-2-gain': 0.5,
+    'osc1-gain': 0.5,
+    'osc2-gain': 0.5,
 
-    'velocity-to-env-1-gain': 0.125,
     'velocity-to-env-1-rate': 0,
     'velocity-to-env-2-gain': 0.125,
     'velocity-to-env-2-rate': 0
@@ -114,80 +124,85 @@ function bell(n) {
 }
 
 function Tone(context, settings) {
+	// Set up the node graph
 	NodeGraph.call(this, context, graph);
-    PlayNode.call(this, context);
 
-    this['env-1']        = this.get('env-1');
-    this['env-2']        = this.get('env-2');
-    this['osc-1']        = this.get('osc-1');
-    this['osc-2']        = this.get('osc-2');
-    this['osc-1-gain']   = this.get('osc-1-gain').gain;
-    this['osc-2-gain']   = this.get('osc-2-gain').gain;
-    this.filterFrequency = this.get('output').frequency;
-    this.filterQ         = this.get('output').Q;
+	// Define .starTime and .stopTime
+	PlayNode.call(this, context);
+
+	this.sources = [
+		this.get('osc1'),
+		this.get('osc2')
+	];
+
+    this.gainEnvelope      = this.get('gainEnvelope');
+    this.frequencyEnvelope = this.get('frequencyEnvelope');
+	this.frequency         = this.get('filter').frequency;
+    this.Q                 = this.get('filter').Q;
+    this['osc1-gain']      = this.get('osc1-gain').gain;
+    this['osc2-gain']      = this.get('osc2-gain').gain;
 
 	define(this, properties);
+
+	this.sources.forEach((osc) => {
+		osc.start(context.currentTime);
+	});
 
     this.reset(context, settings);
 }
 
 assign(Tone.prototype, PlayNode.prototype, NodeGraph.prototype, {
 
-    'velocity-to-env-1-gain': 0.125,
-    'velocity-to-env-1-rate': 0,
-    'velocity-to-env-2-gain': 0.125,
-    'velocity-to-env-2-rate': 0,
+    'gainFromVelocity': 0.125,
+    'rateFromVelocity': 0,
+    'frequencyFromVelocity': 0.125,
+    'frequencyRateFromVelocity': 0,
 
 	reset: function(context, settings) {
-        PlayNode.prototype.reset.apply(this);
-        assignSettings(this, defaults, settings);
+        PlayNode.prototype.reset.apply(this, arguments);
 
-		// Purge automation events
-		//getAutomationEvents(this['env-1'].offset).length = 0;
-		//getAutomationEvents(this['env-2'].offset).length = 0;
+        // Purge automation events
+        //getAutomationEvents(this['env-1'].offset).length = 0;
+        //getAutomationEvents(this['env-2'].offset).length = 0;
 
-		return this;
-	},
+        assignSettings(this, defaults, settings, ['sources']);
+        return this;
+    },
 
 	start: function(time, frequency, velocity) {
-		this['osc-1'].frequency.setValueAtTime(frequency, time);
-		this['osc-2'].frequency.setValueAtTime(frequency, time);
+		PlayNode.prototype.start.apply(this, arguments);
 
-        if (!this.active) {
-            this['osc-1'].start(time);
-            this['osc-2'].start(time);
-            this.active = true;
-        }
+		this.sources.forEach((osc) => {
+			osc.frequency.setValueAtTime(frequency, this.startTime);
+		});
 
-		this['env-1'].start(time, 'attack', 1 + velocity * this['velocity-to-env-1-gain'], 1 + velocity * this['velocity-to-env-1-rate']);
-		this['env-2'].start(time, 'attack', 1 + velocity * this['velocity-to-env-2-gain'], 1 + velocity * this['velocity-to-env-2-rate']);
-
-		PlayNode.prototype.start.call(this, time);
+		// Todo: gain and rate
+		this.gainEnvelope.start(this.startTime, 'attack', 1, 1);
+		//this.frequencyEnvelope.start(this.startTime, 'attack', 1, 1);
 
 		return this;
 	},
 
 	stop: function(time, frequency, velocity) {
-        // Clamp stopTime to startTime
-        time = time > this.startTime ? time : this.startTime;
+		PlayNode.prototype.stop.apply(this, arguments);
 
-		//this.get('osc-1').stop(time + duration);
-		//this.get('osc-2').stop(time + duration);
-		this['env-1'].start(time, 'release', 1 + velocity * this['velocity-to-env-1-gain'], 1 + velocity * this['velocity-to-env-1-rate']);
-		this['env-2'].start(time, 'release', 1 + velocity * this['velocity-to-env-2-gain'], 1 + velocity * this['velocity-to-env-2-rate']);
+		// Todo: gain and rate
+		this.gainEnvelope.start(this.stopTime, 'release', 1, 1);
+//		this.frequencyEnvelope.start(this.stopTime, 'release', 1, 1);
 
-		const stopTime = time + max(
-			getAutomationEndTime(this['env-1'].release),
-			getAutomationEndTime(this['env-1'].release)
+		// Advance .stopTime to include release tail
+		this.stopTime += Math.max(
+			getAutomationEndTime(this.gainEnvelope.release),
+//			getAutomationEndTime(this.frequencyEnvelope.release)
 		);
 
-		this['env-1'].stop(stopTime);
-		this['env-2'].stop(stopTime);
+console.log('STOP', this.stopTime);
 
-        PlayNode.prototype.stop.call(this, stopTime);
+		this.gainEnvelope.stop(this.stopTime);
+//		this.frequencyEnvelope.stop(this.stopTime);
 
 		// Prevent filter feedback from ringing past note end
-		this.filterQ.setValueAtTime(stopTime, 0);
+		this.Q.setValueAtTime(this.stopTime, 0);
 
 		return this;
 	}

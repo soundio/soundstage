@@ -21,6 +21,15 @@ function assignSetting(node, key, value) {
         assignSettings(node[key], value);
     }
 
+    // Or an array-like?
+//    else if (node[key] && typeof node[key] === 'object' && node[key].length !== undefined) {
+//        let n = node[key].length;
+//        while (n--) {
+//            console.log(node[key][n], value[n]);
+//            assignSettings(node[key][n], value[n]);
+//        }
+//    }
+
     // Then set it as a property
     else {
         if (DEBUG) { log('prop', key + ' =', value); }
@@ -28,13 +37,16 @@ function assignSetting(node, key, value) {
     }
 }
 
-export function assignSettings(node, defaults, settings) {
+export function assignSettings(node, defaults, settings, ignored) {
     if (DEBUG) { logGroup('assign', node.constructor.name, (settings ? Object.keys(settings).join(', ') : '')); }
 
     const keys = {};
 
     if (settings) {
         for (let key in settings) {
+            // Ignore ignored key
+            if (ignored && ignored.indexOf(key) > -1) { continue; }
+
             // Ignore AudioParams
             if (settings[key] && settings[key].setValueAtTime) { continue; }
 
@@ -48,6 +60,9 @@ export function assignSettings(node, defaults, settings) {
     }
 
     for (let key in defaults) {
+        // Ignore ignored key
+        if (ignored && ignored.indexOf(key) > -1) { continue; }
+
 		// If we have already set this, or it's not settable, move on
 		if (!keys[key]) {
             assignSetting(node, key, defaults[key]);

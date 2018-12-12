@@ -1,4 +1,5 @@
 
+import PlayNode from './play-node.js';
 import { automate, getAutomationEvents } from '../modules/automate.js';
 
 const assign = Object.assign;
@@ -27,38 +28,40 @@ function cueAutomation(param, events, time, gain, rate) {
     }
 }
 
+var i = 0;
+
 export default class Envelope extends ConstantSourceNode {
     constructor(context, options) {
         super(context, options);
+        super.start.call(this, context.currentTime);
 
-        this.attack = options && options.attack || defaults.attack;
-        this.release = options && options.release || defaults.release;
+        PlayNode.call(this, context);
 
+        this.i = i++;
+        console.log('ENVELOPE', options, this)
+        this.attack  = (options && options.attack)  || defaults.attack;
+        this.release = (options && options.release) || defaults.release;
         //assign(this, options, defaults);
     }
 
     start(time, name, gain = 1, rate = 1) {
-        time = time || this.context.currentTime;
-
-        if (!this[name]) { return; }
-
-        //console.log('START', name, time, name, gain, rate, this.startTime);
-        cueAutomation(this.offset, this[name], time, gain, rate, 'ConstantSource.offset');
-
-        if (!this.startTime) {
-            super.start.call(this, time);
-            this.startTime = time;
+        // Envelopes may be 'start'ed multiple times with new named envelopes -
+        // We don't want PlayNode to error in this case.
+        if (this.startTime === undefined) {
+            PlayNode.prototype.start.apply(this, arguments);
         }
+
+
+        console.log(name, this.i, this[name]);
+
+        if (this[name]) {
+            cueAutomation(this.offset, this[name], this.startTime, gain, rate, 'ConstantSource.offset');
+        }
+
+        return this;
     }
 
-    stop(time, name, gain, rate) {
-        time = time || this.context.currentTime;
-        time = time > this.startTime ? time : this.startTime ;
-
-        //console.log('STOP ', name, time, gain, rate, this.startTime);
-
-        //this.stopTime = time + event[0] + (event[2] === 'target' ? event[3] * decayFactor : 0);
-        this.stopTime = time;
-        //super.stop.call(this, stopTime);
+    stop(time) {
+        return PlayNode.prototype.stop.apply(this, arguments);
     }
 }

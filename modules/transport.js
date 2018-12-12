@@ -16,9 +16,10 @@ const defaultRateEvent  = Object.freeze({ time: 0, value: 2, curve: 'step', beat
 const defaultMeterEvent = Object.freeze({ 0: 0, 1: 'meter', 2: 4, 3: 1 });
 
 const properties = {
-	startTime:     { writable: true, value: undefined },
-	startLocation: { writable: true, value: undefined },
-	stopTime:      { writable: true, value: undefined }
+	context:       { writable: true },
+	startTime:     { writable: true },
+	startLocation: { writable: true },
+	stopTime:      { writable: true }
 };
 
 export default function Transport(context, rateParam, timer) {
