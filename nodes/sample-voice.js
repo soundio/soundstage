@@ -76,10 +76,6 @@ const defaults = {
 };
 
 
-function bell(n) {
-	return n * (Math.random() + Math.random() - 1);
-}
-
 function updateSources(sources, destination, map, time, note = 69, velocity = 1) {
     sources.length = 0;
 

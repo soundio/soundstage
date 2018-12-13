@@ -23,8 +23,8 @@ const assign = Object.assign;
 const define = Object.defineProperties;
 
 const properties = {
-    startTime: { writable: true, value: undefined },
-    stopTime:  { writable: true, value: undefined }
+    startTime: { writable: true },
+    stopTime:  { writable: true }
 };
 
 export default function PlayNode() {

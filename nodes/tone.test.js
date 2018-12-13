@@ -14,7 +14,7 @@ test('Tone', function(run, print, fixture) {
 
         setTimeout(done, 2000);
     }, 0);
-/*
+
     run('Tone(context, settings)', function(equals, done) {
         var note = new Tone(context, {
             sources: [{
@@ -39,5 +39,4 @@ test('Tone', function(run, print, fixture) {
 
         setTimeout(done, 5000);
     }, 0);
-*/
 });

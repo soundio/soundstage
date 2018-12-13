@@ -14,8 +14,6 @@ const define = Object.defineProperties;
 const decayFactor = 12;
 
 const properties = {
-    startTime: { writable: true },
-    stopTime:  { writable: true },
     path:      { enumerable: true, writable: true },
     attack:    { enumerable: true, writable: true },
     release:   { enumerable: true, writable: true },
@@ -42,14 +40,20 @@ const defaults = {
     gainFromVelocity: 0
 };
 
-const gainOptions = { gain: 1 };
+const gainOptions = { gain: 0 };
 
 const sourceOptions = {};
 
 
 export default class Sample extends GainNode {
     constructor(context, options) {
+        // Initialise as gain node
         super(context, gainOptions);
+
+        // Define .startTime and .stopTime
+        PlayNode.call(this);
+
+        // Define sample properties
         define(this, properties);
 
         const privates = Privates(this);
@@ -68,6 +72,9 @@ export default class Sample extends GainNode {
     reset(context, options) {
         const privates = Privates(this);
 
+        // Initialise .startTime and .stopTime
+        PlayNode.prototype.reset.apply(this, arguments);
+
         // Discard the old source node
         privates.source && privates.source.disconnect();
         privates.buffer = options.buffer;
@@ -82,7 +89,8 @@ export default class Sample extends GainNode {
     start(time, frequency = defaults.nominalFrequency, velocity = 1) {
         const privates = Privates(this);
 
-        time = time || this.context.currentTime;
+        // Update .startTime
+        PlayNode.prototype.start.apply(this, arguments);
 
         if (!privates.buffer) {
             throw new Error('Sample has no buffer');
@@ -111,24 +119,23 @@ export default class Sample extends GainNode {
             = new AudioBufferSourceNode(this.context, sourceOptions) ;
 
         source.connect(this);
-        source.start(time, this.beginTime || 0);
+        source.start(this.startTime, this.beginTime || 0);
 
         this.detune    = source.detune;
         this.rate      = source.playbackRate;
-        this.startTime = time;
 
         velocity = (velocity - this.velocityRange[0]) /
             (this.velocityRange[this.velocityRange.length - 1] - this.velocityRange[0]);
 
         // Schedule the attack envelope
-        this.gain.cancelScheduledValues(time);
+        this.gain.cancelScheduledValues(this.startTime);
 
         if (this.attack) {
-            this.gain.setValueAtTime(0, time);
-            this.gain.linearRampToValueAtTime(privates.gain + (this.gainFromVelocity * velocity), time + this.attack);
+            this.gain.setValueAtTime(0, this.startTime);
+            this.gain.linearRampToValueAtTime(privates.gain + (this.gainFromVelocity * velocity), this.startTime + this.attack);
         }
         else {
-            this.gain.setValueAtTime(privates.gain + (this.gainFromVelocity * velocity), time);
+            this.gain.setValueAtTime(privates.gain + (this.gainFromVelocity * velocity), this.startTime);
         }
 
         return this;
@@ -137,16 +144,15 @@ export default class Sample extends GainNode {
     stop(time) {
 		const privates = Privates(this);
 
-        time = time || this.context.currentTime;
-        time = time > this.startTime ? time : this.startTime ;
+        // Update .stopTime
+        PlayNode.prototype.stop.apply(this, arguments);
 
         // Schedule the release
         if (this.release) {
-            this.stopTime = time + this.release;
-            this.gain.setTargetAtTime(0, time, this.release / 9);
+            this.stopTime += this.release;
+            this.gain.setTargetAtTime(0, this.stopTime, this.release / 9);
         }
         else {
-            //console.log('duration', privates.source.duration);
             this.stopTime = this.startTime + (privates.buffer.length / this.context.sampleRate);
         }
 

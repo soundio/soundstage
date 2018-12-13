@@ -22,8 +22,20 @@ var defaults = {
 };
 
 const properties = {
-	"osc-1-mix":              { enumerable: true, writable: true },
-	"osc-2-mix":              { enumerable: true, writable: true },
+	"sources": [{
+		type:   "square",
+		detune: -1200,
+		gain:   1,
+		pan:    0
+	}, {
+		type:   "sine",
+		detune: 1200,
+		gain:   1,
+		pan:    0
+	}],
+
+	"osc1mix":                { enumerable: true, writable: true },
+	"osc2mix":                { enumerable: true, writable: true },
 	"osc-1":                  { enumerable: true, writable: true },
 	"osc-2":                  { enumerable: true, writable: true },
 	"env-1":                  { enumerable: true, writable: true },

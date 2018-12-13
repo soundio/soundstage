@@ -57,7 +57,8 @@ const blacklist = {
 };
 
 export function createNode(context, type, settings) {
-    return new constructors[type](context, settings);
+    const node = new constructors[type](context, settings);
+    return node;
 }
 
 function createConnection(nodes, data) {
