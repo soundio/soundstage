@@ -83,7 +83,7 @@ function preloadBuffers(context, data) {
 }
 
 export default function Sampler(context, settings) {
-	if (DEBUG) { logGroup(new.target === Sampler ? 'Node' : 'mixin', 'Sampler'); }
+	if (DEBUG) { logGroup(new.target === Sampler ? 'Node' : 'mixin ', 'Sampler'); }
 
 	// Mixin
 	NotesNode.call(this, context, settings, SampleVoice, (voice) => {

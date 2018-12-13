@@ -76,7 +76,7 @@ function createConnection(nodes, data) {
 }
 
 export default function NodeGraph(context, data) {
-    if (DEBUG) { logGroup('mixin', 'GraphNode', data.nodes && data.nodes.map(n => n.type).join(', ')); }
+    if (DEBUG) { logGroup('mixin ', 'GraphNode', data.nodes && data.nodes.map(n => n.type).join(', ')); }
 
     const privates = Privates(this);
     privates.outputId = data.output || 'output' ;
@@ -112,12 +112,6 @@ assign(NodeGraph.prototype, {
         const privates = Privates(this);
         return privates.nodes && privates.nodes[id];
     },
-
-    //teardown: function() {
-    //    for (node in this.nodes) {
-    //        node.disconnect();
-    //    }
-    //},
 
     connect: function() {
         const privates = Privates(this);

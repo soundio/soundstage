@@ -27,7 +27,6 @@ function cueAutomation(param, events, time, gain, rate) {
 
     for (let event of events) {
         // param, time, curve, value, decay
-console.log('E', time, time + event[0] / rate, event[1], event[2] * gain, event[3])
         automate(param, time + event[0] / rate, event[1], event[2] * gain, event[3]);
     }
 }

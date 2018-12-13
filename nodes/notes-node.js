@@ -63,7 +63,7 @@ function isIdle(node) {
 }
 
 export default function NotesNode(context, settings, Voice, setup) {
-	if (DEBUG) { logGroup(new.target === NotesNode ? 'Node' : 'mixin', 'NotesNode'); }
+	if (DEBUG) { logGroup(new.target === NotesNode ? 'Node' : 'mixin ', 'NotesNode'); }
 
 	// Graph
 	NodeGraph.call(this, context, graph);

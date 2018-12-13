@@ -63,7 +63,7 @@ const properties = {
 };
 
 export default function Sampler(context, settings, stage) {
-	if (DEBUG) { logGroup(new.target === Sampler ? 'Node' : 'mixin', 'Sampler'); }
+	if (DEBUG) { logGroup(new.target === Sampler ? 'Node' : 'mixin ', 'Sampler'); }
 
 	// Mixin
 	NodeGraph.call(this, context, graph);

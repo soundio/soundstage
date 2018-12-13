@@ -28,7 +28,7 @@ const properties = {
 };
 
 export default function PlayNode() {
-    if (DEBUG) { logGroup('mixin', 'PlayNode'); }
+    if (DEBUG) { logGroup('mixin ', 'PlayNode'); }
     define(this, properties);
     if (DEBUG) { logGroupEnd(); }
 }

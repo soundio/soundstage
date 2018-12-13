@@ -123,18 +123,20 @@ export default function SampleVoice(context, settings) {
     // .stopTime
     PlayNode.call(this, context);
 
-    // Assign audio nodes and params
-    this.gain              = this.get('gain').gain;
-    this.gainEnvelope      = this.get('gainEnvelope');
-    this.frequency         = this.get('output').frequency;
-    this.frequencyEnvelope = this.get('frequencyEnvelope');
-    this.Q                 = this.get('output').Q;
-    this.detune            = this.get('detune').offset;
+    // Privates
+    privates.sources = { length: 0 };
 
     // Properties
     define(this, properties);
 
-    privates.sources = { length: 0 };
+    // Assign audio nodes and params
+    this.gain              = this.get('gain').gain;
+    this.gainEnvelope      = this.get('gainEnvelope');
+    this.frequencyEnvelope = this.get('frequencyEnvelope');
+    this.frequency         = this.get('output').frequency;
+    this.Q                 = this.get('output').Q;
+    this.detune            = this.get('detune').offset;
+
     this.reset(context, settings);
 }
 

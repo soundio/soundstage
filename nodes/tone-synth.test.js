@@ -131,7 +131,28 @@ test('ToneSynth', function(run, print, fixture) {
             nodes: [{
                 id: 'tonesynth',
                 type: '/soundstage/nodes/tone-synth.js',
-                data: {}
+                data: {
+                    sources: [
+                        { type: 'triangle', detune: 1188,  mix: 0.5, pan: -0.4 },
+                        { type: 'square',   detune: -1222, mix: 0.5, pan: 0 },
+                        { type: 'sawtooth', detune: 0,     mix: 0.5, pan: 0.4 }
+                    ],
+
+                    gainEnvelope: {
+                        attack: [
+                            [0, 'step', 0],
+                            [0.2, 'linear', 1.2],
+                            [0.8, 'target', 0.6]
+                        ]
+                    },
+
+                    frequencyEnvelope: {
+                        attack: [
+                            [0, 'step', 200],
+                            [0.2, 'linear', 4000]
+                        ]
+                    }
+                }
             }, {
                 id: 'output',
                 type: 'output'
