@@ -76,6 +76,18 @@ export function connect(source, target, sourceChan, targetChan) {
         source.connect(target, sourceChan, targetChan);
         if (DEBUG) { log('connect', '', sourceToString(source), sourceChan, '–', targetToString(target), targetChan); }
     }
+    else if (isDefined(targetChan)) {
+        sourceChan = 0;
+
+        if (targetChan >= target.numberOfInputs) {
+            print('Trying to .connect() to a non-existent input (' +
+                targetChan + ') on input node {numberOfInputs: ' + target.numberOfInputs + '}. Dropping connection.');
+            return;
+        }
+
+        source.connect(target, sourceChan, targetChan);
+        if (DEBUG) { log('connect', '', sourceToString(source), sourceChan, '–', targetToString(target), targetChan); }
+    }
     else {
         source.connect(target);
         if (DEBUG) { log('connect', '', sourceToString(source), '–', targetToString(target)); }

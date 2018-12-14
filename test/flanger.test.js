@@ -42,10 +42,11 @@ test('ToneSynth', function(run, print, fixture) {
                 id: 'flanger',
                 type: '/soundstage/nodes/flanger.js',
                 data: {
-
-
-                    dry: 0,
-                    wet: 1
+                    frequency: 0.666667,
+                    depth: 0.01,
+                    delay: 0.02,
+                    feedback: 0,
+                    dry: 1
                 }
             }, {
                 id: 'output',
@@ -60,6 +61,7 @@ test('ToneSynth', function(run, print, fixture) {
             controls: [
                 //{ source: { device: 'keys', key: 'b' }, target: '1', data: { name: 'pitch', transform: 'linear', min: 0, max: 1 }},
                 //{ source: { device: 'keys' }, target: 'sampler', data: { type: 'note', transform: 'linear', min: 0, max: 1 }}
+                { source: { device: 'midi' }, target: 'tonesynth', data: { type: 'note', transform: 'linear', min: 0, max: 1 }}
             ]
         });
 
@@ -68,7 +70,7 @@ test('ToneSynth', function(run, print, fixture) {
             const t     = stage.context.currentTime;
             const instr = stage.get('tonesynth');
 
-            instr.start(t, 60).stop(t + 0.04, 60);
+            instr.start(t, 60).stop(t + 2, 60);
 
             setTimeout(done, 12000);
         }, 1000);
