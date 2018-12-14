@@ -190,18 +190,7 @@ assign(Metronome.prototype, NodeGraph.prototype, {
 		const privates = Privates(this);
 		privates.sequence.stop(time || this.context.currentTime);
 		return this;
-	},
-
-	/*destroy: function() {
-		const privates = Privates(this);
-
-		for (let note of privates.notes) {
-			note.disconnect();
-		}
-
-		this.get('output').disconnect();
-		return this;
-	}*/
+	}
 });
 
 Metronome.defaults  = {

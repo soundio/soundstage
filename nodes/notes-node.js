@@ -86,7 +86,7 @@ export default function NotesNode(context, settings, Voice, setup) {
 
 			set: function(type) {
 				filterType = type;
-				privates.notes.forEach((note) => {
+				privates.voices.forEach((note) => {
 					if (!note.startTime) { return; }
 					if (note.stopTime < note.context.currentTime) { return; }
 					note.filter.type = filterType
@@ -112,7 +112,7 @@ export default function NotesNode(context, settings, Voice, setup) {
 	this.get('Q').start();
 
 	// Note pool
-	privates.notes = new Pool(Voice, isIdle, setup);
+	privates.voices = new Pool(Voice, isIdle, setup);
 
 	// Update settings
 	assignSettings(this, defaults, settings);
@@ -122,17 +122,18 @@ export default function NotesNode(context, settings, Voice, setup) {
 
 // Mix AudioObject prototype into MyObject prototype
 assign(NotesNode.prototype, NodeGraph.prototype, {
-	start: function(time, number, velocity = 1) {
+	start: function(time, note, velocity = 1) {
 		const privates = Privates(this);
 
 		// Use this as the settings object
 		// Todo: is this wise? Dont we want the settings object?
-		const note = privates.notes.create(this.context, this);
+		const voice = privates.voices.create(this.context, this);
 
-		//var frequency = numberToFrequency(config.tuning, number);
-		//note.name - number;
-		//console.log('NOTE', number, velocity);
-		return note.start(time, number, velocity);
+		if (!note) {
+			throw new Error('Attempt to .start() a note without passing a note value.')
+		}
+
+		return voice.start(time, note, velocity);
 	},
 
 	stop: function(time, number, velocity = 1) {
@@ -142,14 +143,14 @@ assign(NotesNode.prototype, NodeGraph.prototype, {
 
 		// Stop all notes
 		if (!isDefined(number)) {
-			privates.notes.forEach(() => {
+			privates.voices.forEach(() => {
 				note.stop(time, velocity);
 			});
 
 			return this;
 		}
 
-		const note = privates.notes.find((note) => {
+		const note = privates.voices.find((note) => {
 			return note.name === number && note.startTime !== undefined && note.stopTime === undefined;
 		});
 

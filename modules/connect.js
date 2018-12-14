@@ -52,7 +52,7 @@ export function connect(source, target, sourceChan, targetChan) {
         return;
     }
 
-    if (isDefined(sourceChan) && isDefined(targetChan)) {
+    if (isDefined(sourceChan)) {
         if (sourceChan >= source.numberOfOutputs) {
             if (DEBUG) {
                 throw new Error('Cannot .connect() from a non-existent output (' +
@@ -65,10 +65,12 @@ export function connect(source, target, sourceChan, targetChan) {
             return;
         }
 
-        if (targetChan >= target.numberOfInputs) {
-            print('Trying to .connect() to a non-existent input (' +
-                targetChan + ') on input node {numberOfInputs: ' + target.numberOfInputs + '}. Dropping connection.');
-            return;
+        if (isDefined(targetChan)) {
+            if (targetChan >= target.numberOfInputs) {
+                print('Trying to .connect() to a non-existent input (' +
+                    targetChan + ') on input node {numberOfInputs: ' + target.numberOfInputs + '}. Dropping connection.');
+                return;
+            }
         }
 
         source.connect(target, sourceChan, targetChan);

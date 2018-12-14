@@ -64,6 +64,14 @@ export function createNode(context, type, settings) {
 function createConnection(nodes, data) {
     // Split paths such as env.gain.0 to ['env', 'gain', 0]
     const srcPath = data.source.split('.');
+    const srcLast = srcPath[srcPath.length - 1];
+    let srcChan;
+
+    if (/^\d+$/.test(srcLast)) {
+        srcChan = parseInt(srcLast, 10);
+        srcPath.length--;
+    }
+
     const source  = nodes[srcPath[0]];
 
     const tgtPath = data.target.split('.');
@@ -79,7 +87,7 @@ function createConnection(nodes, data) {
         nodes[tgtPath[0]][tgtPath[1]] :
         nodes[tgtPath[0]] ;
 
-    connect(source, target, srcPath[1] && parseInt(srcPath[1], 10), tgtPath[2] && parseInt(tgtPath[2], 10));
+    connect(source, target, srcChan, tgtChan);
     return nodes;
 }
 

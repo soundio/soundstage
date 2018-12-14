@@ -4,43 +4,6 @@ import ToneSynth from '../nodes/tone-synth.js';
 import Soundstage from '../soundstage.js';
 import { cueChromaticScale, cueVelocityScale } from '../test/utils.js';
 
-const settings =  {
-    'env-1': {
-        attack: [
-            [0,    "step",   0],
-            [0.02, "linear", 1],
-            [4,    "linear", 0.0625]
-        ],
-
-        release: [
-            [0,   "target", 0, 0.1]
-        ]
-    },
-
-    'env-2': {
-        attack: [
-            [0,   "step",   0],
-            [0.3, "linear", 3000],
-            [4,   "exponential", 40]
-        ],
-
-        release: [
-            [0.08, "exponential", 8000],
-            [0.4,  "linear", 0     ]
-        ]
-    },
-
-    'filterFrequency': 300,
-    'filterQ':         2,
-    'osc-1': { type: 'triangle', detune: 12 },
-    'osc-2': { type: 'square',   detune: -12 },
-    'velocity-to-env-1-gain': 0.125,
-    'velocity-to-env-1-rate': 0,
-    'velocity-to-env-2-gain': 2,
-    'velocity-to-env-2-rate': 0.5
-};
-
-
 test('ToneSynth', function(run, print, fixture) {
     run('ToneSynth - scales', function(equals, done) {
         const stage = new Soundstage({
@@ -78,7 +41,12 @@ test('ToneSynth', function(run, print, fixture) {
             }, {
                 id: 'flanger',
                 type: '/soundstage/nodes/flanger.js',
-                data: {}
+                data: {
+
+
+                    dry: 0,
+                    wet: 1
+                }
             }, {
                 id: 'output',
                 type: 'output'
@@ -97,15 +65,10 @@ test('ToneSynth', function(run, print, fixture) {
 
         // Wait for crap to laod
         setTimeout(function() {
-            const t       = stage.context.currentTime;
-            const sampler = stage.get('tonesynth');
+            const t     = stage.context.currentTime;
+            const instr = stage.get('tonesynth');
 
-            setTimeout(cueVelocityScale, 0, sampler, 0.2, 60);
-
-            // Split it up to create a max of 30 notes at once
-            setTimeout(cueChromaticScale, 3000, sampler, 0.1, 12, 42);
-            setTimeout(cueChromaticScale, 6000, sampler, 0.1, 42, 72);
-            setTimeout(cueChromaticScale, 9000, sampler, 0.1, 72, 102);
+            instr.start(t, 60).stop(t + 0.04, 60);
 
             setTimeout(done, 12000);
         }, 1000);
