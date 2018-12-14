@@ -55,7 +55,7 @@ function createSample(name, dynamic) {
 		      dynamic === 'mf' ? mfGain :
 		      ffGain ,
 
-		attack:  0.001,
+		attack:  0.002,
 		release: 0.072,
 		mute:    0.2,
 

@@ -12,7 +12,7 @@ test('Sample', function(run, print, fixture) {
             //loopEnd: 0.2
         });
 
-        sample.then(function() {
+        setTimeout(function() {
             sample.connect(context.destination);
 
             sample.start(context.currentTime + 0.6, 440, 1);
@@ -26,8 +26,8 @@ test('Sample', function(run, print, fixture) {
 
             sample.start(context.currentTime + 0.9, 440, 1);
             sample.stop(context.currentTime + 4);
+        }, 1000);
 
-            done();
-        });
+        setTimeout(done, 5000);
     }, 0);
 });

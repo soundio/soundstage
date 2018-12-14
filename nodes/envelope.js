@@ -1,4 +1,5 @@
 
+import { get, overload } from '../../../fn/fn.js';
 import PlayNode from './play-node.js';
 import { automate, getAutomationEvents } from '../modules/automate.js';
 
@@ -22,10 +23,26 @@ const constantOptions = {
     offset: 0
 };
 
+const validateEvent = overload(get(1), {
+    "target": function(event) {
+        if (event[3] === undefined) {
+            throw new Error('Event "target" must have 2 parameters: value, duration');
+        }
+    },
+
+    default: function(event) {
+        if (event[2] === undefined) {
+            throw new Error('Event "' + event[1] + '" must have 1 parameter: value');
+        }
+    }
+});
+
 function cueAutomation(param, events, time, gain, rate) {
     param.cancelAndHoldAtTime(time);
 
     for (let event of events) {
+        validateEvent(event);
+
         // param, time, curve, value, decay
         automate(param, time + event[0] / rate, event[1], event[2] * gain, event[3]);
     }

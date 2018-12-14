@@ -1,6 +1,6 @@
 import { test } from '../../fn/fn.js';
 import context from '../modules/context.js';
-import ToneSynth from './tone-synth.js';
+import ToneSynth from '../nodes/tone-synth.js';
 import Soundstage from '../soundstage.js';
 import { cueChromaticScale, cueVelocityScale } from '../test/utils.js';
 
@@ -42,90 +42,6 @@ const settings =  {
 
 
 test('ToneSynth', function(run, print, fixture) {
-/*    run('ToneSynth(context, settings, stage)', function(equals, done) {
-        var synth = new ToneSynth(context);
-        synth.connect(context.destination);
-
-        var note = synth.start(context.currentTime + 0.2, 36, 1);
-
-        note.then((n) => {
-            equals('number', typeof n);
-            done();
-        });
-
-        note.stop(context.currentTime + 1);
-    }, 1);
-
-    run('ToneSynth(context, settings, stage)', function(equals, done) {
-        var synth = new ToneSynth(context, settings);
-        synth.connect(context.destination);
-
-        synth
-        .start(context.currentTime + 0, 64, 1)
-        .stop(context.currentTime + 1)
-        .then((n) => {
-            equals('number', typeof n);
-            done();
-        });
-    }, 1);
-
-    run('ToneSynth(context, settings, stage)', function(equals, done) {
-        var synth = new ToneSynth(context, settings);
-        var t0 = context.currentTime;
-        var t1 = t0 + 6;
-
-        synth.connect(context.destination);
-
-        function play1(time) {
-            equals('number', typeof time);
-
-            if (time > t1) { return; }
-
-            synth
-            .start(context.currentTime + 0, 49, 1)
-            .stop(context.currentTime + 0.4)
-            .then(play1);
-        }
-
-        function play2(time) {
-            equals('number', typeof time);
-
-            if (time > t1) { return; }
-
-            synth
-            .start(context.currentTime + 0.1, 64, 1)
-            .stop(context.currentTime + 0.3)
-            .then(play2);
-        }
-
-        function play3(time) {
-            equals('number', typeof time);
-
-            if (time > t1) { return; }
-
-            synth
-            .start(context.currentTime + 0.3, 42, 1)
-            .stop(context.currentTime + 0.9)
-            .then(play3);
-        }
-
-        play1(0);
-        play2(0);
-        play3(0);
-
-        setTimeout(done, 8000);
-    }, 17);
-
-    run('ToneSynth(context, settings, stage)', function(equals, done) {
-        var synth = new ToneSynth(context, settings);
-        var t0 = context.currentTime;
-        let t1;
-
-        synth.connect(context.destination);
-
-        cueChromaticScale(synth, 0, 36, 72);
-    }, 127);
-*/
     run('ToneSynth - scales', function(equals, done) {
         const stage = new Soundstage({
             nodes: [{
@@ -133,9 +49,7 @@ test('ToneSynth', function(run, print, fixture) {
                 type: '/soundstage/nodes/tone-synth.js',
                 data: {
                     sources: [
-                        { type: 'triangle', detune: 1188,  mix: 0.5, pan: -0.4 },
-                        { type: 'square',   detune: -1222, mix: 0.5, pan: 0 },
-                        { type: 'sawtooth', detune: 0,     mix: 0.5, pan: 0.4 }
+                        { type: 'triangle', detune: 0,  mix: 1, pan: 0 },
                     ],
 
                     gainEnvelope: {
@@ -162,13 +76,17 @@ test('ToneSynth', function(run, print, fixture) {
                     }
                 }
             }, {
+                id: 'flanger',
+                type: '/soundstage/nodes/flanger.js',
+                data: {}
+            }, {
                 id: 'output',
                 type: 'output'
             }],
 
             connections: [
-                // Sampler to output
-                { source: 'tonesynth', target: 'output' }
+                { source: 'tonesynth', target: 'flanger' },
+                { source: 'flanger', target: 'output' }
             ],
 
             controls: [

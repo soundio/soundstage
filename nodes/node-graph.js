@@ -39,7 +39,7 @@ import { logGroup, logGroupEnd } from '../modules/utilities/print.js';
 import { connect, disconnect } from '../modules/connect.js';
 import constructors from '../modules/constructors';
 
-const DEBUG  = window.DEBUG;
+const DEBUG  = false;//window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
 const seal   = Object.seal;
@@ -67,6 +67,14 @@ function createConnection(nodes, data) {
     const source  = nodes[srcPath[0]];
 
     const tgtPath = data.target.split('.');
+    const tgtLast = tgtPath[tgtPath.length - 1];
+    let tgtChan;
+
+    if (/^\d+$/.test(tgtLast)) {
+        tgtChan = parseInt(tgtLast, 10);
+        tgtPath.length--;
+    }
+
     const target  = tgtPath[1] ?
         nodes[tgtPath[0]][tgtPath[1]] :
         nodes[tgtPath[0]] ;

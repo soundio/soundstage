@@ -7,7 +7,7 @@ function playScaleChromatic(time, root, range) {
 
         synth
         .start(t1, root + n, 0.5)
-        .stop(t1 + 0.1)
+        .stop(t1 + 0.1, root + n, 0.5)
     }
 }
 
@@ -17,7 +17,9 @@ export function cueVelocityScale(instr, interval, note) {
     let n = -1;
 
     while (n++ < l) {
-        instr.start(t + n * interval, note, n / l).stop(t + n * interval + interval * 0.666667);
+        instr
+        .start(t + n * interval, note, n / l)
+        .stop(t + n * interval + interval * 0.666667, note, n / l);
     }
 }
 
@@ -28,6 +30,8 @@ export function cueChromaticScale(instr, interval, minNote, maxNote) {
     while (++n < maxNote) {
         const time = t + interval * (n - minNote);
         const vel  = n % 2 ? 0.4 : 0.6;
-        instr.start(time, n, vel).stop(time + interval, n, vel);
+        instr
+        .start(time, n, vel)
+        .stop(time + interval, n, vel);
     }
 }

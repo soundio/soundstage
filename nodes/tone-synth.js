@@ -17,21 +17,16 @@ export const config = {
 
 // Declare some useful defaults
 var defaults = {
-	"pitch":  0
+	"pitch": 0
 };
 
 const properties = {
 	"sources":                { enumerable: true, writable: true },
-	"osc1mix":                { enumerable: true, writable: true },
-	"osc2mix":                { enumerable: true, writable: true },
-	"osc-1":                  { enumerable: true, writable: true },
-	"osc-2":                  { enumerable: true, writable: true },
-	"env-1":                  { enumerable: true, writable: true },
-	"env-2":                  { enumerable: true, writable: true },
-	'velocity-to-env-1-gain': { enumerable: true, writable: true },
-	'velocity-to-env-1-rate': { enumerable: true, writable: true },
-	'velocity-to-env-2-gain': { enumerable: true, writable: true },
-	'velocity-to-env-2-rate': { enumerable: true, writable: true }
+	"type":                   { enumerable: true, writable: true },
+	"gainFromVelocity":       { enumerable: true, writable: true },
+	"gainEnvelope":           { enumerable: true, writable: true },
+	"frequencyFromVelocity":  { enumerable: true, writable: true },
+	"frequencyEnvelope":      { enumerable: true, writable: true }
 };
 
 export default function ToneSynth(context, settings, stage) {

@@ -33,14 +33,14 @@ const defaults = {
 
 	type:      'lowpass',
 	frequency: 60,
-	Q:         8,
+	Q:         6,
 
-	gainFromVelocity: 0.125,
+	gainFromVelocity: 0.9,
     gainEnvelope: {
         attack: [
-            [0,   "step",   0],
-            [0.6, "linear", 1],
-            [4,   "linear", 0.0625]
+            [0,     "step",   0],
+            [0.012, "linear", 1],
+            [4,     "linear", 0.0625]
         ],
 
         release: [
@@ -48,12 +48,12 @@ const defaults = {
         ]
     },
 
-	frequencyFromVelocity: 0,
+	frequencyFromVelocity: 0.9,
     frequencyEnvelope: {
         attack: [
-            [0,   "step",   0],
-            [0.3, "linear", 1500],
-            [4,   "exponential", 40]
+            [0,    "step",   0],
+            [0.06, "linear", 1500],
+            [4,    "exponential", 40]
         ],
 
         release: [
@@ -161,18 +161,18 @@ assign(ToneVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 		}
 
 		// Todo: gain and rate
-		this.gainEnvelope.start(this.startTime, 'attack', 1, 1);
-		this.frequencyEnvelope.start(this.startTime, 'attack', 1, 1);
+		this.gainEnvelope.start(this.startTime, 'attack', (1 - this.gainFromVelocity) + (velocity * this.gainFromVelocity), 1);
+		this.frequencyEnvelope.start(this.startTime, 'attack', (1 - this.frequencyFromVelocity) + (velocity * this.frequencyFromVelocity), 1);
 		return this;
 	},
 
-	stop: function(time, frequency, velocity) {
+	stop: function(time, frequency, velocity = 1) {
 		const privates = Privates(this);
 		PlayNode.prototype.stop.apply(this, arguments);
 
 		// Todo: gain and rate
-		this.gainEnvelope.start(this.stopTime, 'release', 1, 1);
-		this.frequencyEnvelope.start(this.stopTime, 'release', 1, 1);
+		this.gainEnvelope.start(this.stopTime, 'release', (1 - this.gainFromVelocity) + (velocity * this.gainFromVelocity), 1);
+		this.frequencyEnvelope.start(this.stopTime, 'release', (1 - this.frequencyFromVelocity) + (velocity * this.frequencyFromVelocity), 1);
 
 		// Advance .stopTime to include release tail
 		this.stopTime += Math.max(

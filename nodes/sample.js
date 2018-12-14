@@ -1,5 +1,6 @@
 
 import Pool from '../modules/pool.js';
+import PlayNode from './play-node.js';
 import { requestBuffer } from '../modules/utilities/requests.js';
 import { Privates } from '../modules/utilities/privates.js';
 import { automate, getAutomationEvents } from '../modules/automate.js';
@@ -58,15 +59,18 @@ export default class Sample extends GainNode {
 
         const privates = Privates(this);
 
-        if (typeof this.path === 'string') {
+        this.reset(context, options);
+
+        if (!this.buffer && typeof this.path === 'string') {
             privates.request = requestBuffer(context, this.path)
-            .then((buffer) => { privates.buffer = buffer; })
+            .then((buffer) => {
+                privates.buffer = buffer;
+                privates.source && (privates.source.buffer = buffer);
+            })
             .catch((e) => { console.warn(e); });
         }
         // Todo: implement buffer playing
         //else {}
-
-        this.reset(context, options);
     }
 
     reset(context, options) {
@@ -78,7 +82,7 @@ export default class Sample extends GainNode {
         // Discard the old source node
         privates.source && privates.source.disconnect();
         privates.buffer = options.buffer;
-        privates.gain   = options.gain;
+        privates.gain   = options.gain || defaults.gain;
         this.release    = undefined;
 
         this.gain.setValueAtTime(0, this.context.currentTime);
@@ -93,7 +97,7 @@ export default class Sample extends GainNode {
         PlayNode.prototype.start.apply(this, arguments);
 
         if (!privates.buffer) {
-            throw new Error('Sample has no buffer');
+            //throw new Error('Sample has no buffer');
         }
 
         // Work out the detune factor

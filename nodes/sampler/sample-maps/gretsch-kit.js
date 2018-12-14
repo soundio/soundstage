@@ -28,7 +28,6 @@ export default {
 		velocityRange: [0/7, 1/7],
 		gainFromVelocity: 0.25,
 		gain: 1.5,
-		release: 0.2,
 		attack: 0,
         mute: 0.08
 	}, {
@@ -38,7 +37,6 @@ export default {
 		velocityRange: [1/7, 2/7],
 		gainFromVelocity: 0.25,
 		gain: 1.5,
-		release: 0.2,
 		attack: 0,
         mute: 0.08
 	}, {
@@ -48,7 +46,6 @@ export default {
 		velocityRange: [2/7, 3/7],
 		gainFromVelocity: 0.25,
 		gain: 1.5,
-		release: 0.2,
 		attack: 0,
         mute: 0.08
 	}, {
@@ -58,7 +55,6 @@ export default {
 		velocityRange: [3/7, 4/7],
 		gainFromVelocity: 0.25,
 		gain: 1.5,
-		release: 0.2,
 		attack: 0,
         mute: 0.08
 	}, {
@@ -68,7 +64,6 @@ export default {
 		velocityRange: [4/7, 5/7],
 		gainFromVelocity: 0.25,
 		gain: 1.5,
-		release: 0.2,
 		attack: 0,
         mute: 0.08
 	}, {
@@ -78,7 +73,6 @@ export default {
 		velocityRange: [5/7, 6/7],
 		gainFromVelocity: 0.25,
 		gain: 1.5,
-		release: 0.2,
 		attack: 0,
         mute: 0.08
 	}, {
@@ -88,7 +82,6 @@ export default {
 		velocityRange: [6/7, 7/7],
 		gainFromVelocity: 0.25,
 		gain: 1.5,
-		release: 0.2,
 		attack: 0,
         mute: 0.08
 	},
@@ -102,7 +95,6 @@ export default {
 		gainFromVelocity: 0.125,
 		gain: 1,
 		attack: 0,
-		release: 0.2,
         mute: 0.2
 	}, {
         path: 'http://localhost/sound.io/soundio/static/audio/gretsch-kit/samples/snare-3-02.wav',
@@ -112,7 +104,6 @@ export default {
 		gainFromVelocity: 0.125,
 		gain: 1,
 		attack: 0,
-		release: 0.2,
         mute: 0.2
 	}, {
         path: 'http://localhost/sound.io/soundio/static/audio/gretsch-kit/samples/snare-3-03.wav',
@@ -122,7 +113,6 @@ export default {
 		gainFromVelocity: 0.125,
 		gain: 1,
 		attack: 0,
-		release: 0.2,
         mute: 0.2
 	}, {
         path: 'http://localhost/sound.io/soundio/static/audio/gretsch-kit/samples/snare-3-04.wav',
@@ -132,7 +122,6 @@ export default {
 		gainFromVelocity: 0.125,
 		gain: 1,
 		attack: 0,
-		release: 0.2,
         mute: 0.2
 	}, {
         path: 'http://localhost/sound.io/soundio/static/audio/gretsch-kit/samples/snare-3-05.wav',
@@ -142,7 +131,6 @@ export default {
 		gainFromVelocity: 0.125,
 		gain: 1,
 		attack: 0,
-		release: 0.2,
         mute: 0.2
 	}, {
         path: 'http://localhost/sound.io/soundio/static/audio/gretsch-kit/samples/snare-3-06.wav',
@@ -152,7 +140,6 @@ export default {
 		gainFromVelocity: 0.125,
 		gain: 1,
 		attack: 0,
-		release: 0.2,
         mute: 0.2
 	}, {
         path: 'http://localhost/sound.io/soundio/static/audio/gretsch-kit/samples/snare-3-07.wav',
@@ -162,7 +149,6 @@ export default {
 		gainFromVelocity: 0.125,
 		gain: 1,
 		attack: 0,
-		release: 0.2,
         mute: 0.2
 	}, {
         path: 'http://localhost/sound.io/soundio/static/audio/gretsch-kit/samples/snare-3-08.wav',
@@ -172,7 +158,6 @@ export default {
 		gainFromVelocity: 0.125,
 		gain: 1,
 		attack: 0,
-		release: 0.2,
         mute: 0.2
 	}, {
         path: 'http://localhost/sound.io/soundio/static/audio/gretsch-kit/samples/snare-3-09.wav',
@@ -182,7 +167,6 @@ export default {
 		gainFromVelocity: 0.125,
 		gain: 1,
 		attack: 0,
-		release: 0.2,
         mute: 0.2
 	}, {
         path: 'http://localhost/sound.io/soundio/static/audio/gretsch-kit/samples/snare-3-10.wav',
@@ -192,7 +176,6 @@ export default {
 		gainFromVelocity: 0.125,
 		gain: 1,
 		attack: 0,
-		release: 0.2,
         mute: 0.2
 	}, {
         path: 'http://localhost/sound.io/soundio/static/audio/gretsch-kit/samples/snare-3-11.wav',
@@ -202,7 +185,6 @@ export default {
 		gainFromVelocity: 0.125,
 		gain: 1,
 		attack: 0,
-		release: 0.2,
         mute: 0.2
 	}, {
         path: 'http://localhost/sound.io/soundio/static/audio/gretsch-kit/samples/snare-3-12.wav',
@@ -212,7 +194,6 @@ export default {
 		gainFromVelocity: 0.125,
 		gain: 1,
 		attack: 0,
-		release: 0.2,
         mute: 0.2
 	}, {
         path: 'http://localhost/sound.io/soundio/static/audio/gretsch-kit/samples/snare-3-13.wav',
@@ -222,7 +203,6 @@ export default {
 		gainFromVelocity: 0.125,
 		gain: 1,
 		attack: 0,
-		release: 0.2,
         mute: 0.2
 	},
 
@@ -319,7 +299,7 @@ export default {
 		gainFromVelocity: 0.25,
 		gain: 2,
 		attack: 0,
-        mute: 3
+        mute: 4
 	}, {
         path: 'http://localhost/sound.io/soundio/static/audio/gretsch-kit/samples/hiride-03.wav',
         nominalFrequency: numberToFrequency(440, 49),
@@ -328,7 +308,7 @@ export default {
 		gainFromVelocity: 0.25,
 		gain: 2,
 		attack: 0,
-        mute: 2
+        mute: 4
 	}, {
         path: 'http://localhost/sound.io/soundio/static/audio/gretsch-kit/samples/hiride-04.wav',
         nominalFrequency: numberToFrequency(440, 49),
@@ -337,8 +317,7 @@ export default {
 		gainFromVelocity: 0.25,
 		gain: 2,
 		attack: 0,
-		attack: 0,
-        mute: 1
+        mute: 4
 	}, {
         path: 'http://localhost/sound.io/soundio/static/audio/gretsch-kit/samples/hiride-05.wav',
         nominalFrequency: numberToFrequency(440, 49),
@@ -347,7 +326,7 @@ export default {
 		gainFromVelocity: 0.25,
 		gain: 2,
 		attack: 0,
-        mute: 0.5
+        mute: 4
 	},
 
 	// Ride Cymbal

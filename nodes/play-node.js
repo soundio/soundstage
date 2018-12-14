@@ -18,7 +18,7 @@ And also, for internal use:
 
 import { logGroup, logGroupEnd } from '../modules/utilities/print.js';
 
-const DEBUG  = window.DEBUG;
+const DEBUG  = false;//window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
 

@@ -30,9 +30,9 @@ const graph = {
 
 const properties = {
 	map:                           { enumerable: true, writable: true },
-    gainEnvelopeFromVelocity:      { enumerable: true, writable: true },
+    gainFromVelocity:              { enumerable: true, writable: true },
     gainRateFromVelocity:          { enumerable: true, writable: true },
-    frequencyEnvelopeFromVelocity: { enumerable: true, writable: true },
+    frequencyFromVelocity:         { enumerable: true, writable: true },
     frequencyRateFromVelocity:     { enumerable: true, writable: true }
 };
 
@@ -41,34 +41,31 @@ const defaults = {
 
     gainEnvelope: {
         attack:  [
-            [0, 'step', 1]
+            [0,     'step', 0],
+            [0.002, 'linear', 1]
         ],
         release: [
             //[0, 'target', 0, 0.06]
-        ],
-        gainFromVelocity: 1,
-        rateFromVelocity: 0
+        ]
     },
 
-    gainEnvelopeFromVelocity: 1,
-    gainRateFromVelocity:     0,
+    gainFromVelocity: 1,
+    gainRateFromVelocity: 0,
 
-    frequency: 100,
+    frequency: 8000,
 
     frequencyEnvelope: {
         attack:  [
             [0,     'step', 640],
-            [0.004, 'exponential', 4200]
+            [0.004, 'linear', 4200]
         ],
         release: [
-            [0, 'target', 640, 0.06]
-        ],
-        gainFromVelocity: 0,
-        rateFromVelocity: 0
+            //[0, 'target', 640, 0.06]
+        ]
     },
 
-    frequencyEnvelopeFromVelocity: 1000,
-    frequencyRateFromVelocity:     0,
+    frequencyFromVelocity: 1,
+    frequencyRateFromVelocity: 0,
 
     detune: 0,
     Q:      1,
@@ -168,8 +165,8 @@ assign(SampleVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
             this.get('detune').connect(sources[n].detune);
         }
 
-		this.gainEnvelope.start(time, 'attack', 1 + velocity * this.gainEnvelopeFromVelocity, 1 + velocity * this.gainRateFromVelocity);
-		this.frequencyEnvelope.start(time, 'attack', 1 + velocity * this.frequencyEnvelopeFromVelocity, 1 + velocity * this.frequencyRateFromVelocity);
+		this.gainEnvelope.start(time, 'attack', (1 - this.gainFromVelocity) + (velocity * this.gainFromVelocity), 1);
+		this.frequencyEnvelope.start(time, 'attack', (1 - this.frequencyFromVelocity) + (velocity * this.frequencyFromVelocity), 1);
 		PlayNode.prototype.start.call(this, time);
 
 		return this;
@@ -183,8 +180,8 @@ assign(SampleVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 
 		//this.get('osc-1').stop(time + duration);
 		//this.get('osc-2').stop(time + duration);
-		this.gainEnvelope.start(time, 'release', 1 + velocity * this.gainEnvelopeFromVelocity, 1 + velocity * this.gainRateFromVelocity);
-		this.frequencyEnvelope.start(time, 'release', 1 + velocity * this.frequencyEnvelopeFromVelocity, 1 + velocity * this.frequencyRateFromVelocity);
+		this.gainEnvelope.start(time, 'release', (1 - this.gainFromVelocity) + (velocity * this.gainFromVelocity), 1);
+		this.frequencyEnvelope.start(time, 'release', (1 - this.frequencyFromVelocity) + (velocity * this.frequencyFromVelocity), 1);
 
         // Stop sources
         const sources = privates.sources;

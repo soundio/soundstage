@@ -135,7 +135,7 @@ assign(NotesNode.prototype, NodeGraph.prototype, {
 		return note.start(time, number, velocity);
 	},
 
-	stop: function(time, number, velocity) {
+	stop: function(time, number, velocity = 1) {
 		const privates = Privates(this);
 
 		time = time || this.context.currentTime;
@@ -150,11 +150,12 @@ assign(NotesNode.prototype, NodeGraph.prototype, {
 		}
 
 		const note = privates.notes.find((note) => {
-			note.name === number && note.startTime !== undefined && note.stopTime === undefined
+			return note.name === number && note.startTime !== undefined && note.stopTime === undefined;
 		});
 
 		if (note) {
-			note.stop(time, velocity);
+			console.log(time, number, velocity);
+			note.stop(time, number, velocity);
 		}
 
 		return this;
