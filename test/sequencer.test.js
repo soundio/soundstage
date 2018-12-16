@@ -71,9 +71,9 @@ test('ToneSynth', function(run, print, fixture) {
             }],
 
             events: [
-                [0, 'sequence', 'phrase', 'tonesynth', 4],
-                [3, 'sequence', 'phrase', 'tonesynth', 4],
-                [6, 'sequence', 'phrase', 'tonesynth', 4]
+                [0,   'sequence', 'phrase', 'tonesynth', 4],
+                [0.4, 'sequence', 'phrase', 'tonesynth', 4],
+                [0.9, 'sequence', 'phrase', 'tonesynth', 4]
             ]
         });
 

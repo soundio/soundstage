@@ -36,7 +36,7 @@ Return the plugin with `id`, or undefined.
 import { has, get, invoke, nothing, remove }  from '../../fn/fn.js';
 import { print }  from './utilities/print.js';
 import { generateUnique }  from './utilities/utilities.js';
-import Node       from './graph-node.js';
+import Node       from './node.js';
 import Connection from './connection.js';
 
 const assign    = Object.assign;
