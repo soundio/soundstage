@@ -73,7 +73,7 @@ export default function Graph(context, requests, data, api) {
             data.connections.reduce(addConnection, graph)
         }
 
-        print('Audio graph set up with ' + graph.nodes.length + ' nodes, ' + graph.connections.length + ' connections');
+        print('graph', graph.nodes.length + ' nodes, ' + graph.connections.length + ' connections');
 
         return graph;
     });

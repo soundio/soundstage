@@ -82,7 +82,7 @@ export default function Controls(getTarget, settings) {
     }
 
     const sources = map(get('source'), this);
-    print('Listening to ' + sources.filter(isKeyboardInputSource).length + ' keyboard controls and ' + sources.filter(isMIDIInputSource).length + ' MIDI controls');
+    print('controls', sources.filter(isKeyboardInputSource).length + ' keyboard, ' + sources.filter(isMIDIInputSource).length + ' MIDI');
 }
 
 define(Controls.prototype, {

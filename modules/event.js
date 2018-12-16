@@ -93,3 +93,34 @@ export function getDuration(e)  {
 		e[1] === 'sequence' ? e[4] :
 		undefined ;
 }
+
+
+export const isValidEvent = overload(get(1), {
+	note: (event) => {
+		return event.length === 5;
+	},
+
+	noteon: (event) => {
+		return event.length === 4;
+	},
+
+	noteoff: (event) => {
+		return event.length === 4;
+	},
+
+	sequence: (event) => {
+		return event.length > 4;
+	},
+
+	meter: (event) => {
+		return event.length === 4;
+	},
+
+	rate: (event) => {
+		return event.length === 3;
+	},
+
+	default: function() {
+		return false;
+	}
+});

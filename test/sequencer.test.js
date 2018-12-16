@@ -12,14 +12,14 @@ test('ToneSynth', function(run, print, fixture) {
                 type: '/soundstage/nodes/tone-synth.js',
                 data: {
                     sources: [
-                        { type: 'triangle', detune: 0, mix: 1, pan: 0 },
+                        { type: 'triangle', detune: 0,    mix: 1, pan: -0.5 },
+                        { type: 'sine',     detune: 1222, mix: 1, pan: 0.5 },
                     ],
 
                     gainEnvelope: {
                         attack: [
                             [0, 'step', 0],
-                            [0.2, 'linear', 1.2],
-                            [0.8, 'target', 0.6, 0.2]
+                            [0.1, 'linear', 0.2]
                         ],
 
                         release: [
@@ -58,21 +58,32 @@ test('ToneSynth', function(run, print, fixture) {
                 { source: 'flanger', target: 'output' }
             ],
 
-            controls: [
-                //{ source: { device: 'keys', key: 'b' }, target: '1', data: { name: 'pitch', transform: 'linear', min: 0, max: 1 }},
-                //{ source: { device: 'keys' }, target: 'sampler', data: { type: 'note', transform: 'linear', min: 0, max: 1 }}
-                { source: { device: 'midi' }, target: 'tonesynth', data: { type: 'note', transform: 'linear', min: 0, max: 1 }}
+            sequences: [{
+                id: 'phrase',
+                events: [
+                    [0.7, 'note', 30, 0.75, 0.2],
+                    [1.0, 'note', 40, 0.75, 0.2],
+                    [1.3, 'note', 50, 0.75, 0.2],
+                    [1.6, 'note', 60, 0.75, 0.2],
+                    [1.8, 'note', 70, 0.75, 0.2],
+                    [2.0, 'note', 80, 0.75, 0.2],
+                ]
+            }],
+
+            events: [
+                [0, 'sequence', 'phrase', 'tonesynth', 4],
+                [3, 'sequence', 'phrase', 'tonesynth', 4],
+                [6, 'sequence', 'phrase', 'tonesynth', 4]
             ]
         });
 
-        // Wait for crap to laod
+        // Wait for crap to load
         setTimeout(function() {
-            const t     = stage.context.currentTime;
-            const instr = stage.get('tonesynth');
+            const t = stage.context.currentTime;
 
-            instr.start(t, 60).stop(t + 2, 60);
+            stage.start(t);
 
-            setTimeout(done, 12000);
+            setTimeout(done, 3000);
         }, 1000);
     }, 0);
 });

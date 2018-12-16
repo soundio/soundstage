@@ -3,7 +3,7 @@ import { get, isDefined } from '../../fn/fn.js';
 import { print, log } from './utilities/print.js';
 import AudioObject, { getOutput, getInput, isAudioParam } from '../../audio-object/modules/audio-object.js';
 
-const DEBUG = window.DEBUG;
+const DEBUG = false;//window.DEBUG;
 
 function sourceToString(node) {
     return node.constructor.name.replace(/Node$/, '')

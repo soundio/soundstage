@@ -256,7 +256,7 @@ define(Soundstage.prototype, {
     version: { value: 1 },
     tempo: getOwnPropertyDescriptor(Sequencer.prototype, 'tempo'),
     meter: getOwnPropertyDescriptor(Sequencer.prototype, 'meter'),
-    //status:  getOwnPropertyDescriptor(Transport.prototype, 'status')
+    beat:  getOwnPropertyDescriptor(Sequencer.prototype, 'beat')
 });
 
 /*

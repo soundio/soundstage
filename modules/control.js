@@ -34,7 +34,7 @@ import { id } from '../../fn/fn.js';
 import { timeAtDomTime } from './utilities/utilities.js';
 import { Distribute }    from './distribute.js';
 
-const DEBUG  = false;
+const DEBUG  = true;//false;
 const A      = Array.prototype;
 const assign = Object.assign;
 const seal   = Object.seal;
@@ -53,7 +53,9 @@ export const types = {
         return value ? 'noteon' : 'noteoff' ;
     },
 
-    'control': function control(type, param) { return 'param'; }
+    'control': function control(type, param) {
+        return 'param';
+    }
 };
 
 export const transforms = {

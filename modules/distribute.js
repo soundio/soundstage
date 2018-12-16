@@ -1,3 +1,4 @@
+import { matches } from '../../fn/fn.js';
 import { print } from './utilities/print.js';
 import { overload } from '../../fn/fn.js';
 import { noteToNumber } from '../../midi/midi.js';
@@ -35,6 +36,34 @@ export const distributors = {
         const number = typeof name === 'number' ? name : noteToNumber(name) ;
         target.stop(time, number, value);
         return target;
+    },
+
+    'sequence': function(target, time, type, sequenceId, rate, nodeId) {
+        const sequence = target.sequences.find(matches({ id: sequenceId }));
+
+        if (!sequence) {
+            throw new Error('Sequence "' + sequenceId + '" not found')
+        }
+
+        const node = target.get(nodeId);
+
+        if (!node) {
+            throw new Error('Node "' + nodeId + '" not found')
+        }
+
+        // Stream events
+		return {
+			clock:     target,
+			transport: target,
+			events:    sequence.events,
+			buffer:    [],
+			commands:  [],
+			stopCommands: [],
+			processed: {},
+			// Where target come from?
+			target:    node,
+			targets:   new Map()
+		};
     },
 
     'param': function(target, time, type, name, value) {
