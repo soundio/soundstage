@@ -179,16 +179,21 @@ define(Transport.prototype, {
 		set: function(tempo) {
 			//getValueAtTime(this.rate, context.currentTime);
 			automate(this.rate.value, this.context.currentTime, 'step', tempo / 60);
-		},
-
-		// Support get/set observers
-		configurable: true
+		}
 	},
 
+	frameDuration: {
+		get: function() {
+			return 128 / this.context.sampleRate;
+		}
+	},
+
+/*
 	status: {
 		get: function() {
 			var stream = Privates(this).stream;
 			return stream ? stream.status : 'waiting' ;
 		}
 	}
+*/
 });

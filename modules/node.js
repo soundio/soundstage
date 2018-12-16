@@ -9,6 +9,7 @@ const properties = {
 export default function Node(graph, type, id, object) {
     define(this, properties);
 
+    this.graph = graph;
     this.id    = id;
     this.type  = type;
     this.data  = object;

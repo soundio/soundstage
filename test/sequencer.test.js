@@ -76,7 +76,7 @@ test('ToneSynth', function(run, print, fixture) {
                 [0.9, 'sequence', 'phrase', 'tonesynth', 4]
             ]
         });
-
+window.stage = stage;
         // Wait for crap to load
         setTimeout(function() {
             const t = stage.context.currentTime;

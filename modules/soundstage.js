@@ -109,7 +109,7 @@ export default function Soundstage(data = nothing, settings = nothing) {
 
     define(this, {
         mediaChannelCount: { value: undefined, writable: true, configurable: true },
-        roundTripLatency:  { value: Soundstage.roundTripLatency, writable: true, configurable: true },
+//        roundTripLatency:  { value: Soundstage.roundTripLatency, writable: true, configurable: true },
     });
 
 
@@ -117,11 +117,11 @@ export default function Soundstage(data = nothing, settings = nothing) {
     //
     // regions:    array
 
-    const regions
-        = this.regions
-        = (settings.regions || []).map(function(data) {
-            return Region(context, data);
-        });
+    //const regions
+    //    = this.regions
+    //    = (settings.regions || []).map(function(data) {
+    //        return Region(context, data);
+    //    });
 
 
     // Initialise soundstage as a graph. Assigns:
@@ -210,7 +210,8 @@ define(Soundstage.prototype, {
     version: { value: 1 },
     tempo: getOwnPropertyDescriptor(Sequencer.prototype, 'tempo'),
     meter: getOwnPropertyDescriptor(Sequencer.prototype, 'meter'),
-    beat:  getOwnPropertyDescriptor(Sequencer.prototype, 'beat')
+    beat:  getOwnPropertyDescriptor(Sequencer.prototype, 'beat'),
+    frameDuration: getOwnPropertyDescriptor(Transport.prototype, 'frameDuration')
 });
 
 /*
