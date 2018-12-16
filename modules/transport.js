@@ -23,15 +23,13 @@ const properties = {
 };
 
 export default function Transport(context, rateParam, timer) {
+	Clock.call(this, context);
+
 	// Private
 	const privates = Privates(this);
 	privates.rateParam = rateParam;
 	privates.meters = [defaultMeterEvent];
 	privates.timer  = timer;
-
-	// Properties
-	define(this, properties);
-	this.context = context;
 };
 
 assign(Transport.prototype, Clock.prototype, {

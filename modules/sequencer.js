@@ -29,13 +29,12 @@ Returns the beat at a given `time`.
 Returns the time at a given `beat`.
 */
 
-import { each, get, id, insert, isDefined, Pool, toArray, by, noop, matches } from '../../fn/fn.js';
-import { default as Sequence, log as logSequence } from './sequence.js';
+import { each, get, id, insert, isDefined, Pool, toArray, by, noop, nothing, matches } from '../../fn/fn.js';
 import { Privates } from './utilities/privates.js';
 import { createId } from './utilities/utilities.js';
 import { isRateEvent, isMeterEvent, getDuration, getBeat, isValidEvent } from './event.js';
 import { automate, getValueAtTime } from './automate.js';
-import Clock from './clock.js';
+import Sequence from './sequence.js';
 import { timeAtBeatOfEvents } from './location.js';
 import Meter from './meter.js';
 import { distribute } from './distribute.js';
@@ -84,11 +83,11 @@ Command.reset = function(command, beat, type, event) {
 	return command;
 }
 
-function updateFrame(clock, frame) {
+function updateFrame(sequence, frame) {
 	// This assumes rateParam is already populated, or is
 	// populated dynamically
-	frame.b1 = clock.beatAtTime(frame.t1);
-	frame.b2 = clock.beatAtTime(frame.t2);
+	frame.b1 = sequence.beatAtTime(frame.t1);
+	frame.b2 = sequence.beatAtTime(frame.t2);
 }
 
 function advanceToB1(events, frame) {
@@ -105,12 +104,12 @@ function processFrame(data, frame) {
 		return data;
 	}
 
-	const events       = data.events;
+	const sequence     = data.sequence;
 	const buffer       = data.buffer;
 	const commands     = data.commands;
 	const stopCommands = data.stopCommands;
 	const processed    = data.processed;
-	const clock        = data.clock;
+	const events       = sequence.events;
 
 	// Empty buffer
 	buffer.length = 0;
@@ -179,7 +178,7 @@ function processFrame(data, frame) {
 	n = -1;
 	while (++n < stopCommands.length) {
 		if (stopCommands[n].beat < frame.b2) {
-			stopCommands[n].time = clock.timeAtBeat(stopCommands[n].beat);
+			stopCommands[n].time = sequence.timeAtBeat(stopCommands[n].beat);
 			commands.push(stopCommands[n]);
 			stopCommands.splice(n, 1);
 		}
@@ -196,7 +195,7 @@ function processFrame(data, frame) {
 
 		let command = new Command(event[0], event[1], event);
 		//console.log('COMMAND', event, JSON.stringify(command));
-		command.time = clock.timeAtBeat(command.beat);
+		command.time = sequence.timeAtBeat(command.beat);
 		commands.push(command);
 
 		// Deal with events that have duration
@@ -211,7 +210,7 @@ function processFrame(data, frame) {
 
 			// If the stop is in this frame
 			if (stopCommand.beat < frame.b2) {
-				stopCommand.time = clock.timeAtBeat(stopCommand.beat);
+				stopCommand.time = sequence.timeAtBeat(stopCommand.beat);
 				commands.push(stopCommand)
 			}
 			else {
@@ -246,15 +245,13 @@ function addSequenceData(data, command) {
 
 	// Stream events
 	const childData = {
-		clock:        target,
-		events:       sequence.events,
+		sequence:     new Sequence(target, sequence).start(command.time),
 		buffer:       [],
 		commands:     [],
 		stopCommands: [],
 		sequences:    [],
 		processed:    {},
-		target:       node,
-		child: true
+		target:       node
 	};
 
 	data.sequences.push(childData);
@@ -269,6 +266,7 @@ function distributeCommand(data, command) {
 	}
 	else if (command.type === 'sequenceoff') {
 		command.startCommand.data.stopTime = command.time;
+		command.startCommand.data.sequence.stop(command.time);
 	}
 	else {
 		const target = command.startCommand ?
@@ -294,7 +292,7 @@ function distributeCommand(data, command) {
 }
 
 function distributeSequence(data, sequenceData) {
-	updateFrame(sequenceData.clock, data.frame);
+	updateFrame(sequenceData.sequence, data.frame);
 	processFrame(sequenceData, data.frame);
 	distributeData(sequenceData);
 }
@@ -336,14 +334,20 @@ function automateRate(param, event) {
 // and RecordStreams, which are read-once. It is the `master` object from
 // whence event streams sprout.
 
-export default function Sequencer(context, rateParam, transport, distributors, timer) {
+export default function Sequencer(transport, data, rateParam, timer) {
 
 	// The base Clock provides the properties:
 	//
 	// startTime:      number || undefined
 	// stopTime:       number || undefined
+	//
+	// Sequence assigns the proerties:
+	//
+	// events:         array
+	// sequences:      array
 
-	Clock.call(this, context, transport);
+	Sequence.call(this, transport, data);
+
 
 	// Mix in Meter
 	//
@@ -351,6 +355,8 @@ export default function Sequencer(context, rateParam, transport, distributors, t
 	// barAtBeat:  fn(n)
 	//
 	// There is no point in calling this as the constructor does nothing
+	// Meter.call(this)
+
 
 	// Private
 
@@ -414,7 +420,7 @@ define(Sequencer.prototype, {
 	}
 });
 
-assign(Sequencer.prototype, Clock.prototype, Meter.prototype, {
+assign(Sequencer.prototype, Sequence.prototype, Meter.prototype, {
 	beatAtTime: function(time) {
 		const transport     = Privates(this).transport;
 		const startLocation = this.startLocation
@@ -437,7 +443,6 @@ assign(Sequencer.prototype, Clock.prototype, Meter.prototype, {
 		time = time || this.context.currentTime;
 		beat = beat === undefined ? privates.beat : beat ;
 
-		const sequencer = this;
 		const stream    = privates.stream;
 		const transport = privates.transport;
 		const events    = this.events;
@@ -452,7 +457,7 @@ assign(Sequencer.prototype, Clock.prototype, Meter.prototype, {
 		privates.transport.start(time, beat);
 
 		// Set this.startTime
-		Clock.prototype.start.call(this, time, beat);
+		Sequence.prototype.start.call(this, time, beat);
 
 		// Set rates
 		const rates = this.events ?
@@ -466,15 +471,13 @@ assign(Sequencer.prototype, Clock.prototype, Meter.prototype, {
 
 		// Stream events
 		const data = {
-			clock:     this,
-			events:    this.events,
-			buffer:    [],
-			commands:  [],
-			sequences: [],
+			sequence:     this,
+			buffer:       [],
+			commands:     [],
+			sequences:    [],
 			stopCommands: [],
-			processed: {},
-			// Where target come from?
-			target:    this
+			processed:    {},
+			target:       this
 		};
 
 		privates.stream = Stream
@@ -483,11 +486,7 @@ assign(Sequencer.prototype, Clock.prototype, Meter.prototype, {
 			updateFrame(this, frame);
 
 			// Event index
-			let n = -1;
-
-			// Ignore events before b1
-			while (++n < events.length && events[n][0] < frame.b1);
-			--n;
+			let n = advanceToB1(events, frame);
 
 			// Grab meter events up to b2
 			// We do this first so that a generator might follow these changes
@@ -495,7 +494,7 @@ assign(Sequencer.prototype, Clock.prototype, Meter.prototype, {
 			while (++m < events.length && events[m][0] < frame.b2) {
 				// Schedule meter events on transport
 				if (events[m][1] === 'meter') {
-					transport.setMeterAtBeat(events[m][0] + transport.beatAtTime(clock.startTime), events[m][2], events[m][3]);
+					transport.setMeterAtBeat(events[m][0] + transport.beatAtTime(this.startTime), events[m][2], events[m][3]);
 				}
 			}
 		})
@@ -523,7 +522,7 @@ assign(Sequencer.prototype, Clock.prototype, Meter.prototype, {
 		stream.stop(time);
 
 		// Set this.stopTime
-		Clock.prototype.stop.call(this, time);
+		Sequence.prototype.stop.call(this, time);
 
 		// Stop transport
 		//privates.transport.stop(time);

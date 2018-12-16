@@ -12,7 +12,6 @@ Returns the bar at a given `beat`.
 */
 
 import { Fn, compose, get, is, nothing } from '../../fn/fn.js';
-import { default as Sequence, log as logSequence } from './sequence.js';
 import { isMeterEvent, default as Event, release } from './event.js';
 
 var assign = Object.assign;

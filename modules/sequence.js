@@ -1,107 +1,58 @@
 
-/*
-.name()
+import Clock from './clock.js';
+import { nothing } from '../../fn/fn.js';
+import { Privates } from './utilities/privates.js';
+import { beatAtLocation, locationAtBeat } from './location.js';
+import { isRateEvent } from './event.js';
+import { automate, getValueAtTime } from './automate.js';
 
-Name of the soundstage insance.
-*/
+const assign = Object.assign;
+const define = Object.defineProperties;
+const freeze = Object.freeze;
 
-/*
-.events()
+const rate0  = freeze({ 0: 0, 1: 'rate', 2: 1, location: 0 });
 
-An array of events.
-*/
-
-/*
-.sequences()
-
-An array of sequences.
-*/
-
-import { Fn, compose, get, isDefined, map, postpad, slugify, toString } from '../../fn/fn.js';
-import { print }    from './utilities/print.js';
-import { createId } from './utilities/utilities.js';
-
-
-var assign     = Object.assign;
-
-// Sequence
-
-export default function Sequence(data) {
-    if (this === undefined || this === window) {
-        // If this is undefined the constructor has been called without the
-        // new keyword, or without a context applied. Do that now.
-        return new Sequence(data);
-    }
-
-    function toSequence(d) {
-        var sequence = new Sequence(d);
-        sequence.id = isDefined(d.id) ? d.id : createId(data.sequences) ;
-        return sequence;
-    }
-
-    Object.defineProperties(this, {
-        name: {
-            enumerable:   true,
-            configurable: true,
-            writable:     true,
-            value: data && data.name ?
-                data.name + '' :
-                ''
-        },
-
-        slug: {
-            enumerable:   true,
-            configurable: true,
-            writable:     true,
-            value: data && data.slug ? data.slug + '' :
-                data.name ? slugify(data.name) :
-                ''
-        },
-
-        sequences: {
-            enumerable: true,
-            value: data && data.sequences ?
-                data.sequences.map(toSequence) :
-                []
-        },
-
-        events: {
-            enumerable: true,
-            writable:   true,
-            value: data && data.events ?
-                data.events :
-                []
-        }
-    });
-
-    print('Sequence set up with ' + this.events.length + ' events');
+function round(n) {
+	return Math.round(n * 1000000000000) / 1000000000000;
 }
 
-Sequence.prototype.toJSON = function() {
-    return assign({}, this, {
-        sequences: this.sequences.length ? this.sequences : undefined,
-        events: this.events.length ? this.events : undefined
-    });
+export default function Sequence(transport, data) {
+	// Super
+	Clock.call(this, transport.context);
+
+	// Private
+	Privates(this).transport = transport;
+
+	// Properties
+	this.events    = data && data.events;
+	this.sequences = data && data.sequences;
 };
 
-export function log(sequence) {
-    console[arguments[1] === false ? 'groupCollapsed' : 'group']('Sequence '
-        + (sequence.id !== undefined ? sequence.id : '')
-        + (sequence.id !== undefined && sequence.name ? ', ' : '')
-        + (sequence.name ? '"' + sequence.name + '" ' : '')
-    );
+assign(Sequence.prototype, Clock.prototype, {
+	beatAtTime: function(time) {
+		if (time < 0) { throw new Error('Sequence.beatAtTime(time) does not accept -ve time values'); }
 
-    sequence.sequences.forEach(function(sequence) {
-        log(sequence, false);
-    });
+		const privates  = Privates(this);
+		const transport = privates.transport;
+		const startLoc  = this.startLocation || (this.startLocation = transport.beatAtTime(this.startTime));
+		const timeLoc   = transport.beatAtTime(time);
+		const events    = this.events ?
+			this.events.filter(isRateEvent) :
+			nothing ;
 
-    console.log('events –––––––––––––––––––––––––––––');
-    console.log('beat      type      name      value');
-    console.log(''
-      + sequence.events.map(function(event) {
-        return map(compose(postpad(' ', 8), toString), event).join('  ');
-      }).join('\n')
-    );
+		return beatAtLocation(events, rate0, timeLoc - startLoc);
+	},
 
-    console.groupEnd();
-};
+	timeAtBeat: function(beat) {
+		const privates  = Privates(this);
+		const transport = privates.transport;
+		const startLoc  = this.startLocation || (this.startLocation = transport.beatAtTime(this.startTime));
+		const events    = this.events ?
+			this.events.filter(isRateEvent) :
+			nothing ;
+
+		const beatLoc   = locationAtBeat(events, rate0, beat);
+
+		return round(transport.timeAtBeat(startLoc + beatLoc));
+	}
+});

@@ -17,7 +17,7 @@ import requestPlugin from './request-plugin.js';
 import Controls      from './controls.js';
 import Timer         from './timer.js';
 import Transport     from './transport.js';
-import Sequence      from './sequence.js';
+//import Sequence      from './sequence.js';
 import Sequencer     from './sequencer.js';
 import config        from './config.js';
 
@@ -87,7 +87,7 @@ export default function Soundstage(data = nothing, settings = nothing) {
     const stage       = this;
     const privates    = Privates(this);
     const context     = settings.context || audio;
-    const destination = settings.output || context.destination;
+    const destination = settings.destination || context.destination;
     const output      = createOutputMerger(context, destination);
     const rateNode    = new ConstantSourceNode(context, { offset: 2 });
     const rateParam   = rateNode.offset;
@@ -108,7 +108,6 @@ export default function Soundstage(data = nothing, settings = nothing) {
     // Properties
 
     define(this, {
-        context:           { value: context },
         mediaChannelCount: { value: undefined, writable: true, configurable: true },
         roundTripLatency:  { value: Soundstage.roundTripLatency, writable: true, configurable: true },
     });
@@ -173,7 +172,7 @@ export default function Soundstage(data = nothing, settings = nothing) {
     // sequences:  array
     // events:     array
 
-    Sequence.call(this, data);
+    //Sequence.call(this, data);
 
 
     // Initialise soundstage as a Sequencer. Assigns:
@@ -189,53 +188,8 @@ export default function Soundstage(data = nothing, settings = nothing) {
     // cue:        fn
     // status:     string
 
-    const distributors = {
-        "sequence": function(object, event, stream, transform) {
-            const type = typeof event[2];
+    Sequencer.call(this, transport, data, rateParam, timer);
 
-            // Find the sequence
-            const sequence = type === 'string' ?
-                    isURL(event[2]) ? fetchSequence(event[2]) :
-                stage.sequences.find(compose(is(event[2]), get('id'))) :
-            event[2] ;
-
-            if (!sequence) {
-                console.warn('Soundstage: sequence not found', event);
-                return;
-            }
-
-            // Get sequence events
-            const events = sequence.events;
-            if (!events || !events.length) {
-                console.warn('Soundstage: sequence has no events', event);
-                return;
-            }
-
-            // Get the target object
-            if (isDefined(event[3])) {
-                const node = stage.get(event[3]);
-                object = node && node.object;
-            }
-
-            // If there is none, warn
-            if (!object) {
-                console.warn('Soundstage: object not found', event);
-                return;
-            }
-
-            return stream
-            .create(events, transform, object)
-            .start(event[0]);
-        },
-
-        "meter": function(object, event) {
-
-        },
-
-        'default': distributeEvent
-    };
-
-    Sequencer.call(this, context, rateParam, transport, distributors, timer);
 
     /*
     // Initialise as a recorder...
