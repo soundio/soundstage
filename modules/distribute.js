@@ -22,9 +22,9 @@ export const distributors = {
     // [time, "chord", root, mode, duration]
     // [time, "sequence", name || events, target, duration, transforms...]
 
-    'note': function(target, time, type, name, value) {
+    'note': function(target, time, type, name, value, duration) {
         const number = typeof name === 'number' ? name : noteToNumber(name) ;
-        return target.start(time, number, value) || target;
+        return (target.start(time, number, value) || target).stop(time + duration, number, value);
     },
 
     'noteon': function(target, time, type, name, value) {
@@ -90,20 +90,20 @@ export function distributeEvent(target, event) {
 export function Distribute(target) {
     const notes = {};
 
-    return function distributeEvents(time, type, name, value) {
+    return function distributeEvents(time, type, name, value, duration) {
         if (type === 'noteon') {
             if (notes[name]) { return; }
             // target, time, type, name, value
             notes[name] = distribute(target, time, type, name, value);
         }
-        else if (type = 'noteoff') {
+        else if (type === 'noteoff') {
             // Choose a note target where there is one
             // target, time, type, name, value
             distribute(notes[name] || target, time, type, name, value);
             notes[name] = undefined;
         }
         else {
-            distribute(target, time, type, name, value);
+            distribute(target, time, type, name, value, duration);
         }
     };
 };

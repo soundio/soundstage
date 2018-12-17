@@ -211,7 +211,9 @@ define(Soundstage.prototype, {
     tempo: getOwnPropertyDescriptor(Sequencer.prototype, 'tempo'),
     meter: getOwnPropertyDescriptor(Sequencer.prototype, 'meter'),
     beat:  getOwnPropertyDescriptor(Sequencer.prototype, 'beat'),
-    frameDuration: getOwnPropertyDescriptor(Transport.prototype, 'frameDuration')
+    processDuration: getOwnPropertyDescriptor(Transport.prototype, 'processDuration'),
+    frameDuration:   getOwnPropertyDescriptor(Transport.prototype, 'frameDuration'),
+    frameLookahead:  getOwnPropertyDescriptor(Transport.prototype, 'frameLookahead')
 });
 
 /*

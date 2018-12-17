@@ -182,18 +182,26 @@ define(Transport.prototype, {
 		}
 	},
 
-	frameDuration: {
+ 	/*
+	Duration of one process cycle. At 44.1kHz this works out just
+	shy of 3ms.
+	*/
+
+	processDuration: {
 		get: function() {
 			return 128 / this.context.sampleRate;
 		}
 	},
 
-/*
-	status: {
+	frameDuration: {
 		get: function() {
-			var stream = Privates(this).stream;
-			return stream ? stream.status : 'waiting' ;
+			return Privates(this).timer.duration;
+		}
+	},
+
+	frameLookahead: {
+		get: function() {
+			return Privates(this).timer.lookahead;
 		}
 	}
-*/
 });

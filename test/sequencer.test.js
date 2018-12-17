@@ -1,4 +1,4 @@
-import { test } from '../../fn/fn.js';
+import { test, matches } from '../../fn/fn.js';
 import context from '../modules/context.js';
 import ToneSynth from '../nodes/tone-synth.js';
 import Soundstage from '../soundstage.js';
@@ -73,7 +73,11 @@ test('ToneSynth', function(run, print, fixture) {
             events: [
                 [0,   'sequence', 'phrase', 'tonesynth', 4],
                 [0.4, 'sequence', 'phrase', 'tonesynth', 4],
-                [0.9, 'sequence', 'phrase', 'tonesynth', 4]
+                [1.4, 'sequence', 'phrase', 'tonesynth', 4]
+            ],
+
+            controls: [
+
             ]
         });
 window.stage = stage;
@@ -82,8 +86,23 @@ window.stage = stage;
             const t = stage.context.currentTime;
 
             stage.start(t);
-
-            setTimeout(done, 3000);
         }, 1000);
+
+        setTimeout(function() {
+            const t = stage.context.currentTime;
+            stage.record(t + (2 * stage.frameDuration), 'sequence', 'phrase', 'tonesynth', 8);
+        }, 4000);
+
+        setTimeout(function() {
+            const t = stage.context.currentTime;
+            const node = stage.nodes.find(matches({ id: 'tonesynth' }));
+
+            node.record = true;
+            node.automate(t + 2, 'note', 72, 0.8, 4);
+
+            //stage.stop(t);
+        }, 8000);
+
     }, 0);
+
 });

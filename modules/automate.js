@@ -22,6 +22,24 @@ export const methodNames = {
 	"target":      "setTargetAtTime"
 };
 
+export const curves = {
+    "equalpowerin": function equalpowerin(t) {
+        return Math.pow(t, 0.5);
+    },
+
+    "equalpowerout": function equalpowerout(t) {
+        return Math.pow(1 - t, 0.5);
+    }
+};
+
+
+
+
+
+
+
+
+
 // Polyfill cancelAndHoldAtTime
 //
 // Todo - this polyfill is not finished. This algorithm needs to be
@@ -74,7 +92,7 @@ export function getAutomationEvents(param) {
 	return param[config.automationEventsKey] || (param[config.automationEventsKey] = []);
 }
 
-function automateParamEvents(param, events, time, value, curve, decay) {
+function automateParamEvents(param, events, time, value, curve, duration) {
 	curve = curve || "step";
 
 	var n = events.length;
@@ -97,8 +115,35 @@ function automateParamEvents(param, events, time, value, curve, decay) {
 		}
 
         // Schedule the param event
-    	param.exponentialRampToValueAtTime(value, time, decay);
+    	param.exponentialRampToValueAtTime(value, time, duration);
 	}
+    else if (curve === "equalpowerin") {
+        curve = "curve";
+        const m = Math.round(duration * 44100 / 64);
+        const values = new Float64Array(m);
+        let n = m;
+
+        while (n--) {
+            values[n] = curves['equalpowerin'](n / m) * value;
+        }
+
+        param.setValueCurveAtTime(values, time, duration);
+        value = values;
+    }
+    else if (curve === "equalpowerout") {
+        curve = "curve";
+        const startValue = getValueAtTime(param, time);
+        const m = Math.round(duration * 44100 / 32);
+        const values = new Float64Array(m);
+        let n = m;
+
+        while (n--) {
+            values[n] = curves['equalpowerout'](n / m) * startValue;
+        }
+
+        param.setValueCurveAtTime(values, time, duration);
+        value = values;
+    }
     else if (curve === "hold") {
         // Schedule the param event
     	param.cancelAndHoldAtTime(time);
@@ -109,11 +154,11 @@ function automateParamEvents(param, events, time, value, curve, decay) {
     }
     else {
         // Schedule the param event
-    	param[methodNames[curve]](value, time, decay);
+    	param[methodNames[curve]](value, time, duration);
     }
 
 	// Keep events organised as AudioParams do
-	var event = { time, value, curve, decay };
+	var event = { time, value, curve, duration };
 
 	// If the new event is at the end of the events list
 	if (!event1) {
@@ -169,7 +214,7 @@ export function getAutomationEndTime(events) {
 
 // Get audio param value at time
 
-const curves = {
+const interpolate = {
 	// Automation curves as described at:
 	// http://webaudio.github.io/web-audio-api/#h4_methods-3
 
@@ -185,22 +230,26 @@ const curves = {
 		return value1 * Math.pow(value2 / value1, (time - time1) / (time2 - time1)) ;
 	},
 
-	'target': function targetEventsValueAtTime(value1, value2, time1, time2, time, decay) {
+	'target': function targetEventsValueAtTime(value1, value2, time1, time2, time, duration) {
 		return time < time2 ?
 			value1 :
-			value2 + (value1 - value2) * Math.pow(Math.E, (time2 - time) / decay);
-	}
+			value2 + (value1 - value2) * Math.pow(Math.E, (time2 - time) / duration);
+	},
+
+    'curve': function(value1, value2, time1, time2, time, duration) {
+        // Todo
+    }
 };
 
 function getValueBetweenEvents(event1, event2, time) {
 	var curve  = event2.curve;
-	return curves[curve](event1.value, event2.value, event1.time, event2.time, time, event1.duration);
+	return interpolate[curve](event1.value, event2.value, event1.time, event2.time, time, event1.duration);
 }
 
 function getEventsValueAtEvent(events, n, time) {
 	var event = events[n];
 	return event.curve === "target" ?
-		curves.target(getEventsValueAtEvent(events, n - 1, event.time), event.value, 0, event.time, time, event.decay) :
+		interpolate.target(getEventsValueAtEvent(events, n - 1, event.time), event.value, 0, event.time, time, event.decay) :
 		event.value ;
 }
 

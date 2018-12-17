@@ -127,11 +127,15 @@ export default function Control(controls, source, target, setting) {
         // Catch keys with no name
         if (!name && !data.name) { return; }
 
-        // time in audioContext timeframe
-        const time = target.data.context ? timeAtDomTime(target.data.context, timeStamp) :
-            // support Audio Objects, for just now at least
-            target.data.audio ? timeAtDomTime(target.data.audio, timeStamp) :
-            0 ;
+        const time
+            // time in audioContext time
+            = timeAtDomTime(target.data.context, timeStamp)
+
+            // Add one processing block's latency to incoming events to
+            // eliminate timing jitter caused by the soonest scheduling
+            // time being the next audio.currentTime, which updates only
+            // every 128 samples. At 44.1kHz this is ~0.003s.
+            + target.graph.processDuration ;
 
         // Select type based on data
         type = data.type ?
@@ -147,7 +151,25 @@ export default function Control(controls, source, target, setting) {
             n ;
 
         distribute(time, type, name, value);
-        target.record && target.record.push([time, type, name, value]);
+
+        if (target.record) {
+            if (!target.recordDestination) {
+                if (!target.recordCount) {
+                    target.recordCount = 0;
+                }
+
+                const data = {
+                    id: target.id + '-take-' + (target.recordCount++),
+                    events: []
+                };
+
+                target.recordDestination = (new Sequence(target.graph, data)).start(time);
+                target.graph.sequences.push(data);
+                target.graph.record(time, 'sequence', data.id, target.id);
+            }
+
+            target.recordDestination.record(time, type, name, value);
+        }
     });
 }
 

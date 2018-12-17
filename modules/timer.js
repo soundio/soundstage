@@ -9,14 +9,13 @@ const defineProperty = Object.defineProperty;
 
 export const config = {
 	lookahead: 0.12,
-    interval:  0.24
+    duration:  0.24
 };
 
 const worker = new Worker(globalConfig.basePath + 'modules/timer.worker.js');
 
 const startMessage = {
-    command: 'start',
-    duration: config.interval
+    command: 'start'
 };
 
 const stopMessage = {
@@ -43,11 +42,13 @@ worker.onmessage = function frame(e) {
     }
 };
 
-export default function Timer(now) {
+export default function Timer(now, duration = config.duration, lookahead = config.lookahead) {
 	this.now         = now;
     this.requests    = [];
     this.buffer      = [];
 	this.currentTime = 0;
+	this.lookahead   = lookahead;
+	this.duration    = duration;
 }
 
 assign(Timer.prototype, {
@@ -56,7 +57,7 @@ assign(Timer.prototype, {
 
         this.requests    = this.buffer;
         this.buffer      = currentRequests;
-        this.currentTime = this.now() + config.interval + config.lookahead;
+        this.currentTime = this.now() + this.duration + this.lookahead;
 
         let request;
 
@@ -77,6 +78,7 @@ assign(Timer.prototype, {
 
     request: function(fn) {
         if (!active) {
+			startMessage.duration = this.duration;
             worker.postMessage(startMessage);
             active = true;
         }

@@ -202,6 +202,9 @@ function processFrame(data, frame) {
 		let duration = getDuration(buffer[n]);
 
 		if (duration !== undefined) {
+			// This should apply to sequenceon/sequenceoff too, but sequence
+			// is bugging for that. Investigate.
+			if (command.type === 'note') { command.type = 'noteon'; }
 			let stopCommand = new Command(event[0] + duration, event[1] + 'off', event);
 
 			// Give stop and start a reference to each other

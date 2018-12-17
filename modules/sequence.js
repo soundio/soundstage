@@ -1,14 +1,17 @@
 
 import Clock from './clock.js';
-import { nothing } from '../../fn/fn.js';
+import { nothing, insert, get } from '../../fn/fn.js';
 import { Privates } from './utilities/privates.js';
 import { beatAtLocation, locationAtBeat } from './location.js';
-import { isRateEvent } from './event.js';
+import { isRateEvent, isValidEvent } from './event.js';
 import { automate, getValueAtTime } from './automate.js';
 
+const A      = Array.prototype;
 const assign = Object.assign;
 const define = Object.defineProperties;
 const freeze = Object.freeze;
+
+const insertByBeat = insert(get('0'));
 
 const rate0  = freeze({ 0: 0, 1: 'rate', 2: 1, location: 0 });
 
@@ -54,5 +57,24 @@ assign(Sequence.prototype, Clock.prototype, {
 		const beatLoc   = locationAtBeat(events, rate0, beat);
 
 		return round(transport.timeAtBeat(startLoc + beatLoc));
+	},
+
+	record: function(time, type) {
+		const event = A.slice.apply(arguments);
+
+		// COnvert time to beats
+		event[0] = this.beatAtTime(time);
+
+		// Convert duration to beats
+		if (event[4] !== undefined) {
+			event[4] = this.beatAtTime(time + event[4]) - event[0];
+		}
+
+		if (!isValidEvent(event)) {
+			throw new Error('Sequence cant .record(...) invalid event ' + JSON.stringify(event));
+		};
+
+		insertByBeat(this.events, event);
+		return this;
 	}
 });

@@ -147,6 +147,7 @@ assign(NodeGraph.prototype, {
         for (name in this) {
             //if (!this.hasOwnProperty(name)) { continue; }
             if (this[name] === null) { continue; }
+            if (this[name] === undefined) { continue; }
             if (blacklist[name]) { continue; }
 
             json[name] = this[name].setValueAtTime ?
