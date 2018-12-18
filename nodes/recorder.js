@@ -1,6 +1,7 @@
 
 import { noop, nothing } from '../../fn/fn.js';
 import { Privates } from '../modules/utilities/privates.js';
+import PlayNode from './play-node.js';
 
 const assign = Object.assign;
 
@@ -19,17 +20,18 @@ export default class Recorder extends AudioWorkletNode {
 
         this.startTime = undefined;
         this.stopTime  = undefined;
-        this.duration  = settings.duration;
+        this.duration  = settings && settings.duration || 120;
 
         this.port.onmessage = (e) => {
             if (e.data.type === 'done') {
-//console.log('DONE', e.data.buffers);
                 this.buffers = e.data.buffers;
                 notify(this, 'buffers');
 
                 if (privates.promise) {
                     resolve(privates, e.data.buffers);
                 }
+
+                this.stopTime = this.startTime + e.data.buffers[0].length / this.context.sampleRate;
             }
         };
 
@@ -38,27 +40,32 @@ export default class Recorder extends AudioWorkletNode {
     }
 
     start(time) {
-        time = time || this.context.currentTime;
+        PlayNode.prototype.start.apply(this, arguments);
 
         this.port.postMessage({
             type: 'start',
-            sample: Math.round((time - this.context.currentTime) * this.context.sampleRate),
-            bufferLength: Math.round(this.duration * this.context.sampleRate)
+            sample: Math.ceil((time - this.context.currentTime) * this.context.sampleRate),
+            bufferLength: Math.ceil(this.duration * this.context.sampleRate)
         });
 
-        this.startTime = time;
         return this;
     }
 
     stop(time) {
-        time = time || this.context.currentTime;
-//console.log('STOP', time, this.port);
+        const privates = Privates(this);
+        PlayNode.prototype.stop.call(this, time);
+
+        // Round duration such that stopTime - startTime is a duration
+        // corresponding to an exact number of samples
+        const length   = Math.ceil((this.stopTime - this.startTime) * this.context.sampleRate);
+        this.stopTime = undefined;
+
+        // Tell the worklet to stop recording
         this.port.postMessage({
             type: 'stop',
-            bufferLength: Math.round((time - this.startTime) * this.context.sampleRate)
+            bufferLength: length
         });
 
-        this.stopTime = time;
         return this;
     }
 

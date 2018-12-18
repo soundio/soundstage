@@ -69,6 +69,10 @@ assign(Transport.prototype, Clock.prototype, {
 		return barAtBeat(meters, beat);
 	},
 
+	rateAtTime: function(time) {
+		return getValueAtTime(Privates(this).rateParam);
+	},
+
 	setMeterAtBeat: function(beat, bar, div) {
 		const privates = Privates(this);
 		const meters   = privates.meters;

@@ -97,10 +97,6 @@ function updateSources(sources, destination, map, time, note = 69, velocity = 1)
             sources[i].reset(destination.context, region);
         }
 
-        // Set gain based on velocity and sensitivity
-        // Todo interpolate gain frim velocity and note ranges
-        //sources[i].gain.setValueAtTime(1, time);
-
         sources.length = i + 1;
         return sources;
     }, sources);
@@ -144,7 +140,7 @@ assign(SampleVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
         return this;
 	},
 
-	start: function(time, note, velocity = 1) {
+	start: function(time, note, gain = 1) {
         if (!this.map) {
             throw new Error('Sampler .map not defined, start() called')
         }
@@ -152,14 +148,33 @@ assign(SampleVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
         // Get regions from map
         const privates = Privates(this);
         const sources  = privates.sources;
-        const gain     = this.get('gain');
-        const filter   = this.get('output');
 
-        updateSources(sources, gain, this.map.data, time, note, velocity) ;
+        updateSources(sources, this.get('gain'), this.map.data, time, note, gain) ;
 
         let n = sources.length;
         while (n--) {
-            sources[n].start(time, numberToFrequency(440, note));
+            const region = this.map.data[n];
+
+            // Set gain based on note range - linear interpolate (assume waveforms
+            // are coherent) the crossfade at the 'ends' of the note range
+            const noteRange = region.noteRange;
+            const noteGain = noteRange.length < 3 ? 1 :
+                note < noteRange[1] ? (note - noteRange[2]) / (noteRange[1] - noteRange[2]) :
+                note > noteRange[noteRange.length - 2] ? 1 - (note - noteRange[2]) / (noteRange[1] - noteRange[2]) :
+                1 ;
+
+            // Set gain based on velocity range - linear interpolate (assume waveforms
+            // are coherent) the crossfade at the 'ends' of the velocity range
+            const veloRange = region.velocityRange;
+            const veloGain = veloRange.length < 3 ? 1 :
+                velocity < veloRange[1] ? (velocity - veloRange[2]) / (veloRange[1] - veloRange[2]) :
+                velocity > veloRange[veloRange.length - 2] ? 1 - (velocity - veloRange[2]) / (veloRange[1] - veloRange[2]) :
+                1 ;
+
+            const frequency = numberToFrequency(440, note);
+
+            sources[n].start(time, frequency, gain * noteGain * veloGain);
+
             // Note this must be done after, as source.detune is replaced
             // when the new buffer source is created internally
             this.get('detune').connect(sources[n].detune);

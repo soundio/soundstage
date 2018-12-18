@@ -94,7 +94,6 @@ export default function Soundstage(data = nothing, settings = nothing) {
     const timer       = new Timer(() => context.currentTime);
     const transport   = new Transport(context, rateParam, timer);
 
-
     // Private
 
     privates.outputs = {
@@ -166,25 +165,15 @@ export default function Soundstage(data = nothing, settings = nothing) {
     });
 
 
-    // Initialise soundstage as a Sequence. Assigns:
-    //
-    // name:       string
-    // sequences:  array
-    // events:     array
-
-    //Sequence.call(this, data);
-
-
     // Initialise soundstage as a Sequencer. Assigns:
     //
     // start:      fn
     // stop:       fn
     // beatAtTime: fn
     // timeAtBeat: fn
-    // beatAtLocation: fn
-    // locationAtBeat: fn
     // beatAtBar:  fn
     // barAtBeat:  fn
+    // meterAtBeat: fn
     // cue:        fn
     // status:     string
 

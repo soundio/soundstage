@@ -196,10 +196,10 @@ curve - one of 'step', 'linear', 'exponential' or 'target'
 decay - where curve is 'target', decay is a time constant for the decay curve
 */
 
-export function automate(param, time, curve, value, decay) {
-    //console.log('AUTOMATE', arguments[5], time, curve, value, decay, param);
+export function automate(param, time, curve, value, duration) {
+    //console.log('AUTOMATE', arguments[5], time, curve, value, duration, param);
 	var events = getAutomationEvents(param);
-	automateParamEvents(param, events, time, value, curve, decay);
+	automateParamEvents(param, events, time, value, curve, duration);
 }
 
 export function getAutomationEndTime(events) {

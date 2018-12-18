@@ -20,6 +20,7 @@ const properties = {
     release:   { enumerable: true, writable: true },
     mute:      { enumerable: true, writable: true },
     beginTime: { enumerable: true, writable: true },
+    loop:      { enumerable: true, writable: true },
     loopTime:  { enumerable: true, writable: true },
     endTime:   { enumerable: true, writable: true },
     nominalFrequency: { enumerable: true, writable: true },
@@ -90,7 +91,7 @@ export default class Sample extends GainNode {
         assignSettings(this, defaults, options);
     }
 
-    start(time, frequency = defaults.nominalFrequency, velocity = 1) {
+    start(time, frequency = defaults.nominalFrequency, gain = 1) {
         const privates = Privates(this);
 
         // Update .startTime
@@ -100,22 +101,27 @@ export default class Sample extends GainNode {
             //throw new Error('Sample has no buffer');
         }
 
-        // Work out the detune factor
-        const nominalNote = frequencyToNumber(440, this.nominalFrequency);
-        const note        = frequencyToNumber(440, frequency);
-        const pitch       = note - nominalNote;
+        if (!frequency) {
+            sourceOptions.detune = 0;
+        }
+        else {
+            // Work out the detune factor
+            const nominalNote = frequencyToNumber(440, this.nominalFrequency);
+            const note        = frequencyToNumber(440, frequency);
+            const pitch       = note - nominalNote;
 
-        // This is k-rate. Detune is k-rate on bufferSourceNodes. It is
-        // a-rate on other nodes, according to MDN, so you can be excused
-        // some confusion.
-        sourceOptions.detune       = pitch * 100;
+            // This is k-rate. Detune is k-rate on bufferSourceNodes. It is
+            // a-rate on other nodes, according to MDN, so you can be excused
+            // some confusion.
+            sourceOptions.detune = pitch * 100;
+        }
 
         // This is a-rate. Just sayin'. Todo.
         sourceOptions.playbackRate = 1; // frequency / this.nominalFrequency;
 
-        sourceOptions.loop         = false;
-        sourceOptions.loopStart    = 0;
-        sourceOptions.loopEnd      = 0;
+        sourceOptions.loop         = this.loop || false;
+        sourceOptions.loopStart    = this.loopStart || 0;
+        sourceOptions.loopEnd      = this.loopEnd;
         sourceOptions.buffer       = privates.buffer;
 
         const source
@@ -123,23 +129,38 @@ export default class Sample extends GainNode {
             = new AudioBufferSourceNode(this.context, sourceOptions) ;
 
         source.connect(this);
-        source.start(this.startTime, this.beginTime || 0);
+
+        // Todo: if startTime is less than currentTime offset the start
+        let startTime = this.startTime;
+
+        if (this.loop) {
+            if (this.loopStart < 0) {
+                // Delay actual start by loopStart offset
+                startTime = this.startTime - this.loopStart;
+                source.start(startTime);
+            }
+            else {
+                // Play from loopStart time
+                source.start(this.startTime, this.loopStart);
+            }
+        }
+        else {
+            // Play from startTime
+            source.start(this.startTime);
+        }
 
         this.detune    = source.detune;
         this.rate      = source.playbackRate;
-
-        velocity = (velocity - this.velocityRange[0]) /
-            (this.velocityRange[this.velocityRange.length - 1] - this.velocityRange[0]);
 
         // Schedule the attack envelope
         this.gain.cancelScheduledValues(this.startTime);
 
         if (this.attack) {
-            this.gain.setValueAtTime(0, this.startTime);
-            this.gain.linearRampToValueAtTime(privates.gain + (this.gainFromVelocity * velocity), this.startTime + this.attack);
+            this.gain.setValueAtTime(0, startTime);
+            this.gain.linearRampToValueAtTime(privates.gain + (this.gainFromVelocity * gain), startTime + this.attack);
         }
         else {
-            this.gain.setValueAtTime(privates.gain + (this.gainFromVelocity * velocity), this.startTime);
+            this.gain.setValueAtTime(privates.gain + (this.gainFromVelocity * gain), startTime);
         }
 
         return this;
