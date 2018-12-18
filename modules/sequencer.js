@@ -373,14 +373,14 @@ export default function Sequencer(transport, data, rateParam, timer) {
 define(Sequencer.prototype, {
 	tempo: {
 		get: function() {
-			const transport = Privates(this).transport;
-			return getValueAtTime(transport.rate, transport.currentTime) * 60;
+			const privates  = Privates(this);
+			return getValueAtTime(privates.rateParam, this.context.currentTime) * 60;
 		},
 
 		set: function(tempo) {
-			const transport = Privates(this).transport;
+			const privates  = Privates(this);
 			// param, time, curve, value, decay
-			automate(transport.rate, transport.currentTime, 'step', tempo / 60);
+			automate(privates.rateParam, this.context.currentTime, 'step', tempo / 60);
 		}
 	},
 
