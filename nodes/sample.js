@@ -119,8 +119,7 @@ export default class Sample extends GainNode {
         }
 
         // This is a-rate. Just sayin'. Todo.
-        sourceOptions.playbackRate = 1; // frequency / this.nominalFrequency;
-console.log('LOOPSTART', this.loopStart)
+        sourceOptions.playbackRate = 1;
         sourceOptions.loop         = this.loop && this.loopStart >= 0;
         sourceOptions.loopStart    = this.loopStart || 0;
         sourceOptions.loopEnd      = this.loopEnd;

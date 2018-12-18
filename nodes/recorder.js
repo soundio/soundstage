@@ -30,8 +30,6 @@ export default class Recorder extends AudioWorkletNode {
                 if (privates.promise) {
                     resolve(privates, e.data.buffers);
                 }
-
-                this.stopTime = this.startTime + e.data.buffers[0].length / this.context.sampleRate;
             }
         };
 
@@ -57,8 +55,8 @@ export default class Recorder extends AudioWorkletNode {
 
         // Round duration such that stopTime - startTime is a duration
         // corresponding to an exact number of samples
-        const length   = Math.ceil((this.stopTime - this.startTime) * this.context.sampleRate);
-        this.stopTime = undefined;
+        const length = Math.ceil((this.stopTime - this.startTime) * this.context.sampleRate);
+        this.stopTime = this.startTime + length / this.context.sampleRate;
 
         // Tell the worklet to stop recording
         this.port.postMessage({

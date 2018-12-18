@@ -12,6 +12,9 @@ test('ToneSynth', function(run, print, fixture) {
         .then(function() {
             const stage = new Soundstage({
                 nodes: [{
+                    id: 'input',
+                    type: 'input'
+                }, {
                     id: 'tonesynth',
                     type: '/soundstage/nodes/tone-synth.js',
                     data: {
@@ -45,7 +48,7 @@ test('ToneSynth', function(run, print, fixture) {
                     id: 'looper',
                     type: '/soundstage/nodes/looper.js',
                     data: {
-                        dry: 1
+                        dry: 0
                     }
                 }, {
                     id: 'output',
@@ -53,6 +56,7 @@ test('ToneSynth', function(run, print, fixture) {
                 }],
 
                 connections: [
+                    { source: 'input', target: 'looper' },
                     { source: 'tonesynth', target: 'looper' },
                     { source: 'looper', target: 'output' }
                 ]
@@ -63,15 +67,32 @@ test('ToneSynth', function(run, print, fixture) {
             // Wait for crap to load
             setTimeout(function() {
                 const t = stage.context.currentTime;
-                stage.get('looper').record(t).play(t + 3);
-                stage.get('tonesynth').start(t, 56, 0.8).stop(t + 0.2);
+                stage.get('looper').record(t).play(t + 1).stop(t + 8);
+                stage.get('tonesynth').start(t, 60, 0.2).stop(t + 0.2);
+                stage.get('tonesynth').start(t + 0.25, 58, 0.2).stop(t + 0.45);
+                stage.get('tonesynth').start(t + 0.75, 54, 0.2).stop(t + 0.95);
             }, 1000);
 
             setTimeout(function() {
                 const t = stage.context.currentTime;
-                stage.get('looper').record(t).play(t + 1);
-                stage.get('tonesynth').start(t, 42, 0.8).stop(t + 0.2);
-            }, 7500);
+                stage.get('looper').record(t).play(t + 0.25);
+                stage.get('tonesynth').start(t, 56, 0.8).stop(t + 0.2);
+            }, 2500);
+
+            // Wait for crap to load
+            setTimeout(function() {
+                const t = stage.context.currentTime;
+                stage.get('looper').record(t).play(t + 1).stop(t + 8);
+                stage.get('tonesynth').start(t, 60, 0.2).stop(t + 0.2);
+                stage.get('tonesynth').start(t + 0.25, 58, 0.2).stop(t + 0.45);
+                stage.get('tonesynth').start(t + 0.75, 54, 0.2).stop(t + 0.95);
+            }, 10000);
+
+            setTimeout(function() {
+                const t = stage.context.currentTime;
+                stage.get('looper').record(t).play(t + 0.25);
+                stage.get('tonesynth').start(t, 56, 0.8).stop(t + 0.2);
+            }, 11500);
         });
     }, 0);
 });
