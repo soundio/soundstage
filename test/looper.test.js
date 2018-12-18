@@ -15,6 +15,10 @@ test('ToneSynth', function(run, print, fixture) {
                     id: 'input',
                     type: 'input'
                 }, {
+                    id: 'metronome',
+                    type: 'metronome',
+                    data: { gain: 0.125 }
+                }, {
                     id: 'tonesynth',
                     type: '/soundstage/nodes/tone-synth.js',
                     data: {
@@ -58,7 +62,8 @@ test('ToneSynth', function(run, print, fixture) {
                 connections: [
                     { source: 'input', target: 'looper' },
                     { source: 'tonesynth', target: 'looper' },
-                    { source: 'looper', target: 'output' }
+                    { source: 'looper', target: 'output' },
+                    { source: 'metronome', target: 'output' }
                 ]
             });
 
@@ -67,7 +72,9 @@ test('ToneSynth', function(run, print, fixture) {
             // Wait for crap to load
             setTimeout(function() {
                 const t = stage.context.currentTime;
+                stage.get('looper').beatDuration = 4;
                 stage.get('looper').record(t).play(t + 1).stop(t + 8);
+                stage.get('metronome').start(t + 1);
                 stage.get('tonesynth').start(t, 60, 0.2).stop(t + 0.2);
                 stage.get('tonesynth').start(t + 0.25, 58, 0.2).stop(t + 0.45);
                 stage.get('tonesynth').start(t + 0.75, 54, 0.2).stop(t + 0.95);

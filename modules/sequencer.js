@@ -515,20 +515,20 @@ assign(Sequencer.prototype, Sequence.prototype, Meter.prototype, {
 		const stream   = privates.stream;
 		const rateParam = privates.rateParam;
 
-		// Hold automation for the rate node
-		automate(rateParam, time, 'hold');
-
-		// Store beat
-		privates.beat = this.beatAtTime(time);
-
-		// Stop the stream
-		stream.stop(time);
-
 		// Set this.stopTime
 		Sequence.prototype.stop.call(this, time);
 
+		// Hold automation for the rate node
+		automate(rateParam, this.stopTime, 'hold');
+
+		// Store beat
+		privates.beat = this.beatAtTime(this.stopTime);
+
+		// Stop the stream
+		stream && stream.stop(this.stopTime);
+
 		// Stop transport
-		//privates.transport.stop(time);
+		privates.transport.stop(this.stopTime);
 
 		// Log the state of Pool shortly after stop
 		//if (DEBUG) {

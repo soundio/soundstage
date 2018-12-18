@@ -105,7 +105,7 @@ export default function Tick(audio, options) {
 
 	this.resonance = settings.resonance;
 	this.decay     = settings.decay;
-	this.gain      = settings.gain;
+	//this.gain      = settings.gain;
 
 	this.start = function(time, number, level) {
 		var frequency = typeof number === 'string' ?

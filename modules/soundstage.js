@@ -1,5 +1,5 @@
 
-import { compose, get, is, isDefined, map, nothing }   from '../../fn/fn.js';
+import { compose, get, is, isDefined, map, nothing, matches }   from '../../fn/fn.js';
 import AudioObject            from '../../audio-object/modules/audio-object.js';
 import requestInputSplitter   from '../../audio-object/modules/request-input-splitter.js';
 
@@ -197,12 +197,52 @@ export default function Soundstage(data = nothing, settings = nothing) {
 
 define(Soundstage.prototype, {
     version: { value: 1 },
-    tempo: getOwnPropertyDescriptor(Sequencer.prototype, 'tempo'),
-    meter: getOwnPropertyDescriptor(Sequencer.prototype, 'meter'),
-    beat:  getOwnPropertyDescriptor(Sequencer.prototype, 'beat'),
+    tempo:           getOwnPropertyDescriptor(Sequencer.prototype, 'tempo'),
+    meter:           getOwnPropertyDescriptor(Sequencer.prototype, 'meter'),
+    beat:            getOwnPropertyDescriptor(Sequencer.prototype, 'beat'),
     processDuration: getOwnPropertyDescriptor(Transport.prototype, 'processDuration'),
     frameDuration:   getOwnPropertyDescriptor(Transport.prototype, 'frameDuration'),
-    frameLookahead:  getOwnPropertyDescriptor(Transport.prototype, 'frameLookahead')
+    frameLookahead:  getOwnPropertyDescriptor(Transport.prototype, 'frameLookahead'),
+
+    /*
+    .metronome
+
+    A boolean property that is a shortcut control the first metronome node in
+    the graph. Indicates whether a metronome is playing at the current time.
+    Setting .metronome to true will create a metronome node (if there inspect
+    not already one in the graph, and then start it.
+    */
+
+    metronome: {
+        enumerable: true,
+
+        get: function() {
+            const node = this.nodes.find(matches({ type: 'metronome' }));
+            if (!node) { return false; }
+            const metronome = node.data;
+            return metronome.startTime < this.context.currentTime && (metronome.stopTime === undefined || metronome.stopTime > this.context.currentTime);
+        },
+
+        set: function(value) {
+            const node = this.nodes.find(matches({ type: 'metronome' }));
+
+            if (value) {
+                if (!node) {
+                    this.create('metronome').then(function(m) {
+                        connect(m, this.get('output'));
+                    });
+                }
+                else {
+                    const metronome = node.data;
+                    metronome.start(this.context.currentTime);
+                }
+            }
+            else if (node) {
+                const metronome = node.data;
+                metronome.stop(metronome.context.currentTime);
+            }
+        }
+    }
 });
 
 /*

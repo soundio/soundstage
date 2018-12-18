@@ -20,7 +20,7 @@ export default function Clock(context) {
 };
 
 assign(Clock.prototype, {
-	start: function(time, beat) {
+	start: function(time) {
 		// If clock is running, don't start it again
 		if (this.startTime !== undefined && this.stopTime === undefined) {
 			if (DEBUG) { console.warn('Attempted clock.start() when clock is already started (or scheduled to start)'); }
@@ -32,9 +32,7 @@ assign(Clock.prototype, {
 			return this;
 		}
 
-		time = time !== undefined ? time : this.context.currentTime ;
-
-		this.startTime     = time;  // - (beat ? this.locationAtBeat(beat) : 0);
+		this.startTime     = time !== undefined ? time : this.context.currentTime ;
 		this.startLocation = undefined;
 		this.stopTime      = undefined;
 
@@ -42,6 +40,18 @@ assign(Clock.prototype, {
 	},
 
 	stop: function(time) {
+		// If clock is running, don't start it again
+		if (this.startTime === undefined) {
+			if (DEBUG) { throw new Error('Clock .stop(time) attempted on unstarted clock'); }
+			else { return this; }
+		}
+
+		time = time === undefined ? this.context.currentTime : time ;
+
+		if (time < this.startTime) {
+			throw new Error('Clock .stop(time) attempted with time less than .startTime');
+		}
+
 		this.stopTime = time;
 		return this;
 	}

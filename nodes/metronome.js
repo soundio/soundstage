@@ -14,7 +14,7 @@ if (!NodeGraph.prototype.get) {
 	throw new Error('NodeGraph is not fully formed?')
 }
 
-const DEBUG = window.DEBUG;
+const DEBUG  = false; //window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
 
@@ -137,7 +137,7 @@ function fillEventsBuffer(stage, events, buffer, frame) {
 		buffer.push(new Event(b1, bar1Beat + events[n][0], events[n][1]));
 	}
 
-	if (buffer.length) { log('frame', frame.t1.toFixed(3) + '–' + frame.t2.toFixed(3) + 's (' + frame.b1.toFixed(3) + '–' + frame.b2.toFixed(3) + 'b)', buffer.length, buffer.map((e) => { return e[0].toFixed(3) + 'b ' + e[1]; }).join(', ')); }
+	if (DEBUG && buffer.length) { log('frame', frame.t1.toFixed(3) + '–' + frame.t2.toFixed(3) + 's (' + frame.b1.toFixed(3) + '–' + frame.b2.toFixed(3) + 'b)', buffer.length, buffer.map((e) => { return e[0].toFixed(3) + 'b ' + e[1]; }).join(', ')); }
 
 	return buffer;
 }
