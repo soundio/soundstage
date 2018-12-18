@@ -71,7 +71,7 @@ test('ToneSynth', function(run, print, fixture) {
                 const t = stage.context.currentTime;
                 stage.get('looper').record(t).play(t + 1);
                 stage.get('tonesynth').start(t, 42, 0.8).stop(t + 0.2);
-            }, 7000);
+            }, 7500);
         });
     }, 0);
 });

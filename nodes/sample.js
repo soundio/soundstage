@@ -22,6 +22,8 @@ const properties = {
     beginTime: { enumerable: true, writable: true },
     loop:      { enumerable: true, writable: true },
     loopTime:  { enumerable: true, writable: true },
+    loopStart: { enumerable: true, writable: true },
+    loopEnd:   { enumerable: true, writable: true },
     endTime:   { enumerable: true, writable: true },
     nominalFrequency: { enumerable: true, writable: true },
     velocityRange:    { enumerable: true, writable: true },
@@ -118,8 +120,8 @@ export default class Sample extends GainNode {
 
         // This is a-rate. Just sayin'. Todo.
         sourceOptions.playbackRate = 1; // frequency / this.nominalFrequency;
-
-        sourceOptions.loop         = this.loop || false;
+console.log('LOOPSTART', this.loopStart)
+        sourceOptions.loop         = this.loop && this.loopStart >= 0;
         sourceOptions.loopStart    = this.loopStart || 0;
         sourceOptions.loopEnd      = this.loopEnd;
         sourceOptions.buffer       = privates.buffer;
