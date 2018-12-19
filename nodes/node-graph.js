@@ -15,7 +15,13 @@ Constructs a graph of AudioNodes from a data structure of the form:
     connections: [{
         source: 'id.0',
         target: 'id.name'
-    }]
+    }],
+
+    output: 'id',
+
+    properties: {
+        name: 'path'
+    }
 }
 ```
 
@@ -45,12 +51,10 @@ const define = Object.defineProperties;
 const seal   = Object.seal;
 
 const blacklist = {
-    //startTime: true,
-    //stopTime:  true,
     channelCount: true,
     channelCountMode: true,
     channelInterpretation: true,
-    context:   true,
+    context: true,
     numberOfInputs: true,
     numberOfOutputs: true,
     onended: true
@@ -110,7 +114,7 @@ export default function NodeGraph(context, data) {
 
     // Otherwise make it quack like an audio node
     else {
-        const output = nodes['output'];
+        const output = nodes[privates.outputId];
         define(this, {
             context: { value: context },
             numberOfOutputs: { value: output ? output.numberOfOutputs : 0 }
