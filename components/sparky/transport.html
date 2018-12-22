@@ -1,0 +1,26 @@
+<template id="transport" fn="transport">
+    <button type="button"></button>
+    <button type="button"></button>
+    <button type="button"></button>
+    <button type="button"></button>
+</template>
+
+<script type="module">
+import { cache, Observer, observe, set } from '../../../fn/fn.js';
+import Sparky from '../../../sparky/sparky.js';
+
+let id = 0;
+
+const toTransportScope = cache(function(param) {
+    const scope = Observer({
+
+    });
+
+    return scope;
+});
+
+Sparky.fn['transport'] = function(node, scopes, params) {
+    console.log('Sparky transport');
+    return scopes.map(toFaderScope);
+};
+</script>

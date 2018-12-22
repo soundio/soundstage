@@ -72,6 +72,11 @@ export const distributors = {
         return target;
     },
 
+    'invoke': function(target, time, type, name, value) {
+        target[name](time, value);
+        return target;
+    },
+
     'default': function(target, time, type) {
         print('Cannot cue unrecognised type "' + type + '". (Possible types: noteon, noteoff, noteparam, param).' )
     }

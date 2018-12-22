@@ -1,0 +1,147 @@
+
+<head>
+    <style>
+    body {
+        font-family: Helvetica;
+    }
+    .masked {
+        display: none;
+    }
+    </style>
+
+    <template id="navigation">
+        Naviagtion {[]}
+    </template>
+</head>
+
+<body>
+
+<template is="sparky">
+    <!-- We should be ablke to declare this fn="" on <template> above -->
+    <section fn="import:../../song.json soundstage">
+        <h1>Soundstage</h1>
+        <article fn="get:nodes each" class="node-block block">
+            <h1 title="label">{[label]}</h1>
+            <small class="block" title="id: type">{[id]}: {[type]}</small>
+            <!--template fn="get:data" src="#node-{[type]}"></template-->
+            <div fn="get:data entries each" class="">
+                {[0]}: {[1.value]}
+                <div class="fader-control" id="test" fn="get:1 template:fader.html#fader-control"></div>
+            </div>
+        </article>
+        <button fn="on:click,start">Start</button>
+        <button fn="toggle:click,start,stop">Start</button>
+    </section>
+
+    <template src="transport.html#transport"></template>
+    <template src="graph.html#graph"></template>
+    <template src="sequencer.html#sequencer"></template>
+    <template src="#navigation"></template>
+</template>
+
+<div is="sparky" class="fader-control" id="test" fn="template:fader.html#fader-control"></div>
+<div is="sparky" class="fader-control" id="test" fn="template:fader.html#fader-control"></div>
+
+<script type="module">
+    import { Observer, observe, Fn, noop, set } from '../../../fn/fn.js';
+    import Sparky from '../../../sparky/sparky.js';
+    import Soundstage from '../../soundstage.js';
+
+    window.Observer   = Observer;
+    window.observe    = observe;
+    window.Sparky     = Sparky;
+    window.Soundstage = Soundstage;
+
+    Sparky.attributeFn = "fn";
+
+	// Prepare the page
+
+    const data = Observer({
+        name:  'fader',
+        label: 'Volume',
+        id:    '0',
+        value: 0,
+        unit:  'dB',
+        ticks: [0,10,20,30,40,50,60,70,80,90,100]
+    });
+
+    Sparky.fn['invoke-on'] = function(node, scopes, params) {
+        const type = params[0];
+        const name = params[1];
+
+        let fn = noop;
+
+        this.then(function() {
+            node.removeEventListener(type, fn);
+        });
+
+        return scopes.tap(function(scope) {
+            node.removeEventListener(type, fn);
+            fn = () => scope[name]();
+            node.addEventListener(type, fn);
+        });
+    };
+
+    Sparky.fn.toggle = function(node, scopes, params) {
+        const type  = params[0];
+        const name1 = params[1];
+        const name2 = params[2];
+
+        let fn   = noop;
+        let name = name2;
+
+        this.then(function() {
+            node.removeEventListener(type, fn);
+        });
+
+        return scopes.tap(function(scope) {
+            node.removeEventListener(type, fn);
+            fn = () => {
+                name = name === name1 ? name2 : name1 ;
+                scope[name]();
+            }
+            node.addEventListener(type, fn);
+        });
+    };
+
+    Sparky.fn.soundstage = function(node, scopes) {
+        return scopes.map(function(data) {
+            console.log('Sparky soundstage');
+
+            data.start = function() {
+                console.log('START');
+            };
+
+            data.stop = function() {
+                console.log('STOP');
+            };
+
+            return data;
+
+            //const stage = new Soundstage(data);
+            //console.log('Sparky soundstage', stage);
+            //return stage;
+        });
+    };
+
+
+
+
+
+    // Launch sparky on sparky templates.
+    // Ultimately this will be a web component, I guess
+    document
+    .querySelectorAll('[is="sparky"]')
+    .forEach(function(node) {
+        // Is it a <template>?
+        if (node.content) {
+            Sparky(node.content);
+            node.before(node.content);
+        }
+        else {
+            Sparky(node).push(data);
+        }
+    });
+</script>
+
+</body>

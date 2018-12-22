@@ -21,6 +21,7 @@ import Transport     from './transport.js';
 import Sequencer     from './sequencer.js';
 import config        from './config.js';
 
+const DEBUG        = window.DEBUG || false;
 const assign       = Object.assign;
 const define       = Object.defineProperties;
 const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
