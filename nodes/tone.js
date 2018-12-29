@@ -76,7 +76,8 @@ assign(Tone.prototype, NodeGraph.prototype, PlayNode.prototype, {
 
     start: function(time, frequency = 440, gain = 1) {
         PlayNode.prototype.start.apply(this, arguments);
-        this.frequency.setValueAtTime(frequency, this.startTime);
+		// If frequency is set in the past, it doesn't take
+        this.frequency.setValueAtTime(frequency, this.startTime < this.context.currentTime ? this.context.currentTime : this.startTime);
         this.get('gain').gain.setValueAtTime(gain, this.startTime);
         return this;
     },

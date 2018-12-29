@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head template-fn="import:package.json">
+    <meta charset="utf-8" />
+    <meta name="author" content="@{[author.twitter]}" />
+    <meta name="description" content="Documentation for {[title]}. {[description]}" />
+    <meta name="viewport" content="width=device-width" />
+
+    <title>{[title]}</title>
+
+    <script>
+    document.documentElement.className = 'js';
+    window.DEBUG = true;
+    </script>
+</head>
+
+<body>
+    <!-- Tests -->
+    <script type="module">
+
+    import * as Fn from '../fn/fn.js';
+    window.Fn = Fn;
+
+    import { Stream } from '../fn/fn.js';
+    window.Stream = Stream;
+
+    import Timer from './modules/timer.js';
+    window.Timer = Timer;
+
+    import Soundstage from './soundstage.js';
+    window.Soundstage = Soundstage;
+
+    import context from './modules/context.js';
+
+    Promise.all([
+        context
+        .audioWorklet
+        .addModule('./nodes/signal.worklet.js'),
+
+        context
+        .audioWorklet
+        .addModule('./nodes/recorder.worklet.js')
+    ])
+    .then(function() {
+
+        //import './nodes/tone.test.js';
+        //import './test/tone-voice.test.js';
+        //import './test/tone-synth.test.js';
+
+        window.stage = new Soundstage({
+            nodes: [{
+                id:    'input',
+                type:  'input',
+                label: 'Input',
+                data:  {}
+            }, {
+                id:    'synth',
+                type:  '/soundstage/nodes/tone-synth.js',
+                label: 'Tone Synth',
+                data: {
+                    sources: [
+                        { type: 'triangle', detune: -1192, mix: 0.5, pan: -0.8 },
+                        { type: 'sine',   detune: 0, mix: 0.3, pan: 0.8 },
+                        { type: 'square', detune: -1208,     mix: 0.3, pan: 0.2 }
+                    ],
+
+                    gainEnvelope: {
+                        attack: [
+                            [0, 'step', 0],
+                            [0.01, 'linear', 1]
+                        ],
+
+                        release: [
+                            [0, 'target', 0, 0.1]
+                        ]
+                    },
+
+                    frequencyEnvelope: {
+                        attack: [
+                            [0,    "step",   0],
+                            [0.06, "linear", 1000],
+                            [5,    "exponential", 200],
+                        ],
+
+                        release: [
+                            [0,  "target", 0, 0.02]
+                        ]
+                    },
+
+                    type: 'lowpass',
+                    frequency: 100,
+                    frequencyFromVelocity: 0.5,
+
+                    Q: 5,
+
+                    output: 0.1
+                }
+            }, {
+                id:    'compressor',
+                type:  'compressor',
+                label: 'Compressor',
+                data: {
+                    attack:    0.028,
+                    release:   0.08,
+                	knee:      12,
+                	ratio:     2.5,
+                    threshold: -28
+                }
+            }, {
+                id:    'flanger',
+                type:  '/soundstage/nodes/flanger.js',
+                label: 'Flanger',
+                data: {
+                    delay:     0.008,
+                	frequency: 0.333333,
+                	depth:     0.004,
+                	feedback:  0.1,
+                    dry:       1,
+                    wet:       0.5
+                }
+            }, {
+                id:    'delay',
+                type:  '/soundstage/nodes/flanger.js',
+                label: 'Delay',
+                data: {
+                    delay:     0.26,
+                	frequency: 0.1,
+                	depth:     0.02,
+                	feedback:  0.4,
+                    dry:       1,
+                    wet:       0.04
+                }
+            }, {
+                id:    'metronome',
+                type:  '/soundstage/nodes/metronome.js',
+                label: 'Metronome',
+                data: {}
+            }, {
+                id:    'output',
+                type:  'output',
+                label: 'Output',
+                data: {}
+            }],
+
+            connections: [
+                { source: 'input',      target: 'compressor' },
+                { source: 'compressor', target: 'flanger' },
+                { source: 'flanger',    target: 'delay' },
+                { source: 'delay',      target: 'output' },
+                //{ source: 'synth',      target: 'delay' },
+                { source: 'metronome',  target: 'output' }
+            ],
+
+            controls: [{
+                source: {
+                    device: 'midi',
+                    channel: 1,
+                    type:    'note'
+                },
+                transform: 'linear',
+                type:  'note',
+                min:   0,
+                max:   1,
+                target: 'synth'
+            }, {
+                source: {
+                    device: 'midi',
+                    channel: 1,
+                    type:    'pitch'
+                },
+                transform: 'linear',
+                type:  'pitch',
+                min:   0,
+                max:   1,
+                target: 'synth'
+            }],
+
+            events: []
+        });
+    });
+    </script>
+</body>

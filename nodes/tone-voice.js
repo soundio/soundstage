@@ -5,6 +5,7 @@ import NodeGraph   from './node-graph.js';
 import PlayNode from './play-node.js';
 import { automate, getAutomationEvents, getAutomationEndTime } from '../modules/automate.js';
 import { assignSettings } from '../modules/assign-settings.js';
+import { numberToFrequency, frequencyToNumber } from '../../midi/midi.js';
 
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;
@@ -12,14 +13,18 @@ const define = Object.defineProperties;
 
 const graph = {
 	nodes: [
-		{ id: 'gainEnvelope',      type: 'envelope' },
+		{ id: 'gainEnvelope', type: 'envelope' },
 		{ id: 'frequencyEnvelope', type: 'envelope' },
-		{ id: 'detune',            type: 'constant',      data: { offset: 0 }},
-		{ id: 'filter',            type: 'biquad-filter', data: { type: 'lowpass', frequency: 6000, Q: 8 }}
+		// For some reason this is not working
+		//{ id: 'detuneK',           type: 'constant',      data: { offset: 1 }},
+		// Instead ...
+		{ id: 'detune', type: 'constant', data: { offset: 0 }},
+		{ id: 'filter', type: 'biquad-filter', data: { type: 'lowpass', frequency: 6000, Q: 8 }}
 	],
 
 	connections: [
-		{ source: 'frequencyEnvelope', target: 'filter.frequency' }
+		{ source: 'frequencyEnvelope', target: 'filter.frequency' },
+		//{ source: 'detuneK', target: 'detune' }
 	],
 
 	output: 'filter'
@@ -98,7 +103,7 @@ function updateSources(node, sources, destination) {
             sources[i] = new Tone(destination.context, options);
             node.get('gainEnvelope').connect(sources[i].get('gain').gain);
             node.get('detune').connect(sources[i].detune);
-			sources[i].connect(destination);
+            sources[i].connect(destination);
         }
         else {
             sources[i].reset(destination.context, options);
@@ -115,7 +120,7 @@ function ToneVoice(context, settings) {
 	// Set up the node graph
 	NodeGraph.call(this, context, graph);
 
-	// Define .starTime and .stopTime
+	// Define .startTime and .stopTime
 	PlayNode.call(this, context);
 
 	// Privates
@@ -131,6 +136,8 @@ function ToneVoice(context, settings) {
     this.Q                 = this.get('filter').Q;
 	this.detune            = this.get('detune').offset;
 
+	// Start constant
+	this.get('detune').start(context.currentTime);
     this.reset(context, settings);
 }
 
@@ -153,6 +160,7 @@ assign(ToneVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 		updateSources(this, privates.sources, this.get('filter'));
 
 		const frequency = numberToFrequency(440, note);
+
 		let n = privates.sources.length;
 		while (n--) {
 			// Set gain to 0 - we have an envelope connected to gain, which

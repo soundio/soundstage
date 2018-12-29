@@ -73,10 +73,7 @@ export default function Controls(getTarget, settings) {
     if (settings) {
         settings.reduce(function(routes, setting) {
             const route = createControl(controls, getTarget, setting);
-
-            // Add route to routes
             push(routes, route);
-
             return routes;
         }, this);
     }

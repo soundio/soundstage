@@ -33,7 +33,7 @@ const graph = {
 };
 
 // Declare some useful defaults
-var defaults = {
+let defaults = {
 	pitch:        0,
     beatDuration: 8
 };

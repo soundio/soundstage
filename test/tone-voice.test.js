@@ -1,5 +1,5 @@
 import { test } from '../../fn/fn.js';
-import ToneVoice from './tone-voice.js';
+import ToneVoice from '../nodes/tone-voice.js';
 import context from '../modules/context.js';
 
 test('ToneVoice', function(run, print, fixture) {
@@ -9,14 +9,14 @@ test('ToneVoice', function(run, print, fixture) {
         note.connect(context.destination);
 
         note
-        .start(context.currentTime + 0.6, 400, 1)
+        .start(context.currentTime + 0.6, 48, 1)
         .stop(context.currentTime + 2);
 
         setTimeout(function() {
             note.reset(context, {});
 
             note
-            .start(context.currentTime + 0.6, 900, 1)
+            .start(context.currentTime + 0.6, 56, 1)
             .stop(context.currentTime + 2);
         }, 3000);
 

@@ -27,6 +27,7 @@ const define       = Object.defineProperties;
 const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 const setPrototypeOf = Object.setPrototypeOf;
 
+const idSelect = { id: undefined };
 
 function isURL() {
     return false;
@@ -158,8 +159,9 @@ export default function Soundstage(data = nothing, settings = nothing) {
         define(stage, {
             controls: {
                 enumerable: true,
-                value: new Controls(function getTarget(id) {
-                    return stage.get(id);
+                value: new Controls(function(id) {
+                    idSelect.id = id;
+                    return stage.nodes.find(matches(idSelect));
                 }, data.controls)
             }
         });

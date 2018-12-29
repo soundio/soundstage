@@ -1,6 +1,6 @@
 import { test } from '../../fn/fn.js';
 import context from '../modules/context.js';
-import ToneSynth from './tone-synth.js';
+import ToneSynth from '../nodes/tone-synth.js';
 import Soundstage from '../soundstage.js';
 import { cueChromaticScale, cueVelocityScale } from '../test/utils.js';
 

@@ -34,7 +34,7 @@ import { id } from '../../fn/fn.js';
 import { timeAtDomTime } from './utilities/utilities.js';
 import { Distribute }    from './distribute.js';
 
-const DEBUG  = true;//false;
+const DEBUG  = false;
 const A      = Array.prototype;
 const assign = Object.assign;
 const seal   = Object.seal;
@@ -127,15 +127,15 @@ export default function Control(controls, source, target, setting) {
         // Catch keys with no name
         if (!name && !data.name) { return; }
 
-        const time
+        const time = target.data.context.currentTime;
             // time in audioContext time
-            = timeAtDomTime(target.data.context, timeStamp)
+            //= timeAtDomTime(target.data.context, timeStamp)
 
             // Add one processing block's latency to incoming events to
             // eliminate timing jitter caused by the soonest scheduling
             // time being the next audio.currentTime, which updates only
             // every 128 samples. At 44.1kHz this is ~0.003s.
-            + target.graph.processDuration ;
+            //+ target.graph.processDuration ;
 
         // Select type based on data
         type = data.type ?

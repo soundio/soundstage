@@ -24,7 +24,7 @@ class SignalDetector extends AudioWorkletProcessor {
         // Cycle through channels, update if state changed
         while (chan--) {
             result = input[chan] && !!input[chan][0];
-
+//console.log(input[chan][0])
             if (results[chan] !== result) {
                 results[chan] = result;
                 changed = true;
