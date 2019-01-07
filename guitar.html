@@ -115,7 +115,7 @@
                 	frequency: 0.333333,
                 	depth:     0.004,
                 	feedback:  0.1,
-                    dry:       1,
+                    dry:       0,
                     wet:       0.5
                 }
             }, {
@@ -147,7 +147,7 @@
                 { source: 'compressor', target: 'flanger' },
                 { source: 'flanger',    target: 'delay' },
                 { source: 'delay',      target: 'output' },
-                //{ source: 'synth',      target: 'delay' },
+                { source: 'synth',      target: 'delay' },
                 { source: 'metronome',  target: 'output' }
             ],
 

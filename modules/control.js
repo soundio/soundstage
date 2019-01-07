@@ -31,10 +31,10 @@ through a selectable transform function to a target stream.
 */
 
 import { id } from '../../fn/fn.js';
-import { timeAtDomTime } from './utilities/utilities.js';
 import { Distribute }    from './distribute.js';
 
-const DEBUG  = false;
+const DEBUG  = window.DEBUG;
+
 const A      = Array.prototype;
 const assign = Object.assign;
 const seal   = Object.seal;
@@ -98,15 +98,58 @@ export const transforms = {
     }
 };
 
-export default function Control(controls, source, target, setting) {
+function getControlLatency(stamps, context) {
+    // In order to play back live controls without jitter we must add
+    // a latency to them to push them beyond currentTime.
+    // AudioContext.outputLatency is not yet implemented so we need to
+    // make a rough guess. Here we track the difference between contextTime
+    // and currentTime, ceil to the nearest 32-sample block and use that –
+    // until we detect a greater value.
+
+    const contextTime = stamps.contextTime;
+    const currentTime = context.currentTime;
+
+    if (context.controlLatency === undefined || currentTime - contextTime > context.controlLatency) {
+        const diffTime = currentTime - contextTime;
+        const blockTime = 32 / context.sampleRate;
+
+        // Cache controlLatency on the context as a stop-gap measure
+        context.controlLatency = Math.ceil(diffTime / blockTime) * blockTime;
+
+        // Let's keep tabs on how often this happens
+        console.log('Control latency change', context.controlLatency, '(' + Math.round(context.controlLatency * context.sampleRate) + ' frames)');
+    }
+
+    return context.controlLatency;
+}
+
+function timeAtDomTime(stamps, domTime) {
+    return stamps.contextTime + (domTime - stamps.performanceTime) / 1000;
+}
+
+function getControlTime(context, domTime) {
+    const stamps          = context.getOutputTimestamp();
+    const controlLatency = getControlLatency(stamps, context);
+    const time            = timeAtDomTime(stamps, domTime);
+    return time + controlLatency;
+}
+
+function getContextTime(context, domTime) {
+    const stamps = context.getOutputTimestamp();
+    return timeAtDomTime(stamps, domTime);
+}
+
+export default function Control(controls, source, target, settings) {
+    // Target here is the graph node wrapper, not the actual audio node
     const route = this;
 
-    const data  = setting || {
+    const data = settings || {
         type:      undefined,
         name:      undefined,
         transform: undefined,
         min:       0,
-        max:       1
+        max:       1,
+        latencyCompensation: true
     };
 
     let value;
@@ -127,15 +170,15 @@ export default function Control(controls, source, target, setting) {
         // Catch keys with no name
         if (!name && !data.name) { return; }
 
-        const time = target.data.context.currentTime;
-            // time in audioContext time
-            //= timeAtDomTime(target.data.context, timeStamp)
+        const context = target.data.context;
+        let time = data.latencyCompensation ?
+            getControlTime(context, timeStamp) :
+            getContextTime(context, timeStamp) ;
 
-            // Add one processing block's latency to incoming events to
-            // eliminate timing jitter caused by the soonest scheduling
-            // time being the next audio.currentTime, which updates only
-            // every 128 samples. At 44.1kHz this is ~0.003s.
-            //+ target.graph.processDuration ;
+        if (data.latencyCompensation && time < context.currentTime) {
+            if (DEBUG) { console.log('Jitter warning. Control time (' + time + ') less than currentTime (' + context.currentTime + '). Advancing to currentTime.'); }
+            time = context.currentTime;
+        }
 
         // Select type based on data
         type = data.type ?

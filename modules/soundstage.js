@@ -5,6 +5,7 @@ import requestInputSplitter   from '../../audio-object/modules/request-input-spl
 
 import { print, printGroup, printGroupEnd }     from './utilities/print.js';
 import { Privates } from './utilities/privates.js';
+import { timeAtDomTime } from './utilities/utilities.js';
 import { distributeEvent } from './distribute.js';
 import audio         from './context.js';
 import constructors  from './constructors';
@@ -17,7 +18,6 @@ import requestPlugin from './request-plugin.js';
 import Controls      from './controls.js';
 import Timer         from './timer.js';
 import Transport     from './transport.js';
-//import Sequence      from './sequence.js';
 import Sequencer     from './sequencer.js';
 import config        from './config.js';
 
