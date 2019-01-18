@@ -1,5 +1,5 @@
 
-import { compose, get, is, isDefined, map, nothing, matches }   from '../../fn/fn.js';
+import { compose, get, is, isDefined, map, noop, nothing, matches }   from '../../fn/fn.js';
 import AudioObject            from '../../audio-object/modules/audio-object.js';
 import requestInputSplitter   from '../../audio-object/modules/request-input-splitter.js';
 
@@ -87,26 +87,30 @@ export default function Soundstage(data = nothing, settings = nothing) {
     if (DEBUG) { printGroup('Soundstage()'); }
 
     const stage       = this;
-    const privates    = Privates(this);
     const context     = settings.context || audio;
     const destination = settings.destination || context.destination;
+    const notify      = settings.notify || noop;
     const output      = createOutputMerger(context, destination);
     const rateNode    = new ConstantSourceNode(context, { offset: 2 });
     const rateParam   = rateNode.offset;
     const timer       = new Timer(() => context.currentTime);
     const transport   = new Transport(context, rateParam, timer);
 
-    // Private
+    rateNode.start(0);
+
+    // Privates
+
+    const privates = Privates(this);
 
     privates.outputs = {
         default: output,
         rate:    rateNode
     };
 
-    rateNode.start(0);
-
 
     // Properties
+
+    this.label = data.label;
 
     define(this, {
         mediaChannelCount: { value: undefined, writable: true, configurable: true },
@@ -165,6 +169,9 @@ export default function Soundstage(data = nothing, settings = nothing) {
                 }, data.controls)
             }
         });
+
+        // Notify observer that nodes has mutated
+        notify(stage.nodes, '.');
     });
 
 

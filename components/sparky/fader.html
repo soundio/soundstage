@@ -1,4 +1,4 @@
-<style>
+<style title="fader">
 .fader-control {
     display: flex;
     flex-direction: row;
@@ -69,48 +69,14 @@
 }
 </style>
 
-<template id="control-tick">
-    <input class="masked" type="radio" name="fader-{[..id]}-tick-{[1]}" id="fader-{[..id]}-tick-{[1]}" value="{[1]}" sparky-value="{[..value|float-string]}"/>
-    <label for="fader-{[..id]}-tick-{[1]}">{[1]}</label>
-</template>
-
-<template id="fader-control">
-    <div class="fader-control" fn="fader-control">
-    <label for="{[id]}">{[label]}</label>
-    <div class="tick" fn="get:ticks entries template:#control-tick each"></div>
-    <!--template fn="each" src="#control-tick"></template-->
-    <input type="range" name="{[id]}-{[name]}" id="{[id]}" value="{[value]}" min="{[min]}" max="{[max]}" />
-    <output>{[value]}<abbr>{[unit]}</abbr></output>
+<template id="fader">
+    <div class="fader-control control">
+        <label for="{[id]}">{[label]}</label>
+        <div class="tick" fn="get:ticks entries each">
+            <input class="masked" type="radio" name="fader-{[..id]}-tick-{[1]}" id="fader-{[..id]}-tick-{[1]}" value="{[1]}" sparky-value="{[..value|float-string]}"/>
+            <label for="fader-{[..id]}-tick-{[1]}">{[1]}</label>
+        </div>
+        <input type="range" name="{[id]}-{[name]}" id="{[id]}" value="{[inputValue]}" min="{[min]}" max="{[max]}" step="{[step]}" />
+        <output>{[outputValue|invoke:toPrecision,[3]]}<abbr>{[unit]}</abbr></output>
     </div>
 </template>
-
-<script type="module" title="fader">
-import { cache, Observer, observe, set } from '../../../fn/fn.js';
-import Sparky from '../../../sparky/sparky.js';
-
-let id = 0;
-console.log('RUN')
-const toFaderScope = cache(function(param) {
-    const scope = Observer({
-        id:        id++,
-        name:      'fader',
-        label:     'Volume',
-        value:     20,
-        min:       0,
-        max:       100,
-        unit:      'dB',
-        transform: '',
-        ticks:     [0, 25, 50, 75, 100]
-    });
-
-    observe('value', set('value', scope), param);
-    observe('value', set('value', param), scope);
-
-    return scope;
-});
-
-Sparky.fn['fader-control'] = function(node, scopes, params) {
-    console.log('Sparky fader-control');
-    return scopes.map(toFaderScope);
-};
-</script>
