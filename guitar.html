@@ -13,6 +13,63 @@
     window.DEBUG = true;
     </script>
 
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        body {
+            display: grid;
+            grid-gap: 0;
+            grid-template-areas:
+                'nodes nodes nodes'
+                'sequencer sequencer sequencer'
+                'controls controls controls';
+            grid-template-rows: calc(100vh - 3.75rem) 0 3.75rem;
+        }
+
+        body > .nodes-block {
+            grid-area: nodes;
+            min-height: 0;
+            max-height: 100vh;
+        }
+
+        body > .controls-block {
+            grid-area: controls;
+        }
+
+        .nodes-block {
+            display: grid;
+            padding: 1.3125rem;
+            grid-gap: 0.75rem;
+            grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+            overflow: auto;
+        }
+
+        .nodes-block > .label-block {
+            position: absolute;
+            top: 0.375rem;
+            left: 1.875rem;
+            margin: 0;
+            text-transform: uppercase;
+            font-size: 0.5625rem;
+        }
+
+        .node-block {
+            padding: 9px;
+            height: min-content;
+            background-color: #dfe4ec;
+        }
+
+        .controls-block {
+            display: flex;
+            background-color: #566789;
+        }
+    </style>
+
     <template id="node-input" fn="get:data">
         {[.]}
     </template>
@@ -26,7 +83,7 @@
                 <option value="sine">Sine</option>
             </select>
             <template fn="fader:detune,cents,-2400,2400" include="components/sparky/fader.html#fader"></template>
-            <template fn="fader:pan,a,-1,1"       include="components/sparky/fader.html#fader"></template>
+            <template fn="fader:pan,pan,-1,1"       include="components/sparky/fader.html#fader"></template>
             <template fn="fader:mix,dB,0,1,pow,3" include="components/sparky/fader.html#fader"></template>
         </div>
 
@@ -83,13 +140,25 @@
 </head>
 
 <body>
+    <h1><pre>label: {[label]}</pre></h1>
+
     <template is="sparky" fn="soundstage">
-        <pre>label: {[label]}</pre>
-        <div fn="get:nodes each">
-            <pre>id:   {[id]}<br/>type: {[type]}<br/></pre>
-            <template fn="pass" include="node-{[type]}">
-                <template fn="get:gain" include="components/sparky/fader.html#fader"></template>
-            </template>
+        <div class="nodes-block block">
+            <h2 class="label-block block">Nodes</h2>
+            <div class="node-block block" fn="get:nodes each">
+                <pre>{[id]}</pre>
+                <template fn="pass" include="node-{[type]}">
+                    <template fn="get:gain" include="components/sparky/fader.html#fader"></template>
+                </template>
+            </div>
+
+            <div fn="get:connections" class="connections-block block">
+                <div fn="each">{[.]}</div>
+            </div>
+        </div>
+
+        <div class="controls-block block">
+            <h2>Controls</h2>
         </div>
     </template>
 
@@ -275,7 +344,7 @@
     };
 
     functions.pass = function(node, scopes) {
-        console.log(node);
+        //console.log(node);
     };
 
     functions.set = function(node, scopes, params) {
@@ -286,7 +355,7 @@
     </script>
 
     <script type="module" title="fader">
-    import { cache, id, Observer, observe, set } from '../fn/fn.js';
+    import { cache, id, Observer, observe, set, overload } from '../fn/fn.js';
     import Sparky, { functions } from '../sparky/sparky.js';
 
     let faderId = 0;
@@ -302,6 +371,44 @@
             ix: id
         }
     };
+
+    const transformOutput = overload(id, {
+        pan: function(unit, value) {
+            return value === 0 ? '0' :
+                value.toFixed(2) ;
+        },
+
+        Hz: function(unit, value) {
+            return value < 1 ? value.toFixed(2) :
+                value > 1000 ? (value / 1000).toPrecision(3) :
+                value.toPrecision(3) ;
+        },
+
+        default: function(unit, value) {
+            return value < 1 ? (value * 1000).toPrecision(3) :
+                value > 1000 ? (value / 1000).toPrecision(3) :
+                value.toPrecision(3) ;
+        }
+    });
+
+    const transformUnit = overload(id, {
+        pan: function(unit, value) {
+            return value < 0 ? 'left' :
+                value > 0 ? 'right' :
+                'center' ;
+        },
+
+        Hz: function(unit, value) {
+            return value > 1000 ? 'k' + unit :
+                unit ;
+        },
+
+        default: function(unit, value) {
+            return value < 1 ? 'm' + unit :
+                value > 1000 ? 'k' + unit :
+                unit ;
+        }
+    });
 
     const toFaderScope = function(param, name, label, unit, min, max, transform, n) {
         const scope = Observer({
@@ -320,24 +427,30 @@
             ticks:       [0, 25, 50, 75, 100]
         });
 
+        let editing = false;
+
         // inputValue and outputValue are dependent on value
         observe('value', (value) => {
-            scope.outputValue = scope.value;
+            editing = true;
+            scope.outputValue = transformOutput(unit, value);
+            scope.unit        = transformUnit(unit, value);
             scope.inputValue = (scope.n === undefined ?
                 transforms[scope.transform || 'default'].ix(value) :
                 transforms[scope.transform || 'default'].ix(scope.n, value)
             );
+            editing = false;
         }, scope);
 
         // Value may be controlled via the param
         observe(name, (value) => {
+            if (editing) { return; }
             scope.value = value;
         }, param);
 
         // Or via inputValue
         observe('inputValue', (value) => {
-            scope.value
-            = param[name]
+            param[name]
+            = scope.value
             = (scope.n === undefined ?
                 transforms[scope.transform || 'default'].tx(value) :
                 transforms[scope.transform || 'default'].tx(scope.n, value)
@@ -351,12 +464,13 @@
 
     functions.fader = function(node, scopes, params) {
         return scopes.map((module) => {
-            const param = typeof module[params[0]] === 'object' ?
-                typeof module[params[0]] :
+            const type = typeof module[params[0]];
+            const param = type === 'object' ?
+                module[params[0]] :
                 module ;
             return toFaderScope(
                 param,
-                typeof module[params[0]] === 'object' ? 'value' : params[0],
+                type === 'object' ? 'value' : params[0],
                 params[0], params[1], params[2], params[3], params[4], params[5]);
         });
     };

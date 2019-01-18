@@ -170,8 +170,10 @@ export default function Soundstage(data = nothing, settings = nothing) {
             }
         });
 
-        // Notify observer that nodes has mutated
-        notify(stage.nodes, '.');
+        // Notify observers that objects have mutated
+        notify(stage.nodes, '');
+        notify(stage.connections, '');
+        notify(stage.controls, '');
     });
 
 
