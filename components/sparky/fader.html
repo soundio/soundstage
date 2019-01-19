@@ -14,15 +14,17 @@
 
 .fader-control > label {
     order: 0;
-    width: calc(100% - 2.5625rem);
+    width: auto;
     margin-left: -0.4375rem;
+    margin-right: auto;
     font-size: 0.8125rem;
 }
 
 .fader-control > output {
     order: 1;
-    width: 3.4375rem;
+    margin-left: auto;
     margin-right: -0.4375rem;
+    width: auto;
     font-size: 0.8125rem;
     text-align: right;
 }
@@ -80,7 +82,162 @@ output > abbr {
             <input class="masked" type="radio" name="fader-{[..id]}-tick-{[1]}" id="fader-{[..id]}-tick-{[1]}" value="{[1]}" sparky-value="{[..value|float-string]}"/>
             <label for="fader-{[..id]}-tick-{[1]}">{[1]}</label>
         </div-->
-        <input type="range" name="{[id]}-{[name]}" id="{[id]}" value="{[inputValue]}" min="{[min]}" max="{[max]}" step="{[step]}" />
+        <input type="range" name="{[id]}-{[name]}" id="{[id]}" value="{[inputValue]}" min="0" max="1" step="{[step]}" />
         <output>{[outputValue]}<abbr>{[unit]}</abbr></output>
     </div>
 </template>
+
+<!--script type="module" title="fader">
+import { cache, id, Observer, Target, observe, set, overload, todB } from '../fn/fn.js';
+import Sparky, { functions } from '../sparky/sparky.js';
+import { isAudioParam, getValueAtTime, automate } from './soundstage.js';
+
+let faderId = 0;
+
+const transforms = {
+    pow: {
+        tx: function(n, value) { return Math.pow(value, n); },
+        ix: function(n, value) { return Math.pow(value, 1/n); }
+    },
+
+    default: {
+        tx: id,
+        ix: id
+    }
+};
+
+const transformOutput = overload(id, {
+    pan: function(unit, value) {
+        return value === 0 ? '0' :
+            value.toFixed(2) ;
+    },
+
+    dB: function(unit, value) {
+        value = todB(value) ;
+        return isFinite(value) ?
+            value < -1 ? value.toPrecision(3) :
+                value.toFixed(2) :
+            // Allow Infinity to pass through as it is already gracefully
+            // rendered by Sparky
+            value ;
+    },
+
+    Hz: function(unit, value) {
+        return value < 1 ? value.toFixed(2) :
+            value > 1000 ? (value / 1000).toPrecision(3) :
+            value.toPrecision(3) ;
+    },
+
+    default: function(unit, value) {
+        return value < 1 ? (value * 1000).toPrecision(3) :
+            value > 1000 ? (value / 1000).toPrecision(3) :
+            value.toPrecision(3) ;
+    }
+});
+
+const transformUnit = overload(id, {
+    pan: function(unit, value) {
+        return value < 0 ? 'left' :
+            value > 0 ? 'right' :
+            'center' ;
+    },
+
+    dB: id,
+
+    Hz: function(unit, value) {
+        return value > 1000 ? 'k' + unit :
+            unit ;
+    },
+
+    default: function(unit, value) {
+        return value < 1 ? 'm' + unit :
+            value > 1000 ? 'k' + unit :
+            unit ;
+    }
+});
+
+const toFaderScope = function(module, name, get, set, unit, min, max, transform, n) {
+    const scope = Observer({
+        id:          'fader-' + (faderId++),
+        name:        name,
+        label:       name || '',
+        value:       0,
+        inputValue:  0,
+        outputValue: 0,
+        min:         min,
+        max:         max,
+        step:        'any',
+        unit:        unit || '',
+        transform:   transform || '',
+        n:           n || undefined,
+        ticks:       [0, 25, 50, 75, 100]
+    });
+
+    let changing = undefined;
+
+    // inputValue and outputValue are dependent on value
+    observe('value', (value) => {
+        changing = changing || 'value';
+
+        scope.outputValue = transformOutput(unit, value);
+        scope.unit        = transformUnit(unit, value);
+
+        if (changing !== 'inputValue') {
+            scope.inputValue = (scope.n === undefined ?
+                transforms[scope.transform || 'default'].ix(value) :
+                transforms[scope.transform || 'default'].ix(scope.n, value)
+            );
+        }
+
+        changing = changing === 'value' ? undefined : changing ;
+    }, scope);
+
+    // Value may be controlled via the param
+    observe(name, (value) => {
+        changing = changing || 'param';
+        scope.value = get();
+        changing = changing === 'param' ? undefined : changing ;
+    }, module);
+
+    // Or via inputValue
+    observe('inputValue', (value) => {
+        changing = changing || 'inputValue';
+
+        value = (scope.n === undefined ?
+            transforms[scope.transform || 'default'].tx(value) :
+            transforms[scope.transform || 'default'].tx(scope.n, value)
+        );
+
+        if (changing !== 'param') { set(value); }
+        if (changing !== 'value') { scope.value = value; }
+
+        changing = changing === 'inputValue' ? undefined : changing ;
+    }, scope);
+
+    return scope;
+};
+
+functions.fader = function(node, scopes, params) {
+    const name = params[0];
+
+    return scopes.map((scope) => {
+        // Make sure we're dealing with the param and not it's
+        // observer proxy, else the param's method's don't work
+        const module  = Target(scope);
+        const context = module.context;
+        const param   = module[name];
+        const isParam = isAudioParam(param);
+
+        const get = isParam ?
+            (value) => getValueAtTime(module[name], value, module.context.currentTime) :
+            (value) => module[name] ;
+
+        const set = isParam ?
+            // param, time, curve, value, duration
+            (value) => automate(param, context.currentTime, 'step', value) :
+            (value) => scope[name] = value ;
+
+        return toFaderScope(module, name, get, set, params[1], params[2], params[3], params[4], params[5]);
+    });
+};
+</script-->

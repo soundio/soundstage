@@ -59,41 +59,41 @@ export const types = {
 };
 
 export const transforms = {
-    'pass': function linear(min, max, c, n) {
+    'pass': function linear(min, max, current, n) {
         return n;
     },
 
-    'linear': function linear(min, max, c, n) {
+    'linear': function linear(min, max, current, n) {
         return n * (max - min) + min;
     },
 
-    'quadratic': function quadratic(min, max, c, n) {
+    'quadratic': function quadratic(min, max, current, n) {
         return Math.pow(n, 2) * (max - min) + min;
     },
 
-    'cubic': function pow3(min, max, c, n) {
+    'cubic': function pow3(min, max, current, n) {
         return Math.pow(n, 3) * (max - min) + min;
     },
 
-    'logarithmic': function log(min, max, c, n) {
+    'logarithmic': function log(min, max, current, n) {
         return min * Math.pow(max / min, n);
     },
 
-    'frequency': function toggle(min, max, c, n) {
+    'frequency': function toggle(min, max, current, n) {
         return (MIDI.numberToFrequency(n) - min) * (max - min) / MIDI.numberToFrequency(127) + min ;
     },
 
-    'toggle': function toggle(min, max, c, n) {
+    'toggle': function toggle(min, max, current, n) {
         if (n > 0) {
             return current <= min ? max : min ;
         }
     },
 
-    'switch': function toggle(min, max, c, n) {
+    'switch': function toggle(min, max, current, n) {
         return n < 0.5 ? min : max ;
     },
 
-    'continuous': function toggle(min, max, c, n) {
+    'continuous': function toggle(min, max, current, n) {
         return current + 64 - n ;
     }
 };

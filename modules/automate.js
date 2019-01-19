@@ -32,10 +32,17 @@ export const curves = {
     }
 };
 
+export function isAudioContext(object) {
+	return window.AudioContext && window.AudioContext.prototype.isPrototypeOf(object);
+}
 
+export function isAudioNode(object) {
+	return window.AudioNode && window.AudioNode.prototype.isPrototypeOf(object);
+}
 
-
-
+export function isAudioParam(object) {
+	return window.AudioParam && window.AudioParam.prototype.isPrototypeOf(object);
+}
 
 
 
