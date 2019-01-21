@@ -15,8 +15,8 @@ const graph = {
         { id: 'osc',        type: 'oscillator', data: { type: 'triangle' } },
         { id: 'ldepth',     type: 'gain',       data: { channelCount: 1, channelCountMode: 'explicit', gain: 0 } },
         { id: 'rdepth',     type: 'gain',       data: { channelCount: 1, channelCountMode: 'explicit', gain: 0 } },
-        { id: 'ldelay',     type: 'delay',      data: { channelCount: 1, maxDelayTime: 2 } },
-        { id: 'rdelay',     type: 'delay',      data: { channelCount: 1, maxDelayTime: 2 } },
+        { id: 'ldelay',     type: 'delay',      data: { channelCount: 1, maxDelayTime: 4 } },
+        { id: 'rdelay',     type: 'delay',      data: { channelCount: 1, maxDelayTime: 4 } },
         { id: 'wet',        type: 'gain',       data: { channelCount: 2, gain: 0.707106781 } },
         { id: 'dry',        type: 'gain',       data: { channelCount: 2, gain: 0.707106781 } },
         { id: 'merger',     type: 'merger',     data: { numberOfInputs: 2 } },
@@ -56,7 +56,7 @@ const graph = {
 
 const defaults = {
 	delay:     0.012,
-	frequency: 0.333,
+	frequency: 0.333333333,
 	depth:     0.0015609922621756954,
 	feedback:  0.0625
 };

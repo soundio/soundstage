@@ -1,5 +1,9 @@
-import { id } from '../../fn/fn.js';
+import { capture, id, toLevel } from '../../fn/fn.js';
 import { numberToFrequency } from '../../midi/midi.js';
+
+const config = {
+
+};
 
 export const transforms = {
     'pass': {
@@ -49,6 +53,24 @@ export const transforms = {
         }
     },
 
+    'logarithmic-zero': {
+        // The bottom 1/9th of the fader travel is linear from 0 to min, while
+        // the top 8/9ths is dB linear from min to max.
+        tx: (value, min, max) => {
+            if (min <= 0) { throw new Error('logarithmic transform min cannot be ' + min); }
+            return value <= 0.1111111111111111 ?
+                value * 9 * min :
+                min * Math.pow(max / min, (value - 0.1111111111111111) * 1.125);
+        },
+
+        ix: (value, min, max) => {
+            if (min <= 0) { throw new Error('logarithmic transform min cannot be ' + min); }
+            return value <= min ?
+                value / min / 9 :
+                Math.log((0.1111111111111111 + value / 1.125) / min) / Math.log(max / min) ;
+        }
+    },
+
     'frequency': {
         tx: function toggle(value, min, max) {
             return (numberToFrequency(value) - min) * (max - min) / numberToFrequency(127) + min ;
@@ -93,3 +115,8 @@ export const transforms = {
         }
     }
 };
+
+export const parseValue = capture(/-?[\d\.]+\s*(?:(dB))/, {
+    // dB
+    1: (n, tokens) => toLevel(parseFloat(tokens[0]))
+}, null);

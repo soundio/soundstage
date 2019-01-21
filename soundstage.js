@@ -12,5 +12,5 @@ print(' - http://github.com/soundio/soundstage');
 import Soundstage from './modules/soundstage.js';
 
 export default Soundstage;
-export { transforms } from './modules/transforms.js';
+export { transforms, parseValue } from './modules/transforms.js';
 export { automate, isAudioParam, getValueAtTime } from './modules/automate.js';

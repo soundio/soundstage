@@ -41,8 +41,8 @@ assign(Clock.prototype, {
 
 	stop: function(time) {
 		// If clock is running, don't start it again
-		if (this.startTime === undefined) {
-			if (DEBUG) { throw new Error('Clock .stop(time) attempted on unstarted clock'); }
+		if (this.startTime === undefined || this.startTime < this.stopTime) {
+			if (DEBUG) { throw new Error('Clock .stop(time) attempted on stopped clock'); }
 			else { return this; }
 		}
 

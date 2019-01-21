@@ -171,9 +171,12 @@ export default function Soundstage(data = nothing, settings = nothing) {
         });
 
         // Notify observers that objects have mutated
-        notify(stage.nodes, '');
-        notify(stage.connections, '');
-        notify(stage.controls, '');
+        // Todo: work out what's happening in Observer that we have to do
+        // controls differently - something to do with immutable key / frozen state,
+        // I suspect...
+        notify(stage.nodes, '.');
+        notify(stage.connections, '.');
+        notify(stage, 'controls');
     });
 
 

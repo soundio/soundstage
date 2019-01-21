@@ -13,12 +13,19 @@
     window.DEBUG = true;
     </script>
 
+    <link rel="stylesheet" href="components/sparky/midi/style.css" />
+    <link rel="stylesheet" href="components/sparky/fader/style.css" />
+
     <style>
         html,
         body {
             margin: 0;
             padding: 0;
             overflow: hidden;
+        }
+
+        html {
+            background-color: #65757b;
         }
 
         body {
@@ -37,7 +44,7 @@
             max-height: 100vh;
         }
 
-        body > .controls-block {
+        body > .bar-block {
             grid-area: controls;
         }
 
@@ -62,11 +69,12 @@
             padding: 9px;
             height: min-content;
             background-color: #dfe4ec;
+            border-radius: 0.25rem;
         }
 
-        .controls-block {
+        .bar-block {
             display: flex;
-            background-color: #566789;
+            background-color: #2c3a3e;
         }
 
         .sources-block {
@@ -94,7 +102,7 @@
     </template>
 
     <template id="node-/soundstage/nodes/tone-synth.js" fn="get:data">
-        <template fn="fader:gain,dB,0,1,cubic"      include="components/sparky/fader.html#fader"></template>
+        <template fn="fader:gain,dB,'-60dB',1,logarithmic-zero" include="components/sparky/fader/template.html#fader"></template>
         <div class="sources-block block">
             <div fn="get:sources each">
                 <select value="{[type]}">
@@ -102,9 +110,9 @@
                     <option value="square">Square</option>
                     <option value="sine">Sine</option>
                 </select>
-                <template fn="fader:detune,cents,-2400,2400" include="components/sparky/fader.html#fader"></template>
-                <template fn="fader:pan,pan,-1,1"       include="components/sparky/fader.html#fader"></template>
-                <template fn="fader:mix,dB,0,1,cubic" include="components/sparky/fader.html#fader"></template>
+                <template fn="fader:detune,cents,-2400,2400" include="components/sparky/fader/template.html#fader"></template>
+                <template fn="fader:pan,pan,-1,1"       include="components/sparky/fader/template.html#fader"></template>
+                <template fn="fader:mix,dB,'-48dB',1,logarithmic-zero" include="components/sparky/fader/template.html#fader"></template>
             </div>
         </div>
 
@@ -130,28 +138,42 @@
             </div>
         </div>
 
-        <template fn="fader:pitch,semitones,-2,2"  include="components/sparky/fader.html#fader"></template>
-        <template fn="fader:frequency,Hz,20,16000,logarithmic" include="components/sparky/fader.html#fader"></template>
-        <template fn="fader:Q,Q,0.2,20"            include="components/sparky/fader.html#fader"></template>
-        <template fn="fader:output,dB,0,1,cubic"   include="components/sparky/fader.html#fader"></template>
+        <template fn="fader:pitch,semitones,-2,2"    include="components/sparky/fader/template.html#fader"></template>
+        <template fn="fader:frequency,Hz,20,16000,logarithmic" include="components/sparky/fader/template.html#fader"></template>
+        <template fn="fader:Q,Q,0.2,20"              include="components/sparky/fader/template.html#fader"></template>
+        <template fn="fader:output,dB,'-48dB',1,logarithmic-zero" include="components/sparky/fader/template.html#fader"></template>
     </template>
 
     <template id="node-/soundstage/nodes/flanger.js" fn="get:data">
-        <template fn="fader:gain,dB,0,1,cubic"       include="components/sparky/fader.html#fader"></template>
-        <template fn="fader:delay,s,0,2,quadratic"   include="components/sparky/fader.html#fader"></template>
-        <template fn="fader:frequency,Hz,0.0625,40,logarithmic" include="components/sparky/fader.html#fader"></template>
-        <template fn="fader:depth,dB,0,0.25,cubic"   include="components/sparky/fader.html#fader"></template>
-        <template fn="fader:feedback,dB,0,1,cubic"   include="components/sparky/fader.html#fader"></template>
-        <template fn="fader:wet,dB,0,1,cubic"        include="components/sparky/fader.html#fader"></template>
-        <template fn="fader:dry,dB,0,1,cubic"        include="components/sparky/fader.html#fader"></template>
+        <template fn="fader:gain,dB,'-48dB',1,logarithmic-zero" include="components/sparky/fader/template.html#fader"></template>
+        <template fn="fader:delay,s,0,2,quadratic"   include="components/sparky/fader/template.html#fader"></template>
+        <template fn="fader:frequency,Hz,0.083333333,90,logarithmic-zero" include="components/sparky/fader/template.html#fader"></template>
+        <template fn="fader:depth,s,0,0.2,linear,'±'" include="components/sparky/fader/template.html#fader"></template>
+        <template fn="fader:feedback,dB,'-36dB',1,logarithmic-zero" include="components/sparky/fader/template.html#fader"></template>
+        <template fn="fader:wet,dB,'-48dB',1,logarithmic-zero" include="components/sparky/fader/template.html#fader"></template>
+        <template fn="fader:dry,dB,'-48dB',1,logarithmic-zero" include="components/sparky/fader/template.html#fader"></template>
     </template>
 
     <template id="node-compressor" fn="get:data">
-        {[.]}
+        <template fn="fader:threshold,'',-60,0,linear" include="components/sparky/fader/template.html#fader"></template>
+        <template fn="fader:ratio,'',1,20,cubic"       include="components/sparky/fader/template.html#fader"></template>
+        <template fn="fader:knee,'',0,40,cubic"        include="components/sparky/fader/template.html#fader"></template>
+        <template fn="fader:attack,s,0,1,quadratic"    include="components/sparky/fader/template.html#fader"></template>
+        <template fn="fader:release,s,0,1,quadratic"   include="components/sparky/fader/template.html#fader"></template>
     </template>
 
     <template id="node-output" fn="get:data">
         {[name]} {[channels]}
+        <!--select value="{[channels|join:',']}">
+            <options value="1,2">1-2</option>
+            <options value="1">1</option>
+            <options value="2">2</option>
+        </select-->
+    </template>
+
+    <template id="node-mix" fn="get:data">
+        <template fn="fader:pan,pan,-1,1"      include="components/sparky/fader/template.html#fader"></template>
+        <template fn="fader:gain,dB,'-60dB',1,logarithmic-zero" include="components/sparky/fader/template.html#fader"></template>
     </template>
 
     <template id="node-/soundstage/nodes/metronome.js" fn="get:data">
@@ -160,7 +182,15 @@
         <ul>
             <li fn="get:events each">{[.]}</li>
         </ul>
-        <template fn="fader:gain,dB,0,1,cubic" include="components/sparky/fader.html#fader"></template>
+        <template fn="fader:gain,dB,'-60dB',1,logarithmic-zero" include="components/sparky/fader/template.html#fader"></template>
+    </template>
+
+    <template id="source-device-midi">
+        MIDI {[.]}
+    </template>
+
+    <template id="source-device-keys">
+        KEYS {[.]}
     </template>
 </head>
 
@@ -173,22 +203,59 @@
             <div class="node-block block" fn="get:nodes each">
                 <pre>{[id]}</pre>
                 <template fn="pass" include="node-{[type]}">
-                    <template fn="get:gain" include="components/sparky/fader.html#fader"></template>
+                    <template fn="get:gain" include="components/sparky/fader/template.html#fader"></template>
                 </template>
             </div>
 
-            <div fn="get:connections" class="connections-block block">
-                <div fn="each">{[.]}</div>
-            </div>
-        </div>
+            <template fn="get:connections">
+                <div class="connections-block block">
+                    <h2>Connections</h2>
+                    <pre fn="each">{[.]}</pre>
+                </div>
+            </template>
 
-        <div class="controls-block block">
-            <h2>Controls</h2>
+            <template fn="get:controls">
+                <div class="controls-block block">
+                    <h2>Controls</h2>
+                    <div fn="each">
+                        <pre>{[.]}</pre>
+                        <div fn="get:source" include="source-device-{[device]}"></div>
+                        <div fn="get:data">
+                            {[.]} {[latencyCompensation]}
+                            <label>Min</label>
+                            <input type="number" min="" max="" sparky-value={[min]} />
+                            <label>Max</label>
+                            <input type="number" min="" max="" sparky-value={[max]} />
+                            <label>Transform</label>
+                            <select sparky-value="{[transform]}">
+                                <option value="linear">Linear</option>
+                                <option value="logarithmic">Logarithmic</option>
+                                <option value="logarithmic-zero">Linear 0-min Logarithmic min-max</option>
+                                <option value="cubic">Cubic</option>
+                                <option value="toggle">Toggle</option>
+                                <option value="switch">Switch</option>
+                                <option value="continuous">Continuous</option>
+                            </select>
+                            <label>Latency compensation</label>
+                            <input type="checkbox" sparky-value={[latencyCompensation]} />
+                        </div>
+                    </div>
+                </div>
+            </template>
         </div>
     </template>
 
+    <div class="bar-block block">
+        <template is="sparky" fn="soundstage">
+            <template include="components/sparky/transport/template.html#transport"></template>
+            <a fn="midi-status" href="#">MIDI</a>
+        </template>
+    </div>
+
     <!-- Tests -->
     <script type="module">
+    import './components/sparky/fader/fns.js';
+    import './components/sparky/midi/fns.js';
 
     import * as Fn from '../fn/fn.js';
     window.Fn = Fn;
@@ -296,6 +363,15 @@
                     wet:       0.5
                 }
             }, {
+                id:    'delay-send',
+                type:  'mix',
+                label: 'Delay feed',
+                data: {
+                    pan: 0,
+                    mix: 1,
+                    mute: true
+                }
+            }, {
                 id:    'delay',
                 type:  '/soundstage/nodes/flanger.js',
                 label: 'Delay',
@@ -322,9 +398,11 @@
             connections: [
                 { source: 'input',      target: 'compressor' },
                 { source: 'compressor', target: 'flanger' },
-                { source: 'flanger',    target: 'delay' },
+                { source: 'flanger',    target: 'delay-send' },
+                { source: 'flanger',    target: 'output' },
+                { source: 'delay-send', target: 'delay' },
                 { source: 'delay',      target: 'output' },
-                { source: 'synth',      target: 'delay' },
+                { source: 'synth',      target: 'output' },
                 { source: 'metronome',  target: 'output' }
             ],
 
@@ -352,7 +430,16 @@
                 target: 'synth'
             }],
 
-            events: []
+            sequences: [{
+                id: 'test',
+                events: [
+                    [0, 'note', 49, 0.5, 1]
+                ]
+            }],
+
+            events: [
+                [0, 'sequence', 'test', 'synth', 2]
+            ]
         }, {
             notify: notify
         }));
@@ -375,147 +462,6 @@
     functions.set = function(node, scopes, params) {
         return scopes.tap((object) => {
             object[params[0]] = params[1];
-        });
-    };
-    </script>
-
-    <script type="module" title="fader">
-    import { cache, id, Observer, Target, observe, set, overload, todB } from '../fn/fn.js';
-    import Sparky, { functions } from '../sparky/sparky.js';
-    import { isAudioParam, getValueAtTime, automate, transforms } from './soundstage.js';
-
-    let faderId = 0;
-
-    const fadeDuration = 0.003;
-
-    const transformOutput = overload(id, {
-        pan: function(unit, value) {
-            return value === 0 ? '0' :
-                value.toFixed(2) ;
-        },
-
-        dB: function(unit, value) {
-            value = todB(value) ;
-            return isFinite(value) ?
-                value < -1 ? value.toPrecision(3) :
-                    value.toFixed(2) :
-                // Allow Infinity to pass through as it is already gracefully
-                // rendered by Sparky
-                value ;
-        },
-
-        Hz: function(unit, value) {
-            return value < 1 ? value.toFixed(2) :
-                value > 1000 ? (value / 1000).toPrecision(3) :
-                value.toPrecision(3) ;
-        },
-
-        default: function(unit, value) {
-            return value < 1 ? (value * 1000).toPrecision(3) :
-                value > 1000 ? (value / 1000).toPrecision(3) :
-                value.toPrecision(3) ;
-        }
-    });
-
-    const transformUnit = overload(id, {
-        pan: function(unit, value) {
-            return value < 0 ? 'left' :
-                value > 0 ? 'right' :
-                'center' ;
-        },
-
-        dB: id,
-
-        Hz: function(unit, value) {
-            return value > 1000 ? 'k' + unit :
-                unit ;
-        },
-
-        default: function(unit, value) {
-            return value < 1 ? 'm' + unit :
-                value > 1000 ? 'k' + unit :
-                unit ;
-        }
-    });
-
-    const toFaderScope = function(module, name, get, set, unit, min, max, transform, n) {
-        const scope = Observer({
-            id:          'fader-' + (faderId++),
-            name:        name,
-            label:       name || '',
-            value:       get(),
-            inputValue:  0,
-            outputValue: 0,
-            min:         min,
-            max:         max,
-            step:        'any',
-            unit:        unit || '',
-            transform:   transform || '',
-            n:           n || undefined,
-            ticks:       [0, 25, 50, 75, 100]
-        });
-
-        // A flag to tell us what is currently in control of changes
-        let changing = undefined;
-
-        // Value may be controlled via the param
-        observe(name, () => {
-            changing = changing || 'param';
-            scope.value = get();
-            changing = changing === 'param' ? undefined : changing ;
-        }, module);
-
-        // inputValue and outputValue are dependent on value
-        observe('value', (value) => {
-            changing = changing || 'value';
-            scope.outputValue = transformOutput(unit, value);
-            scope.unit        = transformUnit(unit, value);
-
-            if (changing !== 'inputValue') {
-                scope.inputValue = transforms[scope.transform || 'linear'].ix(value, scope.min, scope.max);
-            }
-
-            changing = changing === 'value' ? undefined : changing ;
-        }, scope);
-
-        // Value may be controlled be the input
-        observe('inputValue', (value) => {
-            changing = changing || 'inputValue';
-            value = transforms[scope.transform || 'linear'].tx(value, scope.min, scope.max) ;
-
-            if (changing !== 'param') { set(value); }
-            if (changing !== 'value') { scope.value = value; }
-
-            changing = changing === 'inputValue' ? undefined : changing ;
-        }, scope);
-
-        return scope;
-    };
-
-    functions.fader = function(node, scopes, params) {
-        const name = params[0];
-
-        return scopes.map((scope) => {
-            // Make sure we're dealing with the param and not it's
-            // observer proxy, else the param's method's don't work
-            const module  = Target(scope);
-            const context = module.context;
-            const param   = module[name];
-            const isParam = isAudioParam(param);
-
-            const get = isParam ?
-                (value) => getValueAtTime(module[name], value, module.context.currentTime) :
-                (value) => module[name] ;
-
-            const set = isParam ?
-                // param, time, curve, value, duration
-                (value) => {
-                    automate(param, context.currentTime, 'step', value);
-                    automate(param, context.currentTime + fadeDuration, 'linear', value);
-                } :
-                (value) => scope[name] = value ;
-
-            return toFaderScope(module, name, get, set, params[1], params[2], params[3], params[4], params[5]);
         });
     };
     </script>

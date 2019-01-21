@@ -1,0 +1,8 @@
+* {
+    transition: color 0.25s linear;
+}
+
+.flash {
+    color: red !important;
+    transition: color 0s linear;
+}

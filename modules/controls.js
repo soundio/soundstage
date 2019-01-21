@@ -67,7 +67,7 @@ function createControl(controls, getTarget, setting) {
 }
 
 export default function Controls(getTarget, settings) {
-    const controls = this;
+    const controls = [];
 
     // Set up routes from data
     if (settings) {
@@ -75,20 +75,22 @@ export default function Controls(getTarget, settings) {
             const route = createControl(controls, getTarget, setting);
             push(routes, route);
             return routes;
-        }, this);
+        }, controls);
     }
 
-    const sources = map(get('source'), this);
+    const sources = map(get('source'), controls);
     print('controls', sources.filter(isKeyboardInputSource).length + ' keyboard, ' + sources.filter(isMIDIInputSource).length + ' MIDI');
+    return controls;
 }
-
+/*
 define(Controls.prototype, {
     length: {
         writable: true,
+        enumerable: false,
         value: 0
     }
 });
-
+/*
 assign(Controls.prototype, {
     create: function(source, target) {
 
@@ -128,3 +130,4 @@ assign(Controls.prototype, {
         return Array.from(this);
     }
 });
+*/

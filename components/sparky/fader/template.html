@@ -1,0 +1,16 @@
+
+<link rel="stylesheet" href="./style.css" />
+
+<template id="fader">
+    <div class="fader-control control">
+        <label for="{[id]}">{[label]}</label>
+        <!--div class="tick" fn="get:ticks entries each">
+            <input class="masked" type="radio" name="fader-{[..id]}-tick-{[1]}" id="fader-{[..id]}-tick-{[1]}" value="{[1]}" sparky-value="{[..value|float-string]}"/>
+            <label for="fader-{[..id]}-tick-{[1]}">{[1]}</label>
+        </div-->
+        <input type="range" name="{[id]}-{[name]}" id="{[id]}" value="{[inputValue]}" min="0" max="1" step="{[step]}" />
+        <output>{[prefix]}{[outputValue]}<abbr>{[unit]}</abbr></output>
+    </div>
+</template>
+
+<script type="module" src="./fns.js"></script>

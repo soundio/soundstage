@@ -32,7 +32,7 @@ Returns the time at a given `beat`.
 import { each, get, id, insert, isDefined, Pool, toArray, by, noop, nothing, matches } from '../../fn/fn.js';
 import { Privates } from './utilities/privates.js';
 import { createId } from './utilities/utilities.js';
-import { isRateEvent, isMeterEvent, getDuration, getBeat, isValidEvent } from './event.js';
+import { isRateEvent, isMeterEvent, getDuration, getBeat, isValidEvent, eventValidationHint } from './event.js';
 import { automate, getValueAtTime } from './automate.js';
 import Sequence from './sequence.js';
 import { timeAtBeatOfEvents } from './location.js';
@@ -190,7 +190,7 @@ function processFrame(data, frame) {
 		let event = buffer[n];
 
 		if (!isValidEvent(event)) {
-			throw new Error('Invalid event ' + JSON.stringify(event));
+			throw new Error('Invalid event ' + JSON.stringify(event) + '. ' + eventValidationHint(event));
 		}
 
 		let command = new Command(event[0], event[1], event);

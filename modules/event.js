@@ -94,6 +94,17 @@ export function getDuration(e)  {
 		undefined ;
 }
 
+// Event types
+//
+// [time, "rate", number, curve]
+// [time, "meter", numerator, denominator]
+// [time, "note", number, velocity, duration]
+// [time, "noteon", number, velocity]
+// [time, "noteoff", number]
+// [time, "param", name, value, curve]
+// [time, "pitch", semitones]
+// [time, "chord", root, mode, duration]
+// [time, "sequence", name || events, target, duration, transforms...]
 
 export const isValidEvent = overload(get(1), {
 	note: (event) => {
@@ -122,5 +133,48 @@ export const isValidEvent = overload(get(1), {
 
 	default: function() {
 		return false;
+	}
+});
+
+// Event types
+//
+// [time, "rate", number, curve]
+// [time, "meter", numerator, denominator]
+// [time, "note", number, velocity, duration]
+// [time, "noteon", number, velocity]
+// [time, "noteoff", number]
+// [time, "param", name, value, curve]
+// [time, "pitch", semitones]
+// [time, "chord", root, mode, duration]
+// [time, "sequence", name || events, target, duration, transforms...]
+
+
+export const eventValidationHint = overload(get(1), {
+	note: (event) => {
+		return 'Should be of the form [time, "note", number, velocity, duration]';
+	},
+
+	noteon: (event) => {
+		return 'Should be of the form [time, "noteon", number, velocity]';
+	},
+
+	noteoff: (event) => {
+		return 'Should be of the form [time, "noteoff", number]';
+	},
+
+	sequence: (event) => {
+		return 'Should be of the form [time, "sequence", id, target, duration]';
+	},
+
+	meter: (event) => {
+		return 'Should be of the form [time, "meter", numerator, denominator]';
+	},
+
+	rate: (event) => {
+		return 'Should be of the form [time, "rate", number, curve]';
+	},
+
+	default: function() {
+		return 'Probably should be of the form [time, "param", name, value, curve]';
 	}
 });
