@@ -35,13 +35,21 @@
                 'nodes nodes nodes'
                 'sequencer sequencer sequencer'
                 'controls controls controls';
-            grid-template-rows: calc(100vh - 3.75rem) 0 3.75rem;
+            grid-template-rows: 1fr max-content 3.75rem;
+            height: 100vh;
         }
 
         body > .nodes-block {
             grid-area: nodes;
             min-height: 0;
             max-height: 100vh;
+        }
+
+        body > .events-block {
+            grid-area: sequencer;
+            min-height: calc(33.333333vh - 3.75rem);
+            color: white;
+            background-color: #252c2d;
         }
 
         body > .bar-block {
@@ -95,6 +103,8 @@
         .envelopes-block > * + * {
             margin-left: 9px;
         }
+
+        th, td { text-align: left; }
     </style>
 
     <template id="node-input" fn="get:data">
@@ -195,7 +205,7 @@
 </head>
 
 <body>
-    <h1><pre>label: {[label]}</pre></h1>
+    <!--h1><pre>label: {[label]}</pre></h1-->
 
     <template is="sparky" fn="soundstage">
         <div class="nodes-block block">
@@ -243,6 +253,43 @@
                 </div>
             </template>
         </div>
+
+        <div class="events-block block" fn="get:events">
+            <h2>Events</h2>
+            <pre>
+            <table>
+                <thead>
+                    <tr fn="each">
+                        <th>Beat</th>
+                        <th>Type</th>
+                        <th>Name</th>
+                        <th>Data</th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr fn="each">
+                        <td>{[0]}</td>
+                        <td>{[1]}</td>
+                        <td>{[2]}</td>
+                        <td>{[3]}</td>
+                        <td>{[4]}</td>
+                        <td>{[5]}</td>
+                        <td>{[6]}</td>
+                    </tr>
+                </tbody>
+            </table>
+            </pre>
+        </div>
+
+        <!--div class="sequences-block block" fn="get:sequences">
+            <h2>Sequences</h2>
+            <div fn="each">
+                {[.]}
+            </div>
+        </div-->
     </template>
 
     <div class="bar-block block">
@@ -339,7 +386,7 @@
 
                     output: 0.1
                 }
-            }, {
+            }, /*{
                 id:    'compressor',
                 type:  'compressor',
                 label: 'Compressor',
@@ -350,7 +397,7 @@
                 	ratio:     2.5,
                     threshold: -28
                 }
-            }, {
+            }, */{
                 id:    'flanger',
                 type:  '/soundstage/nodes/flanger.js',
                 label: 'Flanger',
@@ -396,8 +443,8 @@
             }],
 
             connections: [
-                { source: 'input',      target: 'compressor' },
-                { source: 'compressor', target: 'flanger' },
+                { source: 'input',      target: 'flanger' },
+                //{ source: 'compressor', target: 'flanger' },
                 { source: 'flanger',    target: 'delay-send' },
                 { source: 'flanger',    target: 'output' },
                 { source: 'delay-send', target: 'delay' },
