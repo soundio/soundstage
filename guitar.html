@@ -32,11 +32,20 @@
             display: grid;
             grid-gap: 0;
             grid-template-areas:
-                'nodes nodes nodes'
-                'sequencer sequencer sequencer'
-                'controls controls controls';
+                'inputs nodes nodes nodes outputs'
+                'inputs sequencer sequencer sequencer outputs'
+                'controls controls controls controls controls';
+            grid-template-columns: 0 1fr 1fr 1fr 0;
             grid-template-rows: 1fr max-content 3.75rem;
             height: 100vh;
+        }
+
+        body > .inputs-block {
+            grid-area: inputs;
+        }
+
+        body > .outputs-block {
+            grid-area: outputs;
         }
 
         body > .nodes-block {
@@ -205,9 +214,24 @@
 </head>
 
 <body>
-    <!--h1><pre>label: {[label]}</pre></h1-->
+    <div class="bar-block block">
+        <h1 class="logo-thumb thumb"><pre>label: {[label]}</pre></h1>
+
+        <template is="sparky" fn="soundstage">
+            <template include="components/sparky/transport/template.html#transport"></template>
+            <a fn="midi-status" href="#">MIDI</a>
+        </template>
+    </div>
 
     <template is="sparky" fn="soundstage">
+        <div class="inputs-block block" fn="get:'nodes[type=input]'">
+            <pre>{[id]}</pre>
+        </div>
+
+        <div class="outputs-block block" fn="get:'nodes[type=output]'">
+            <pre>{[id]}</pre>
+        </div>
+
         <div class="nodes-block block">
             <h2 class="label-block block">Nodes</h2>
             <div class="node-block block" fn="get:nodes each">
@@ -291,13 +315,6 @@
             </div>
         </div-->
     </template>
-
-    <div class="bar-block block">
-        <template is="sparky" fn="soundstage">
-            <template include="components/sparky/transport/template.html#transport"></template>
-            <a fn="midi-status" href="#">MIDI</a>
-        </template>
-    </div>
 
     <!-- Tests -->
     <script type="module">
