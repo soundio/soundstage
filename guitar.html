@@ -130,7 +130,7 @@
                     <option value="sine">Sine</option>
                 </select>
                 <template fn="fader:detune,cents,-2400,2400"   include="components/sparky/fader/template.html#fader"></template>
-                <template fn="fader:pan,lcr,-1,1,linear,[0.5]" include="components/sparky/fader/template.html#fader"></template>
+                <template fn="fader:pan,lcr,-1,1,linear,[0]" include="components/sparky/fader/template.html#fader"></template>
                 <template fn="fader:mix,dB,'-48dB',1,logarithmic-zero" include="components/sparky/fader/template.html#fader"></template>
             </div>
         </div>
@@ -191,8 +191,8 @@
     </template>
 
     <template id="node-mix" fn="get:data">
-        <template fn="fader:pan,lcr,-1,1,linear,[0.5]"      include="components/sparky/fader/template.html#fader"></template>
-        <template fn="fader:gain,dB,'-60dB',1,logarithmic-zero,[0.015625,0.03125,0.0625,0.125,0.25,0.5]" include="components/sparky/fader/template.html#fader"></template>
+        <template fn="fader:pan,lcr,-1,1,linear,[0]"      include="components/sparky/fader/template.html#fader"></template>
+        <template fn="fader:gain,dB,'-60dB',1,logarithmic-zero,[0.0009765625,0.001953125,0.00390625,0.0078125,0.015625,0.03125,0.0625,0.125,0.25,0.5]" include="components/sparky/fader/template.html#fader"></template>
     </template>
 
     <template id="node-/soundstage/nodes/metronome.js" fn="get:data">

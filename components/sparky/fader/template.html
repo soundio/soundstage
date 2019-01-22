@@ -2,12 +2,12 @@
 <link rel="stylesheet" href="./style.css" />
 
 <template id="fader">
-    <div class="fader-control control">
+    <div fn="change" class="fader-control control">
         <label for="{[id]}">{[label]}</label>
-        <!--div class="tick" fn="get:ticks entries each">
-            <input class="masked" type="radio" name="fader-{[..id]}-tick-{[1]}" id="fader-{[..id]}-tick-{[1]}" value="{[1]}" sparky-value="{[..value|float-string]}"/>
-            <label for="fader-{[..id]}-tick-{[1]}">{[1]}</label>
-        </div-->
+        <div class="tick" fn="get:ticks each" style="left: {[inputValue|multiply:100]}%">
+            <input class="masked" style="position: absolute; top: -30000px;" type="radio" name="{[faderId]}-tick" id="{[faderId]}-tick-{[value]}" value="{[inputValue]}"/>
+            <label for="{[faderId]}-tick-{[value]}">{[outputValue]}</label>
+        </div>
         <input type="range" name="{[id]}-{[name]}" id="{[id]}" sparky-value="{[inputValue]}" min="0" max="1" step="{[step]}" />
         <output>{[prefix]}{[outputValue]}<abbr>{[unit]}</abbr></output>
     </div>

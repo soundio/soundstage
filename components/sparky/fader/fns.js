@@ -57,6 +57,12 @@ const transformUnit = overload(id, {
     }
 });
 
+const toTickScope = function(value) {
+    return {
+
+    }
+};
+
 const toFaderScope = function(module, name, get, set, unit, min, max, transform, ticks, prefix) {
     const scope = Observer({
         id:          'fader-' + (faderId++),
@@ -70,9 +76,17 @@ const toFaderScope = function(module, name, get, set, unit, min, max, transform,
         step:        'any',
         prefix:      prefix,
         unit:        unit || '',
-        transform:   transform || '',
-        // Make ticks immutable - stops Sparky unnecesarily observing changes
-        ticks:       Object.freeze(ticks) || []
+        transform:   transform || ''
+    });
+
+    // Make ticks immutable - stops Sparky unnecesarily observing changes
+    scope.ticks = (ticks || []).map((value) => {
+        return Object.freeze({
+            faderId:     scope.id,
+            value:       value,
+            inputValue:  transforms[scope.transform || 'linear'].ix(value, scope.min, scope.max),
+            outputValue: transformOutput(scope.unit, value).replace('.0','')
+        });
     });
 
     // A flag to tell us what is currently in control of changes
@@ -145,3 +159,14 @@ functions.fader = function(node, scopes, params) {
         return toFaderScope(module, name, get, set, params[1], min, max, params[4], params[5], params[6]);
     });
 };
+
+functions.change = function(node, input) {
+    let scope;
+    node.addEventListener('input', (e) => {
+        if (!scope) { return; }
+        if (e.target.type !== 'radio') { return; }
+        scope.inputValue = parseFloat(e.target.value);
+        if (e.target.type === 'radio') { e.target.checked = false; }
+    });
+    return input.tap((object) => scope = object)
+}
