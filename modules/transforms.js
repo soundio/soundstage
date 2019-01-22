@@ -12,42 +12,27 @@ export const transforms = {
     },
 
     'linear': {
-        tx: function(value, min, max) {
-            return value * (max - min) + min;
-        },
-
-        ix: function(value, min, max) {
-            return (value - max) / (max - min);
-        }
+        tx: (value, min, max) => value * (max - min) + min,
+        ix: (value, min, max) => (value - min) / (max - min)
     },
 
     'quadratic': {
-        tx: function(value, min, max) {
-            return Math.pow(value, 2) * (max - min) + min;
-        },
-
-        ix: function(value, min, max) {
-            return Math.pow((value - min) / (max - min), 1/2);
-        }
+        tx: (value, min, max) => Math.pow(value, 2) * (max - min) + min,
+        ix: (value, min, max) => Math.pow((value - min) / (max - min), 1/2)
     },
 
     'cubic': {
-        tx: function(value, min, max) {
-            return Math.pow(value, 3) * (max - min) + min;
-        },
-
-        ix: function(value, min, max) {
-            return Math.pow((value - min) / (max - min), 1/3);
-        }
+        tx: (value, min, max) => Math.pow(value, 3) * (max - min) + min,
+        ix: (value, min, max) => Math.pow((value - min) / (max - min), 1/3)
     },
 
     'logarithmic': {
-        tx: function(value, min, max) {
+        tx: (value, min, max) => {
             if (!min) { throw new Error('logarithmic transform min cannot be ' + min); }
             return min * Math.pow(max / min, value);
         },
 
-        ix: function(value, min, max) {
+        ix: (value, min, max) => {
             if (!min) { throw new Error('logarithmic transform min cannot be ' + min); }
             return Math.log(value / min) / Math.log(max / min);
         }
@@ -66,13 +51,13 @@ export const transforms = {
         ix: (value, min, max) => {
             if (min <= 0) { throw new Error('logarithmic transform min cannot be ' + min); }
             return value <= min ?
-                value / min / 9 :
-                Math.log((0.1111111111111111 + value / 1.125) / min) / Math.log(max / min) ;
+                (value / min) / 9 :
+                0.1111111111111111 + (Math.log(value / min) / Math.log(max / min)) / 1.125 ;
         }
     },
 
     'frequency': {
-        tx: function toggle(value, min, max) {
+        tx: (value, min, max) => {
             return (numberToFrequency(value) - min) * (max - min) / numberToFrequency(127) + min ;
         },
 

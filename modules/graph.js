@@ -62,8 +62,8 @@ export default function Graph(context, requests, data, api) {
         data.nodes ?
             data.nodes.map(function(data) {
                 return (requests[data.type] || requests.default)(context, data, api)
-                .then(function(object) {
-                    nodes.push(new Node(graph, data.type, data.id, object));
+                .then(function(module) {
+                    nodes.push(new Node(graph, data.type, data.id, module));
                 });
             }) :
             nothing

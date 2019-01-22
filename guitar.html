@@ -129,8 +129,8 @@
                     <option value="square">Square</option>
                     <option value="sine">Sine</option>
                 </select>
-                <template fn="fader:detune,cents,-2400,2400" include="components/sparky/fader/template.html#fader"></template>
-                <template fn="fader:pan,pan,-1,1"       include="components/sparky/fader/template.html#fader"></template>
+                <template fn="fader:detune,cents,-2400,2400"   include="components/sparky/fader/template.html#fader"></template>
+                <template fn="fader:pan,lcr,-1,1,linear,[0.5]" include="components/sparky/fader/template.html#fader"></template>
                 <template fn="fader:mix,dB,'-48dB',1,logarithmic-zero" include="components/sparky/fader/template.html#fader"></template>
             </div>
         </div>
@@ -167,7 +167,7 @@
         <template fn="fader:gain,dB,'-48dB',1,logarithmic-zero" include="components/sparky/fader/template.html#fader"></template>
         <template fn="fader:delay,s,0,2,quadratic"   include="components/sparky/fader/template.html#fader"></template>
         <template fn="fader:frequency,Hz,0.083333333,90,logarithmic-zero" include="components/sparky/fader/template.html#fader"></template>
-        <template fn="fader:depth,s,0,0.2,linear,'±'" include="components/sparky/fader/template.html#fader"></template>
+        <template fn="fader:depth,s,0,0.2,linear,false,'±'" include="components/sparky/fader/template.html#fader"></template>
         <template fn="fader:feedback,dB,'-36dB',1,logarithmic-zero" include="components/sparky/fader/template.html#fader"></template>
         <template fn="fader:wet,dB,'-48dB',1,logarithmic-zero" include="components/sparky/fader/template.html#fader"></template>
         <template fn="fader:dry,dB,'-48dB',1,logarithmic-zero" include="components/sparky/fader/template.html#fader"></template>
@@ -191,8 +191,8 @@
     </template>
 
     <template id="node-mix" fn="get:data">
-        <template fn="fader:pan,pan,-1,1"      include="components/sparky/fader/template.html#fader"></template>
-        <template fn="fader:gain,dB,'-60dB',1,logarithmic-zero" include="components/sparky/fader/template.html#fader"></template>
+        <template fn="fader:pan,lcr,-1,1,linear,[0.5]"      include="components/sparky/fader/template.html#fader"></template>
+        <template fn="fader:gain,dB,'-60dB',1,logarithmic-zero,[0.015625,0.03125,0.0625,0.125,0.25,0.5]" include="components/sparky/fader/template.html#fader"></template>
     </template>
 
     <template id="node-/soundstage/nodes/metronome.js" fn="get:data">
@@ -278,7 +278,7 @@
             </template>
         </div>
 
-        <div class="events-block block" fn="get:events">
+        <!--div class="events-block block" fn="get:events">
             <h2>Events</h2>
             <pre>
             <table>
@@ -306,7 +306,7 @@
                 </tbody>
             </table>
             </pre>
-        </div>
+        </div-->
 
         <!--div class="sequences-block block" fn="get:sequences">
             <h2>Sequences</h2>
@@ -368,8 +368,8 @@
                 data: {
                     sources: [
                         { type: 'triangle', detune: -1192, mix: 0.5, pan: -0.8 },
-                        { type: 'sine',   detune: 0, mix: 0.3, pan: 0.8 },
-                        { type: 'square', detune: -1208,     mix: 0.3, pan: 0.2 }
+                        { type: 'sine',   detune: 0, mix: 0.25, pan: 0.8 },
+                        { type: 'square', detune: -1208,     mix: 0.125, pan: 0.2 }
                     ],
 
                     gainEnvelope: {
@@ -403,7 +403,7 @@
 
                     output: 0.1
                 }
-            }, /*{
+            }, {
                 id:    'compressor',
                 type:  'compressor',
                 label: 'Compressor',
@@ -414,7 +414,7 @@
                 	ratio:     2.5,
                     threshold: -28
                 }
-            }, */{
+            }, {
                 id:    'flanger',
                 type:  '/soundstage/nodes/flanger.js',
                 label: 'Flanger',
@@ -432,7 +432,7 @@
                 label: 'Delay feed',
                 data: {
                     pan: 0,
-                    mix: 1,
+                    gain: 0.125,
                     mute: true
                 }
             }, {

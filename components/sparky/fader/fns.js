@@ -7,19 +7,20 @@ let faderId = 0;
 const fadeDuration = 0.003;
 
 const transformOutput = overload(id, {
-    pan: function(unit, value) {
-        return value === 0 ? '0' :
+    lcr: function(unit, value) {
+        return value === 0 ?
+            '0' :
             value.toFixed(2) ;
     },
 
     dB: function(unit, value) {
-        value = todB(value) ;
-        return isFinite(value) ?
-            value < -1 ? value.toPrecision(3) :
-                value.toFixed(2) :
+        const db = todB(value) ;
+        return isFinite(db) ?
+            db < -1 ? db.toPrecision(3) :
+                db.toFixed(2) :
             // Allow Infinity to pass through as it is already gracefully
             // rendered by Sparky
-            value ;
+            db ;
     },
 
     Hz: function(unit, value) {
@@ -36,7 +37,7 @@ const transformOutput = overload(id, {
 });
 
 const transformUnit = overload(id, {
-    pan: function(unit, value) {
+    lcr: function(unit, value) {
         return value < 0 ? 'left' :
             value > 0 ? 'right' :
             'center' ;
@@ -56,21 +57,22 @@ const transformUnit = overload(id, {
     }
 });
 
-const toFaderScope = function(module, name, get, set, unit, min, max, transform, prefix) {
+const toFaderScope = function(module, name, get, set, unit, min, max, transform, ticks, prefix) {
     const scope = Observer({
         id:          'fader-' + (faderId++),
         name:        name,
         label:       name || '',
         value:       get(),
         inputValue:  0,
-        outputValue: 0,
+        outputValue: '',
         min:         min,
         max:         max,
         step:        'any',
         prefix:      prefix,
         unit:        unit || '',
         transform:   transform || '',
-        ticks:       [0, 25, 50, 75, 100]
+        // Make ticks immutable - stops Sparky unnecesarily observing changes
+        ticks:       Object.freeze(ticks) || []
     });
 
     // A flag to tell us what is currently in control of changes
@@ -88,22 +90,18 @@ const toFaderScope = function(module, name, get, set, unit, min, max, transform,
         changing = changing || 'value';
         scope.outputValue = transformOutput(unit, value);
         scope.unit        = transformUnit(unit, value);
-
         if (changing !== 'inputValue') {
             scope.inputValue = transforms[scope.transform || 'linear'].ix(value, scope.min, scope.max);
         }
-
         changing = changing === 'value' ? undefined : changing ;
     }, scope);
 
     // Value may be controlled be the input
-    observe('inputValue', (value) => {
+    observe('inputValue', (inputValue) => {
         changing = changing || 'inputValue';
-        value = transforms[scope.transform || 'linear'].tx(value, scope.min, scope.max) ;
-
+        const value = transforms[scope.transform || 'linear'].tx(inputValue, scope.min, scope.max) ;
         if (changing !== 'param') { set(value); }
         if (changing !== 'value') { scope.value = value; }
-
         changing = changing === 'inputValue' ? undefined : changing ;
     }, scope);
 
@@ -130,7 +128,10 @@ functions.fader = function(node, scopes, params) {
         const isParam = isAudioParam(param);
 
         const get = isParam ?
-            (value) => getValueAtTime(module[name], value, module.context.currentTime) :
+            (value) => {
+                console.log(name, module[name].value, getValueAtTime(module[name], value, module.context.currentTime))
+                return getValueAtTime(module[name], value, module.context.currentTime)
+            } :
             (value) => module[name] ;
 
         const set = isParam ?
@@ -141,6 +142,6 @@ functions.fader = function(node, scopes, params) {
             } :
             (value) => scope[name] = value ;
 
-        return toFaderScope(module, name, get, set, params[1], min, max, params[4], params[5]);
+        return toFaderScope(module, name, get, set, params[1], min, max, params[4], params[5], params[6]);
     });
 };

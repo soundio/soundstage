@@ -13,6 +13,7 @@ const graph = {
 
 export default class Mix extends GainNode {
     constructor(context, options) {
+console.log(options)
         // Init gain node
         super(context, options);
 
