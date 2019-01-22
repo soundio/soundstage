@@ -192,7 +192,7 @@
 
     <template id="node-mix" fn="get:data">
         <template fn="fader:pan,lcr,-1,1,linear,[0]"      include="components/sparky/fader/template.html#fader"></template>
-        <template fn="fader:gain,dB,'-60dB',1,logarithmic-zero,[0.0009765625,0.001953125,0.00390625,0.0078125,0.015625,0.03125,0.0625,0.125,0.25,0.5]" include="components/sparky/fader/template.html#fader"></template>
+        <template fn="fader:gain,dB,'-60dB',1,logarithmic-zero,[0,0.0009765625,0.001953125,0.00390625,0.0078125,0.015625,0.03125,0.0625,0.125,0.25,0.5]" include="components/sparky/fader/template.html#fader"></template>
     </template>
 
     <template id="node-/soundstage/nodes/metronome.js" fn="get:data">
@@ -528,5 +528,61 @@
             object[params[0]] = params[1];
         });
     };
+
+
+
+
+
+
+
+
+
+
+
+
+
+    import { mount } from '../sparky/sparky.js';;
+
+    customElements.define('fader-control',
+      class extends HTMLElement {
+        constructor() {
+          super();
+
+          const content = document
+          .getElementById('fader-control-template')
+          .content
+          .cloneNode(true);
+
+          const renderer = mount(content);
+
+          renderer.push({
+              label: 'label'
+          });
+
+          const shadow = this
+          .attachShadow({mode: 'open'})
+          .appendChild(content);
+      }
+    });
     </script>
+
+    <template id="fader-control-template">
+      <link rel="stylesheet" href="./guitar.css" />
+      <label for="input">{[label]}</label>
+      <div class="tick" fn="get:ticks each" style="left: {[inputValue|multiply:100]}%">
+          <input class="masked" style="position: absolute; top: -30000px;" type="radio" name="{[faderId]}-tick" id="{[faderId]}-tick-{[value]}" value="{[inputValue]}"/>
+          <label for="{[faderId]}-tick-{[value]}">{[outputValue]}</label>
+      </div>
+      <input type="range" name="{[id]}-{[name]}" id="input" sparky-value="{[inputValue]}" min="0" max="1" step="any" />
+      <output>{[prefix]}{[outputValue]}<abbr>{[unit]}</abbr></output>
+      <slot></slot>
+    </template>
+
+    <fader-control>
+        Hope you get your head licked.
+    </fader-control>
+
+    <fader-control>
+        Hope you get your head pummelled.
+    </fader-control>
 </body>
