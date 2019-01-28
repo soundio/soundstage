@@ -22,23 +22,23 @@ export const distributors = {
     // [time, "chord", root, mode, duration]
     // [time, "sequence", name || events, target, duration, transforms...]
 
-    'note': function(target, time, type, name, value, duration) {
+    'note': function(target, time, type, name, value, duration, notify) {
         const number = typeof name === 'number' ? name : noteToNumber(name) ;
         return (target.start(time, number, value) || target).stop(time + duration, number, value);
     },
 
-    'noteon': function(target, time, type, name, value) {
+    'noteon': function(target, time, type, name, value, duration, notify) {
         const number = typeof name === 'number' ? name : noteToNumber(name) ;
         return target.start(time, number, value) || target;
     },
 
-    'noteoff': function(target, time, type, name, value) {
+    'noteoff': function(target, time, type, name, value, duration, notify) {
         const number = typeof name === 'number' ? name : noteToNumber(name) ;
         target.stop(time, number, value);
         return target;
     },
 
-    'sequence': function(target, time, type, sequenceId, rate, nodeId) {
+    'sequence': function(target, time, type, sequenceId, rate, nodeId, notify) {
         const sequence = target.sequences.find(matches({ id: sequenceId }));
 
         if (!sequence) {
@@ -66,9 +66,9 @@ export const distributors = {
 		};
     },
 
-    'param': function(target, time, type, name, value) {
+    'param': function(target, time, type, name, value, duration, notify) {
         const param = target[name];
-        automate(param, time, 'step', value);
+        automate(param, time, 'step', value, null, null, notify);
         return target;
     },
 
@@ -77,7 +77,7 @@ export const distributors = {
         return target;
     },
 
-    'default': function(target, time, type) {
+    'default': function(target, time, type, name, value, duration, notify) {
         print('Cannot cue unrecognised type "' + type + '". (Possible types: noteon, noteoff, noteparam, param).' )
     }
 };
@@ -92,23 +92,23 @@ export function distributeEvent(target, event) {
 
 
 
-export function Distribute(target) {
+export function Distribute(target, notify) {
     const notes = {};
 
     return function distributeEvents(time, type, name, value, duration) {
         if (type === 'noteon') {
             if (notes[name]) { return; }
             // target, time, type, name, value
-            notes[name] = distribute(target, time, type, name, value);
+            notes[name] = distribute(target, time, type, name, value, null, notify);
         }
         else if (type === 'noteoff') {
             // Choose a note target where there is one
             // target, time, type, name, value
-            distribute(notes[name] || target, time, type, name, value);
+            distribute(notes[name] || target, time, type, name, value, null, notify);
             notes[name] = undefined;
         }
         else {
-            distribute(target, time, type, name, value, duration);
+            distribute(target, time, type, name, value, duration, notify);
         }
     };
 };

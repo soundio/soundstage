@@ -45,6 +45,10 @@
     /*padding-bottom: 3px;*/
 }
 
+.tick > label {
+    cursor: pointer;
+}
+
 .fader-control > .tick::after {
     content: '';
     position: absolute;

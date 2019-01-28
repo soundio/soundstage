@@ -1,7 +1,155 @@
 
+
+[type="range"] {
+	-webkit-appearance: none !important;
+	background-color: transparent;
+	border-width: 0;
+
+	/* For IE height should be big enough to accomodate the thumb. */
+	height: 1.3125rem;
+
+	/*required for proper track sizing in FF*/
+	width: 100%;
+}
+
+/* [type="range"] track */
+
+[type="range"]::-webkit-slider-runnable-track {
+	height: 0.5625rem;
+	background: #2B3134;
+	border: none;
+	border-radius: 0.3125rem;
+}
+
+[type="range"]::-moz-range-track {
+	height: 0.5625rem;
+	background: #2B3134;
+	border: none;
+	border-radius: 0.3125rem;
+}
+
+[type="range"]::-moz-range-progress {
+	height: 0.5625rem;
+	background-color: #2B3134;
+	border-radius: 0.3125rem;
+}
+
+[type=range]::-ms-track {
+	height: 0.5625rem;
+	border: none;
+	border-radius: 0.3125rem;
+
+    /* Remove bg colour from the track and use ms-fill-lower and
+	   ms-fill-upper instead */
+    background: transparent;
+
+    /* Remove default tick marks */
+    color: transparent;
+}
+
+[type=range]::-ms-fill-lower {
+	background: #2B3134;
+	border-radius: 0.3125rem;
+}
+
+[type=range]::-ms-fill-upper {
+	background: #2B3134;
+	border-radius: 0.3125rem;
+}
+
+/* [type="range"] thumb */
+
+[type="range"]::-webkit-slider-thumb {
+	-webkit-appearance: none !important;
+
+	cursor: pointer;
+	width: 1.0625rem;
+	height: 1.0625rem;
+
+    /* Increase the size of the hit zone to support fat fingers. */
+    outline: 0.25rem solid transparent;
+
+	margin-top: -4px;
+	border-width: 0;
+	border-radius: 50%;
+	background: #B6B2B0;
+	background: linear-gradient( rgb(247,247,247), rgb(140,140,140) );
+}
+
+[type="range"]:focus::-webkit-slider-thumb {
+	background: linear-gradient(#6cc6dc, #4b98ab);
+}
+
+[type="range"]::-moz-range-thumb {
+    cursor: pointer;
+	width: 1.0625rem;
+	height: 1.0625rem;
+
+    /* Increase the size of the hit zone to support fat fingers. */
+    outline: 0.25rem solid transparent;
+
+	margin-top: -4px;
+	border-width: 0;
+	border-radius: 50%;
+	background: #B6B2B0;
+	background: linear-gradient( rgb(247,247,247), rgb(140,140,140) );
+}
+
+[type="range"]:focus::-moz-range-thumb {
+	background: linear-gradient(#6cc6dc, #4b98ab);
+}
+
+
+
+
+[type="range"]::-ms-thumb {
+	cursor: pointer;
+
+	width: 0.875rem;
+	height: 0.875rem;
+
+	margin-top: 1px;
+	border-width: 0;
+	border-radius: 0.4375rem;
+	background: #B6B2B0;
+	background: linear-gradient( rgb(247,247,247), rgb(140,140,140) );
+}
+
+/* [type="range"] focus */
+
+[type="range"]:focus {
+	outline: none;
+	outline-width: 0 !important;
+}
+
+[type="range"]::-moz-focus-outer {
+	/* Get rid of that annoying border in FF */
+	border: 0;
+}
+
+[type="range"]:-moz-focusring {
+	outline: 0 solid transparent;
+}
+
 input[type="range"]:focus {
     outline: 3px solid #f00;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 :host {
     position: relative;

@@ -13,6 +13,23 @@
     window.DEBUG = true;
     </script>
 
+    <link rel="stylesheet" href="../bolt/css/html.css" />
+	<link rel="stylesheet" href="../bolt/css/svg.css" />
+	<link rel="stylesheet" href="../bolt/css/body.css" />
+	<link rel="stylesheet" href="../bolt/css/input.css" />
+	<link rel="stylesheet" href="../bolt/css/label.css" />
+	<link rel="stylesheet" href="../bolt/css/block.css" />
+	<link rel="stylesheet" href="../bolt/css/index.css" />
+	<link rel="stylesheet" href="../bolt/css/layer.css" />
+	<link rel="stylesheet" href="../bolt/css/button.css" />
+	<link rel="stylesheet" href="../bolt/css/thumb.css" />
+	<link rel="stylesheet" href="../bolt/css/type.css" />
+	<link rel="stylesheet" href="../bolt/css/text.css" />
+	<link rel="stylesheet" href="../bolt/css/color.css" />
+	<link rel="stylesheet" href="../bolt/css/modifiers.css" />
+    <link rel="stylesheet" href="../bolt/components/grid/grid.css" />
+	<link rel="stylesheet" href="../bolt/components/dialog/dialog.css" />
+
     <link rel="stylesheet" href="components/sparky/midi/style.css" />
     <link rel="stylesheet" href="components/sparky/fader/style.css" />
 
@@ -21,10 +38,13 @@
         body {
             margin: 0;
             padding: 0;
+            width: 100vw;
+            height: 100vh;
             overflow: hidden;
         }
 
-        html {
+        html,
+        body {
             background-color: #65757b;
         }
 
@@ -66,6 +86,7 @@
         }
 
         .nodes-block {
+            margin: 0;
             display: grid;
             padding: 1.3125rem;
             grid-gap: 0.75rem;
@@ -84,6 +105,7 @@
 
         .node-block {
             padding: 9px;
+            margin: 0;
             height: min-content;
             background-color: #dfe4ec;
             border-radius: 0.25rem;
@@ -91,6 +113,7 @@
 
         .bar-block {
             display: flex;
+            margin: 0;
             background-color: #2c3a3e;
         }
 
@@ -129,8 +152,8 @@
                     <option value="square">Square</option>
                     <option value="sine">Sine</option>
                 </select>
-                <template fn="fader:detune,cents,-2400,2400"   include="components/sparky/fader/template.html#fader"></template>
-                <template fn="fader:pan,lcr,-1,1,linear,[0]" include="components/sparky/fader/template.html#fader"></template>
+                <template fn="fader:detune,semitones,-1200,1200,linear,[-1200,0,1200]" include="components/sparky/fader/template.html#fader"></template>
+                <template fn="fader:pan,lcr,-1,1,linear,[-1,0,1]" include="components/sparky/fader/template.html#fader"></template>
                 <template fn="fader:mix,dB,'-48dB',1,logarithmic-zero" include="components/sparky/fader/template.html#fader"></template>
             </div>
         </div>
@@ -191,8 +214,8 @@
     </template>
 
     <template id="node-mix" fn="get:data">
-        <template fn="fader:pan,lcr,-1,1,linear,[0]"      include="components/sparky/fader/template.html#fader"></template>
-        <template fn="fader:gain,dB,'-60dB',1,logarithmic-zero,[0,0.0009765625,0.001953125,0.00390625,0.0078125,0.015625,0.03125,0.0625,0.125,0.25,0.5]" include="components/sparky/fader/template.html#fader"></template>
+        <template fn="fader:pan,lcr,-1,1,linear,[-1,0,1]"      include="components/sparky/fader/template.html#fader"></template>
+        <template fn="fader:gain,dB,'-60dB',1,logarithmic-zero,[0,0.0009765625,0.001953125,0.00390625,0.0078125,0.015625,0.03125,0.0625,0.125,0.25,0.5,1]" include="components/sparky/fader/template.html#fader"></template>
     </template>
 
     <template id="node-/soundstage/nodes/metronome.js" fn="get:data">
@@ -354,7 +377,7 @@
         //import './test/tone-synth.test.js';
 
         return (window.stage = new Soundstage({
-            label: "Guitar Graph",
+            label: "Guitar",
 
             nodes: [{
                 id:    'input',
@@ -472,6 +495,21 @@
 
             controls: [{
                 source: {
+                    device: 'keys',
+                    key: 'a'
+                },
+
+                target: 'delay-send',
+
+                data: {
+                    transform: 'linear',
+                    type:   'param',
+                    name:   'gain',
+                    min:    0,
+                    max:    1
+                }
+            }, {
+                source: {
                     device: 'midi',
                     channel: 1,
                     type:    'note'
@@ -528,19 +566,11 @@
             object[params[0]] = params[1];
         });
     };
+    </script>
 
 
 
-
-
-
-
-
-
-
-
-
-
+    <script type="module">
     import { mount } from '../sparky/sparky.js';;
 
     customElements.define('fader-control',

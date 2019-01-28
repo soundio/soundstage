@@ -29,6 +29,11 @@ const transformOutput = overload(id, {
             value.toPrecision(3) ;
     },
 
+    semitones: function(unit, value) {
+        // detune value is in cents
+        return (value / 100).toFixed(2);
+    },
+
     default: function(unit, value) {
         return value < 1 ? (value * 1000).toPrecision(3) :
             value > 1000 ? (value / 1000).toPrecision(3) :
@@ -49,6 +54,8 @@ const transformUnit = overload(id, {
         return value > 1000 ? 'k' + unit :
             unit ;
     },
+
+    semitones: id,
 
     default: function(unit, value) {
         return value < 1 ? 'm' + unit :
@@ -81,11 +88,12 @@ const toFaderScope = function(module, name, get, set, unit, min, max, transform,
 
     // Make ticks immutable - stops Sparky unnecesarily observing changes
     scope.ticks = (ticks || []).map((value) => {
+        const outputValue = transformOutput(scope.unit, value);
         return Object.freeze({
             faderId:     scope.id,
             value:       value,
             inputValue:  transforms[scope.transform || 'linear'].ix(value, scope.min, scope.max),
-            outputValue: transformOutput(scope.unit, value).replace('.0','')
+            outputValue: outputValue.replace ? outputValue.replace('.0','') : outputValue
         });
     });
 
@@ -143,7 +151,6 @@ functions.fader = function(node, scopes, params) {
 
         const get = isParam ?
             (value) => {
-                console.log(name, module[name].value, getValueAtTime(module[name], value, module.context.currentTime))
                 return getValueAtTime(module[name], value, module.context.currentTime)
             } :
             (value) => module[name] ;

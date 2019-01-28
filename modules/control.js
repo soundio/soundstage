@@ -139,7 +139,7 @@ function getContextTime(context, domTime) {
     return timeAtDomTime(stamps, domTime);
 }
 
-export default function Control(controls, source, target, settings) {
+export default function Control(controls, source, target, settings, notify) {
     // Target here is the graph node wrapper, not the actual audio node
     const route = this;
 
@@ -161,7 +161,7 @@ export default function Control(controls, source, target, settings) {
 
     seal(this);
 
-    const distribute = Distribute(target.data);
+    const distribute = Distribute(target.data, notify);
 
     // Bind source output to route input
     source.each(function input(timeStamp, type, name, n) {

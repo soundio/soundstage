@@ -13,7 +13,7 @@ function assignSetting(node, key, value) {
     // Does it quack like an AudioParam?
     if (node[key] && node[key].setValueAtTime) {
         if (DEBUG) { log('param', key + ' =', value); }
-        automate(node[key], node.context.currentTime, 'step', value, null, key);
+        automate(node[key], node.context.currentTime, 'step', value, null);
     }
 
     // Or an AudioNode?

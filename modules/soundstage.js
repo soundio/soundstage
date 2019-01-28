@@ -28,6 +28,7 @@ const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 const setPrototypeOf = Object.setPrototypeOf;
 
 const idSelect = { id: undefined };
+const matchesId = matches(idSelect);
 
 function isURL() {
     return false;
@@ -163,10 +164,16 @@ export default function Soundstage(data = nothing, settings = nothing) {
         define(stage, {
             controls: {
                 enumerable: true,
-                value: new Controls(function(id) {
-                    idSelect.id = id;
-                    return stage.nodes.find(matches(idSelect));
-                }, data.controls)
+                value: new Controls(function findTarget(selector) {
+                    const parts = selector.split('.');
+                    const param = parts[1];
+
+                    idSelect.id = parts[0];
+
+                    return param === undefined ?
+                        stage.nodes.find(matchesId) :
+                        stage.nodes.find(matchesId)[param] ;
+                }, data.controls, notify)
             }
         });
 

@@ -48,7 +48,7 @@ function toKeySelector(e) {
     };
 }
 
-function createControl(controls, getTarget, setting) {
+function createControl(controls, getTarget, setting, notify) {
     // Detect type of source - do we need to add a type field? Probably. To the
     // route or to the source? Hmmm. Maybe to the route. Maybe to the source.
     // Definitely the source. I think.
@@ -63,17 +63,17 @@ function createControl(controls, getTarget, setting) {
         return;
     }
 
-    return new Control(controls, source, target, setting.data);
+    return new Control(controls, source, target, setting.data, notify);
 }
 
-export default function Controls(getTarget, settings) {
+export default function Controls(getTarget, settings, notify) {
     const controls = [];
 
     // Set up routes from data
     if (settings) {
         settings.reduce(function(routes, setting) {
-            const route = createControl(controls, getTarget, setting);
-            push(routes, route);
+            const route = createControl(controls, getTarget, setting, notify);
+            if (route) { push(routes, route); }
             return routes;
         }, controls);
     }
