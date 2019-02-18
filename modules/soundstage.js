@@ -1,6 +1,5 @@
 
 import { compose, get, is, isDefined, map, noop, nothing, matches }   from '../../fn/fn.js';
-import AudioObject            from '../../audio-object/modules/audio-object.js';
 import requestInputSplitter   from '../../audio-object/modules/request-input-splitter.js';
 
 import { print, printGroup, printGroupEnd }     from './utilities/print.js';
@@ -309,19 +308,19 @@ assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
 
         // Remove soundstage's input node from mediaInputs, and disconnect
         // media from it.
-        var input = AudioObject.getInput(this);
-        var i     = mediaInputs.indexOf(input);
+        //var input = AudioObject.getInput(this);
+        //var i     = mediaInputs.indexOf(input);
 
-        if (i > -1) {
-            mediaInputs.splice(i, 1);
-        }
+        //if (i > -1) {
+        //    mediaInputs.splice(i, 1);
+        //}
 
-        requestMedia(this.audio)
-        .then(function(media) {
-            media.disconnect(input);
-        });
+        //requestMedia(this.audio).then(function(media) {
+        //    media.disconnect(input);
+        //});
 
-        var output = AudioObject.getOutput(this);
+        const privates = Privates(this);
+        var output = privates.outputs.default;
         output.disconnect();
 
         this[$store].modify('clear');

@@ -1,7 +1,6 @@
 
 import { get, isDefined }      from '../../fn/fn.js';
-import AudioObject, { getOutput, getInput } from '../../audio-object/modules/audio-object.js';
-import { connect, disconnect }      from './connect.js';
+import { connect, disconnect } from './connect.js';
 import { print }               from './utilities/print.js';
 
 const assign = Object.assign;
@@ -12,16 +11,12 @@ export default function Connection(graph, sourceId, targetId, sourceChan, target
     // Get source node
     //const sourceParts = sourceId.split('.');
     const sourceObject = graph.get(sourceId);
-    const sourceNode   = AudioObject.prototype.isPrototypeOf(sourceObject) ?
-        getOutput(sourceObject, 'default') :
-        sourceObject ;
+    const sourceNode   = sourceObject ;
 
     // Get target node or param
     //const targetParts = targetId.split('.');
     const targetObject = graph.get(targetId);
-    const targetNode   = AudioObject.prototype.isPrototypeOf(targetObject) ?
-        getInput(targetObject, 'default') :
-        targetObject ;
+    const targetNode   = targetObject ;
 
     const targetParam  = targetChan
         && !/^\d/.test(targetChan)

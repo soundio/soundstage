@@ -1,7 +1,7 @@
 
 import { get, isDefined } from '../../fn/fn.js';
 import { print, log } from './utilities/print.js';
-import AudioObject, { getOutput, getInput, isAudioParam } from '../../audio-object/modules/audio-object.js';
+import { isAudioParam } from './automate.js';
 
 const DEBUG = false;//window.DEBUG;
 
@@ -99,7 +99,7 @@ export function connect(source, target, sourceChan, targetChan) {
 
 export function disconnect(source, target, sourceChan, targetChan, connections) {
     if (!source) {
-        print('AudioObject: trying to .disconnect() from an object without output "' + outName + '".');
+        print('Trying to .disconnect() from an object without output "' + outName + '".');
         return;
     }
 
@@ -108,7 +108,7 @@ export function disconnect(source, target, sourceChan, targetChan, connections) 
         return;
     }
 
-    if (AudioObject.features.disconnectParameters) {
+    if (features.disconnectParameters) {
         source.disconnect(target, sourceChan, targetChan);
     }
     else {
