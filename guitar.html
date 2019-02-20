@@ -30,6 +30,7 @@
     <link rel="stylesheet" href="../bolt/components/grid/grid.css" />
 	<link rel="stylesheet" href="../bolt/components/dialog/dialog.css" />
 
+    <link rel="stylesheet" href="css/node-block.css" />
     <link rel="stylesheet" href="components/sparky/midi/style.css" />
     <link rel="stylesheet" href="components/sparky/fader/style.css" />
 
@@ -41,11 +42,13 @@
             width: 100vw;
             height: 100vh;
             overflow: hidden;
-        }
 
-        html,
-        body {
+            color: #9ea295;
+            color: hsl(198, 12%, 64%);
             background-color: #65757b;
+            background-color: #2D3437;
+            background-color: #354147;
+            background-image: linear-gradient(to bottom, #2D3437 0%, #354147 100%);
         }
 
         body {
@@ -57,7 +60,7 @@
                 'controls controls controls controls controls';
             grid-template-columns: 0 1fr 1fr 1fr 0;
             grid-template-rows: 1fr max-content 3.75rem;
-            height: 100vh;
+            font-size: 0.9375rem;
         }
 
         body > .inputs-block {
@@ -83,6 +86,7 @@
 
         body > .bar-block {
             grid-area: controls;
+            background-color: #252A2C;
         }
 
         .nodes-block {
@@ -101,14 +105,6 @@
             margin: 0;
             text-transform: uppercase;
             font-size: 0.5625rem;
-        }
-
-        .node-block {
-            padding: 9px;
-            margin: 0;
-            height: min-content;
-            background-color: #dfe4ec;
-            border-radius: 0.25rem;
         }
 
         .bar-block {
@@ -137,26 +133,42 @@
         }
 
         th, td { text-align: left; }
+
+        * + fader-control {
+            margin-top: 30px;
+        }
+
+        fader-control + fader-control {
+            margin-top: 15px;
+        }
     </style>
 
     <template id="fader-control-template">
         <link rel="stylesheet" href="components/controls/fader-control.css" />
-        <label for="input"><slot>Value</slot></label>
-        <div class="tick" fn="get:ticks each" :style="left: calc(0.5rem + (100% - 1.125rem) * {[inputValue]});">
-            <input class="masked" style="position: absolute; top: -3000px;" type="radio" name="tick" id="tick-{[value]}" value="{[inputValue]}"/>
-            <label for="tick-{[value]}">{[outputValue]}</label>
-        </div>
-        <input type="range" id="input" value="{[inputValue]}" min="0" max="1" step="any" />
-        <output>{[prefix]}{[outputValue]}<abbr>{[unit]}</abbr></output>
+        <input class="control-input" type="range" id="input" value="{[inputValue]}" min="0" max="1" step="any" />
+        <label class="control-label" for="input"><slot></slot></label>
+        <output class="control-output">{[prefix]}{[outputValue]}<abbr>{[unit]}</abbr></output>
+        <template fn="get:ticks each">
+            <input class="tick-input" type="radio" name="tick" id="tick-{[value]}" value="{[tickValue|float-string]}" :value="{[root.inputValue|float-string]}" />
+            <label class="tick-label" :style="left: calc(0.5rem + (100% - 1rem) * {[tickValue]});" :for="tick-{[value]}">{[outputValue]}</label>
+        </template>
         <slot name="plugs"></slot>
     </template>
 
     <template id="node-input" fn="get:data">
-        {[.]}
+        {[name]} {[.]}
+        <select value="{[channels|numbers-string:',']}">
+            <option value="0,1" selected>1-2</option>
+            <option value="0">1</option>
+            <option value="1">2</option>
+        </select>
     </template>
 
     <template id="node-/soundstage/nodes/tone-synth.js" fn="get:data">
-        <fader-control :value="{[gain]}" unit="dB" min="-60dB" max="1" transform="logarithmic-zero"></fader-control>
+        <fader-control :value="{[gain]}" unit="dB" min="-48dB" max="1" transform="logarithmic-zero" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
+            Gain
+        </fader-control>
+
         <div class="sources-block block">
             <div fn="get:sources each">
                 <select value="{[type]}">
@@ -164,9 +176,15 @@
                     <option value="square">Square</option>
                     <option value="sine">Sine</option>
                 </select>
-                <fader-control :value="{[detune]}" min="-1200" max="1200" transform="linear" ticks="-1200 0 1200" unit="semitones"></fader-control>
-                <fader-control :value="{[pan]}" unit="lcr" min="-1" max="1" transform="linear" ticks="-1 0 1"></fader-control>
-                <fader-control :value="{[mix]}" unit="dB" min="-48dB" max="1" transform="logarithmic-zero"></fader-control>
+                <fader-control :value="{[detune]}" min="-1200" max="2400" transform="linear" ticks="-1200 -700 0 700 1200 1600 1900 2200 2400" unit="step">
+                    Tune
+                </fader-control>
+                <fader-control :value="{[pan]}" unit="pan" min="-1" max="1" transform="linear" ticks="-1 0 1">
+                    Pan
+                </fader-control>
+                <fader-control :value="{[mix]}" unit="dB" min="-36dB" max="1" transform="logarithmic-zero" ticks="0 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
+                    Mix
+                </fader-control>
             </div>
         </div>
 
@@ -192,42 +210,42 @@
             </div>
         </div>
 
-        <fader-control :value="{[pitch]}" unit="semitones" min="-2" max="2"></fader-control>
-        <fader-control :value="{[frequency]}" unit="Hz" min="20" max="16000" transform="logarithmic"></fader-control>
-        <fader-control :value="{[Q]}" unit="Q" min="0.2" max="20"></fader-control>
-        <fader-control :value="{[output]}" unit="dB" min="-48dB" max="1" transform="logarithmic-zero"></fader-control>
+        <fader-control :value="{[pitch]}" unit="step" min="-2" max="2" ticks="-2 -1 0 1 2">Pitch</fader-control>
+        <fader-control :value="{[frequency]}" unit="Hz" min="16" max="16000" transform="logarithmic" ticks="16 32 64 125 250 500 1000 2000 4000 8000 16000">Frequency</fader-control>
+        <fader-control :value="{[Q]}" unit="Q" min="0.16" max="20" transform="logarithmic" ticks="0.16 0.32 0.64 1.25 2.5 5 10 20">Q</fader-control>
+        <fader-control :value="{[output]}" unit="dB" min="-48dB" max="1" transform="logarithmic-zero" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Output</fader-control>
     </template>
 
     <template id="node-/soundstage/nodes/flanger.js" fn="get:data">
-        <fader-control :value="{[gain]}" unit="dB" min="-48dB" max="1" transform="logarithmic-zero">Gain</fader-control>
-        <fader-control :value="{[delay]}" unit="s" min="0" max="2" transform="quadratic">Delay</fader-control>
-        <fader-control :value="{[frequency]}" unit="Hz" min="0.083333333" max="90" transform="logarithmic-zero">LFO Frequency</fader-control>
-        <fader-control :value="{[depth]}" unit="s" min="0" max="0.2" transform="linear" prefix="±">LFO Depth</fader-control>
-        <fader-control :value="{[feedback]}" unit="dB" min="-36dB" max="1" transform="logarithmic-zero">Feedback</fader-control>
-        <fader-control :value="{[wet]}" unit="dB" min="-48dB" max="1" transform="logarithmic-zero">Wet</fader-control>
-        <fader-control :value="{[dry]}" unit="dB" min="-48dB" max="1" transform="logarithmic-zero">Dry</fader-control>
+        <fader-control :value="{[gain]}" unit="dB" min="-48dB" max="1" transform="logarithmic-zero" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Gain</fader-control>
+        <fader-control :value="{[delay]}" unit="s" min="0.0125" max="2" transform="logarithmic-zero" ticks="0 0.02 0.04 0.06 0.08 0.1 0.2 0.4 0.6 0.8 1 2">Delay</fader-control>
+        <fader-control :value="{[frequency]}" unit="Hz" min="0.083333333" max="96" transform="logarithmic-zero" ticks="0 0.1 0.2 0.4 0.6 0.8 1 2 4 6 8 10 20 40 60 80">LFO Frequency</fader-control>
+        <fader-control :value="{[depth]}" unit="s" min="0.012" max="0.18" transform="logarithmic-zero" prefix="±" ticks="0 0.02 0.04 0.06 0.08 0.1 0.12 0.14 0.16 0.18">LFO Depth</fader-control>
+        <fader-control :value="{[feedback]}" unit="dB" min="-36dB" max="1" transform="logarithmic-zero" ticks="0 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Feedback</fader-control>
+        <fader-control :value="{[wet]}" unit="dB" min="-48dB" max="1" transform="logarithmic-zero" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Wet</fader-control>
+        <fader-control :value="{[dry]}" unit="dB" min="-48dB" max="1" transform="logarithmic-zero" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Dry</fader-control>
     </template>
 
     <template id="node-compressor" fn="get:data">
-        <fader-control :value="{[threshold]}" unit="" min="-60" max="0" transform="linear"></fader-control>
-        <fader-control :value="{[ratio]}" unit="" min="1" max="20" transform="cubic"></fader-control>
-        <fader-control :value="{[knee]}" unit="" min="0" max="40" transform="cubic"></fader-control>
-        <fader-control :value="{[attack]}" unit="s" min="0" max="1" transform="quadratic"></fader-control>
-        <fader-control :value="{[release]}" unit="s" min="0" max="1" transform="quadratic"></fader-control>
+        <fader-control :value="{[threshold]}" min="-60" max="0" transform="linear" ticks="-60 -54 -48 -42 -36 -30 -24 -18 -12 -6 0">Threshold</fader-control>
+        <fader-control :value="{[ratio]}" min="1" max="20" transform="cubic">Ratio</fader-control>
+        <fader-control :value="{[knee]}" min="0" max="40" transform="cubic">Knee</fader-control>
+        <fader-control :value="{[attack]}" unit="s" min="0.012" max="0.8" transform="logarithmic-zero" ticks="0 0.02 0.04 0.06 0.08 0.1 0.2 0.4 0.6 0.8">Attack</fader-control>
+        <fader-control :value="{[release]}" unit="s" min="0.012" max="0.8" transform="logarithmic-zero" ticks="0 0.02 0.04 0.06 0.08 0.1 0.2 0.4 0.6 0.8">Release</fader-control>
     </template>
 
     <template id="node-output" fn="get:data">
         {[name]} {[channels]}
-        <!--select value="{[channels|join:',']}">
-            <options value="1,2">1-2</option>
-            <options value="1">1</option>
-            <options value="2">2</option>
-        </select-->
+        <select value="{[channels|numbers-string:',']}">
+            <option value="0,1" selected>1-2</option>
+            <option value="0">1</option>
+            <option value="1">2</option>
+        </select>
     </template>
 
     <template id="node-mix" fn="get:data">
-        <fader-control :value="{[pan]}" unit="lcr" min="-1" max="1" transform="linear,[-1,0,1]"></fader-control>
-        <fader-control :value="{[gain]}" unit="dB" min="-60dB" max="1" transform="logarithmic-zero" ticks="0 0.0009765625 0.001953125 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1"></fader-control></fader-control>
+        <fader-control :value="{[pan]}" unit="pan" min="-1" max="1" transform="linear" ticks="-1 0 1">Pan</fader-control>
+        <fader-control :value="{[gain]}" unit="dB" min="-60dB" max="1" transform="logarithmic-zero" ticks="0 0.0009765625 0.001953125 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Gain</fader-control>
     </template>
 
     <template id="node-/soundstage/nodes/metronome.js" fn="get:data">
@@ -236,7 +254,7 @@
         <ul>
             <li fn="get:events each">{[.]}</li>
         </ul>
-        <fader-control :value="{[gain]}" unit="dB" min="-60dB" max="1" transform="logarithmic-zero"></fader-control>
+        <fader-control :value="{[gain]}" unit="dB" min="-48dB" max="1" transform="logarithmic-zero" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Output</fader-control>
     </template>
 
     <template id="source-device-midi">
@@ -271,9 +289,7 @@
             <h2 class="label-block block">Nodes</h2>
             <div class="node-block block" fn="get:nodes each">
                 <pre>{[id]} <small>{[type]}</small></pre>
-                <template include="node-{[type]}">
-                    <template fn="get:gain"></template>
-                </template>
+                <template include="node-{[type]}"></template>
             </div>
 
             <template fn="get:connections">
@@ -396,7 +412,7 @@
                 type:  'input',
                 label: 'Input',
                 data:  {}
-            }, /*{
+            }, {
                 id:    'synth',
                 type:  '/soundstage/nodes/tone-synth.js',
                 label: 'Tone Synth',
@@ -449,7 +465,7 @@
                 	ratio:     2.5,
                     threshold: -28
                 }
-            }, */{
+            }, {
                 id:    'flanger',
                 type:  '/soundstage/nodes/flanger.js',
                 label: 'Flanger',
@@ -461,7 +477,7 @@
                     dry:       0,
                     wet:       0.5
                 }
-            }, /*{
+            }, {
                 id:    'delay-send',
                 type:  'mix',
                 label: 'Delay feed',
@@ -487,7 +503,7 @@
                 type:  '/soundstage/nodes/metronome.js',
                 label: 'Metronome',
                 data: {}
-            },*/ {
+            }, {
                 id:    'output',
                 type:  'output',
                 label: 'Output',

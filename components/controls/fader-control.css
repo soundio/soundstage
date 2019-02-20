@@ -1,4 +1,11 @@
 
+:host {
+	--normal-color: hsl(192, 96%, 6%);
+	--active-color: hsl(198, 42%, 56%);
+	--output-color: hsl(198, 20%, 52%);
+	--hover-color: #969ea2;
+	--focus-color: hsl(165, 31%, 53%);
+}
 
 [type="range"] {
 	-webkit-appearance: none !important;
@@ -6,26 +13,38 @@
 	border-width: 0;
 
 	/* For IE height should be big enough to accomodate the thumb. */
-	height: 1.3125rem;
+	height: 1.4375rem;
 
 	/*required for proper track sizing in FF*/
 	width: 100%;
+	color: inherit;
 }
 
 /* [type="range"] track */
 
 [type="range"]::-webkit-slider-runnable-track {
-	height: 0.5625rem;
-	background: #2B3134;
+	height: 0.1875rem;
+	background-color: currentcolor;
 	border: none;
-	border-radius: 0.3125rem;
+
+	/* Rounded ends. For some reason specifiying this in rems destroys the
+	   effect at this small scale. */
+	border-top-left-radius: 2px 1.5px;
+	border-bottom-left-radius: 2px 1.5px;
+	border-top-right-radius: 2px 1.5px;
+	border-bottom-right-radius: 2px 1.5px;
+
+	/* Subtle shading around track to give embossed effect */
+	/*box-shadow:
+		0 -1px 1px hsla(198,45%,8%,0.05),
+		0 1px 1px hsla(18,25%,80%,0.05);*/
 }
 
 [type="range"]::-moz-range-track {
 	height: 0.5625rem;
 	background: #2B3134;
 	border: none;
-	border-radius: 0.3125rem;
+	border-radius: 0.0938rem;
 }
 
 [type="range"]::-moz-range-progress {
@@ -63,21 +82,30 @@
 	-webkit-appearance: none !important;
 
 	cursor: pointer;
-	width: 1.0625rem;
-	height: 1.0625rem;
+	width: 1.375rem;
+	height: 1.375rem;
 
-    /* Increase the size of the hit zone to support fat fingers. */
-    outline: 0.25rem solid transparent;
+	/* Centre it vertically on the track */
+	transform: translate3d(0, -0.59375rem, 0);
+	box-sizing: border-box;
 
-	margin-top: -4px;
-	border-width: 0;
+	/* Use a border to create a larger hit zone for the thumb */
+	border: 0.1875rem solid currentcolor;
 	border-radius: 50%;
-	background: #B6B2B0;
-	background: linear-gradient( rgb(247,247,247), rgb(140,140,140) );
+
+	/* Constrain background image */
+	background-clip: content-box;
+	background-origin: padding-box;
+	background-color: #B6B2B0;
+
+	/* Spherical shading */
+	background-image: linear-gradient( rgb(247,247,247), rgb(140,140,140) );
+	box-shadow: inset 0 0 5px 1px hsla(198,30%,20%,0.6);
 }
 
 [type="range"]:focus::-webkit-slider-thumb {
-	background: linear-gradient(#6cc6dc, #4b98ab);
+	box-shadow: inset 0 0 5px 2px hsla(165,50%,40%,0.4);
+	box-shadow: inset 0 0 5px 2px hsla(165,46%,20%,0.5);
 }
 
 [type="range"]::-moz-range-thumb {
@@ -91,15 +119,13 @@
 	margin-top: -4px;
 	border-width: 0;
 	border-radius: 50%;
-	background: #B6B2B0;
-	background: linear-gradient( rgb(247,247,247), rgb(140,140,140) );
+	background-color: #B6B2B0;
+	background-image: linear-gradient( rgb(247,247,247), rgb(140,140,140) );
 }
 
 [type="range"]:focus::-moz-range-thumb {
 	background: linear-gradient(#6cc6dc, #4b98ab);
 }
-
-
 
 
 [type="range"]::-ms-thumb {
@@ -118,6 +144,7 @@
 /* [type="range"] focus */
 
 [type="range"]:focus {
+	color: var(--focus-color);
 	outline: none;
 	outline-width: 0 !important;
 }
@@ -129,10 +156,6 @@
 
 [type="range"]:-moz-focusring {
 	outline: 0 solid transparent;
-}
-
-input[type="range"]:focus {
-    outline: 3px solid #f00;
 }
 
 
@@ -159,23 +182,122 @@ input[type="range"]:focus {
 		'ticks ticks ticks'
 		'input input input';
 	grid-template-columns: 1fr 1fr min-content;
+	grid-template-rows:
+		minmax(0.9375rem, min-content)
+		minmax(0.4375rem, min-content)
+		min-content;
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: space-between;
     max-width: 25rem;
 	padding: 0;
+	/*overflow: hidden;*/
+	color: var(--normal-color);
 }
 
-:host > label {
-	grid-area: label;
-    order: 0;
-    width: auto;
-    margin-left: 0;
-    margin-right: auto;
-    font-size: 0.8125rem;
+:host > * {
+	margin: 0;
 }
 
-:host > output {
+.control-input:focus ~ .control-label {
+	color: var(--active-color);
+}
+
+.control-input:focus ~ .control-output {
+	color: var(--focus-color);
+}
+
+.control-label {
+	align-self: end;
+	font-size: 14px;
+	line-height: 15px;
+	color: var(--output-color);
+}
+
+.control-output {
+	align-self: end;
+	font-family: 'Fira Mono', 'Andale Mono', monospace;
+	font-size: 0.6875rem;
+	line-height: 0.9375rem;
+	/* Doesnt seem to want to respect 15px auto height. Force. */
+	height: 0.9375rem;
+	white-space: pre;
+	color: #969ea2;
+	color: #4C565C;
+	color: var(--output-color);
+}
+
+.control-output > abbr {
+	font-size: 0.8em;
+	margin-left: 0.125rem;
+	vertical-align: baseline;
+}
+/*
+.control-output.changing {
+	color: #72B8A9 !important;
+	transition: color 0ms linear;
+}
+*/
+
+
+
+.tick-label {
+	cursor: pointer;
+
+	/* Center content, even if it's wider than the label */
+	display: flex;
+	justify-content: center;
+
+    font-size: 0.5625rem;
+	line-height: 0.9375rem;
+	letter-spacing: -0.0125em;
+    text-align: center;
+
+	margin-top: 7px;
+
+	/* Make ::after mark visible outside label*/
+    overflow: visible;
+	color: inherit;
+}
+
+.tick-label::after {
+    content: '';
+    position: absolute;
+	width: 0.125rem;
+    height: 0.125rem;
+
+	/* Centre horizontally */
+    left: 50%;
+	margin-left: -0.0625rem;
+
+	/* Move tick marks over range input below */
+	bottom: -3px;
+    background-color: currentcolor;
+	border-radius: 50%;
+}
+
+.tick-label:hover {
+    color: var(--output-color);
+}
+
+.tick-label:focus {
+    color: var(--focus-color);
+}
+
+.control-input:focus ~ .tick-label {
+	color: var(--active-color);
+}
+
+.tick-input:checked + .tick-label {
+	color: var(--focus-color);
+}
+
+.control-input:focus ~ .tick-input:checked + .tick-label {
+	color: var(--focus-color);
+}
+
+
+:host > .control-output {
 	grid-area: output;
     order: 1;
     margin-left: auto;
@@ -185,47 +307,38 @@ input[type="range"]:focus {
     text-align: right;
 }
 
-:host > .tick {
+:host > .control-input {
+	grid-area: input;
+
+	/* Make the range input slightly wider than the control
+	   to allow range thumb to line up with label text */
+	width: calc(100% + 0.375rem);
+	margin-left: -0.1875rem;
+	margin-right: -0.1875rem;
+    z-index: 1;
+}
+
+:host > .tick-input {
+	/* Hide tick input behind range control-input where it can do no harm. */
+	grid-area: input;
+	z-index: 0;
+	opacity: 0;
+}
+
+:host > .tick-label {
 	grid-area: ticks;
 	position: relative;
-    width: 2.0625rem;
-    margin-top: 0.375rem;
-    margin-left: -1rem;
-    margin-right: -1rem;
-    font-size: 10px;
-    text-align: center;
-    overflow: visible;
+
+	/* Use margin to centre labvels, not transform: translate, which has the
+	   side effect of blurring the text on pixel screens. */
+	margin-left: -0.6875rem;
+	width: 1.375rem;
     z-index: 0;
-
-    /* Make room for tick mark */
-    /*padding-bottom: 3px;*/
-}
-
-:host > .tick::after {
-    content: '';
-    position: absolute;
-    left: 1rem;
-    bottom: -4px;
-    /* Or place the ticks underneath the range */
-    /*bottom: -24px;*/
-    width: 1px;
-    height: 3px;
-    background-color: black;
-}
-
-:host > [type="range"] {
-	grid-area: input;
-    order: 3;
-    /* -ve margin left and right is used to offset the centering range against
-       its ticks. It should correspond to radius of the range handle. */
-    margin: 0.125rem 0;
-    width: 100%;
-    z-index: 1;
 }
 
 :host > span {
 	grid-area: input;
-background-color: yellow;
+	background-color: yellow;
 }
 
 :host > ::slotted([slot="plugs"]) {
@@ -234,5 +347,7 @@ background-color: yellow;
 }
 
 output > abbr {
+	display: inline-block;
     margin-left: 0.1em;
+	vertical-align: baseline;
 }

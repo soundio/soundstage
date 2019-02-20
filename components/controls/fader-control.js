@@ -1,7 +1,9 @@
 
-import { cache, id, Observer, Target, observe, set, overload, todB, toLevel, limit } from '../../../fn/fn.js';
+import { cache, choose, id, Observer, Target, observe, set, overload, todB, toLevel, limit, nothing } from '../../../fn/fn.js';
 import { isAudioParam, getValueAtTime, automate, transforms, parseValue } from '../../soundstage.js';
 import Sparky, { mount } from '../../../sparky/sparky.js';
+
+const DEBUG = false;
 
 const assign = Object.assign;
 
@@ -23,10 +25,21 @@ const attributes = ['value', 'min', 'max'];
 
 const fadeDuration = 0.003;
 
+const inputEvent = new CustomEvent('input', eventOptions);
+
+
+function outputMilliKilo(unit, value) {
+    return value < 0.001 ? (value * 1000).toFixed(2) :
+        value < 1 ? (value * 1000).toPrecision(3) :
+        value > 1000 ? (value / 1000).toPrecision(3) :
+        value.toPrecision(3) ;
+}
+
 const transformOutput = overload(id, {
-    lcr: function(unit, value) {
-        return value === 0 ?
-            '0' :
+    pan: function(unit, value) {
+        return value === -1 ? 'left' :
+            value === 0 ? 'centre' :
+            value === 1 ? 'right' :
             value.toFixed(2) ;
     },
 
@@ -46,22 +59,33 @@ const transformOutput = overload(id, {
             value.toPrecision(3) ;
     },
 
-    semitones: function(unit, value) {
+    step: function(unit, value) {
         // detune value is in cents
-        return (value / 100).toFixed(2);
+        return value < 0 ?
+            ('♭' + (-value / 100).toFixed(2)) :
+            ('♯' + (value / 100).toFixed(2)) ;
     },
 
+    s: outputMilliKilo,
+
     default: function(unit, value) {
-        return value < 1 ? (value * 1000).toPrecision(3) :
-            value > 1000 ? (value / 1000).toPrecision(3) :
+        return value < 0.1 ? value.toFixed(3) :
             value.toPrecision(3) ;
     }
 });
 
+function tickMilliKilo(unit, value) {
+    return value < 1 ? (value * 1000).toFixed(0) :
+        value < 10 ? value.toFixed(1) :
+        value < 1000 ? value.toPrecision(1) :
+        (value / 1000).toPrecision(1) ;
+}
+
 const transformTick = overload(id, {
-    lcr: function(unit, value) {
-        return value === 0 ?
-            '0' :
+    pan: function(unit, value) {
+        return value === -1 ? 'left' :
+            value === 0 ? 'centre' :
+            value === 1 ? 'right' :
             value.toFixed(1) ;
     },
 
@@ -73,28 +97,32 @@ const transformTick = overload(id, {
     },
 
     Hz: function(unit, value) {
-        return value < 1 ? value.toFixed(2) :
-            value < 1000 ? value.toPrecision(3) :
-            (value / 1000).toPrecision(3) ;
+        return value < 10 ? value.toFixed(1) :
+            value < 1000 ? value.toFixed(0) :
+            (value / 1000).toFixed(0) ;
     },
 
-    semitones: function(unit, value) {
+    step: function(unit, value) {
         // detune value is in cents
         return (value / 100).toFixed(0);
     },
 
+    s: tickMilliKilo,
+
     default: function(unit, value) {
-        return value < 1 ? (value * 1000).toPrecision(1) :
-            value < 1000 ? value.toPrecision(1) :
-            (value / 1000).toPrecision(1) ;
+        return value.toPrecision(2) ;
     }
 });
 
+function unitMilliKilo(unit, value) {
+    return value < 1 ? 'm' + unit :
+        value > 1000 ? 'k' + unit :
+        unit ;
+}
+
 const transformUnit = overload(id, {
-    lcr: function(unit, value) {
-        return value < 0 ? 'left' :
-            value > 0 ? 'right' :
-            'center' ;
+    pan: function(unit, value) {
+        return '' ;
     },
 
     dB: id,
@@ -104,23 +132,24 @@ const transformUnit = overload(id, {
             unit ;
     },
 
-    semitones: id,
+    step: id,
+
+    s: unitMilliKilo,
 
     default: function(unit, value) {
-        return value < 1 ? 'm' + unit :
-            value > 1000 ? 'k' + unit :
-            unit ;
+        return unit || '';
     }
 });
 
 const evaluate = (string) => {
     const value  = parseFloat(string);
-    const tokens = /(ms|dB|kHz)\s*$/.exec(string);
+    const tokens = /(-?[\d.]+)(?:(dB)|(m|k)?(\w+))\s*$/.exec(string);
+
     if (!tokens) { return value };
 
-    return tokens[1] === 'dB' ? toLevel(value) :
-        tokens[1] === 'ms' ? value / 1000 :
-        tokens[1] === 'kHz' ? value * 1000 :
+    return tokens[2] === 'dB' ? toLevel(value) :
+        tokens[3] === 'm' ? value / 1000 :
+        tokens[3] === 'k' ? value * 1000 :
         value ;
 }
 
@@ -136,7 +165,7 @@ const settings = {
         options.include = attrInclude;
         var sparky = Sparky(node, options);
 
-        // This is just some help for logging mounted tags
+        // This is just some help for logging
         sparky.label = 'Sparky (child)';
 
         // Return a writeable stream. A write stream
@@ -150,6 +179,19 @@ const settings = {
     attributeInclude: 'include'
 };
 
+const setProperty = choose({
+    min:   (node, value) => {
+        node.min = evaluate(value);
+    },
+
+    max:   (node, value) => {
+        node.max = evaluate(value)
+    },
+
+    value: (node, value) => {
+        node.value = evaluate(value)
+    },
+});
 
 customElements.define('fader-control',
   class extends HTMLElement {
@@ -160,38 +202,48 @@ customElements.define('fader-control',
       constructor() {
           super();
 
+          const min       = evaluate(this.getAttribute('min'));
+          const max       = evaluate(this.getAttribute('max'));
           const unit      = this.getAttribute('unit') || '';
           const transform = this.getAttribute('transform') || 'linear';
-          const scope = Observer({
+
+          const data      = {
               inputValue:  0,
               outputValue: '',
-              prefix: this.getAttribute('prefix') || '',
-              unit:   '',
-              path:   './components/controls'
-          });
+              unit:        unit,
+              prefix:      this.getAttribute('prefix') || '',
+              path:        './components/controls'
+          };
 
-          this.type = 'number';
-          const min = this.min = evaluate(this.getAttribute('min'));
-          const max = this.max = evaluate(this.getAttribute('max'));
-          var value;
+          const ticks = this.getAttribute('ticks');
 
-          this.scope = scope;
-
-          scope.ticks = (this.getAttribute('ticks') || '')
+          data.ticks = ticks ?
+              ticks
               .split(/\s+/)
-              .map(Number)
+              .map(evaluate)
               .map((value) => {
                   const outputValue = transformTick(unit, value);
-                  console.log(transform)
+
+                  // Freeze to tell mounter it's immutable, prevents
+                  // unnecessary observing
                   return Object.freeze({
+                      root:        data,
                       value:       value,
-                      inputValue:  transforms[transform || 'linear'].ix(value, min, max),
+                      tickValue:   transforms[transform || 'linear'].ix(value, min, max),
                       outputValue: outputValue
                   });
-              });
+              }) :
+              nothing ;
+
+          const scope = Observer(data);
+
+          var value;
 
           // A flag to tell us what is currently in control of changes
           let changing = undefined;
+
+          this.type = 'number';
+          this.scope = scope;
 
           Object.defineProperty(this, 'value', {
               get: function() {
@@ -199,7 +251,7 @@ customElements.define('fader-control',
               },
 
               set: function(val) {
-                  val = limit(min, max, val);
+                  //val = limit(this.min, this.max, val);
                   if (val === value) { return; }
                   value = val;
                   changing = changing || 'value';
@@ -240,14 +292,12 @@ customElements.define('fader-control',
       }
 
       attributeChangedCallback(attribute, old, value) {
-          if (value === this[attribute]) { return; }
-          Observer(this)[attribute] = parseFloat(value);
+          if (value === old) { return; }
+          setProperty(attribute, this, value);
       }
 
       connectedCallback() {
-          console.log('Element added to page.');
-
-          const inputEvent = new CustomEvent('input', eventOptions);
+          if (DEBUG) { console.log('<fader-control> added to document', this); }
 
           // Pick up input events and update scope - Sparky wont do this
           // currently as events are delegated to document, and these are in
@@ -257,7 +307,14 @@ customElements.define('fader-control',
 
               if (e.target.checked) {
                   // Uncheck tick radio so that it may be chosen again
-                  e.target.checked = false;
+                  // Should not be necessary - target should become
+                  // unchecked if value moves away
+                  //e.target.checked = false;
+
+                  // Focus the input
+                  this.shadowRoot
+                  .getElementById('input')
+                  .focus();
               }
 
               // Input events are suppsed to traverse the shadow boundary

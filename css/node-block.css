@@ -1,0 +1,9 @@
+
+.node-block {
+    margin: 0;
+    padding: 9px;
+    height: auto;
+	white-space: normal;
+	text-align: left;
+    border-radius: 0.375rem;
+}
