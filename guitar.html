@@ -147,7 +147,7 @@
         <link rel="stylesheet" href="components/controls/fader-control.css" />
         <input class="control-input" type="range" id="input" value="{[inputValue]}" min="0" max="1" step="any" />
         <label class="control-label" for="input"><slot></slot></label>
-        <output class="control-output">{[prefix]}{[outputValue]}<abbr>{[unit]}</abbr></output>
+        <output class="control-output">{[prefix]}{[outputValue]}<abbr>{[outputUnit]}</abbr></output>
         <template fn="get:ticks each">
             <input class="tick-input" type="radio" name="tick" id="tick-{[value]}" value="{[tickValue|float-string]}" :value="{[root.inputValue|float-string]}" />
             <label class="tick-label" :style="left: calc(0.5rem + (100% - 1rem) * {[tickValue]});" :for="tick-{[value]}">{[outputValue]}</label>
@@ -482,8 +482,8 @@
                 type:  'mix',
                 label: 'Delay feed',
                 data: {
-                    pan: 0,
-                    gain: 0.125,
+                    pan:  0,
+                    gain: 0.5,
                     mute: true
                 }
             }, {
@@ -511,16 +511,16 @@
             }],
 
             connections: [
-                { source: 'input',      target: 'flanger' },
+                //{ source: 'input',      target: 'flanger' },
                 //{ source: 'compressor', target: 'flanger' },
                 //{ source: 'flanger',    target: 'delay-send' },
-                { source: 'flanger',    target: 'output' },
+                //{ source: 'flanger',    target: 'output' },
                 //{ source: 'delay-send', target: 'delay' },
                 //{ source: 'delay',      target: 'output' },
                 //{ source: 'synth',      target: 'output' },
                 //{ source: 'metronome',  target: 'output' }
             ],
-
+/*
             controls: [{
                 source: {
                     device: 'keys',
@@ -559,7 +559,7 @@
                 max:   1,
                 target: 'synth'
             }],
-
+*/
             sequences: [{
                 id: 'test',
                 events: [

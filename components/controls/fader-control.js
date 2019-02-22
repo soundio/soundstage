@@ -1,9 +1,10 @@
 
 import { cache, choose, id, Observer, Target, observe, set, overload, todB, toLevel, limit, nothing } from '../../../fn/fn.js';
-import { isAudioParam, getValueAtTime, automate, transforms, parseValue } from '../../soundstage.js';
+import { evaluate, transform, invert, transformOutput, transformTick, transformUnit  } from './control.js';
+import { element } from '../../../dom/dom.js';
 import Sparky, { mount } from '../../../sparky/sparky.js';
 
-const DEBUG = false;
+const DEBUG = false;//true;
 
 const assign = Object.assign;
 
@@ -21,311 +22,190 @@ const eventOptions = {
   //composed: false
 };
 
-const attributes = ['value', 'min', 'max'];
-
-const fadeDuration = 0.003;
+const attributes = ['min', 'max', 'value'];
 
 const inputEvent = new CustomEvent('input', eventOptions);
-
-
-function outputMilliKilo(unit, value) {
-    return value < 0.001 ? (value * 1000).toFixed(2) :
-        value < 1 ? (value * 1000).toPrecision(3) :
-        value > 1000 ? (value / 1000).toPrecision(3) :
-        value.toPrecision(3) ;
-}
-
-const transformOutput = overload(id, {
-    pan: function(unit, value) {
-        return value === -1 ? 'left' :
-            value === 0 ? 'centre' :
-            value === 1 ? 'right' :
-            value.toFixed(2) ;
-    },
-
-    dB: function(unit, value) {
-        const db = todB(value) ;
-        return isFinite(db) ?
-            db < -1 ? db.toPrecision(3) :
-                db.toFixed(2) :
-            // Allow Infinity to pass through as it is already gracefully
-            // rendered by Sparky
-            db ;
-    },
-
-    Hz: function(unit, value) {
-        return value < 1 ? value.toFixed(2) :
-            value > 1000 ? (value / 1000).toPrecision(3) :
-            value.toPrecision(3) ;
-    },
-
-    step: function(unit, value) {
-        // detune value is in cents
-        return value < 0 ?
-            ('♭' + (-value / 100).toFixed(2)) :
-            ('♯' + (value / 100).toFixed(2)) ;
-    },
-
-    s: outputMilliKilo,
-
-    default: function(unit, value) {
-        return value < 0.1 ? value.toFixed(3) :
-            value.toPrecision(3) ;
-    }
-});
-
-function tickMilliKilo(unit, value) {
-    return value < 1 ? (value * 1000).toFixed(0) :
-        value < 10 ? value.toFixed(1) :
-        value < 1000 ? value.toPrecision(1) :
-        (value / 1000).toPrecision(1) ;
-}
-
-const transformTick = overload(id, {
-    pan: function(unit, value) {
-        return value === -1 ? 'left' :
-            value === 0 ? 'centre' :
-            value === 1 ? 'right' :
-            value.toFixed(1) ;
-    },
-
-    dB: function(unit, value) {
-        const db = todB(value) ;
-        return isFinite(db) ?
-            db.toFixed(0) :
-            db ;
-    },
-
-    Hz: function(unit, value) {
-        return value < 10 ? value.toFixed(1) :
-            value < 1000 ? value.toFixed(0) :
-            (value / 1000).toFixed(0) ;
-    },
-
-    step: function(unit, value) {
-        // detune value is in cents
-        return (value / 100).toFixed(0);
-    },
-
-    s: tickMilliKilo,
-
-    default: function(unit, value) {
-        return value.toPrecision(2) ;
-    }
-});
-
-function unitMilliKilo(unit, value) {
-    return value < 1 ? 'm' + unit :
-        value > 1000 ? 'k' + unit :
-        unit ;
-}
-
-const transformUnit = overload(id, {
-    pan: function(unit, value) {
-        return '' ;
-    },
-
-    dB: id,
-
-    Hz: function(unit, value) {
-        return value > 1000 ? 'k' + unit :
-            unit ;
-    },
-
-    step: id,
-
-    s: unitMilliKilo,
-
-    default: function(unit, value) {
-        return unit || '';
-    }
-});
-
-const evaluate = (string) => {
-    const value  = parseFloat(string);
-    const tokens = /(-?[\d.]+)(?:(dB)|(m|k)?(\w+))\s*$/.exec(string);
-
-    if (!tokens) { return value };
-
-    return tokens[2] === 'dB' ? toLevel(value) :
-        tokens[3] === 'm' ? value / 1000 :
-        tokens[3] === 'k' ? value * 1000 :
-        value ;
-}
 
 const settings = {
     mount: function(node, options) {
         // Does the node have Sparkyfiable attributes?
-        const attrFn      = node.getAttribute(options.attributeFn);
-        const attrInclude = node.getAttribute(options.attributeInclude);
+        const attrFn = node.getAttribute(options.attributeFn);
+        //const attrInclude = node.getAttribute(options.attributeInclude);
 
-        if (!attrFn && !attrInclude) { return; }
+        if (!attrFn/* && !attrInclude*/) { return; }
 
         options.fn = attrFn;
-        options.include = attrInclude;
+        //options.include = attrInclude;
         var sparky = Sparky(node, options);
 
         // This is just some help for logging
-        sparky.label = 'Sparky (child)';
+        sparky.label = 'Sparky (<fader-control> tick)';
 
-        // Return a writeable stream. A write stream
-        // must have the methods .push() and .stop()
-        // A sparky is a write stream.
+        // Return sparky
         return sparky;
     },
 
     attributePrefix:  ':',
-    attributeFn:      'fn',
-    attributeInclude: 'include'
+    attributeFn:      'fn'
 };
 
-const setProperty = choose({
-    min:   (node, value) => {
-        node.min = evaluate(value);
+function createTicks(data, tokens) {
+    return tokens ?
+        tokens
+        .split(/\s+/)
+        .map(evaluate)
+        .filter((number) => {
+            // Filter ticks to min-max range, special-casing logarithmic-0
+            // which has a min greater than 0
+            return number >= (data.transform === 'logarithmic-zero' ? 0 : data.min)
+                && number <= data.max
+        })
+        .map((value) => {
+            const outputValue = transformTick(data.unit, value);
+
+            // Freeze to tell mounter it's immutable, prevents
+            // unnecessary observing
+            return Object.freeze({
+                root:        data,
+                value:       value,
+                tickValue:   invert(data.transform || 'linear', value, data.min, data.max),
+                outputValue: outputValue
+            });
+        }) :
+        nothing ;
+}
+
+element('fader-control', '#fader-control-template', {
+    min:       function(value) { this.min = value; },
+
+    max:       function(value) { this.max = value; },
+
+    value:     function(value) { this.value = value; },
+
+    prefix:    function(value) { this.data.prefix = value; },
+
+    transform: function(value) { this.data.transform = value; },
+
+    unit:      function(value) { this.data.unit = value; },
+
+    ticks: function(value) {
+        const data     = this.data;
+        const observer = Observer(data);
+        observer.ticks = createTicks(data, value);
+    }
+}, {
+    type: {
+        value: 'number',
+        enumerable: true
     },
 
-    max:   (node, value) => {
-        node.max = evaluate(value)
+    min: {
+        get: function() {
+            return this.data.min;
+        },
+
+        set: function(value) {
+            const data = this.data;
+            value = evaluate(value);
+
+            if (value === data.min) { return; }
+
+            const observer = Observer(data);
+            observer.min   = evaluate(value);
+            observer.ticks = createTicks(data, this.getAttribute('ticks') || '');
+            observer.inputValue = invert(data.transform || 'linear', data.value, data.min, data.max);
+        },
+
+        enumerable: true
     },
 
-    value: (node, value) => {
-        node.value = evaluate(value)
+    max: {
+        get: function() {
+            return this.data.max;
+        },
+
+        set: function(value) {
+            const data = this.data;
+            value = evaluate(value);
+
+            if (value === data.max) { return; }
+
+            const observer = Observer(data);
+            observer.max   = evaluate(value);
+            observer.ticks = createTicks(data, this.getAttribute('ticks') || '');
+            observer.inputValue = invert(data.transform || 'linear', data.value, data.min, data.max);
+        },
+
+        enumerable: true
     },
-});
 
-customElements.define('fader-control',
-  class extends HTMLElement {
-      static get observedAttributes() {
-          return attributes;
-      }
+    value: {
+        get: function() {
+            return this.data.value;
+        },
 
-      constructor() {
-          super();
+        set: function(value) {
+            const data = this.data;
+            value = evaluate(value);
 
-          const min       = evaluate(this.getAttribute('min'));
-          const max       = evaluate(this.getAttribute('max'));
-          const unit      = this.getAttribute('unit') || '';
-          const transform = this.getAttribute('transform') || 'linear';
+            if (value === data.value) { return; }
+            data.value = value;
 
-          const data      = {
-              inputValue:  0,
-              outputValue: '',
-              unit:        unit,
-              prefix:      this.getAttribute('prefix') || '',
-              path:        './components/controls'
-          };
+            const observer = Observer(data);
+            observer.outputValue = transformOutput(data.unit, value);
+            observer.outputUnit  = transformUnit(data.unit, value);
+            observer.inputValue  = invert(data.transform || 'linear', value, data.min, data.max);
+        },
 
-          const ticks = this.getAttribute('ticks');
+        enumerable: true
+    }
+}, {
+    setup: function(shadow) {
+        const data = this.data = {
+            path: './components/controls'
+        };
+    },
 
-          data.ticks = ticks ?
-              ticks
-              .split(/\s+/)
-              .map(evaluate)
-              .map((value) => {
-                  const outputValue = transformTick(unit, value);
+    connect: function() {
+        if (DEBUG) { console.log('Element added to document', this); }
 
-                  // Freeze to tell mounter it's immutable, prevents
-                  // unnecessary observing
-                  return Object.freeze({
-                      root:        data,
-                      value:       value,
-                      tickValue:   transforms[transform || 'linear'].ix(value, min, max),
-                      outputValue: outputValue
-                  });
-              }) :
-              nothing ;
+        const data     = this.data;
+        const observer = Observer(data);
 
-          const scope = Observer(data);
+        // Mount template
+        mount(this.shadowRoot, settings).push(data);
 
-          var value;
+        // Pick up input events and update scope - Sparky wont do this
+        // currently as events are delegated to document, and these are in
+        // a shadow DOM.
+        this.shadowRoot.addEventListener('input', (e) => {
+            const data       = this.data;
+            const inputValue = parseFloat(e.target.value);
+            observer.inputValue = inputValue;
 
-          // A flag to tell us what is currently in control of changes
-          let changing = undefined;
+            const value = transform(data.transform || 'linear', inputValue, data.min, data.max) ;
+            data.value = value;
 
-          this.type = 'number';
-          this.scope = scope;
+            observer.outputValue = transformOutput(data.unit, value);
+            observer.outputUnit  = transformUnit(data.unit, value);
 
-          Object.defineProperty(this, 'value', {
-              get: function() {
-                  return value;
-              },
+            if (e.target.checked) {
+                // Uncheck tick radio so that it may be chosen again
+                // Should not be necessary - target should become
+                // unchecked if value moves away
+                //e.target.checked = false;
 
-              set: function(val) {
-                  //val = limit(this.min, this.max, val);
-                  if (val === value) { return; }
-                  value = val;
-                  changing = changing || 'value';
-                  scope.outputValue = transformOutput(unit, value);
-                  scope.unit        = transformUnit(unit, value);
+                // Focus the input
+                this.shadowRoot
+                .getElementById('input')
+                .focus();
+            }
 
-                  if (changing !== 'inputValue') {
-                      scope.inputValue = transforms[transform || 'linear'].ix(value, min, max);
-                  }
-
-                  changing = changing === 'value' ? undefined : changing ;
-              }
-          });
-
-          // Value may be controlled be the input
-          observe('inputValue', (inputValue) => {
-              changing = changing || 'inputValue';
-
-              if (changing !== 'value') {
-                  const value = transforms[transform || 'linear'].tx(inputValue, min, max) ;
-                  this.value = value;
-              }
-
-              changing = changing === 'inputValue' ? undefined : changing ;
-          }, scope);
-
-          const content = document
-          .getElementById('fader-control-template')
-          .content
-          .cloneNode(true);
-
-          const renderer = mount(content, settings);
-          renderer.push(scope);
-
-          const shadow = this
-          .attachShadow({mode: 'open'})
-          .appendChild(content);
-      }
-
-      attributeChangedCallback(attribute, old, value) {
-          if (value === old) { return; }
-          setProperty(attribute, this, value);
-      }
-
-      connectedCallback() {
-          if (DEBUG) { console.log('<fader-control> added to document', this); }
-
-          // Pick up input events and update scope - Sparky wont do this
-          // currently as events are delegated to document, and these are in
-          // a shadow DOM.
-          this.shadowRoot.addEventListener('input', (e) => {
-              this.scope.inputValue = parseFloat(e.target.value);
-
-              if (e.target.checked) {
-                  // Uncheck tick radio so that it may be chosen again
-                  // Should not be necessary - target should become
-                  // unchecked if value moves away
-                  //e.target.checked = false;
-
-                  // Focus the input
-                  this.shadowRoot
-                  .getElementById('input')
-                  .focus();
-              }
-
-              // Input events are suppsed to traverse the shadow boundary
-              // but they do not. At least not in Chrome 2019
-              if (!e.composed) {
-                  this.dispatchEvent(inputEvent);
-              }
-          });
-      }
-
-      disconnectedCallback() {
-          console.log('Element removed from page.');
-      }
-});
+            // Input events are suppsed to traverse the shadow boundary
+            // but they do not. At least not in Chrome 2019
+            if (!e.composed) {
+                this.dispatchEvent(inputEvent);
+            }
+        });
+    }
+})
