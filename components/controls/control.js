@@ -61,7 +61,7 @@ function tickMilliKilo(unit, value) {
     return value < 1 ? (value * 1000).toFixed(0) :
         value < 10 ? value.toFixed(1) :
         value < 1000 ? value.toPrecision(1) :
-        (value / 1000).toPrecision(1) ;
+        (value / 1000).toPrecision(1) + 'k' ;
 }
 
 export const transformTick = overload(id, {
@@ -82,7 +82,7 @@ export const transformTick = overload(id, {
     Hz: function(unit, value) {
         return value < 10 ? value.toFixed(1) :
             value < 1000 ? value.toFixed(0) :
-            (value / 1000).toFixed(0) ;
+            (value / 1000).toFixed(0) + 'k' ;
     },
 
     step: function(unit, value) {

@@ -1,7 +1,8 @@
 
 :host {
 	--normal-color: hsl(192, 96%, 6%);
-	--active-color: hsl(198, 42%, 56%);
+	--active-color: hsl(198, 50%, 56%);
+	--active-color-muted: hsl(198, 56%, 44%);
 	--output-color: hsl(198, 20%, 52%);
 	--hover-color: #969ea2;
 	--focus-color: hsl(165, 31%, 53%);
@@ -99,13 +100,14 @@
 	background-color: #B6B2B0;
 
 	/* Spherical shading */
-	background-image: linear-gradient( rgb(247,247,247), rgb(140,140,140) );
+	background-image: linear-gradient(hsl(192,0%,96.8%), hsl(192,0%,55%));
 	box-shadow: inset 0 0 5px 1px hsla(198,30%,20%,0.6);
 }
 
 [type="range"]:focus::-webkit-slider-thumb {
-	box-shadow: inset 0 0 5px 2px hsla(165,50%,40%,0.4);
-	box-shadow: inset 0 0 5px 2px hsla(165,46%,20%,0.5);
+	box-shadow: inset 0 0 5px 2px hsla(192,50%,40%,0.4);
+	box-shadow: inset 0 0 3px 1px hsla(192,77%,12%,0.63);
+	background-image: linear-gradient(hsl(192,40%,96.8%), hsl(165,24%,55%));
 }
 
 [type="range"]::-moz-range-thumb {
@@ -200,7 +202,7 @@
 }
 
 .control-input:focus ~ .control-label {
-	color: var(--active-color);
+	color: var(--output-color);
 }
 
 .control-input:focus ~ .control-output {
@@ -286,6 +288,10 @@
 
 .control-input:focus ~ .tick-label {
 	color: var(--active-color);
+}
+
+.control-input:focus ~ .tick-label::after {
+	color: var(--active-color-muted);
 }
 
 .tick-input:checked + .tick-label {
