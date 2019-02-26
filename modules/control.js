@@ -128,9 +128,9 @@ function timeAtDomTime(stamps, domTime) {
 }
 
 function getControlTime(context, domTime) {
-    const stamps          = context.getOutputTimestamp();
+    const stamps         = context.getOutputTimestamp();
     const controlLatency = getControlLatency(stamps, context);
-    const time            = timeAtDomTime(stamps, domTime);
+    const time           = timeAtDomTime(stamps, domTime);
     return time + controlLatency;
 }
 
@@ -140,9 +140,6 @@ function getContextTime(context, domTime) {
 }
 
 export default function Control(controls, source, target, settings, notify) {
-    // Target here is the graph node wrapper, not the actual audio node
-    const route = this;
-
     const data = settings || {
         type:      undefined,
         name:      undefined,

@@ -1,6 +1,6 @@
 
-<template id="fader-control-template">
-    <link rel="stylesheet" href="components/controls/fader-control.css" />
+<template id="range-control-template">
+    <link rel="stylesheet" href="components/controls/range-control.css" />
     <input class="control-input" type="range" id="input" value="{[inputValue]}" min="0" max="1" step="any" />
     <label class="control-label" for="input"><slot></slot></label>
     <output class="control-output">{[prefix]}{[outputValue]}<abbr>{[unit]}</abbr></output>

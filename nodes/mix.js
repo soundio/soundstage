@@ -1,8 +1,6 @@
 
 import NodeGraph from './node-graph.js';
 
-const assign = Object.assign;
-
 const graph = {
     nodes: [
 		{ id: 'pan', type: 'pan', data: { pan: 0 }},
@@ -13,7 +11,6 @@ const graph = {
 
 export default class Mix extends GainNode {
     constructor(context, options) {
-console.log(options)
         // Init gain node
         super(context, options);
 

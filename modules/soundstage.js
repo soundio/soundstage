@@ -4,7 +4,7 @@ import requestInputSplitter   from '../../audio-object/modules/request-input-spl
 
 import { print, printGroup, printGroupEnd }     from './utilities/print.js';
 import { Privates } from './utilities/privates.js';
-import { timeAtDomTime } from './utilities/utilities.js';
+import { timeAtDomTime } from './context.js';
 import { distributeEvent } from './distribute.js';
 import audio         from './context.js';
 import constructors  from './constructors';

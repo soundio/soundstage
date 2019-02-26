@@ -1,5 +1,9 @@
 
 import { last } from '../../fn/fn.js';
+import { timeAtDomTime } from './context.js';
+
+// 60 frames/sec frame rate
+const frameDuration = 1000 / 60;
 
 // Config
 
@@ -158,6 +162,9 @@ function automateParamEvents(param, events, time, value, curve, duration) {
         curve = event1 && event1.curve === 'exponential' ?
             'exponential' :
             'step' ;
+        events.length = n + 1;
+        events.push({ time, value, curve, duration });
+        return;
     }
     else {
         // Schedule the param event
@@ -199,25 +206,51 @@ automate(param, time, value, curve, decay)
 param - AudioParam object
 time  -
 value -
-curve - one of 'step', 'linear', 'exponential' or 'target'
+curve - one of 'step', 'hold', 'linear', 'exponential' or 'target'
 decay - where curve is 'target', decay is a time constant for the decay curve
 */
 
-export function automate(param, time, curve, value, duration, notify) {
+export function automate(param, time, curve, value, duration, notify, context) {
     //console.log('AUTOMATE', arguments[5], time, curve, value, duration, param);
 	var events = getAutomationEvents(param);
 	automateParamEvents(param, events, time, value, curve, duration);
 
-    if (!notify) { return; }
-console.log('NOTIFY')
-    let n = 10;
-    (function frame() {
-        if (n--) {
-            requestAnimationFrame(frame);
+    if (!notify || !context) {
+        console.warn('No notify for param change', value, curve, param);
+        return;
+    }
+
+    // If param is flagged as already notifying, do nothing
+    if (param.animationFrame) { return; }
+
+    // Notify at half frame rate
+    function frame2(time) {
+        param.animationFrame = requestAnimationFrame(frame1);
+    }
+
+    function frame1(time) {
+        const renderTime = time + frameDuration;
+        const outputTime = timeAtDomTime(context, renderTime);
+        const outputValue = getValueAtTime(param, outputTime);
+
+        notify(param, 'value', outputValue);
+
+        if (events[events.length - 1].time < outputTime) {
+            param.animationFrame = undefined;
+
+            requestAnimationFrame(function f() {
+                // getValueAtTime is inaccurate, even up the value
+                // to the actual latest value
+                notify(param, 'value', param.value);
+            });
+
+            return;
         }
 
-        notify(param);
-    })();
+        param.animationFrame = requestAnimationFrame(frame2);
+    }
+
+    param.animationFrame = requestAnimationFrame(frame1);
 }
 
 export function getAutomationEndTime(events) {
@@ -278,6 +311,11 @@ export function getEventsValueAtTime(events, time) {
 
 	var event0 = events[n];
 	var event1 = events[n + 1];
+
+    // Time is before the first event in events
+	if (!event0) {
+		return 0;
+	}
 
     // Time is at or after the last event in events
 	if (!event1) {

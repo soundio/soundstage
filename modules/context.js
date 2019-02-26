@@ -15,3 +15,13 @@ if (!context.outputLatency) {
 }
 
 export default context;
+
+export function timeAtDomTime(context, domTime) {
+    var stamps = context.getOutputTimestamp();
+    return stamps.contextTime + (domTime - stamps.performanceTime) / 1000;
+}
+
+export function domTimeAtTime(context, time) {
+    var stamp = context.getOutputTimestamp();
+    return stamp.performanceTime + (time - stamp.contextTime) * 1000;
+}

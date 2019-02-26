@@ -32,7 +32,6 @@
 
     <link rel="stylesheet" href="css/node-block.css" />
     <link rel="stylesheet" href="components/sparky/midi/style.css" />
-    <link rel="stylesheet" href="components/sparky/fader/style.css" />
 
     <style>
         html,
@@ -134,17 +133,19 @@
 
         th, td { text-align: left; }
 
-        * + fader-control {
+        * + range-control {
             margin-top: 30px;
         }
 
-        fader-control + fader-control {
+        range-control + range-control {
             margin-top: 15px;
         }
     </style>
 
-    <template id="fader-control-template">
-        <link rel="stylesheet" href="components/controls/fader-control.css" />
+    <link rel="stylesheet" href="components/controls/range-control.css" />
+
+    <template id="range-control-template">
+        <link rel="stylesheet" href="components/controls/range-control.css" />
         <input class="control-input" type="range" id="input" value="{[inputValue]}" min="0" max="1" step="any" />
         <label class="control-label" for="input"><slot></slot></label>
         <output class="control-output">{[prefix]}{[outputValue]}<abbr>{[outputUnit]}</abbr></output>
@@ -165,28 +166,20 @@
     </template>
 
     <template id="node-/soundstage/nodes/tone-synth.js" fn="get:data">
-        <fader-control :value="{[gain]}" unit="dB" min="-48dB" max="1" transform="logarithmic-zero" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
-            Gain
-        </fader-control>
+        <range-control fn="param:gain" unit="dB" min="-48dB" max="1" transform="logarithmic-zero" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Gain</range-control>
 
-        <div class="sources-block block">
-            <div fn="get:sources each">
+        <section class="sources-block block">
+            <article fn="get:sources each">
                 <select value="{[type]}">
                     <option value="triangle">Triangle</option>
                     <option value="square">Square</option>
                     <option value="sine">Sine</option>
                 </select>
-                <fader-control :value="{[detune]}" min="-1200" max="2400" transform="linear" ticks="-1200 -700 0 700 1200 1600 1900 2200 2400" unit="step">
-                    Tune
-                </fader-control>
-                <fader-control :value="{[pan]}" unit="pan" min="-1" max="1" transform="linear" ticks="-1 0 1">
-                    Pan
-                </fader-control>
-                <fader-control :value="{[mix]}" unit="dB" min="-36dB" max="1" transform="logarithmic-zero" ticks="0 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
-                    Mix
-                </fader-control>
-            </div>
-        </div>
+                <range-control fn="param:detune" min="-1200" max="2400" transform="linear" ticks="-1200 -700 0 700 1200 1600 1900 2200 2400" unit="step">Tune</range-control>
+                <range-control fn="param:pan" unit="pan" min="-1" max="1" transform="linear" ticks="-1 0 1">Pan</range-control>
+                <range-control fn="param:mix" unit="dB" min="-36dB" max="1" transform="logarithmic-zero" ticks="0 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Mix</range-control>
+            </article>
+        </section>
 
         <h3>Gain envelope</h3>
 
@@ -210,42 +203,43 @@
             </div>
         </div>
 
-        <fader-control :value="{[pitch]}" unit="step" min="-2" max="2" ticks="-2 -1 0 1 2">Pitch</fader-control>
-        <fader-control :value="{[frequency]}" unit="Hz" min="16" max="16000" transform="logarithmic" ticks="16 32 64 125 250 500 1000 2000 4000 8000 16000">Frequency</fader-control>
-        <fader-control :value="{[Q]}" unit="Q" min="0.16" max="20" transform="logarithmic" ticks="0.16 0.32 0.64 1.25 2.5 5 10 20">Q</fader-control>
-        <fader-control :value="{[output]}" unit="dB" min="-48dB" max="1" transform="logarithmic-zero" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Output</fader-control>
+        <range-control fn="param:pitch" unit="step" min="-2" max="2" ticks="-2 -1 0 1 2">Pitch</range-control>
+        <range-control fn="param:frequency" unit="Hz" min="16" max="16000" transform="logarithmic" ticks="16 32 64 125 250 500 1000 2000 4000 8000 16000">Frequency</range-control>
+        <range-control fn="param:Q" unit="Q" min="0.16" max="20" transform="logarithmic" ticks="0.16 0.32 0.64 1.25 2.5 5 10 20">Q</range-control>
+        <range-control fn="param:output" unit="dB" min="-48dB" max="1" transform="logarithmic-zero" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Output</range-control>
     </template>
 
     <template id="node-/soundstage/nodes/flanger.js" fn="get:data">
-        <fader-control :value="{[gain]}" unit="dB" min="-48dB" max="1" transform="logarithmic-zero" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Gain</fader-control>
-        <fader-control :value="{[delay]}" unit="s" min="0.0125" max="2" transform="logarithmic-zero" ticks="0 0.02 0.04 0.06 0.08 0.1 0.2 0.4 0.6 0.8 1 2">Delay</fader-control>
-        <fader-control :value="{[frequency]}" unit="Hz" min="0.083333333" max="96" transform="logarithmic-zero" ticks="0 0.1 0.2 0.4 0.6 0.8 1 2 4 6 8 10 20 40 60 80">LFO Frequency</fader-control>
-        <fader-control :value="{[depth]}" unit="s" min="0.012" max="0.18" transform="logarithmic-zero" prefix="±" ticks="0 0.02 0.04 0.06 0.08 0.1 0.12 0.14 0.16 0.18">LFO Depth</fader-control>
-        <fader-control :value="{[feedback]}" unit="dB" min="-36dB" max="1" transform="logarithmic-zero" ticks="0 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Feedback</fader-control>
-        <fader-control :value="{[wet]}" unit="dB" min="-48dB" max="1" transform="logarithmic-zero" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Wet</fader-control>
-        <fader-control :value="{[dry]}" unit="dB" min="-48dB" max="1" transform="logarithmic-zero" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Dry</fader-control>
+        <range-control fn="param:gain" unit="dB" min="-48dB" max="1" transform="logarithmic-zero" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Gain</range-control>
+        <range-control fn="param:delay" unit="s" min="0.0125" max="2" transform="logarithmic-zero" ticks="0 0.02 0.04 0.06 0.08 0.1 0.2 0.4 0.6 0.8 1 2">Delay</range-control>
+        <range-control fn="param:frequency" unit="Hz" min="0.083333333" max="96" transform="logarithmic-zero" ticks="0 0.1 0.2 0.4 0.6 0.8 1 2 4 6 8 10 20 40 60 80">LFO Frequency</range-control>
+        <range-control fn="param:depth" unit="s" min="0.012" max="0.18" transform="logarithmic-zero" prefix="±" ticks="0 0.02 0.04 0.06 0.08 0.1 0.12 0.14 0.16 0.18">LFO Depth</range-control>
+        <range-control fn="param:feedback" unit="dB" min="-37.3dB" max="1" transform="logarithmic-zero" ticks="0 -36dB -30dB -24dB -18dB -12dB -6dB 0dB">Feedback</range-control>
+        <range-control fn="param:wet" unit="dB" min="-48dB" max="1" transform="logarithmic-zero" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Wet</range-control>
+        <range-control fn="param:dry" unit="dB" min="-48dB" max="1" transform="logarithmic-zero" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Dry</range-control>
     </template>
 
     <template id="node-compressor" fn="get:data">
-        <fader-control :value="{[threshold]}" min="-60" max="0" transform="linear" ticks="-60 -54 -48 -42 -36 -30 -24 -18 -12 -6 0">Threshold</fader-control>
-        <fader-control :value="{[ratio]}" min="1" max="20" transform="cubic">Ratio</fader-control>
-        <fader-control :value="{[knee]}" min="0" max="40" transform="cubic">Knee</fader-control>
-        <fader-control :value="{[attack]}" unit="s" min="0.012" max="0.8" transform="logarithmic-zero" ticks="0 0.02 0.04 0.06 0.08 0.1 0.2 0.4 0.6 0.8">Attack</fader-control>
-        <fader-control :value="{[release]}" unit="s" min="0.012" max="0.8" transform="logarithmic-zero" ticks="0 0.02 0.04 0.06 0.08 0.1 0.2 0.4 0.6 0.8">Release</fader-control>
+        <range-control fn="param:threshold" min="-60" max="0" transform="linear" ticks="-60 -54 -48 -42 -36 -30 -24 -18 -12 -6 0">Threshold</range-control>
+        <range-control fn="param:ratio" min="1" max="20" transform="cubic">Ratio</range-control>
+        <range-control fn="param:knee" min="0" max="40" transform="cubic">Knee</range-control>
+        <range-control fn="param:attack" unit="s" min="0.012" max="0.8" transform="logarithmic-zero" ticks="0 0.02 0.04 0.06 0.08 0.1 0.2 0.4 0.6 0.8">Attack</range-control>
+        <range-control fn="param:release" unit="s" min="0.012" max="0.8" transform="logarithmic-zero" ticks="0 0.02 0.04 0.06 0.08 0.1 0.2 0.4 0.6 0.8">Release</range-control>
     </template>
 
     <template id="node-output" fn="get:data">
-        {[name]} {[channels]}
+        <!--{[name]} {[channels]}
         <select value="{[channels|numbers-string:',']}">
             <option value="0,1" selected>1-2</option>
             <option value="0">1</option>
             <option value="1">2</option>
-        </select>
+        </select-->
     </template>
 
     <template id="node-mix" fn="get:data">
-        <fader-control :value="{[pan]}" unit="pan" min="-1" max="1" transform="linear" ticks="-1 0 1">Pan</fader-control>
-        <fader-control :value="{[gain]}" unit="dB" min="-60dB" max="1" transform="logarithmic-zero" ticks="0 0.0009765625 0.001953125 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Gain</fader-control>
+        <p>{[gain.value]}</p>
+        <range-control fn="param:pan" unit="pan" min="-1" max="1" transform="linear" ticks="-1 0 1">Pan</range-control>
+        <range-control fn="param:gain" unit="dB" min="-60dB" max="1" transform="logarithmic-zero" ticks="0 0.0009765625 0.001953125 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Gain</range-control>
     </template>
 
     <template id="node-/soundstage/nodes/metronome.js" fn="get:data">
@@ -254,7 +248,7 @@
         <ul>
             <li fn="get:events each">{[.]}</li>
         </ul>
-        <fader-control :value="{[gain]}" unit="dB" min="-48dB" max="1" transform="logarithmic-zero" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Output</fader-control>
+        <range-control fn="param:gain" unit="dB" min="-48dB" max="1" transform="logarithmic-zero" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Output</range-control>
     </template>
 
     <template id="source-device-midi">
@@ -267,23 +261,23 @@
 </head>
 
 <body>
-    <div class="bar-block block">
+    <!--div class="bar-block block">
         <h1 class="logo-thumb thumb"><pre>label: {[label]}</pre></h1>
 
         <template is="sparky" fn="soundstage">
             <template include="components/sparky/transport/template.html#transport"></template>
             <a fn="midi-status" href="#">MIDI</a>
         </template>
-    </div>
+    </div-->
 
     <template is="sparky" fn="soundstage">
-        <div class="inputs-block block" fn="get:'nodes[type=input]'">
+        <!--div class="inputs-block block" fn="get:'nodes[type=input]'">
             <pre>{[id]}</pre>
-        </div>
+        </div-->
 
-        <div class="outputs-block block" fn="get:'nodes[type=output]'">
+        <!--div class="outputs-block block" fn="get:'nodes[type=output]'">
             <pre>{[id]}</pre>
-        </div>
+        </div-->
 
         <div class="nodes-block block">
             <h2 class="label-block block">Nodes</h2>
@@ -292,12 +286,12 @@
                 <template include="node-{[type]}"></template>
             </div>
 
-            <template fn="get:connections">
+            <!--template fn="get:connections">
                 <div class="connections-block block">
                     <h2>Connections</h2>
                     <pre fn="each">{[.]}</pre>
                 </div>
-            </template>
+            </template-->
 
             <!--template fn="get:controls">
                 <div class="controls-block block">
@@ -369,7 +363,6 @@
 
     <!-- Tests -->
     <script type="module">
-    import './components/sparky/fader/fns.js';
     import './components/sparky/midi/fns.js';
 
     import * as Fn from '../fn/fn.js';
@@ -386,6 +379,13 @@
 
     import Sparky, { functions, notify, mountConfig } from '../sparky/sparky.js';
     window.Sparky = Sparky;
+
+    import './components/sparky/param/param.js';
+
+
+
+
+
 
     import context from './modules/context.js';
 
@@ -407,7 +407,7 @@
         return (window.stage = new Soundstage({
             label: "Guitar",
 
-            nodes: [{
+            nodes: [/*{
                 id:    'input',
                 type:  'input',
                 label: 'Input',
@@ -477,7 +477,7 @@
                     dry:       0,
                     wet:       0.5
                 }
-            }, {
+            }, */{
                 id:    'delay-send',
                 type:  'mix',
                 label: 'Delay feed',
@@ -486,7 +486,7 @@
                     gain: 0.5,
                     mute: true
                 }
-            }, {
+            }, /*{
                 id:    'delay',
                 type:  '/soundstage/nodes/flanger.js',
                 label: 'Delay',
@@ -503,7 +503,7 @@
                 type:  '/soundstage/nodes/metronome.js',
                 label: 'Metronome',
                 data: {}
-            }, {
+            }, */{
                 id:    'output',
                 type:  'output',
                 label: 'Output',
@@ -515,7 +515,7 @@
                 //{ source: 'compressor', target: 'flanger' },
                 //{ source: 'flanger',    target: 'delay-send' },
                 //{ source: 'flanger',    target: 'output' },
-                //{ source: 'delay-send', target: 'delay' },
+                { source: 'delay-send', target: 'output' },
                 //{ source: 'delay',      target: 'output' },
                 //{ source: 'synth',      target: 'output' },
                 //{ source: 'metronome',  target: 'output' }
@@ -559,7 +559,7 @@
                 max:   1,
                 target: 'synth'
             }],
-*/
+
             sequences: [{
                 id: 'test',
                 events: [
@@ -570,6 +570,7 @@
             events: [
                 [0, 'sequence', 'test', 'synth', 2]
             ]
+*/
         }, {
             notify: notify
         }));
@@ -593,13 +594,52 @@
 
     // Add custom elements to Sparky's mount config
     Object.assign(mountConfig, {
-        'fader-control': {
+        'range-control': {
             attributes: [],
             booleans: ['disabled'],
             value: 'number'
         }
     });
+
+
+
+
+    // Test
+    import { automate, getValueAtTime } from './soundstage.js';
+
+    //stagePromise.then(function test() {
+    //    console.log('TEST ================')
+    //
+    //    const node = stage.get('delay-send');
+    //    const param = node.gain;
+    //    const t = node.context.currentTime;
+    //
+    //    console.log('param.value', param.value, getValueAtTime(param, t));
+    //
+    //    // param, time, curve, value, duration, notify, context
+    //    automate(param, t, 'step', 1, null, notify, node.context);
+    //    automate(param, t + 1, 'linear', 0, null, notify, node.context);
+    //
+    //    console.log('param.value', param.value, getValueAtTime(param, t));
+    //
+    //    setTimeout(function() {
+    //        const t = node.context.currentTime;
+    //        console.log('param.value', param.value, getValueAtTime(param, t));
+    //
+    //        automate(param, t, 'hold', null, null, notify, node.context);
+    //        //automate(param, t + 4, 'step', 1, null, notify, node.context);
+    //
+    //        console.log('param.value', param.value, getValueAtTime(param, t));
+    //
+    //        setTimeout(function() {
+    //            const t = node.context.currentTime;
+    //            console.log('param.value', param.value, getValueAtTime(param, t));
+    //        }, 5000);
+    //
+    //    }, 500);
+    //});
+
     </script>
 
-    <script type="module" src="components/controls/fader-control.js"></script>
+    <script type="module" src="components/controls/range-control.js"></script>
 </body>

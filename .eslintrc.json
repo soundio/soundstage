@@ -3,6 +3,11 @@
         "browser": true,
         "es6": true
     },
+    "parserOptions": {
+        "ecmaVersion": 6,
+        "sourceType": "module",
+        "ecmaFeatures": {}
+    },
     "extends": "eslint:recommended",
     "rules": {
         "accessor-pairs": "error",
@@ -29,7 +34,7 @@
             "error",
             "last"
         ],
-        "complexity": ["error", 12],
+        "complexity": ["error", 18],
         "computed-property-spacing": [
             "error",
             "never"
@@ -60,7 +65,7 @@
         "jsx-quotes": "error",
         "key-spacing": "off",
         "keyword-spacing": "off",
-        "line-comment-position": "error",
+        "line-comment-position": "off",
         "linebreak-style": [
             "error",
             "unix"
@@ -89,6 +94,7 @@
         "no-console": "warn",
         "no-continue": "off",
         "no-control-regex": "off",
+        "no-debugger": "warn",
         "no-div-regex": "error",
         "no-dupe-args": "error",
         "no-duplicate-imports": "error",
@@ -110,7 +116,7 @@
         "no-global-assign": "error",
         "no-implicit-globals": "off",
         "no-implied-eval": "error",
-        "no-inline-comments": "error",
+        "no-inline-comments": "off",
         "no-inner-declarations": ["error", "both"],
         "no-invalid-this": "off",
         "no-invalid-regexp": "error",
@@ -187,10 +193,7 @@
         "one-var": "off",
         "one-var-declaration-per-line": "off",
         "operator-assignment": "off",
-        "operator-linebreak": [
-            "error",
-            "after"
-        ],
+        "operator-linebreak": "off",
         "padded-blocks": "off",
         "prefer-arrow-callback": "off",
         "prefer-const": "error",
@@ -209,7 +212,7 @@
         "rest-spread-spacing": "error",
         "semi": "off",
         "semi-spacing": "off",
-        "sort-imports": "error",
+        "sort-imports": "off",
         "sort-keys": "off",
         "sort-vars": "off",
         "space-before-blocks": "off",

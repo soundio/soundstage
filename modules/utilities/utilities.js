@@ -38,16 +38,6 @@ export function isStopped(object) {
         || (object.stopTime !== undefined && object.stopTime <= object.context.currentTime);
 }
 
-export function timeAtDomTime(context, domTime) {
-    var stamps = context.getOutputTimestamp();
-    return stamps.contextTime + (domTime - stamps.performanceTime) / 1000;
-}
-
-export function domTimeAtTime(context, time) {
-    var stamp = context.getOutputTimestamp();
-    return stamp.performanceTime + (time - stamp.contextTime) * 1000;
-}
-
 
 // Fetch audio buffer from a URL and decode it
 

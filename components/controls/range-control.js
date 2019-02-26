@@ -39,7 +39,7 @@ const settings = {
         var sparky = Sparky(node, options);
 
         // This is just some help for logging
-        sparky.label = 'Sparky (<fader-control> tick)';
+        sparky.label = 'Sparky (<range-control> tick)';
 
         // Return sparky
         return sparky;
@@ -75,7 +75,7 @@ function createTicks(data, tokens) {
         nothing ;
 }
 
-element('fader-control', '#fader-control-template', {
+element('range-control', '#range-control-template', {
     min:       function(value) { this.min = value; },
 
     max:       function(value) { this.max = value; },
@@ -181,6 +181,7 @@ element('fader-control', '#fader-control-template', {
         this.shadowRoot.addEventListener('input', (e) => {
             const data       = this.data;
             const inputValue = parseFloat(e.target.value);
+
             observer.inputValue = inputValue;
 
             const value = transform(data.transform || 'linear', inputValue, data.min, data.max) ;
@@ -189,6 +190,8 @@ element('fader-control', '#fader-control-template', {
             observer.outputValue = transformOutput(data.unit, value);
             observer.outputUnit  = transformUnit(data.unit, value);
 
+console.log('INPUT', data.outputValue, data.outputUnit, observer, this);
+
             if (e.target.checked) {
                 // Uncheck tick radio so that it may be chosen again
                 // Should not be necessary - target should become
@@ -196,9 +199,9 @@ element('fader-control', '#fader-control-template', {
                 //e.target.checked = false;
 
                 // Focus the input
-                this.shadowRoot
-                .getElementById('input')
-                .focus();
+                //this.shadowRoot
+                //.getElementById('input')
+                //.focus();
             }
 
             // Input events are suppsed to traverse the shadow boundary
