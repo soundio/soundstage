@@ -1,5 +1,5 @@
 
-import { cache, choose, id, Observer, Target, observe, set, overload, todB, toLevel, limit, nothing } from '../../../fn/fn.js';
+import { Observer, requestTick, nothing } from '../../../fn/fn.js';
 import { evaluate, transform, invert, transformOutput, transformTick, transformUnit  } from './control.js';
 import { element } from '../../../dom/dom.js';
 import Sparky, { mount } from '../../../sparky/sparky.js';
@@ -61,7 +61,7 @@ function createTicks(data, tokens) {
                 && number <= data.max
         })
         .map((value) => {
-            const outputValue = transformTick(data.unit, value);
+            const displayValue = transformTick(data.unit, value);
 
             // Freeze to tell mounter it's immutable, prevents
             // unnecessary observing
@@ -69,7 +69,7 @@ function createTicks(data, tokens) {
                 root:        data,
                 value:       value,
                 tickValue:   invert(data.transform || 'linear', value, data.min, data.max),
-                outputValue: outputValue
+                displayValue: displayValue
             });
         }) :
         nothing ;
@@ -152,9 +152,19 @@ element('range-control', '#range-control-template', {
             data.value = value;
 
             const observer = Observer(data);
-            observer.outputValue = transformOutput(data.unit, value);
-            observer.outputUnit  = transformUnit(data.unit, value);
-            observer.inputValue  = invert(data.transform || 'linear', value, data.min, data.max);
+
+            // Todo: set value is being called from within a Sparky frame,
+            // which is normal, but it's messing with the renderer cueing for
+            // range-control's inner Sparky mounting. I think cueing needs to
+            // improve, with data updates being done in one round and all
+            // render processes delayed by a tick. I'm not sure. Anyway, as
+            // a bodge job, we delay by a tick here. This may mean DOM update
+            // values are a frame behind. Investigate.
+            requestTick(() => {
+                observer.displayValue = transformOutput(data.unit, value);
+                observer.displayUnit  = transformUnit(data.unit, value);
+                observer.inputValue  = invert(data.transform || 'linear', value, data.min, data.max);
+            });
         },
 
         enumerable: true
@@ -187,10 +197,8 @@ element('range-control', '#range-control-template', {
             const value = transform(data.transform || 'linear', inputValue, data.min, data.max) ;
             data.value = value;
 
-            observer.outputValue = transformOutput(data.unit, value);
-            observer.outputUnit  = transformUnit(data.unit, value);
-
-console.log('INPUT', data.outputValue, data.outputUnit, observer, this);
+            observer.displayValue = transformOutput(data.unit, value);
+            observer.displayUnit  = transformUnit(data.unit, value);
 
             if (e.target.checked) {
                 // Uncheck tick radio so that it may be chosen again
@@ -199,9 +207,9 @@ console.log('INPUT', data.outputValue, data.outputUnit, observer, this);
                 //e.target.checked = false;
 
                 // Focus the input
-                //this.shadowRoot
-                //.getElementById('input')
-                //.focus();
+                this.shadowRoot
+                .getElementById('input')
+                .focus();
             }
 
             // Input events are suppsed to traverse the shadow boundary

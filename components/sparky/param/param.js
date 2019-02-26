@@ -1,5 +1,5 @@
 import { cue, functions, transforms } from '../../../../sparky/sparky.js';
-import { observe, notify } from '../../../../fn/fn.js';
+import { notify, observe, Target } from '../../../../fn/fn.js';
 import { getValueAtTime, timeAtDomTime, isAudioParam, automate } from '../../../soundstage.js';
 
 const DEBUG    = true;//window.DEBUG;
@@ -13,7 +13,7 @@ function ParamRenderer(node, audioNode, name) {
     this.audioParamName = name;
 
     if (DEBUG && !isAudioParam(this.audioParam)) {
-        console.warn('Audio param "' + name + '" not a property of audio node', this.audioNode);
+        console.warn('Property "' + name + '" is not an AudioParam', this.audioNode);
         return false;
         throw new Error('Audio param "' + name + '" not a property of audio node');
     }
@@ -24,7 +24,9 @@ function ParamRenderer(node, audioNode, name) {
         // param at the sound output time corresponding to the
         // DOM time of the frame + 16ms
         this.renderValue = value;
-        cue(this)
+        if (this.cued) { return; }
+        this.cued = true;
+        cue(this);
     }, audioNode, NaN);
 
     // Observe node
@@ -37,7 +39,12 @@ function ParamRenderer(node, audioNode, name) {
 
 assign(ParamRenderer.prototype, {
     render: function() {
-        this.node.value = this.renderValue;
+        this.cued = false;
+
+        if (this.node.value !== this.renderValue) {
+            this.node.value = this.renderValue;
+        }
+
         // Return DOM mutation count
         return 1;
     },
@@ -52,7 +59,8 @@ functions.param = function(node, scopes, params) {
     const audioParamName = params[0];
 
     return scopes.tap((audioNode) => {
+        const target = Target(audioNode);
         renderer && renderer.stop();
-        renderer = audioNode && audioNode[audioParamName] && new ParamRenderer(node, audioNode, audioParamName);
+        renderer = target && target[audioParamName] && new ParamRenderer(node, target, audioParamName);
     });
 }

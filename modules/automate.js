@@ -229,25 +229,29 @@ export function automate(param, time, curve, value, duration, notify, context) {
     }
 
     function frame1(time) {
-        const renderTime = time + frameDuration;
-        const outputTime = timeAtDomTime(context, renderTime);
+        const renderTime  = time + frameDuration;
+        const outputTime  = timeAtDomTime(context, renderTime);
         const outputValue = getValueAtTime(param, outputTime);
+        const lastEvent   = events[events.length - 1];
 
-        notify(param, 'value', outputValue);
-
-        if (events[events.length - 1].time < outputTime) {
-            param.animationFrame = undefined;
-
-            requestAnimationFrame(function f() {
-                // getValueAtTime is inaccurate, even up the value
-                // to the actual latest value
-                notify(param, 'value', param.value);
-            });
-
+        // If outputTime is not yet beyond the end of the events list
+        if (outputTime <= lastEvent.time) {
+            // Keep frame requests ahead of data updates (that may cause
+            // their own frame requests)
+            param.animationFrame = requestAnimationFrame(frame2);
+            notify(param, 'value', outputValue);
             return;
         }
 
-        param.animationFrame = requestAnimationFrame(frame2);
+        param.animationFrame = undefined;
+        notify(param, 'value', outputValue);
+
+        // Todo: improve getValueAtTime so that this is redundant
+        requestAnimationFrame(function f() {
+            // getValueAtTime is inaccurate, even up the value
+            // to the actual latest value
+            notify(param, 'value', param.value);
+        });
     }
 
     param.animationFrame = requestAnimationFrame(frame1);
