@@ -14,6 +14,13 @@ if (!context.outputLatency) {
     context.outputLatency = 128 / context.sampleRate;
 }
 
+/*
+In Chrome (at least) contexts are suspended by default according to
+Chrome's autoplay policy:
+
+https://developers.google.com/web/updates/2018/11/web-audio-autoplay
+*/
+
 if (context.state === 'suspended') {
     console.log('USER INTERACTION REQUIRED (Audio context suspended)');
 
@@ -34,42 +41,13 @@ if (context.state === 'suspended') {
         context
         .resume()
         .then(function() {
-            console.log('USER INTERACTION RECEIVED (Audio context resumed)');
-
+            console.log('USER ' + e.type + ' RECEIVED (Audio context resumed)');
             types.reduce(remove, fn);
         });
     });
 }
 
 export default context;
-
-/*
-requestRunning(context)
-
-Returns a promise that resolves when context enters 'running' mode following
-a statechange, or if the context is already in 'running' state, an already
-resolved promise. In Chrome (at least) contexts are suspended by default
-according to Chrome's autoplay policy:
-https://developers.google.com/web/updates/2018/11/web-audio-autoplay
-
-*/
-
-export function requestRunning(context) {
-    return context.state === 'suspended' ?
-        new Promise(function(resolve, reject) {
-            context.addEventListener('statechange', function statechange(e) {
-                e.target.removeEventListener('statechange', statechange);
-
-                if (context.state === 'running') {
-                    resolve(context);
-                }
-                else if (context.state === 'closed') {
-                    reject(context);
-                }
-            });
-        }) :
-        Promise.resolve(context) ;
-}
 
 export function timeAtDomTime(context, domTime) {
     var stamps = context.getOutputTimestamp();

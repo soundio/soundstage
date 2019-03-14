@@ -1,9 +1,11 @@
 import { test, Stream } from '../../fn/fn.js';
-import context, { requestRunning } from '../modules/context.js';
+import context from '../modules/context.js';
 
 window.context = context;
 
-requestRunning(context).then(function() {
+context
+.resume()
+.then(function() {
     test('timestamps', function(run, print, fixture) {
         run('', function(equals, done) {
             let i = 0;
