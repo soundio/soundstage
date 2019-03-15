@@ -215,8 +215,13 @@ export function automate(param, time, curve, value, duration, notify, context) {
 	var events = getAutomationEvents(param);
 	automateParamEvents(param, events, time, value, curve, duration);
 
-    if (!notify || !context) {
+    if (!notify) {
         console.warn('No notify for param change', value, curve, param);
+        return;
+    }
+
+    if (!context) {
+        console.warn('No context for param change', value, curve, param);
         return;
     }
 

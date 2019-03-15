@@ -22,7 +22,7 @@ const properties = {
 	stopTime:      { writable: true }
 };
 
-export default function Transport(context, rateParam, timer) {
+export default function Transport(context, rateParam, timer, notify) {
 	Clock.call(this, context);
 
 	// Private
@@ -30,7 +30,8 @@ export default function Transport(context, rateParam, timer) {
 	privates.rateParam = rateParam;
 	privates.meters = [defaultMeterEvent];
 	privates.timer  = timer;
-};
+	privates.notify = notify;
+}
 
 assign(Transport.prototype, Clock.prototype, {
 	beatAtTime: function(time) {
@@ -181,8 +182,11 @@ define(Transport.prototype, {
 		},
 
 		set: function(tempo) {
+			var privates = Privates(this);
+
 			//getValueAtTime(this.rate, context.currentTime);
-			automate(this.rate.value, this.context.currentTime, 'step', tempo / 60);
+			// param, time, curve, value, duration, notify, context
+			automate(this.rate.value, this.context.currentTime, 'step', tempo / 60, 0, privates.notify, this.context);
 		}
 	},
 

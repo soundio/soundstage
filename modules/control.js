@@ -190,6 +190,7 @@ export default function Control(controls, source, target, settings, notify) {
             transforms[data.transform](data.min, data.max, value, n) :
             n ;
 
+        // target, time, type, name, value, duration, notify
         distribute(time, type, name, value);
 
         if (target.record) {

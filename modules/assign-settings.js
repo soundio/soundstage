@@ -3,7 +3,7 @@ import { automate } from './automate.js';
 
 const DEBUG = false;//true;
 
-function assignSetting(node, key, value) {
+function assignSetting(node, key, value, notify) {
     // Are we trying to get a value from an AudioParam? No no no.
     if (value && value.setValueAtTime) {
         return;
@@ -13,6 +13,7 @@ function assignSetting(node, key, value) {
     // Does it quack like an AudioParam?
     if (node[key] && node[key].setValueAtTime) {
         if (DEBUG) { log('param', key + ' =', value); }
+        // param, time, curve, value, duration, notify, context
         automate(node[key], node.context.currentTime, 'step', value, null);
     }
 

@@ -1,12 +1,10 @@
 
-import { compose, get, is, isDefined, map, noop, nothing, matches }   from '../../fn/fn.js';
+import { isDefined, noop, nothing, matches }   from '../../fn/fn.js';
 import requestInputSplitter   from '../../audio-object/modules/request-input-splitter.js';
 
 import { print, printGroup, printGroupEnd }     from './utilities/print.js';
 import { Privates } from './utilities/privates.js';
-import { timeAtDomTime } from './context.js';
-import { distributeEvent } from './distribute.js';
-import audio         from './context.js';
+import audio, { timeAtDomTime } from './context.js';
 import constructors  from './constructors';
 import { connect, disconnect } from './connect.js';
 import Input         from '../nodes/input.js';
@@ -24,14 +22,10 @@ const DEBUG        = window.DEBUG || false;
 const assign       = Object.assign;
 const define       = Object.defineProperties;
 const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
-const setPrototypeOf = Object.setPrototypeOf;
 
 const idSelect = { id: undefined };
 const matchesId = matches(idSelect);
 
-function isURL() {
-    return false;
-}
 
 // Soundstage
 
@@ -86,15 +80,14 @@ export default function Soundstage(data = nothing, settings = nothing) {
 
     if (DEBUG) { printGroup('Soundstage()'); }
 
-    const stage       = this;
     const context     = settings.context || audio;
     const destination = settings.destination || context.destination;
     const notify      = settings.notify || noop;
     const output      = createOutputMerger(context, destination);
-    const rateNode    = new ConstantSourceNode(context, { offset: 2 });
+    const rateNode    = new window.ConstantSourceNode(context, { offset: 2 });
     const rateParam   = rateNode.offset;
     const timer       = new Timer(() => context.currentTime);
-    const transport   = new Transport(context, rateParam, timer);
+    const transport   = new Transport(context, rateParam, timer, notify);
 
     rateNode.start(0);
 
@@ -198,7 +191,7 @@ export default function Soundstage(data = nothing, settings = nothing) {
     // cue:        fn
     // status:     string
 
-    Sequencer.call(this, transport, data, rateParam, timer);
+    Sequencer.call(this, transport, data, rateParam, timer, notify);
 
 
     /*

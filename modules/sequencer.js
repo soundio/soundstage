@@ -187,25 +187,25 @@ function processFrame(data, frame) {
 	// Populate commands from buffer
 	n = -1;
 	while (++n < buffer.length) {
-		let event = buffer[n];
+		const event = buffer[n];
 
 		if (!isValidEvent(event)) {
 			throw new Error('Invalid event ' + JSON.stringify(event) + '. ' + eventValidationHint(event));
 		}
 
-		let command = new Command(event[0], event[1], event);
+		const command = new Command(event[0], event[1], event);
 		//console.log('COMMAND', event, JSON.stringify(command));
 		command.time = sequence.timeAtBeat(command.beat);
 		commands.push(command);
 
 		// Deal with events that have duration
-		let duration = getDuration(buffer[n]);
+		const duration = getDuration(buffer[n]);
 
 		if (duration !== undefined) {
 			// This should apply to sequenceon/sequenceoff too, but sequence
 			// is bugging for that. Investigate.
 			if (command.type === 'note') { command.type = 'noteon'; }
-			let stopCommand = new Command(event[0] + duration, event[1] + 'off', event);
+			const stopCommand = new Command(event[0] + duration, event[1] + 'off', event);
 
 			// Give stop and start a reference to each other
 			stopCommand.startCommand = command;
@@ -325,9 +325,10 @@ function assignTime(e0, e1) {
 	return e1;
 }
 
-function automateRate(param, event) {
-	automate(param, event.time, event[3] || 'step', event[2]) ;
-	return param;
+function automateRate(privates, event) {
+	// param, time, curve, value, duration, notify, context
+	automate(privates.rateParam, event.time, event[3] || 'step', event[2], null, privates.notify, privates.context) ;
+	return privates;
 }
 
 
@@ -337,7 +338,7 @@ function automateRate(param, event) {
 // and RecordStreams, which are read-once. It is the `master` object from
 // whence event streams sprout.
 
-export default function Sequencer(transport, data, rateParam, timer) {
+export default function Sequencer(transport, data, rateParam, timer, notify) {
 
 	// The base Clock provides the properties:
 	//
@@ -368,6 +369,8 @@ export default function Sequencer(transport, data, rateParam, timer) {
 	privates.timer     = timer;
 	privates.rateParam = rateParam;
 	privates.beat      = 0;
+	privates.notify    = notify;
+	privates.context   = this.context;
 }
 
 define(Sequencer.prototype, {
@@ -379,8 +382,8 @@ define(Sequencer.prototype, {
 
 		set: function(tempo) {
 			const privates  = Privates(this);
-			// param, time, curve, value, decay
-			automate(privates.rateParam, this.context.currentTime, 'step', tempo / 60);
+			// param, time, curve, value, duration, notify, context
+			automate(privates.rateParam, this.context.currentTime, 'step', tempo / 60, null, privates.notify, this.context);
 		}
 	},
 
@@ -470,7 +473,7 @@ assign(Sequencer.prototype, Sequence.prototype, Meter.prototype, {
 		seedRateEvent.time = time;
 		seedRateEvent[2]   = getValueAtTime(rateParam, time);
 		rates.reduce(assignTime, seedRateEvent);
-		rates.reduce(automateRate, rateParam);
+		rates.reduce(automateRate, privates);
 
 		// Stream events
 		const data = {
@@ -519,7 +522,8 @@ assign(Sequencer.prototype, Sequence.prototype, Meter.prototype, {
 		Sequence.prototype.stop.call(this, time);
 
 		// Hold automation for the rate node
-		automate(rateParam, this.stopTime, 'hold');
+		// param, time, curve, value, duration, notify, context
+		automate(rateParam, this.stopTime, 'hold', null, null, privates.notify, this.context);
 
 		// Store beat
 		privates.beat = this.beatAtTime(this.stopTime);

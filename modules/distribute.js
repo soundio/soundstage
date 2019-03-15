@@ -66,9 +66,10 @@ export const distributors = {
 		};
     },
 
-    'param': function(target, time, type, name, value, duration, notify) {
+    'param': function(target, time, type, name, value, duration, notify, context) {
         const param = target[name];
-        automate(param, time, 'step', value, null, null, notify);
+        // param, time, curve, value, duration, notify, context
+        automate(param, time, 'step', value, null, notify, target.context);
         return target;
     },
 
@@ -87,7 +88,7 @@ export const distribute = overload(arg2, distributors);
 export function distributeEvent(target, event) {
     // How long is our longest event going to be? Hmm.
     return distribute(target, event[0], event[1], event[2], event[3], event[4], event[5]);
-};
+}
 
 
 
@@ -108,6 +109,7 @@ export function Distribute(target, notify) {
             notes[name] = undefined;
         }
         else {
+if (!notify) { console.log('No notify!!'); debugger; }
             distribute(target, time, type, name, value, duration, notify);
         }
     };
