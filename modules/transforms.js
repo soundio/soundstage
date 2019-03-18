@@ -28,12 +28,12 @@ export const transforms = {
 
     'logarithmic': {
         tx: (value, min, max) => {
-            if (!min) { throw new Error('logarithmic transform min cannot be ' + min); }
+            if (!min) { throw new Error('logarithmic transform min must be positive ' + min); }
             return min * Math.pow(max / min, value);
         },
 
         ix: (value, min, max) => {
-            if (!min) { throw new Error('logarithmic transform min cannot be ' + min); }
+            if (!min) { throw new Error('logarithmic transform min must be positive ' + min); }
             return Math.log(value / min) / Math.log(max / min);
         }
     },
@@ -42,14 +42,14 @@ export const transforms = {
         // The bottom 1/9th of the fader travel is linear from 0 to min, while
         // the top 8/9ths is dB linear from min to max.
         tx: (value, min, max) => {
-            if (min <= 0) { throw new Error('logarithmic transform min cannot be ' + min); }
+            if (min <= 0) { throw new Error('logarithmic transform min must be positive ' + min); }
             return value <= 0.1111111111111111 ?
                 value * 9 * min :
                 min * Math.pow(max / min, (value - 0.1111111111111111) * 1.125);
         },
 
         ix: (value, min, max) => {
-            if (min <= 0) { throw new Error('logarithmic transform min cannot be ' + min); }
+            if (min <= 0) { throw new Error('logarithmic transform min must be positive ' + min); }
             return value <= min ?
                 (value / min) / 9 :
                 0.1111111111111111 + (Math.log(value / min) / Math.log(max / min)) / 1.125 ;

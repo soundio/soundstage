@@ -140,6 +140,12 @@
         range-control + range-control {
             margin-top: 15px;
         }
+
+        .control-point {
+            fill: white;
+            stroke: red;
+            stroke-width: 2;
+        }
     </style>
 
     <link rel="stylesheet" href="components/controls/range-control.css" />
@@ -186,9 +192,14 @@
         <div class="envelopes-block block">
             <div fn="get:gainEnvelope entries each">
                 <h3>{[0]}</h3>
-                <ul>
-                    <li fn="get:1 each">{[.]}</li>
+
+                <ul fn="get:1">
+                    <li fn="each">{[.]}</li>
                 </ul>
+
+                <svg fn="get:1" viewBox="0 0 4 2" style="background-color: yellow">
+                    <circle fn="each" class="control-point" cx="{[0]}" cy="{[2]}" r="0.1"></circle>
+                </svg>
             </div>
         </div>
 
