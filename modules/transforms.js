@@ -1,70 +1,58 @@
 import { capture, id, toLevel } from '../../fn/fn.js';
+import * as normalise from '../../fn/modules/normalise.js';
+import * as denormalise from '../../fn/modules/denormalise.js';
 import { numberToFrequency } from '../../midi/midi.js';
 
-const config = {
-
-};
-
 export const transforms = {
+    // From Fn
+
     'pass': {
         tx: id,
         ix: id
     },
 
     'linear': {
-        tx: (value, min, max) => value * (max - min) + min,
-        ix: (value, min, max) => (value - min) / (max - min)
+        tx: (value, min, max) => denormalise.linear(min, max, value),
+        ix: (value, min, max) => normalise.linear(min, max, value)
     },
 
     'quadratic': {
-        tx: (value, min, max) => Math.pow(value, 2) * (max - min) + min,
-        ix: (value, min, max) => Math.pow((value - min) / (max - min), 1/2)
+        tx: (value, min, max) => denormalise.quadratic(min, max, value),
+        ix: (value, min, max) => normalise.quadratic(min, max, value)
     },
 
     'cubic': {
-        tx: (value, min, max) => Math.pow(value, 3) * (max - min) + min,
-        ix: (value, min, max) => Math.pow((value - min) / (max - min), 1/3)
+        tx: (value, min, max) => denormalise.cubic(min, max, value),
+        ix: (value, min, max) => normalise.cubic(min, max, value)
     },
 
     'logarithmic': {
-        tx: (value, min, max) => {
-            if (!min) { throw new Error('logarithmic transform min must be positive ' + min); }
-            return min * Math.pow(max / min, value);
-        },
-
-        ix: (value, min, max) => {
-            if (!min) { throw new Error('logarithmic transform min must be positive ' + min); }
-            return Math.log(value / min) / Math.log(max / min);
-        }
+        tx: (value, min, max) => denormalise.logarithmic(min, max, value),
+        ix: (value, min, max) => normalise.logarithmic(min, max, value)
     },
 
     'logarithmic-zero': {
         // The bottom 1/9th of the fader travel is linear from 0 to min, while
         // the top 8/9ths is dB linear from min to max.
-        tx: (value, min, max) => {
-            if (min <= 0) { throw new Error('logarithmic transform min must be positive ' + min); }
-            return value <= 0.1111111111111111 ?
-                value * 9 * min :
-                min * Math.pow(max / min, (value - 0.1111111111111111) * 1.125);
-        },
-
-        ix: (value, min, max) => {
-            if (min <= 0) { throw new Error('logarithmic transform min must be positive ' + min); }
-            return value <= min ?
-                (value / min) / 9 :
-                0.1111111111111111 + (Math.log(value / min) / Math.log(max / min)) / 1.125 ;
-        }
+        tx: (value, min, max) => denormalise.linearLogarithmic(min, max, 1/9, value),
+        ix: (value, min, max) => normalise.linearLogarithmic(min, max, 1/9, value)
     },
+
+
+    // From MIDI
 
     'frequency': {
         tx: (value, min, max) => {
             return (numberToFrequency(value) - min) * (max - min) / numberToFrequency(127) + min ;
         },
 
-        ix: function() {
-
+        ix: function(value, min, max) {
+            // Todo
         }
     },
+
+
+    // Soundstage
 
     'toggle': {
         tx: function toggle(value, min, max, current) {
@@ -96,7 +84,7 @@ export const transforms = {
         },
 
         ix: function() {
-
+            // Todo
         }
     }
 };
