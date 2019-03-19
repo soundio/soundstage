@@ -112,6 +112,10 @@ element('range-control', '#range-control-template', {
 
             const observer = Observer(data);
             observer.min   = evaluate(value);
+
+            // Check for readiness
+            if (data.max === undefined || data.value === undefined) { return; }
+
             observer.ticks = createTicks(data, this.getAttribute('ticks') || '');
             observer.inputValue = invert(data.transform || 'linear', data.value, data.min, data.max);
         },
@@ -132,6 +136,10 @@ element('range-control', '#range-control-template', {
 
             const observer = Observer(data);
             observer.max   = evaluate(value);
+
+            // Check for readiness
+            if (data.min === undefined || data.value === undefined) { return; }
+
             observer.ticks = createTicks(data, this.getAttribute('ticks') || '');
             observer.inputValue = invert(data.transform || 'linear', data.value, data.min, data.max);
         },
@@ -152,6 +160,8 @@ element('range-control', '#range-control-template', {
             data.value = value;
 
             const observer = Observer(data);
+
+            if (data.max === undefined || data.min === undefined) { return; }
 
             // Todo: set value is being called from within a Sparky frame,
             // which is normal, but it's messing with the renderer cueing for
