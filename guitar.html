@@ -181,9 +181,9 @@
                     <option value="square">Square</option>
                     <option value="sine">Sine</option>
                 </select>
-                <range-control fn="param:detune" min="-1200" max="2400" transform="linear" ticks="-1200 -700 0 700 1200 1600 1900 2200 2400" unit="step">Tune</range-control>
-                <range-control fn="param:pan" unit="pan" min="-1" max="1" transform="linear" ticks="-1 0 1">Pan</range-control>
-                <range-control fn="param:mix" unit="dB" min="-36dB" max="1" transform="linear-logarithmic" ticks="0 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Mix</range-control>
+                <range-control :value="{[detune]}" min="-1200" max="2400" transform="linear" ticks="-1200 -700 0 700 1200 1600 1900 2200 2400" unit="step">Tune</range-control>
+                <range-control :value="{[pan]}" unit="pan" min="-1" max="1" transform="linear" ticks="-1 0 1">Pan</range-control>
+                <range-control :value="{[mix]}" unit="dB" min="-36dB" max="1" transform="linear-logarithmic" ticks="0 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Mix</range-control>
             </article>
         </section>
 

@@ -13,9 +13,9 @@ function ParamRenderer(node, audioNode, name) {
     this.audioParamName = name;
 
     if (DEBUG && !isAudioParam(this.audioParam)) {
-        console.warn('Property "' + name + '" is not an AudioParam', this.audioNode);
-        return false;
-        throw new Error('Audio param "' + name + '" not a property of audio node');
+        //console.warn('Property "' + name + '" is not an AudioParam', this.audioNode);
+        //return false;
+        throw new Error('Property "' + name + '" is not an AudioParam');
     }
 
     // Observe data
