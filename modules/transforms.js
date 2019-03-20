@@ -31,7 +31,7 @@ export const transforms = {
         ix: (value, min, max) => normalise.logarithmic(min, max, value)
     },
 
-    'logarithmic-zero': {
+    'linear-logarithmic': {
         // The bottom 1/9th of the fader travel is linear from 0 to min, while
         // the top 8/9ths is dB linear from min to max.
         tx: (value, min, max) => denormalise.linearLogarithmic(min, max, 1/9, value),
