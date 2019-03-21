@@ -3,9 +3,6 @@ import { noop, nothing } from '../../fn/fn.js';
 import { Privates } from '../modules/utilities/privates.js';
 import PlayNode from './play-node.js';
 
-const assign = Object.assign;
-
-
 function resolve(privates, buffers) {
     privates.resolve(buffers);
     privates.promise = undefined;
@@ -15,7 +12,6 @@ function resolve(privates, buffers) {
 export default class Recorder extends AudioWorkletNode {
     constructor(context, settings, stage = nothing, notify = noop) {
         super(context, 'recorder');
-        const node     = this;
         const privates = Privates(this);
 
         this.startTime = undefined;
@@ -50,7 +46,6 @@ export default class Recorder extends AudioWorkletNode {
     }
 
     stop(time) {
-        const privates = Privates(this);
         PlayNode.prototype.stop.call(this, time);
 
         // Round duration such that stopTime - startTime is a duration
@@ -79,3 +74,9 @@ export default class Recorder extends AudioWorkletNode {
         return privates.promise.then(fn);
     }
 }
+
+Recorder.preload = function(context) {
+    return context
+    .audioWorklet
+    .addModule('./nodes/recorder.worklet.js');
+};

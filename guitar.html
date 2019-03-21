@@ -54,9 +54,9 @@
             display: grid;
             grid-gap: 0;
             grid-template-areas:
-                'inputs nodes nodes nodes outputs'
-                'inputs sequencer sequencer sequencer outputs'
-                'controls controls controls controls controls';
+                'inputs    nodes     nodes     nodes     outputs '
+                'inputs    sequencer sequencer sequencer outputs '
+                'controls  controls  controls  controls  controls';
             grid-template-columns: 0 1fr 1fr 1fr 0;
             grid-template-rows: 1fr max-content 3.75rem;
             font-size: 0.9375rem;
@@ -123,12 +123,12 @@
         }
 
         .envelopes-block {
-            display: flex;
-            flex-wrap: none;
-        }
-
-        .envelopes-block > * + * {
-            margin-left: 9px;
+            display: grid;
+            grid-gap: 15px 9px;
+            grid-auto-flow: row;
+            grid-template-columns: calc(50% - 4.5px) calc(50% - 4.5px);
+            align-items: stretch;
+            justify-items: stretch;
         }
 
         th, td { text-align: left; }
@@ -141,10 +141,29 @@
             margin-top: 15px;
         }
 
+        .envelope-svg {
+            background-color: #01181e;
+            border-radius: 3px;
+        }
+
         .control-point {
-            fill: white;
-            stroke: red;
-            stroke-width: 2;
+            fill: url(#handle-gradient);
+            stroke: #01181e;
+            stroke-width: 3;
+        }
+
+        .y-line {
+            fill: none;
+            stroke: black;
+            stroke-width: 1;
+        }
+
+        .defs-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
         }
     </style>
 
@@ -193,13 +212,18 @@
             <div fn="get:gainEnvelope entries each">
                 <h3>{[0]}</h3>
 
-                <ul fn="get:1">
-                    <li fn="each">{[.]}</li>
-                </ul>
+                <div fn="get:1 envelope-control">
+                    <svg class="envelope-svg" viewBox="0 -1.125 1.125 1.125">
+                        <line class="y-line" x1="0" x2="1.125" y1="0" y2="0"></line>
+                        <line class="y-line" x1="0" x2="1.125" y1="-1" y2="-1"></line>
+                        <path :d=""></path>
+                        <circle fn="each scope" class="control-point" :cx="{[0]}" :cy="{[2|normalise:linear-logarithmic,0.0009765625,1|multiply:-1]}" r="0.0375"></circle>
+                    </svg>
 
-                <svg fn="get:1" viewBox="0 0 4 2" style="background-color: yellow">
-                    <circle fn="each" class="control-point" :cx="{[0]}" :cy="{[2]}" r="0.1"></circle>
-                </svg>
+                    <ul class="index">
+                        <li fn="each">{[.]}</li>
+                    </ul>
+                </div>
             </div>
         </div>
 
@@ -208,9 +232,19 @@
         <div class="envelopes-block block">
             <div fn="get:frequencyEnvelope entries each">
                 <h3>{[0]}</h3>
-                <ul>
-                    <li fn="get:1 each">{[.]}</li>
-                </ul>
+
+                <div fn="get:1 envelope-control">
+                    <svg class="envelope-svg" viewBox="0 -1 1.125 1">
+                        <line class="y-line" x1="0" x2="1.125" y1="0" y2="0"></line>
+                        <line class="y-line" x1="0" x2="1.125" y1="-1" y2="-1"></line>
+                        <path :d=""></path>
+                        <circle fn="each scope" class="control-point" :cx="{[0]}" :cy="{[2|normalise:linear-logarithmic,20,20000|multiply:-1]}" r="0.0375"></circle>
+                    </svg>
+
+                    <ul class="index">
+                        <li fn="each">{[.]}</li>
+                    </ul>
+                </div>
             </div>
         </div>
 
@@ -239,8 +273,8 @@
     </template>
 
     <template id="node-output" fn="get:data">
-        <!--{[name]} {[channels]}
-        <select value="{[channels|numbers-string:',']}">
+        {[name]} {[channels]}
+        <!--select value="{[channels|numbers-string:',']}">
             <option value="0,1" selected>1-2</option>
             <option value="0">1</option>
             <option value="1">2</option>
@@ -281,7 +315,7 @@
         </template>
     </div>
 
-    <template is="sparky" fn="soundstage">
+    <template is="sparky" fn="import:json/guitar.json soundstage">
         <div class="inputs-block block" fn="get:'nodes[type=input]'">
             <pre>{[id]}</pre>
         </div>
@@ -372,12 +406,51 @@
         </div-->
     </template>
 
+    <svg class="defs-svg">
+        <defs>
+            <linearGradient id="handle-gradient" x1="0" x2="0" y1="0" y2="1">
+                <stop class="stop-1" offset="0%"/>
+                <stop class="stop-2" offset="100%"/>
+            </linearGradient>
+
+            <style>
+                .stop-1 {
+                    stop-color: hsl(192,0%,96.8%);
+                }
+
+                .stop-2 {
+                    stop-color: hsl(192,0%,55%);
+                }
+
+                /*
+                [type="range"]::-webkit-slider-thumb {
+                	background-image: linear-gradient(hsl(192,0%,96.8%), hsl(192,0%,55%));
+                	box-shadow: inset 0 0 5px 1px hsla(198,30%,20%,0.6);
+                }
+
+                [type="range"]:focus::-webkit-slider-thumb {
+                	box-shadow: inset 0 0 5px 2px hsla(192,50%,40%,0.4);
+                	box-shadow: inset 0 0 3px 1px hsla(192,77%,12%,0.63);
+                	background-image: linear-gradient(hsl(192,40%,96.8%), hsl(165,24%,55%));
+                }
+                */
+            </style>
+        </defs>
+    </svg>
+
     <!-- Tests -->
     <script type="module">
     import './components/sparky/midi/fns.js';
+    import "./components/sparky/envelope-control/fns.js";
 
     import * as Fn from '../fn/fn.js';
     window.Fn = Fn;
+
+    import * as norm from '../fn/modules/normalise.js';
+    window.norm = norm;
+
+    import * as denorm from '../fn/modules/denormalise.js';
+    window.denorm = denorm;
 
     import { Stream } from '../fn/fn.js';
     window.Stream = Stream;
@@ -391,265 +464,32 @@
     import Sparky, { functions, notify, mountConfig } from '../sparky/sparky.js';
     window.Sparky = Sparky;
 
+    import context from './modules/context.js';
     import './components/sparky/param/param.js';
 
+    // Sparky extensions
+    //
+    // Add custom elements to Sparky mount config and extend functions with
+    // soundstage functions
 
-
-
-
-
-    import context from './modules/context.js';
-
-    const stagePromise = Promise.all([
-        context
-        .audioWorklet
-        .addModule('./nodes/signal.worklet.js'),
-
-        context
-        .audioWorklet
-        .addModule('./nodes/recorder.worklet.js')
-    ])
-    .then(function() {
-
-        //import './nodes/tone.test.js';
-        //import './test/tone-voice.test.js';
-        //import './test/tone-synth.test.js';
-
-        return (window.stage = new Soundstage({
-            label: "Guitar",
-
-            nodes: [{
-                id:    'input',
-                type:  'input',
-                label: 'Input',
-                data:  {}
-            }, {
-                id:    'synth',
-                type:  '/soundstage/nodes/tone-synth.js',
-                label: 'Tone Synth',
-                data: {
-                    sources: [
-                        { type: 'triangle', detune: -1192, mix: 0.5, pan: -0.8 },
-                        { type: 'sine',   detune: 0, mix: 0.25, pan: 0.8 },
-                        { type: 'square', detune: -1208,     mix: 0.125, pan: 0.2 }
-                    ],
-
-                    gainEnvelope: {
-                        attack: [
-                            [0, 'step', 0],
-                            [0.01, 'linear', 1]
-                        ],
-
-                        release: [
-                            [0, 'target', 0, 0.1]
-                        ]
-                    },
-
-                    frequencyEnvelope: {
-                        attack: [
-                            [0,    "step",   0],
-                            [0.06, "linear", 1000],
-                            [5,    "exponential", 200],
-                        ],
-
-                        release: [
-                            [0,  "target", 0, 0.02]
-                        ]
-                    },
-
-                    type: 'lowpass',
-                    frequency: 100,
-                    frequencyFromVelocity: 0.5,
-
-                    Q: 5,
-
-                    output: 0.1
-                }
-            }, {
-                id:    'compressor',
-                type:  'compressor',
-                label: 'Compressor',
-                data: {
-                    attack:    0.028,
-                    release:   0.08,
-                	knee:      12,
-                	ratio:     2.5,
-                    threshold: -28
-                }
-            }, {
-                id:    'flanger',
-                type:  '/soundstage/nodes/flanger.js',
-                label: 'Flanger',
-                data: {
-                    delay:     0.008,
-                	frequency: 0.333333,
-                	depth:     0.004,
-                	feedback:  0.1,
-                    dry:       0,
-                    wet:       0.5
-                }
-            }, {
-                id:    'delay-send',
-                type:  'mix',
-                label: 'Delay feed',
-                data: {
-                    pan:  0,
-                    gain: 0.5,
-                    mute: true
-                }
-            }, {
-                id:    'delay',
-                type:  '/soundstage/nodes/flanger.js',
-                label: 'Delay',
-                data: {
-                    delay:     0.26,
-                	frequency: 0.1,
-                	depth:     0.02,
-                	feedback:  0.4,
-                    dry:       1,
-                    wet:       0.04
-                }
-            }, {
-                id:    'metronome',
-                type:  '/soundstage/nodes/metronome.js',
-                label: 'Metronome',
-                data: {}
-            }, {
-                id:    'output',
-                type:  'output',
-                label: 'Output',
-                data: {}
-            }],
-
-            connections: [
-                { source: 'input',      target: 'flanger' },
-                { source: 'compressor', target: 'flanger' },
-                { source: 'flanger',    target: 'delay-send' },
-                { source: 'flanger',    target: 'output' },
-                { source: 'delay-send', target: 'delay' },
-                { source: 'delay',      target: 'output' },
-                { source: 'synth',      target: 'output' },
-                { source: 'metronome',  target: 'output' }
-            ],
-
-            controls: [{
-                source: {
-                    device: 'keys',
-                    key: 'a'
-                },
-
-                target: 'delay-send',
-
-                data: {
-                    transform: 'linear',
-                    type:   'param',
-                    name:   'gain',
-                    min:    0,
-                    max:    1
-                }
-            }, {
-                source: {
-                    device: 'midi',
-                    channel: 1,
-                    type:    'note'
-                },
-                transform: 'linear',
-                type:  'note',
-                min:   0,
-                max:   1,
-                target: 'synth'
-            }, {
-                source: {
-                    device: 'midi',
-                    channel: 1,
-                    type:    'pitch'
-                },
-                transform: 'linear',
-                type:  'pitch',
-                min:   0,
-                max:   1,
-                target: 'synth'
-            }],
-
-            sequences: [{
-                id: 'test',
-                events: [
-                    [0, 'note', 49, 0.5, 1]
-                ]
-            }],
-
-            events: [
-                [0, 'sequence', 'test', 'synth', 2]
-            ]
-        }, {
-            notify: notify
-        }));
+    Object.assign(mountConfig, {
+        'range-control':  { attributes: [], booleans: ['disabled'], value: 'number' },
+        'rotary-control': { attributes: [], booleans: ['disabled'], value: 'number' }
     });
 
     functions.soundstage = function(node, scope, params) {
         const output = Stream.of();
 
-        stagePromise.then(function(stage) {
-            output.push(stage);
+        scope.each(function(data) {
+            var stage = window.stage = new Soundstage(data, { notify: notify });
+
+            stage.ready(function(stage) {
+                output.push(stage);
+            });
         });
 
         return output;
     };
-
-    functions.set = function(node, scopes, params) {
-        return scopes.tap((object) => {
-            object[params[0]] = params[1];
-        });
-    };
-
-    // Add custom elements to Sparky's mount config
-    Object.assign(mountConfig, {
-        'range-control': {
-            attributes: [],
-            booleans: ['disabled'],
-            value: 'number'
-        }
-    });
-
-
-
-
-    // Test
-    import { automate, getValueAtTime } from './soundstage.js';
-    window.automate = automate;
-
-    //stagePromise.then(function test() {
-    //    console.log('TEST ================')
-    //
-    //    const node = stage.get('delay-send');
-    //    const param = node.gain;
-    //    const t = node.context.currentTime;
-    //
-    //    console.log('param.value', param.value, getValueAtTime(param, t));
-    //
-    //    // param, time, curve, value, duration, notify, context
-    //    automate(param, t, 'step', 1, null, notify, node.context);
-    //    automate(param, t + 1, 'linear', 0, null, notify, node.context);
-    //
-    //    console.log('param.value', param.value, getValueAtTime(param, t));
-    //
-    //    setTimeout(function() {
-    //        const t = node.context.currentTime;
-    //        console.log('param.value', param.value, getValueAtTime(param, t));
-    //
-    //        automate(param, t, 'hold', null, null, notify, node.context);
-    //        //automate(param, t + 4, 'step', 1, null, notify, node.context);
-    //
-    //        console.log('param.value', param.value, getValueAtTime(param, t));
-    //
-    //        setTimeout(function() {
-    //            const t = node.context.currentTime;
-    //            console.log('param.value', param.value, getValueAtTime(param, t));
-    //        }, 5000);
-    //
-    //    }, 500);
-    //});
-
     </script>
 
     <script type="module" src="../dom/components/control/range-control.js"></script>

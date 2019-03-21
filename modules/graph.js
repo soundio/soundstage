@@ -58,7 +58,7 @@ export default function Graph(context, requests, data, api) {
 	});
 
     // Load nodes
-    const promise = Promise.all(
+	const promise = Promise.all(
         data.nodes ?
             data.nodes.map(function(data) {
                 return (requests[data.type] || requests.default)(context, data, api)

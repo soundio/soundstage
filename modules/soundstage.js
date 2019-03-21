@@ -60,12 +60,30 @@ function createOutputMerger(context, target) {
 }
 
 function requestAudioNode(context, settings, transport) {
-    const Node = constructors[settings.type];
-    return Node ?
-        Promise.resolve(new Node(context, settings.data, transport)) :
-        requestPlugin(settings.type).then(function(Constructor) {
-            return new Constructor(context, settings.data, transport);
-        });
+    return (
+        constructors[settings.type] ?
+            Promise.resolve(constructors[settings.type]) :
+            requestPlugin(settings.type)
+    )
+    .then(function(Node) {
+        // If the constructor has a preload fn, it has special things
+        // to prepare (such as loading AudioWorklets) before it can
+        // be used.
+        // Todo: Need some way of passing base url from soundstage settings
+        // (not these node settings) into preload fn, I fear
+        return Node.preload ?
+
+            Node.preload(context).then(() => {
+                print('AudioWorklet', Node.name, 'loaded');
+                return Node;
+            }) :
+
+            Node ;
+    })
+    .then(function(Node) {
+        // Create the audio node
+        return new Node(context, settings.data, transport);
+    });
 }
 
 export default function Soundstage(data = nothing, settings = nothing) {

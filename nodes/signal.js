@@ -1,8 +1,6 @@
 
 import { noop, nothing } from '../../fn/fn.js';
 
-const assign = Object.assign;
-
 export default class SignalDetector extends AudioWorkletNode {
     constructor(context, settings, stage = nothing, notify = noop) {
         super(context, 'signal-detector');
@@ -30,3 +28,9 @@ export default class SignalDetector extends AudioWorkletNode {
         this.connect(context.destination);
     }
 }
+
+SignalDetector.preload = function(context) {
+    return  context
+    .audioWorklet
+    .addModule('./nodes/signal.worklet.js');
+};
