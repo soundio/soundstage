@@ -27,6 +27,16 @@ export function drawY(ctx, box, y, color) {
     ctx.stroke();
 }
 
+export function drawYLine(ctx, box, valueBox, y, color) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(box[0], box[1] + (box[3]) - (y * box[3]));
+    ctx.lineTo(box[0] + box[2], box[1] + (box[3]) - (y * box[3]));
+    ctx.closePath();
+    ctx.stroke();
+}
+
 /*
 drawYAxisAmplitude(ctx, box, color)
 

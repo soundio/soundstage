@@ -145,6 +145,7 @@
             background-color: #01181e;
             border-radius: 3px;
             background-size: 100%;
+            box-shadow: inset 0 0 90px hsla(192, 94%, 6%, 0.8);
         }
 
         .control-point {
@@ -215,8 +216,6 @@
 
                 <div fn="get:1 envelope-control">
                     <svg class="envelope-svg" viewBox="0 -1.125 1.125 1.125">
-                        <line class="y-line" x1="0" x2="1.125" y1="0" y2="0"></line>
-                        <line class="y-line" x1="0" x2="1.125" y1="-1" y2="-1"></line>
                         <path :d=""></path>
                         <circle fn="each scope" class="control-point" :cx="{[0]}" :cy="{[2|normalise:linear-logarithmic,0.0009765625,1|multiply:-1]}" r="0.0375"></circle>
                     </svg>
@@ -236,8 +235,6 @@
 
                 <div fn="get:1 envelope-control">
                     <svg class="envelope-svg" viewBox="0 -1 1.125 1">
-                        <line class="y-line" x1="0" x2="1.125" y1="0" y2="0"></line>
-                        <line class="y-line" x1="0" x2="1.125" y1="-1" y2="-1"></line>
                         <path :d=""></path>
                         <circle fn="each scope" class="control-point" :cx="{[0]}" :cy="{[2|normalise:linear-logarithmic,20,20000|multiply:-1]}" r="0.0375"></circle>
                     </svg>

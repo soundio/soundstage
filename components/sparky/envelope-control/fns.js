@@ -115,8 +115,9 @@ const processGesture = overload(get('type'), {
 
     'move': function(data) {
         var scope = data.scope;
-        scope[0] = data.x;
-        scope[2] = denormalise.linearLogarithmic(0.0009765625, 1, -data.y);
+        scope[0] = data.x < 0 ? 0 : data.x;
+        const y = denormalise.linearLogarithmic(0.0009765625, 1, -data.y);
+        scope[2] = y < 0 ? 0 : y;
         return data;
     },
 
@@ -162,7 +163,7 @@ functions['envelope-control'] = function(node, scopes, params) {
 };
 
 import Envelope from '../../../nodes/envelope.js';
-import { drawYAxisAmplitude, drawCurvePositive } from '../../../modules/canvas.js';
+import { drawYLine, drawCurvePositive } from '../../../modules/canvas.js';
 
 const canvas = document.createElement('canvas');
 canvas.width  = 300;
@@ -170,8 +171,9 @@ canvas.height = 300;
 const ctx = canvas.getContext('2d');
 
 function requestEnvelopeDataURL(data) {
-    const box = [0, 33.333333333, 266.666666667, 266.666666667];
-    const offline  = new OfflineAudioContext(1, 22050, 22050);
+    const box      = [1, 33.333333333, 298, 265.666666667];
+    const valueBox = [0, 1, 1.125, -1];
+    const offline  = new OfflineAudioContext(1, 1.125 * 22050, 22050);
     const envelope = new Envelope(offline, {
         attack: data
     });
@@ -185,7 +187,21 @@ function requestEnvelopeDataURL(data) {
     .then(function(buffer) {
         const data = buffer.getChannelData(0).map((n) => normalise.linearLogarithmic(0.0009765625, 1, n));
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawCurvePositive(ctx, box, 22050 / box[2], data, '#acb9b8');
+
+        // 0dB, -6dB, -12dB, -18dB, -24dB, -30dB, -36dB, -42dB, -48dB, -54dB, -60dB
+        drawYLine(ctx, box, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 1), '#010e12');
+        drawYLine(ctx, box, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.5), '#010e12');
+        drawYLine(ctx, box, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.25), '#010e12');
+        drawYLine(ctx, box, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.125), '#010e12');
+        drawYLine(ctx, box, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.0625), '#010e12');
+        drawYLine(ctx, box, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.03125), '#010e12');
+        drawYLine(ctx, box, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.015625), '#010e12');
+        drawYLine(ctx, box, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.0078125), '#010e12');
+        drawYLine(ctx, box, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.00390625), '#010e12');
+        drawYLine(ctx, box, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.001953125), '#010e12');
+        drawYLine(ctx, box, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.0009765625), '#010e12');
+
+        drawCurvePositive(ctx, box, 1.125 * 22050 / box[2], data, '#acb9b8');
         return canvas.toDataURL();
     });
 }
