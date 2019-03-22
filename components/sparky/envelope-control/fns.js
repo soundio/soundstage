@@ -1,5 +1,6 @@
 
 import { get, noop, overload, Stream } from '../../../../fn/fn.js';
+import * as normalise from '../../../../fn/modules/normalise.js';
 import * as denormalise from '../../../../fn/modules/denormalise.js';
 import { box, events, find } from '../../../../dom/dom.js';
 import { functions, getScope } from '../../../../sparky/sparky.js';
@@ -23,11 +24,13 @@ function isTargetControlPoint(e) {
 }
 
 function createMouseGesture(e) {
+console.log('mousedown ---', e);
     var gesture = Stream.of(e);
     var moves = events('mousemove', document).each((e) => gesture.push(e));
-    var ups   = events('mouseup', document).each(function(e) {
+    var ups   = events('mouseup', document).each((e) => {
+console.log('mouseup ---', e)
         gesture.push(e);
-        gesture.stop();
+        //gesture.stop();
         moves.stop();
         ups.stop();
     });
@@ -41,7 +44,6 @@ function createMouseGesture(e) {
 const intoCoordinates = overload((data, e) => e.type, {
     'mousedown': (data, e) => {
         data.events.push(e);
-
         const controlBox = box(e.target);
 
         // The centre of the control point
@@ -58,14 +60,13 @@ const intoCoordinates = overload((data, e) => e.type, {
 
     'mousemove': (data, e) => {
         data.events.push(e);
-
         const e0 = data.events[0];
 
         // If the duration is too short or the mouse has not travelled far
         // enough it is too early to call this a move gesture
-        if (e.timeStamp - e0.timeStamp < maxTapDuration
-            && e.clientX - e0.clientX < 4
-            && e.clientY - e0.clientY < 4) {
+        if ((e.timeStamp - e0.timeStamp) < maxTapDuration
+            && (e.clientX - e0.clientX) < 4
+            && (e.clientY - e0.clientY) < 4) {
             return data;
         }
 
@@ -91,16 +92,17 @@ const intoCoordinates = overload((data, e) => e.type, {
 
     'mouseup': (data, e) => {
         data.events.push(e);
-
         const e0 = data.events[0];
 
         data.duration = (e.timeStamp - e0.timeStamp) / 1000;
 
-        // If the gesture does not yet have a type, check whether it is short
-        // and call it a tap
-        if (!data.type && data.duration < maxTapDuration) {
+        // If the gesture does not yet have a type, check whether duration is
+        // short and call it a tap
+        if (!data.type && (data.duration < maxTapDuration)) {
             data.type = 'tap';
         }
+
+        return data;
     }
 });
 
@@ -108,25 +110,26 @@ const processGesture = overload(get('type'), {
     'tap': function(data) {
         const scope = data.scope;
         scope[1] = cycleType(scope[1]);
+        return data;
     },
 
     'move': function(data) {
         var scope = data.scope;
         scope[0] = data.x;
         scope[2] = denormalise.linearLogarithmic(0.0009765625, 1, -data.y);
+        return data;
     },
 
     default: noop
 });
 
-functions['envelope-control'] = function(node, scope, params) {
+functions['envelope-control'] = function(node, scopes, params) {
     const svg = find('svg', node);
     const gestures = events('mousedown', svg)
         .filter(isTargetControlPoint)
         .map(createMouseGesture)
         .each(function(gesture) {
-            gesture
-            .fold(intoCoordinates, {
+            const context = {
                 svg: svg,
 
                 events: [],
@@ -136,7 +139,53 @@ functions['envelope-control'] = function(node, scope, params) {
                     .getAttribute('viewBox')
                     .split(/\s+/)
                     .map(parseFloat)
-            })
-            .each(processGesture);
+            };
+
+            gesture
+            .scan(intoCoordinates, context)
+            .map(processGesture)
+            .each(function(data) {
+                requestEnvelopeDataURL(scope).then(function(data) {
+                    svg.style.backgroundImage = 'url(' + data + ')';
+                });
+            });
         });
+
+    var scope;
+
+    return scopes.tap((s) => {
+        scope = s;
+        requestEnvelopeDataURL(scope).then(function(data) {
+            svg.style.backgroundImage = 'url(' + data + ')';
+        });
+    });
 };
+
+import Envelope from '../../../nodes/envelope.js';
+import { drawYAxisAmplitude, drawCurvePositive } from '../../../modules/canvas.js';
+
+const canvas = document.createElement('canvas');
+canvas.width  = 300;
+canvas.height = 300;
+const ctx = canvas.getContext('2d');
+
+function requestEnvelopeDataURL(data) {
+    const box = [0, 33.333333333, 266.666666667, 266.666666667];
+    const offline  = new OfflineAudioContext(1, 22050, 22050);
+    const envelope = new Envelope(offline, {
+        attack: data
+    });
+
+    envelope.connect(offline.destination);
+    envelope.start(0, 'attack');
+    envelope.stop(1);
+
+    return offline
+    .startRendering()
+    .then(function(buffer) {
+        const data = buffer.getChannelData(0).map((n) => normalise.linearLogarithmic(0.0009765625, 1, n));
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawCurvePositive(ctx, box, 22050 / box[2], data, '#acb9b8');
+        return canvas.toDataURL();
+    });
+}

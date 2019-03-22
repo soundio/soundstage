@@ -128,3 +128,53 @@ export function drawCurve(ctx, box, rate, data, color) {
     ctx.fillStyle = color + '2b';
     ctx.fill();
 }
+
+/*
+drawCurvePositive(ctx, box, rate, data, color)
+
+Draws a filled automation curve.
+
+ctx:   canvas context
+box:   array of 4 numbers describing view box
+rate:  data points per px
+data:  array of data points
+color: base color
+*/
+
+export function drawCurvePositive(ctx, box, rate, data, color) {
+    let n = 0;
+
+    ctx.lineWidth   = '2';
+    ctx.lineCap     = 'round';
+    ctx.beginPath();
+    ctx.moveTo(
+        box[0],
+        box[1] + (box[3]) - (data[n] * box[3])
+    );
+
+    while (++n < data.length) {
+        ctx.lineTo(
+            box[0] + n / rate,
+            box[1] + (box[3]) - (data[n] * box[3])
+        );
+    }
+
+    // Stroke the waveform
+    ctx.strokeStyle = color;
+    ctx.stroke();
+
+    // Now complete its area and then fill it
+    ctx.lineTo(
+        box[0] + box[2],
+        box[1] + box[3]
+    );
+
+    ctx.lineTo(
+        box[0],
+        box[1] + box[3]
+    );
+
+    //ctx.closePath();
+    ctx.fillStyle = color + '2b';
+    ctx.fill();
+}
