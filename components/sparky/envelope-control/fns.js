@@ -165,17 +165,29 @@ functions['envelope-control'] = function(node, scopes, params) {
 import Envelope from '../../../nodes/envelope.js';
 import { drawYLine, drawCurvePositive } from '../../../modules/canvas.js';
 
-const canvas = document.createElement('canvas');
+const canvas  = document.createElement('canvas');
 canvas.width  = 300;
 canvas.height = 300;
-const ctx = canvas.getContext('2d');
+const ctx     = canvas.getContext('2d');
+const linesPerPixel = 0.5;
 
 function requestEnvelopeDataURL(data) {
-    const box      = [1, 33.333333333, 298, 265.666666667];
+    // Allow 1px paddng to accomodate half of 2px stroke of graph line
+    const viewBox  = [1, 33.333333333, 298, 265.666666667];
     const valueBox = [0, 1, 1.125, -1];
-    const offline  = new OfflineAudioContext(1, 1.125 * 22050, 22050);
+
+    // Draw lines / second
+    const drawRate = linesPerPixel * viewBox[2] / valueBox[2];
+
+    const offline  = new OfflineAudioContext(1, valueBox[2] * drawRate, 22050);
     const envelope = new Envelope(offline, {
-        attack: data
+        // Condense time by drawRate so that we generate 1 sample per line
+        attack: data.map((e) => ({
+            0: e[0] * drawRate / 22050,
+            1: e[1],
+            2: e[2],
+            3: e[3] ? e[3] * drawRate / 22050 : undefined
+        }))
     });
 
     envelope.connect(offline.destination);
@@ -189,19 +201,19 @@ function requestEnvelopeDataURL(data) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // 0dB, -6dB, -12dB, -18dB, -24dB, -30dB, -36dB, -42dB, -48dB, -54dB, -60dB
-        drawYLine(ctx, box, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 1), '#010e12');
-        drawYLine(ctx, box, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.5), '#010e12');
-        drawYLine(ctx, box, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.25), '#010e12');
-        drawYLine(ctx, box, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.125), '#010e12');
-        drawYLine(ctx, box, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.0625), '#010e12');
-        drawYLine(ctx, box, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.03125), '#010e12');
-        drawYLine(ctx, box, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.015625), '#010e12');
-        drawYLine(ctx, box, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.0078125), '#010e12');
-        drawYLine(ctx, box, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.00390625), '#010e12');
-        drawYLine(ctx, box, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.001953125), '#010e12');
-        drawYLine(ctx, box, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.0009765625), '#010e12');
+        drawYLine(ctx, viewBox, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 1), '#010e12');
+        drawYLine(ctx, viewBox, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.5), '#010e12');
+        drawYLine(ctx, viewBox, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.25), '#010e12');
+        drawYLine(ctx, viewBox, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.125), '#010e12');
+        drawYLine(ctx, viewBox, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.0625), '#010e12');
+        drawYLine(ctx, viewBox, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.03125), '#010e12');
+        drawYLine(ctx, viewBox, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.015625), '#010e12');
+        drawYLine(ctx, viewBox, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.0078125), '#010e12');
+        drawYLine(ctx, viewBox, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.00390625), '#010e12');
+        drawYLine(ctx, viewBox, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.001953125), '#010e12');
+        drawYLine(ctx, viewBox, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.0009765625), '#010e12');
 
-        drawCurvePositive(ctx, box, 1.125 * 22050 / box[2], data, '#acb9b8');
+        drawCurvePositive(ctx, viewBox, linesPerPixel, data, '#acb9b8');
         return canvas.toDataURL();
     });
 }
