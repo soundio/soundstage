@@ -7,6 +7,18 @@ function drawBg(box, ctx, color) {
     ctx.fill();
 }
 
+export function drawXLine(ctx, box, valueBox, x, color) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth   = '1';
+    ctx.lineCap     = 'round';
+    ctx.beginPath();
+    var xPx = box[0] + box[2] * (x - valueBox[0]) / valueBox[2];
+    ctx.moveTo(xPx, box[1]);
+    ctx.lineTo(xPx, box[1] + box[3]);
+    ctx.closePath();
+    ctx.stroke();
+}
+
 /*
 drawY(ctx, box, y, color)
 

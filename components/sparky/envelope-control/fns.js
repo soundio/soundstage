@@ -1,22 +1,45 @@
 
-import { get, noop, overload, Stream } from '../../../../fn/fn.js';
+import { limit as clamp, get, noop, overload, Stream, toCamelCase, toLevel, id, notify, nothing } from '../../../../fn/fn.js';
 import * as normalise from '../../../../fn/modules/normalise.js';
 import * as denormalise from '../../../../fn/modules/denormalise.js';
-import { box, events, find } from '../../../../dom/dom.js';
+import { box, events, isPrimaryButton } from '../../../../dom/dom.js';
 import { functions, getScope } from '../../../../sparky/sparky.js';
+import parseValue from '../../../../fn/modules/parse-value.js';
+
+window.toLevel = toLevel;
+window.parseValue = parseValue;
 
 const maxTapDuration = 0.25;
+const defaultTargetEventDuration = 1;
 
-const types = [
-    "step",
-    "linear",
-    "exponential",
-    "target"
-];
+const types = {
+    "step": function(event) {
+        event[1] = 'step';
+        delete event[3];
+    },
 
-function cycleType(type) {
-    const i = types.indexOf(type);
-    return types[(i + 1) % types.length];
+    "linear": function(event) {
+        event[1] = 'linear';
+        delete event[3];
+    },
+
+    "exponential": function(event) {
+        event[1] = 'exponential';
+        delete event[3];
+    },
+
+    "target": function(event) {
+        event[1] = 'target';
+        if (typeof event[3] !== 'number') {
+            event[3] = defaultTargetEventDuration;
+        }
+    }
+};
+
+function cycleType(event) {
+    const arr = Object.keys(types);
+    const i = arr.indexOf(event[1]);
+    return types[arr[(i + 1) % arr.length]](event);
 }
 
 function isTargetControlPoint(e) {
@@ -24,17 +47,16 @@ function isTargetControlPoint(e) {
 }
 
 function createMouseGesture(e) {
-console.log('mousedown ---', e);
     var gesture = Stream.of(e);
     var moves = events('mousemove', document).each((e) => gesture.push(e));
     var ups   = events('mouseup', document).each((e) => {
-console.log('mouseup ---', e)
         gesture.push(e);
         //gesture.stop();
         moves.stop();
         ups.stop();
     });
 
+    e.target.focus();
     e.preventDefault();
 
     // Start with the mousedown event
@@ -80,8 +102,8 @@ const intoCoordinates = overload((data, e) => e.type, {
         const py = e.clientY - rect.top - data.offset.y;
 
         // Normalise to 0-1
-        const rx = px / rect.width;
-        const ry = py / rect.height;
+        const rx = clamp(0, 1, px / rect.height);
+        const ry = clamp(0, 1, py / rect.height);
 
         // Assume viewbox is always full height, use box height as scale
         data.x = data.viewbox[0] + rx * data.viewbox[3];
@@ -106,114 +128,181 @@ const intoCoordinates = overload((data, e) => e.type, {
     }
 });
 
+const minExponential = toLevel(-96);
+
 const processGesture = overload(get('type'), {
     'tap': function(data) {
         const scope = data.scope;
-        scope[1] = cycleType(scope[1]);
+        cycleType(scope);
+        notify(data.collection, '.', data.collection);
         return data;
     },
 
     'move': function(data) {
         var scope = data.scope;
         scope[0] = data.x < 0 ? 0 : data.x;
-        const y = denormalise.linearLogarithmic(0.0009765625, 1, -data.y);
-        scope[2] = y < 0 ? 0 : y;
+        const y = denormalise[data.yTransform](data.yMin, data.yMax, -data.y);
+
+        scope[2] = scope[1] === 'exponential' ?
+            y < minExponential ? minExponential : y :
+            y ;
+
+        notify(data.collection, '.', data.collection);
+
         return data;
     },
 
     default: noop
 });
 
-functions['envelope-control'] = function(node, scopes, params) {
-    const svg = find('svg', node);
+const gainParsers = { 'dB': toLevel, 'db': toLevel, 'DB': toLevel };
+const parseGain   = (value) => parseValue(gainParsers, value);
+
+functions['envelope-control'] = function(svg, scopes, params) {
+    var yLines = svg.getAttribute('y-ticks');
+
+    yLines = yLines ? yLines
+        .split(/\s+/g)
+        .map(parseGain) :
+        nothing ;
+
+    var yMin = svg.getAttribute('y-min');
+    yMin = yMin ? parseGain(yMin) : 0 ;
+
+    var yMax = svg.getAttribute('y-max');
+    yMax = yMax ? parseGain(yMax) : 1 ;
+
+    var yTransform = svg.getAttribute('y-transform');
+    yTransform = yTransform ? toCamelCase(yTransform) : 'linear' ;
+
+    var scope;
+
+    const graphOptions = {
+        yMin:   yMin,
+        yMax:   yMax,
+        xLines: [0.5, 1, 1.5, 2],
+        yLines: yLines,
+        xScale: id,
+        yScale: (y) => normalise[yTransform](yMin, yMax, y),
+        viewbox: svg
+            .getAttribute('viewBox')
+            .split(/\s+/)
+            .map(parseFloat)
+    };
+
     const gestures = events('mousedown', svg)
+        .filter(isPrimaryButton)
         .filter(isTargetControlPoint)
         .map(createMouseGesture)
         .each(function(gesture) {
             const context = {
                 svg: svg,
-
+                yMin: yMin,
+                yMax: yMax,
+                yTransform: yTransform,
                 events: [],
 
                 // Grab the current viewBox as an array of numbers
-                viewbox: svg
-                    .getAttribute('viewBox')
-                    .split(/\s+/)
-                    .map(parseFloat)
+                viewbox: graphOptions.viewbox,
+
+                collection: scope
             };
 
             gesture
             .scan(intoCoordinates, context)
             .map(processGesture)
             .each(function(data) {
-                requestEnvelopeDataURL(scope).then(function(data) {
-                    svg.style.backgroundImage = 'url(' + data + ')';
-                });
+                requestEnvelopeDataURL(scope, graphOptions)
+                .then(renderBackground);
             });
         });
 
-    var scope;
+    svg.addEventListener('unmount', function sparkyStop() {
+        svg.removeEventListener('unmount', sparkyStop);
+        gestures.stop();
+    });
+
+    function renderBackground(data) {
+        svg.style.backgroundImage = 'url(' + data + ')';
+    }
 
     return scopes.tap((s) => {
         scope = s;
-        requestEnvelopeDataURL(scope).then(function(data) {
-            svg.style.backgroundImage = 'url(' + data + ')';
-        });
+
+        requestEnvelopeDataURL(scope, graphOptions)
+        .then(renderBackground);
     });
 };
 
+
+
+
+
 import Envelope from '../../../nodes/envelope.js';
-import { drawYLine, drawCurvePositive } from '../../../modules/canvas.js';
+import { drawXLine, drawYLine, drawCurvePositive } from '../../../modules/canvas.js';
 
 const canvas  = document.createElement('canvas');
-canvas.width  = 300;
+canvas.width  = 600;
 canvas.height = 300;
 const ctx     = canvas.getContext('2d');
-const linesPerPixel = 0.5;
 
-function requestEnvelopeDataURL(data) {
+// Oversampling produces graphs with fewer audio aliasing artifacts
+// when curve points fall between pixels.
+const samplesPerPixel = 4;
+
+function requestEnvelopeDataURL(data, options) {
     // Allow 1px paddng to accomodate half of 2px stroke of graph line
-    const viewBox  = [1, 33.333333333, 298, 265.666666667];
-    const valueBox = [0, 1, 1.125, -1];
+    const viewBox  = [
+        1,
+        canvas.height * (1 - 1 / options.viewbox[3]),
+        598,
+        canvas.height / options.viewbox[3]
+    ];
+    const valueBox = [0, 1, 2.25, -1];
 
     // Draw lines / second
-    const drawRate = linesPerPixel * viewBox[2] / valueBox[2];
+    const drawRate = samplesPerPixel * viewBox[2] / valueBox[2];
+    const offline  = new OfflineAudioContext(1, samplesPerPixel * viewBox[2], 22050);
+    const events   = data.map((e) => ({
+        0: e[0] * drawRate / 22050,
+        1: e[1],
+        2: e[2],
+        3: e[3] ? e[3] * drawRate / 22050 : undefined
+    }));
 
-    const offline  = new OfflineAudioContext(1, valueBox[2] * drawRate, 22050);
+    events.unshift({
+        0: 0,
+        1: 'step',
+        2: options.yMax
+    });
+
     const envelope = new Envelope(offline, {
-        // Condense time by drawRate so that we generate 1 sample per line
-        attack: data.map((e) => ({
-            0: e[0] * drawRate / 22050,
-            1: e[1],
-            2: e[2],
-            3: e[3] ? e[3] * drawRate / 22050 : undefined
-        }))
+        // Condense time by drawRate so that we generate samplePerPixel
+        // samples per pixel.
+        'attack': events
     });
 
     envelope.connect(offline.destination);
-    envelope.start(0, 'attack');
-    envelope.stop(1);
+    envelope.start(valueBox[0], 'attack');
+    envelope.stop(valueBox[2]);
 
     return offline
     .startRendering()
     .then(function(buffer) {
-        const data = buffer.getChannelData(0).map((n) => normalise.linearLogarithmic(0.0009765625, 1, n));
+        //canvas.width = 300;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // 0dB, -6dB, -12dB, -18dB, -24dB, -30dB, -36dB, -42dB, -48dB, -54dB, -60dB
-        drawYLine(ctx, viewBox, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 1), '#010e12');
-        drawYLine(ctx, viewBox, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.5), '#010e12');
-        drawYLine(ctx, viewBox, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.25), '#010e12');
-        drawYLine(ctx, viewBox, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.125), '#010e12');
-        drawYLine(ctx, viewBox, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.0625), '#010e12');
-        drawYLine(ctx, viewBox, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.03125), '#010e12');
-        drawYLine(ctx, viewBox, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.015625), '#010e12');
-        drawYLine(ctx, viewBox, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.0078125), '#010e12');
-        drawYLine(ctx, viewBox, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.00390625), '#010e12');
-        drawYLine(ctx, viewBox, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.001953125), '#010e12');
-        drawYLine(ctx, viewBox, valueBox, normalise.linearLogarithmic(0.0009765625, 1, 0.0009765625), '#010e12');
+        options.xLines && options.xLines
+            .map(options.xScale)
+            .forEach((x) => drawXLine(ctx, viewBox, valueBox, x, '#000d11'));
 
-        drawCurvePositive(ctx, viewBox, linesPerPixel, data, '#acb9b8');
+        options.yLines && options.yLines
+            .map(options.yScale)
+            .forEach((y) => drawYLine(ctx, viewBox, valueBox, y, '#000d11'));
+
+        const data = buffer.getChannelData(0).map(options.yScale);
+        drawCurvePositive(ctx, viewBox, samplesPerPixel, data, '#acb9b8');
+
         return canvas.toDataURL();
     });
 }

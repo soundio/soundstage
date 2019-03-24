@@ -1,4 +1,6 @@
 
+const DEBUG  = false;//window.DEBUG;
+
 const assign = Object.assign;
 const define = Object.defineProperties;
 const freeze = Object.freeze;
@@ -17,7 +19,7 @@ export default function Clock(context) {
 	if (!this.context) {
 		this.context = context;
 	}
-};
+}
 
 assign(Clock.prototype, {
 	start: function(time) {
