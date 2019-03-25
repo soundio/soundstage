@@ -1,5 +1,5 @@
 
-import { limit as clamp, get, noop, overload, Stream, toCamelCase, toLevel, id, notify, nothing, observe } from '../../../../fn/fn.js';
+import { limit as clamp, by, insert, get, noop, overload, Stream, toCamelCase, toLevel, id, notify, nothing, observe, remove } from '../../../../fn/fn.js';
 import * as normalise from '../../../../fn/modules/normalise.js';
 import * as denormalise from '../../../../fn/modules/denormalise.js';
 import { box, events, isPrimaryButton } from '../../../../dom/dom.js';
@@ -36,6 +36,7 @@ const types = {
     }
 };
 
+const getTime   = get('0');
 const getTarget = get('target');
 const getType   = get('type');
 
@@ -62,10 +63,6 @@ function cycleType(event) {
     return types[arr[(i + 1) % arr.length]](event);
 }
 
-function isTargetControlPoint(e) {
-    return e.target.matches('.control-handle') || e.target.matches('.duration-handle');
-}
-
 function createMouseGesture(e) {
     var gesture = Stream.of(e);
 
@@ -77,17 +74,35 @@ function createMouseGesture(e) {
     var ups = events('mouseup', document).each((e) => {
         e.preventDefault();
         gesture.push(e);
-        //gesture.stop();
+        gesture.stop();
         moves.stop();
         ups.stop();
     });
 
     gesture.target = e.target;
-    e.target.closest('[tabindex]').focus();
+    const focusable = e.target.closest('[tabindex]');
+    focusable && focusable.focus();
     e.preventDefault();
 
     // Start with the mousedown event
     return gesture;
+}
+
+function setXY(e, data) {
+    const rect = box(data.svg);
+
+    // New pixel position of control, compensating for initial
+    // mousedown offset on the control
+    const px = e.clientX - rect.left - data.offset.x;
+    const py = e.clientY - rect.top - data.offset.y;
+
+    // Normalise to 0-1
+    const rx = clamp(0, 1, px / rect.height);
+    const ry = clamp(0, 1, py / rect.height);
+
+    // Assume viewbox is always full height, use box height as scale
+    data.x = data.viewbox[0] + rx * data.viewbox[3];
+    data.y = data.viewbox[1] + ry * data.viewbox[3];
 }
 
 const intoCoordinates = overload((data, e) => e.type, {
@@ -95,14 +110,14 @@ const intoCoordinates = overload((data, e) => e.type, {
         data.events.push(e);
         const controlBox = box(e.target);
 
-        // The centre of the control point
-        data.offset = {
+        // The centre of the control point, if there is a control point
+        data.offset = e.target === e.currentTarget ? {
+            x: 0,
+            y: 0
+        } : {
             x: e.clientX - (controlBox.left + controlBox.width / 2),
             y: e.clientY - (controlBox.top + controlBox.height / 2)
         };
-
-        // Todo: getScope
-        data.scope = getScope(e.target);
 
         return data;
     },
@@ -120,21 +135,7 @@ const intoCoordinates = overload((data, e) => e.type, {
         }
 
         data.type = 'move';
-
-        const rect = box(data.svg);
-
-        // New pixel position of control, compensating for initial
-        // mousedown offset on the control
-        const px = e.clientX - rect.left - data.offset.x;
-        const py = e.clientY - rect.top - data.offset.y;
-
-        // Normalise to 0-1
-        const rx = clamp(0, 1, px / rect.height);
-        const ry = clamp(0, 1, py / rect.height);
-
-        // Assume viewbox is always full height, use box height as scale
-        data.x = data.viewbox[0] + rx * data.viewbox[3];
-        data.y = data.viewbox[1] + ry * data.viewbox[3];
+        setXY(e, data);
 
         return data;
     },
@@ -148,7 +149,16 @@ const intoCoordinates = overload((data, e) => e.type, {
         // If the gesture does not yet have a type, check whether duration is
         // short and call it a tap
         if (!data.type && (data.duration < maxTapDuration)) {
-            data.type = 'tap';
+            if (data.previous
+                && data.previous.type === 'tap'
+                && (data.previous.events[0].timeStamp > (data.events[0].timeStamp - 400))) {
+                data.type = 'double-tap';
+                data.target = data.previous.target;
+                setXY(data.previous.events[0], data);
+            }
+            else {
+                data.type = 'tap';
+            }
         }
 
         return data;
@@ -168,13 +178,10 @@ transforms['sum033333'] = function(object) {
     return object[0] + object[3] + object[3] + object[3] + object[3] + object[3];
 }
 
-
-
-
 const handleGesture = match(getTarget, {
     '.duration-handle': overload(getType, {
         'move': function(data) {
-            var scope = data.scope
+            const scope =  getScope(data.target);
             const y = denormalise[data.yTransform](data.yMin, data.yMax, -data.y);
 
             scope[3] = data.x <= scope[0] ?
@@ -189,26 +196,43 @@ const handleGesture = match(getTarget, {
             return data;
         },
 
-        default: noop,
+        default: noop
     }),
 
     '.control-handle': overload(getType, {
         'tap': function(data) {
-            const scope = data.scope;
+            const scope = getScope(data.target);
             cycleType(scope);
             notify(data.collection, '.', data.collection);
+
+            // We store scope on data here so that we may pick it up on
+            // double-tap, at whcih time the target will no longer have scope
+            // because it will have been replaced by another node.
+            //
+            // Two other approaches:
+            //
+            // 1. Get scope earlier in the chain. Not elegant, as earlier steps
+            // really have nothing to do with scope.
+            //
+            // 2. Delay tap for 300ms or so until we can be certain it's not
+            // going to turn into a double-tap. This is probably most
+            // reasonable but will require a little guddling about.
+            data.scope = scope;
+
             return data;
         },
 
         'double-tap': function(data) {
-            const scope = data.scope;
-            cycleType(scope);
+            // Pick up scope from previous tap data as outlined above.
+            const scope = data.previous.scope;
+
+            remove(data.collection, scope);
             notify(data.collection, '.', data.collection);
             return data;
         },
 
         'move': function(data) {
-            var scope = data.scope
+            const scope =  getScope(data.target);
             const y = denormalise[data.yTransform](data.yMin, data.yMax, -data.y);
 
             scope[0] = data.x < 0 ? 0 : data.x
@@ -227,9 +251,19 @@ const handleGesture = match(getTarget, {
         default: noop
     }),
 
-    '*': (data) => {
-        console.log('Drop through', data);
-    }
+    '*': overload(getType, {
+        'double-tap': function(data) {
+            const x = data.x;
+            const y = denormalise[data.yTransform](data.yMin, data.yMax, -data.y);
+
+            // Insert new control point
+            insert(getTime, data.collection, [x, 'step', y]);
+            notify(data.collection, '.', data.collection);
+            return data;
+        },
+
+        default: noop
+    })
 });
 
 functions['envelope-control'] = function(svg, scopes, params) {
@@ -265,59 +299,66 @@ functions['envelope-control'] = function(svg, scopes, params) {
     };
 
     const gestures = events('mousedown', svg)
-        .filter(isPrimaryButton)
-        // We should branch by type of control here
-        .filter(isTargetControlPoint)
-        .map(createMouseGesture)
-        .each(function(gesture) {
-            const context = {
-                target: gesture.target,
-                svg:    svg,
-                yMin:   yMin,
-                yMax:   yMax,
-                yTransform: yTransform,
-                events: [],
+    .filter(isPrimaryButton)
+    // We should branch by type of control here
+    //.filter(isTargetControlPoint)
+    .map(createMouseGesture)
+    .scan(function(previous, gesture) {
+        const context = {
+            target: gesture.target,
+            svg:    svg,
+            yMin:   yMin,
+            yMax:   yMax,
+            yTransform: yTransform,
+            events: [],
 
-                // Grab the current viewBox as an array of numbers
-                viewbox: graphOptions.viewbox,
+            // Grab the current viewBox as an array of numbers
+            viewbox: graphOptions.viewbox,
 
-                collection: scope
-            };
+            collection: scope,
 
-            gesture
-            .scan(intoCoordinates, context)
-            .each(handleGesture);
-        });
+            previous: previous
+        };
 
-    svg.addEventListener('unmount', function sparkyStop() {
-        svg.removeEventListener('unmount', sparkyStop);
-        gestures.stop();
-    });
+        gesture
+        .scan(intoCoordinates, context)
+        .each(handleGesture);
+
+        return context;
+    })
+    .each(noop);
 
     function renderBackground(data) {
         svg.style.backgroundImage = 'url(' + data + ')';
     }
 
-    return scopes.tap((s) => {
+    scopes
+    .toPromise()
+    .then(() => gestures.stop());
+
+    return scopes
+    .tap((s) => {
         scope = s;
 
         observe('.', (array) => {
-            array.reduce((value, event) => {
-                event.valueAtTime = value;
+            array.sort(by(getTime)).reduce((value, event) => {
+                event.valueAtBeat = value;
                 return event[2];
             }, 0);
 
-            requestEnvelopeDataURL(array, graphOptions).then(renderBackground);
+            requestEnvelopeDataURL(array, graphOptions)
+            .then(renderBackground);
         }, scope);
     });
 };
 
 
 
-
-
 import Envelope from '../../../nodes/envelope.js';
 import { drawXLine, drawYLine, drawCurvePositive } from '../../../modules/canvas.js';
+
+// Todo: in supported browsers, render the canvas directly to background
+// https://stackoverflow.com/questions/3397334/use-canvas-as-a-css-background
 
 const canvas  = document.createElement('canvas');
 canvas.width  = 600;

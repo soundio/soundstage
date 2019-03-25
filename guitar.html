@@ -220,9 +220,9 @@
             <circle id="linear-db-control" fn="scope" class="control control-handle control-point" tabindex="0" :cx="{[0]}" :cy="{[2|normalise:linear-logarithmic,0.00390625,1|multiply:-1]}" r="0.0375"></circle>
             <circle id="exponential-db-control" fn="scope" class="control control-handle control-point" tabindex="0" :cx="{[0]}" :cy="{[2|normalise:linear-logarithmic,0.00390625,1|multiply:-1]}" r="0.0375"></circle>
             <g id="target-db-control" class="control" tabindex="0">
-                <line class="control-line" :x1="{[0]}" :x2="{[.|sum03]}" :y1="{[valueAtTime|normalise:linear-logarithmic,0.00390625,1|multiply:-1]}" :y2="{[2|normalise:linear-logarithmic,0.00390625,1|multiply:-1]}"></line>
+                <line class="control-line" :x1="{[0]}" :x2="{[.|sum03]}" :y1="{[valueAtBeat|normalise:linear-logarithmic,0.00390625,1|multiply:-1]}" :y2="{[2|normalise:linear-logarithmic,0.00390625,1|multiply:-1]}"></line>
                 <line class="thin-control-line control-line" :x1="{[0]}" :x2="{[.|sum033333]}" :y1="{[2|normalise:linear-logarithmic,0.00390625,1|multiply:-1]}" :y2="{[2|normalise:linear-logarithmic,0.00390625,1|multiply:-1]}"></line>
-                <use fn="scope" class="control-handle" href="#control-handle" :x="{[0]}" :y="{[valueAtTime|normalise:linear-logarithmic,0.00390625,1|multiply:-1]}" width="0.075" height="0.075"></use>
+                <use fn="scope" class="control-handle" href="#control-handle" :x="{[0]}" :y="{[valueAtBeat|normalise:linear-logarithmic,0.00390625,1|multiply:-1]}" width="0.075" height="0.075"></use>
                 <use fn="scope" class="duration-handle" href="#control-handle" :x="{[.|sum03]}" :y="{[2|normalise:linear-logarithmic,0.00390625,1|multiply:-1]}" width="0.075" height="0.075"></use>
             </g>
 
@@ -230,9 +230,9 @@
             <circle id="linear-hz-control" fn="scope" class="control control-handle control-point" tabindex="0" :cx="{[0]}" :cy="{[2|normalise:logarithmic,16,16384|multiply:-1]}" r="0.0375"></circle>
             <circle id="exponential-hz-control" fn="scope" class="control control-handle control-point" tabindex="0" :cx="{[0]}" :cy="{[2|normalise:logarithmic,16,16384|multiply:-1]}" r="0.0375"></circle>
             <g id="target-hz-control" class="control" tabindex="0">
-                <line class="control-line" :x1="{[0]}" :x2="{[.|sum03]}" :y1="{[valueAtTime|normalise:logarithmic,16,16384|multiply:-1]}" :y2="{[2|normalise:logarithmic,16,16384|multiply:-1]}"></line>
+                <line class="control-line" :x1="{[0]}" :x2="{[.|sum03]}" :y1="{[valueAtBeat|normalise:logarithmic,16,16384|multiply:-1]}" :y2="{[2|normalise:logarithmic,16,16384|multiply:-1]}"></line>
                 <line class="thin-control-line control-line" :x1="{[0]}" :x2="{[.|sum033333]}" :y1="{[2|normalise:logarithmic,16,16384|multiply:-1]}" :y2="{[2|normalise:logarithmic,16,16384|multiply:-1]}"></line>
-                <use fn="scope" class="control-handle" href="#control-handle" :x="{[0]}" :y="{[valueAtTime|normalise:logarithmic,16,16384|multiply:-1]}" width="0.075" height="0.075"></use>
+                <use fn="scope" class="control-handle" href="#control-handle" :x="{[0]}" :y="{[valueAtBeat|normalise:logarithmic,16,16384|multiply:-1]}" width="0.075" height="0.075"></use>
                 <use fn="scope" class="duration-handle" href="#control-handle" :x="{[.|sum03]}" :y="{[2|normalise:logarithmic,16,16384|multiply:-1]}" width="0.075" height="0.075"></use>
             </g>
         </defs>
