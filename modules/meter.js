@@ -11,8 +11,8 @@ Returns the beat at a given `bar`.
 Returns the bar at a given `beat`.
 */
 
-import { Fn, compose, get, is, nothing } from '../../fn/fn.js';
-import { isMeterEvent, default as Event, release } from './event.js';
+import { nothing } from '../../fn/fn.js';
+import { isMeterEvent } from './event.js';
 
 var assign = Object.assign;
 var freeze = Object.freeze;
@@ -48,7 +48,7 @@ export function beatAtBar(events, bar) {
 
 export default function Meter(events) {
 	this.events = events;
-};
+}
 
 assign(Meter.prototype, {
 	barAtBeat: function(beat) {

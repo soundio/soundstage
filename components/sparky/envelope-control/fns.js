@@ -1,16 +1,16 @@
 
-import { limit as clamp, get, noop, overload, Stream, toCamelCase, toLevel, id, notify, nothing } from '../../../../fn/fn.js';
+import { limit as clamp, get, noop, overload, Stream, toCamelCase, toLevel, id, notify, nothing, observe } from '../../../../fn/fn.js';
 import * as normalise from '../../../../fn/modules/normalise.js';
 import * as denormalise from '../../../../fn/modules/denormalise.js';
 import { box, events, isPrimaryButton } from '../../../../dom/dom.js';
-import { functions, getScope } from '../../../../sparky/sparky.js';
+import { functions, transforms, getScope } from '../../../../sparky/sparky.js';
 import parseValue from '../../../../fn/modules/parse-value.js';
 
 window.toLevel = toLevel;
 window.parseValue = parseValue;
 
 const maxTapDuration = 0.25;
-const defaultTargetEventDuration = 1;
+const defaultTargetEventDuration = 0.4;
 
 const types = {
     "step": function(event) {
@@ -36,6 +36,26 @@ const types = {
     }
 };
 
+const getTarget = get('target');
+const getType   = get('type');
+
+// Overload by selector
+function match(getNode, fns) {
+    return function() {
+        const node = getNode.apply(this, arguments);
+        const selectors = Object.keys(fns);
+        var n = -1;
+
+        while (selectors[++n]) {
+            if (node.matches(selectors[n])) {
+                return fns[selectors[n]].apply(this, arguments);
+            }
+        }
+
+        throw new Error('Match not found in selectors');
+    };
+}
+
 function cycleType(event) {
     const arr = Object.keys(types);
     const i = arr.indexOf(event[1]);
@@ -43,20 +63,27 @@ function cycleType(event) {
 }
 
 function isTargetControlPoint(e) {
-    return e.target.matches('.control-point');
+    return e.target.matches('.control-handle') || e.target.matches('.duration-handle');
 }
 
 function createMouseGesture(e) {
     var gesture = Stream.of(e);
-    var moves = events('mousemove', document).each((e) => gesture.push(e));
-    var ups   = events('mouseup', document).each((e) => {
+
+    var moves = events('mousemove', document).each((e) => {
+        e.preventDefault();
+        gesture.push(e);
+    });
+
+    var ups = events('mouseup', document).each((e) => {
+        e.preventDefault();
         gesture.push(e);
         //gesture.stop();
         moves.stop();
         ups.stop();
     });
 
-    e.target.focus();
+    gesture.target = e.target;
+    e.target.closest('[tabindex]').focus();
     e.preventDefault();
 
     // Start with the mousedown event
@@ -130,33 +157,80 @@ const intoCoordinates = overload((data, e) => e.type, {
 
 const minExponential = toLevel(-96);
 
-const processGesture = overload(get('type'), {
-    'tap': function(data) {
-        const scope = data.scope;
-        cycleType(scope);
-        notify(data.collection, '.', data.collection);
-        return data;
-    },
-
-    'move': function(data) {
-        var scope = data.scope;
-        scope[0] = data.x < 0 ? 0 : data.x;
-        const y = denormalise[data.yTransform](data.yMin, data.yMax, -data.y);
-
-        scope[2] = scope[1] === 'exponential' ?
-            y < minExponential ? minExponential : y :
-            y ;
-
-        notify(data.collection, '.', data.collection);
-
-        return data;
-    },
-
-    default: noop
-});
-
 const gainParsers = { 'dB': toLevel, 'db': toLevel, 'DB': toLevel };
 const parseGain   = (value) => parseValue(gainParsers, value);
+
+transforms['sum03'] = function(object) {
+    return object[0] + object[3];
+}
+
+transforms['sum033333'] = function(object) {
+    return object[0] + object[3] + object[3] + object[3] + object[3] + object[3];
+}
+
+
+
+
+const handleGesture = match(getTarget, {
+    '.duration-handle': overload(getType, {
+        'move': function(data) {
+            var scope = data.scope
+            const y = denormalise[data.yTransform](data.yMin, data.yMax, -data.y);
+
+            scope[3] = data.x <= scope[0] ?
+                // Just using it for a small number... Todo: check why this
+                // objects being set to 0
+                minExponential :
+                data.x - scope[0] ;
+            scope[2] = y;
+
+            notify(data.collection, '.', data.collection);
+
+            return data;
+        },
+
+        default: noop,
+    }),
+
+    '.control-handle': overload(getType, {
+        'tap': function(data) {
+            const scope = data.scope;
+            cycleType(scope);
+            notify(data.collection, '.', data.collection);
+            return data;
+        },
+
+        'double-tap': function(data) {
+            const scope = data.scope;
+            cycleType(scope);
+            notify(data.collection, '.', data.collection);
+            return data;
+        },
+
+        'move': function(data) {
+            var scope = data.scope
+            const y = denormalise[data.yTransform](data.yMin, data.yMax, -data.y);
+
+            scope[0] = data.x < 0 ? 0 : data.x
+            scope[2] = scope[1] === 'exponential' ?
+                y < minExponential ? minExponential : y :
+                // Dont't move target handles in the y direction, y is
+                // controlled by durastion handle
+                scope[1] === 'target' ? scope[2] :
+                y ;
+
+            notify(data.collection, '.', data.collection);
+
+            return data;
+        },
+
+        default: noop
+    }),
+
+    '*': (data) => {
+        console.log('Drop through', data);
+    }
+});
 
 functions['envelope-control'] = function(svg, scopes, params) {
     var yLines = svg.getAttribute('y-ticks');
@@ -192,13 +266,15 @@ functions['envelope-control'] = function(svg, scopes, params) {
 
     const gestures = events('mousedown', svg)
         .filter(isPrimaryButton)
+        // We should branch by type of control here
         .filter(isTargetControlPoint)
         .map(createMouseGesture)
         .each(function(gesture) {
             const context = {
-                svg: svg,
-                yMin: yMin,
-                yMax: yMax,
+                target: gesture.target,
+                svg:    svg,
+                yMin:   yMin,
+                yMax:   yMax,
                 yTransform: yTransform,
                 events: [],
 
@@ -210,11 +286,7 @@ functions['envelope-control'] = function(svg, scopes, params) {
 
             gesture
             .scan(intoCoordinates, context)
-            .map(processGesture)
-            .each(function(data) {
-                requestEnvelopeDataURL(scope, graphOptions)
-                .then(renderBackground);
-            });
+            .each(handleGesture);
         });
 
     svg.addEventListener('unmount', function sparkyStop() {
@@ -229,8 +301,14 @@ functions['envelope-control'] = function(svg, scopes, params) {
     return scopes.tap((s) => {
         scope = s;
 
-        requestEnvelopeDataURL(scope, graphOptions)
-        .then(renderBackground);
+        observe('.', (array) => {
+            array.reduce((value, event) => {
+                event.valueAtTime = value;
+                return event[2];
+            }, 0);
+
+            requestEnvelopeDataURL(array, graphOptions).then(renderBackground);
+        }, scope);
     });
 };
 

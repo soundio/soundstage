@@ -216,12 +216,12 @@ export function automate(param, time, curve, value, duration, notify, context) {
 	automateParamEvents(param, events, time, value, curve, duration);
 
     if (!notify) {
-        console.warn('No notify for param change', value, curve, param);
+        //console.warn('No notify for param change', value, curve, param);
         return;
     }
 
     if (!context) {
-        console.warn('No context for param change', value, curve, param);
+        //console.warn('No context for param change', value, curve, param);
         return;
     }
 

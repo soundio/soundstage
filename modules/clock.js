@@ -3,7 +3,6 @@ const DEBUG  = false;//window.DEBUG;
 
 const assign = Object.assign;
 const define = Object.defineProperties;
-const freeze = Object.freeze;
 
 const properties = {
 	context:       { writable: true },

@@ -1,10 +1,10 @@
 
-import { id, nothing, Stream } from '../../fn/fn.js';
+import { id, Stream } from '../../fn/fn.js';
 import { Privates } from './utilities/privates.js';
 import { roundBeat } from '../modules/utilities/utilities.js';
 import { automate, getValueAtTime, getAutomationEvents } from './automate.js';
 import { barAtBeat, beatAtBar } from './meter.js';
-import { isRateEvent } from './event.js';
+//import { isRateEvent } from './event.js';
 import { connect, disconnect } from './connect.js';
 import { beatAtTimeOfAutomation, timeAtBeatOfAutomation } from './location.js';
 import Clock from './clock.js';
@@ -14,13 +14,6 @@ const define = Object.defineProperties;
 
 const defaultRateEvent  = Object.freeze({ time: 0, value: 2, curve: 'step', beat: 0 });
 const defaultMeterEvent = Object.freeze({ 0: 0, 1: 'meter', 2: 4, 3: 1 });
-
-const properties = {
-	context:       { writable: true },
-	startTime:     { writable: true },
-	startLocation: { writable: true },
-	stopTime:      { writable: true }
-};
 
 export default function Transport(context, rateParam, timer, notify) {
 	Clock.call(this, context);
