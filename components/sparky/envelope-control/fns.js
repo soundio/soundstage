@@ -3,7 +3,7 @@ import { limit as clamp, by, insert, get, noop, overload, Stream, toCamelCase, t
 import * as normalise from '../../../../fn/modules/normalise.js';
 import * as denormalise from '../../../../fn/modules/denormalise.js';
 import { box, events, isPrimaryButton } from '../../../../dom/dom.js';
-import { functions, transforms, getScope } from '../../../../sparky/sparky.js';
+import { register, getScope } from '../../../../sparky/sparky.js';
 import parseValue from '../../../../fn/modules/parse-value.js';
 
 window.toLevel = toLevel;
@@ -170,14 +170,6 @@ const minExponential = toLevel(-96);
 const gainParsers = { 'dB': toLevel, 'db': toLevel, 'DB': toLevel };
 const parseGain   = (value) => parseValue(gainParsers, value);
 
-transforms['sum03'] = function(object) {
-    return object[0] + object[3];
-}
-
-transforms['sum033333'] = function(object) {
-    return object[0] + object[3] + object[3] + object[3] + object[3] + object[3];
-}
-
 const handleGesture = match(getTarget, {
     '.duration-handle': overload(getType, {
         'move': function(data) {
@@ -266,7 +258,7 @@ const handleGesture = match(getTarget, {
     })
 });
 
-functions['envelope-control'] = function(svg, scopes, params) {
+register('envelope-control', function(svg, scopes, params) {
     var yLines = svg.getAttribute('y-ticks');
 
     yLines = yLines ? yLines
@@ -350,7 +342,13 @@ functions['envelope-control'] = function(svg, scopes, params) {
             .then(renderBackground);
         }, scope);
     });
-};
+}, {
+    pipes: {
+        'sum03': (object) => object[0] + object[3],
+        'sum033333': (object) => object[0] + object[3] + object[3] + object[3] + object[3] + object[3]
+    }
+});
+
 
 
 
