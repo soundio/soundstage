@@ -58,3 +58,16 @@ export function domTimeAtTime(context, time) {
     var stamp = context.getOutputTimestamp();
     return stamp.performanceTime + (time - stamp.contextTime) * 1000;
 }
+
+const $sink = Symbol('sink');
+
+export function getSink(context) {
+    if (!context[$sink]) {
+        context[$sink] = context.createGain();
+        context[$sink].gain.value = 0;
+        context[$sink].gain.setValueAtTime(0, 0);
+        context[$sink].connect(context.destination);
+    }
+
+    return context[$sink]
+}

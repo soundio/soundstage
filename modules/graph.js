@@ -87,6 +87,10 @@ assign(Graph.prototype, {
 		return this.nodes.find(has('id', id)).data;
 	},
 
+	identify: function(data) {
+		return this.nodes.find(has('data', data)).id;
+	},
+
 	create: function(type, settings) {
 		const plugin = {};
 		const id = generateUnique('id', this.nodes.map(get('id')));

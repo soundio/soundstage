@@ -10,6 +10,8 @@ const frameDuration = 1000 / 60;
 export const config = {
     automationEventsKey: 'automationEvents',
 
+    animationFrameKey: 'animationFrame',
+
     // Value considered to be 0 for the purposes of scheduling
     // exponential curves.
     minExponentialValue: 1.40130e-45,
@@ -104,7 +106,11 @@ export function getAutomationEvents(param) {
 }
 
 function automateParamEvents(param, events, time, value, curve, duration) {
-	curve = curve || "step";
+    // Round to 32-bit floating point
+    value = value ? Math.fround(value) : 0 ;
+
+    // Curve is optional, defaults to step
+    curve = curve || "step";
 
 	var n = events.length;
 	while (events[--n] && events[n].time >= time);
@@ -126,12 +132,12 @@ function automateParamEvents(param, events, time, value, curve, duration) {
 		}
 
         // Schedule the param event
-    	param.exponentialRampToValueAtTime(value, time, duration);
+        param.exponentialRampToValueAtTime(value, time, duration);
 	}
     else if (curve === "equalpowerin") {
         curve = "curve";
         const m = Math.round(duration * 44100 / 64);
-        const values = new Float64Array(m);
+        const values = new Float32Array(m);
         let n = m;
 
         while (n--) {
@@ -145,7 +151,7 @@ function automateParamEvents(param, events, time, value, curve, duration) {
         curve = "curve";
         const startValue = getValueAtTime(param, time);
         const m = Math.round(duration * 44100 / 32);
-        const values = new Float64Array(m);
+        const values = new Float32Array(m);
         let n = m;
 
         while (n--) {
@@ -157,7 +163,7 @@ function automateParamEvents(param, events, time, value, curve, duration) {
     }
     else if (curve === "hold") {
         // Schedule the param event
-    	param.cancelAndHoldAtTime(time);
+        param.cancelAndHoldAtTime(time);
         value = getValueAtTime(param, time);
         curve = event1 && event1.curve === 'exponential' ?
             'exponential' :
@@ -168,7 +174,7 @@ function automateParamEvents(param, events, time, value, curve, duration) {
     }
     else {
         // Schedule the param event
-    	param[methodNames[curve]](value, time, duration);
+        param[methodNames[curve]](value, time, duration);
     }
 
 	// Keep events organised as AudioParams do
@@ -216,50 +222,42 @@ export function automate(param, time, curve, value, duration, notify, context) {
 	automateParamEvents(param, events, time, value, curve, duration);
 
     if (!notify) {
-        //console.warn('No notify for param change', value, curve, param);
+        console.warn('No notify for param change', value, curve, param);
         return;
     }
 
     if (!context) {
-        //console.warn('No context for param change', value, curve, param);
+        console.warn('No context for param change', value, curve, param);
         return;
     }
 
     // If param is flagged as already notifying, do nothing
-    if (param.animationFrame) { return; }
+    if (param[config.animationFrameId]) { return; }
 
-    // Notify at half frame rate
-    function frame2(time) {
-        param.animationFrame = requestAnimationFrame(frame1);
-    }
+    var n = -1;
 
-    function frame1(time) {
+    function frame(time) {
+        // Notify at 1/3 frame rate
+        n = (n + 1) % 3;
+        if (n === 0) {
+            param[config.animationFrameId] = requestAnimationFrame(frame);
+            return;
+        }
+
         const renderTime  = time + frameDuration;
         const outputTime  = timeAtDomTime(context, renderTime);
         const outputValue = getValueAtTime(param, outputTime);
         const lastEvent   = events[events.length - 1];
 
         // If outputTime is not yet beyond the end of the events list
-        if (outputTime <= lastEvent.time) {
-            // Keep frame requests ahead of data updates (that may cause
-            // their own frame requests)
-            param.animationFrame = requestAnimationFrame(frame2);
-            notify(param, 'value', outputValue);
-            return;
-        }
+        param[config.animationFrameId] = outputTime <= lastEvent.time ?
+            requestAnimationFrame(frame) :
+            undefined ;
 
-        param.animationFrame = undefined;
         notify(param, 'value', outputValue);
-
-        // Todo: improve getValueAtTime so that this is redundant
-        requestAnimationFrame(function f() {
-            // getValueAtTime is inaccurate, even up the value
-            // to the actual latest value
-            notify(param, 'value', param.value);
-        });
     }
 
-    param.animationFrame = requestAnimationFrame(frame1);
+    param[config.animationFrameId] = requestAnimationFrame(frame);
 }
 
 export function getAutomationEndTime(events) {
@@ -351,7 +349,8 @@ export function getValueAtTime(param, time) {
 		return param.value;
 	}
 
-	return getEventsValueAtTime(events, time);
+    // Round to 32-bit floating point
+	return Math.fround(getEventsValueAtTime(events, time));
 }
 
 

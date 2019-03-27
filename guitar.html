@@ -23,6 +23,7 @@
 	<link rel="stylesheet" href="../bolt/css/layer.css" />
 	<link rel="stylesheet" href="../bolt/css/button.css" />
 	<link rel="stylesheet" href="../bolt/css/thumb.css" />
+    <link rel="stylesheet" href="../bolt/css/bubble.css" />
 	<link rel="stylesheet" href="../bolt/css/type.css" />
 	<link rel="stylesheet" href="../bolt/css/text.css" />
 	<link rel="stylesheet" href="../bolt/css/color.css" />
@@ -60,7 +61,7 @@
     </template>
 
     <template id="node-/soundstage/nodes/tone-synth.js" fn="get:data">
-        <range-control fn="param:gain" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Gain</range-control>
+        <range-control fn="param:gain" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1"><span class="text-10">Gain</span></range-control>
 
         <section class="sources-block block">
             <article fn="get:sources each">
@@ -69,18 +70,18 @@
                     <option value="square">Square</option>
                     <option value="sine">Sine</option>
                 </select>
-                <range-control :value="{[detune]}" unit="semitone" min="-1200" max="2400" transform="linear" ticks="-1200 -700 0 700 1200 1600 1900 2200 2400">Tune</range-control>
-                <range-control :value="{[pan]}" unit="pan" min="-1" max="1" transform="linear" ticks="-1 0 1">Pan</range-control>
-                <range-control :value="{[mix]}" unit="dB" min="-36dB" max="0dB" transform="linear-logarithmic" ticks="0 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Mix</range-control>
+                <range-control :value="{[detune]}" unit="semitone" min="-1200" max="2400" transform="linear" ticks="-1200 -700 0 700 1200 1600 1900 2200 2400"><span class="text-10">Tune</span></range-control>
+                <range-control :value="{[pan]}" unit="pan" min="-1" max="1" transform="linear" ticks="-1 0 1"><span class="text-10">Pan</span></range-control>
+                <range-control :value="{[mix]}" unit="dB" min="-36dB" max="0dB" transform="linear-logarithmic" ticks="0 0.015625 0.03125 0.0625 0.125 0.25 0.5 1"><span class="text-10">Mix</span></range-control>
             </article>
         </section>
 
         <div class="envelopes-block block">
             <div fn="get:gainEnvelope entries each">
-                <h3 class="text-8">{[0]}</h3>
+                <h3 class="text-10">{[0]}</h3>
 
                 <div fn="get:1">
-                    <svg fn="envelope-control" class="envelope-svg" viewBox="0 -1.125 1.125 1.125" y-transform="linear-logarithmic" y-min="-48dB" y-max="1.125" y-ticks="0dB -6dB -12dB -18dB -24dB -30dB -36dB -42dB -48dB" preserveAspectRatio="xMinYMax meet">
+                    <svg fn="envelope-control" class="envelope-svg" viewBox="0 -1.125 2 1.125" y-transform="linear-logarithmic" y-min="-48dB" y-max="1.125" y-ticks="0dB -6dB -12dB -18dB -24dB -30dB -36dB -42dB -48dB" preserveAspectRatio="xMinYMid slice">
                         <text text-anchor="end" x="-0.05" y="-0.965" style="font-size: 0.07; fill: #01181e;">0</text>
                         <text text-anchor="end" x="-0.05" y="0.035" style="font-size: 0.07; fill: #01181e;">-∞</text>
                         <!-- Todo: Sparky has a conflict where each and include
@@ -96,10 +97,10 @@
 
         <div class="envelopes-block block">
             <div fn="get:frequencyEnvelope entries each">
-                <h3 class="text-8">{[0]}</h3>
+                <h3 class="text-10">{[0]}</h3>
 
                 <div fn="get:1">
-                    <svg fn="envelope-control" class="envelope-svg" viewBox="0 -1 1.125 1" y-transform="logarithmic" y-min="16" y-max="16384" y-ticks="22.5 55 110 220 440 880 1760 3520 7040 14080" preserveAspectRatio="xMinYMax meet">
+                    <svg fn="envelope-control" class="envelope-svg" viewBox="0 -1 2 1" y-transform="logarithmic" y-min="16" y-max="16384" y-ticks="22.5 55 110 220 440 880 1760 3520 7040 14080" preserveAspectRatio="xMinYMax slice">
                         <text text-anchor="end" x="-0.05" y="-0.965" style="font-size: 0.07; fill: #01181e;">16k</text>
                         <text text-anchor="end" x="-0.05" y="0.035" style="font-size: 0.07; fill: #01181e;">16</text>
                         <!-- Todo: Sparky has a conflict where each and include
@@ -113,28 +114,28 @@
             </div>
         </div>
 
-        <range-control fn="param:pitch" unit="semitone" min="-2" max="2" ticks="-2 -1 0 1 2">Pitch</range-control>
-        <range-control fn="param:frequency" unit="Hz" min="16" max="16000" transform="logarithmic" ticks="16 32 64 125 250 500 1000 2000 4000 8000 16000">Frequency</range-control>
-        <range-control fn="param:Q" unit="Q" min="0.16" max="20" transform="logarithmic" ticks="0.16 0.32 0.64 1.25 2.5 5 10 20">Q</range-control>
-        <range-control fn="param:output" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Output</range-control>
+        <range-control fn="param:pitch" unit="semitone" min="-200" max="200" ticks="-200 -100 0 100 200"><span class="text-10">Pitch</span></range-control>
+        <range-control fn="param:frequency" unit="Hz" min="16" max="16384" transform="logarithmic" ticks="16 32 64 125 250 500 1000 2000 4000 8000 16000"><span class="text-10">Frequency</span></range-control>
+        <range-control fn="param:Q" unit="Q" min="0.16" max="20" transform="logarithmic" ticks="0.16 0.32 0.64 1.25 2.5 5 10 20"><span class="text-10">Q</span></range-control>
+        <range-control fn="param:output" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1"><span class="text-10">Output</span></range-control>
     </template>
 
     <template id="node-/soundstage/nodes/flanger.js" fn="get:data">
-        <range-control fn="param:gain" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Gain</range-control>
-        <range-control fn="param:delay" unit="s" min="0.0125" max="2" transform="linear-logarithmic" ticks="0 0.02 0.04 0.06 0.08 0.1 0.2 0.4 0.6 0.8 1 2">Delay</range-control>
-        <range-control fn="param:frequency" unit="Hz" min="0.083333333" max="96" transform="linear-logarithmic" ticks="0 0.1 0.2 0.4 0.6 0.8 1 2 4 6 8 10 20 40 60 80">LFO Frequency</range-control>
-        <range-control fn="param:depth" unit="s" min="0.012" max="0.18" transform="linear-logarithmic" prefix="±" ticks="0 0.02 0.04 0.06 0.08 0.1 0.12 0.14 0.16 0.18">LFO Depth</range-control>
-        <range-control fn="param:feedback" unit="dB" min="-37.3dB" max="1" transform="linear-logarithmic" ticks="0 -36dB -30dB -24dB -18dB -12dB -6dB 0dB">Feedback</range-control>
-        <range-control fn="param:wet" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Wet</range-control>
-        <range-control fn="param:dry" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Dry</range-control>
+        <range-control fn="param:gain" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1"><span class="text-10">Gain</span></range-control>
+        <range-control fn="param:delay" unit="s" min="0.0125" max="2" transform="linear-logarithmic" ticks="0 0.02 0.04 0.06 0.08 0.1 0.2 0.4 0.6 0.8 1 2"><span class="text-10">Delay</span></range-control>
+        <range-control fn="param:frequency" unit="Hz" min="0.083333333" max="96" transform="linear-logarithmic" ticks="0 0.1 0.2 0.4 0.6 0.8 1 2 4 6 8 10 20 40 60 80"><span class="text-10">LFO Frequency</span></range-control>
+        <range-control fn="param:depth" unit="s" min="0.012" max="0.18" transform="linear-logarithmic" prefix="±" ticks="0 0.02 0.04 0.06 0.08 0.1 0.12 0.14 0.16 0.18"><span class="text-10">LFO Depth</span></range-control>
+        <range-control fn="param:feedback" unit="dB" min="-37.3dB" max="1" transform="linear-logarithmic" ticks="0 -36dB -30dB -24dB -18dB -12dB -6dB 0dB"><span class="text-10">Feedback</span></range-control>
+        <range-control fn="param:wet" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1"><span class="text-10">Wet</span></range-control>
+        <range-control fn="param:dry" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1"><span class="text-10">Dry</span></range-control>
     </template>
 
     <template id="node-compressor" fn="get:data">
-        <range-control fn="param:threshold" min="-60" max="0" transform="linear" ticks="-60 -54 -48 -42 -36 -30 -24 -18 -12 -6 0">Threshold</range-control>
-        <range-control fn="param:ratio" min="1" max="20" transform="cubic">Ratio</range-control>
-        <range-control fn="param:knee" min="0" max="40" transform="cubic">Knee</range-control>
-        <range-control fn="param:attack" unit="s" min="0.012" max="0.8" transform="linear-logarithmic" ticks="0 0.02 0.04 0.06 0.08 0.1 0.2 0.4 0.6 0.8">Attack</range-control>
-        <range-control fn="param:release" unit="s" min="0.012" max="0.8" transform="linear-logarithmic" ticks="0 0.02 0.04 0.06 0.08 0.1 0.2 0.4 0.6 0.8">Release</range-control>
+        <range-control fn="param:threshold" min="-60" max="0" transform="linear" ticks="-60 -54 -48 -42 -36 -30 -24 -18 -12 -6 0"><span class="text-10">Threshold</span></range-control>
+        <range-control fn="param:ratio" min="1" max="20" transform="cubic"><span class="text-10">Ratio</span></range-control>
+        <range-control fn="param:knee" min="0" max="40" transform="cubic"><span class="text-10">Knee</span></range-control>
+        <range-control fn="param:attack" unit="s" min="0.012" max="0.8" transform="linear-logarithmic" ticks="0 0.02 0.04 0.06 0.08 0.1 0.2 0.4 0.6 0.8"><span class="text-10">Attack</span></range-control>
+        <range-control fn="param:release" unit="s" min="0.012" max="0.8" transform="linear-logarithmic" ticks="0 0.02 0.04 0.06 0.08 0.1 0.2 0.4 0.6 0.8"><span class="text-10">Release</span></range-control>
     </template>
 
     <template id="node-output" fn="get:data">
@@ -146,10 +147,106 @@
         </select-->
     </template>
 
+    <template id="control-source-keyboard">
+        <div class="key-source-grid source-grid">
+            <kbd class="keyboard-thumb thumb">
+                <svg viewbox="0 0 22 22">
+                    <use href="#keyboard-logo"></use>
+                </svg>
+            </kbd>
+
+            <input class="key-code-input code-input" type="text" maxlength="1" :value="{[key]}" />
+        </div>
+    </template>
+
+    <template id="control-source-midi">
+        <div class="midi-source-grid source-grid">
+            <div class="midi-thumb thumb">
+                <svg viewbox="0 0 22 22">
+                    <use href="#midi-logo"></use>
+                </svg>
+            </div>
+
+            <input class="channel-code-input code-input" type="number" min="1" max="16" :value="{[channel]}" />
+
+            <label class="type-code-select-button code-select-button select-button button {[data.transform|is:'pass'|yesno:'none-value','']}">
+                <select id="" :value="{[type]}">
+                    <option fn="midi-types each" value="{[.]}">{[.]}</option>
+                </select>
+            </label>
+
+            <input class="number-code-input code-input" type="number" min="0" max="127" :value="{[value]}" hidden="{[type|is:pitch]}" />
+        </div>
+    </template>
+
+    <template id="control-table">
+        <table class="control-table">
+            <thead>
+                <tr>
+                    <th class="text-10">Source</th>
+                    <!--th class="text-10">Type</th>
+                    <th class="text-10">Name</th-->
+                    <th class="text-10">Value transform</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr fn="each">
+                    <td fn="get:source" include="#control-source-{[device]}"></td>
+                    <!--td><input class="type-code-input code-input" type="text" :value="{[data.type]}" /></td>
+                    <td><input class="name-code-input code-input" type="text" :value="{[data.name]}" /></td-->
+                    <td>
+                        <div class="transform-grid">
+                            <label class="transform-code-select-button code-select-button select-button button {[data.transform|is:'pass'|yesno:'none-value','']}">
+                                <select id="" :value="{[data.transform]}">
+                                    <option fn="transforms entries each" value="{[0]}">{[0]}</option>
+                                </select>
+                            </label>
+                            <input class="min-code-input code-input" type="text" :value="{[data.min]}" hidden="{[data.transform|is:'pass']}" />
+                            <input class="max-code-input code-input" type="text" :value="{[data.max]}" hidden="{[data.transform|is:'pass']}" />
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </template>
+
+    <template id="pan-controls-bubble">
+        <form fn="start-on:dom-activate" class="controls-bubble left-top-bubble top-bubble bubble" popable id="midi-pan">
+            <template include="#{[length|yesno:'control-table','none']}"></template>
+            <button type="button" class="bubble-button button">Learn MIDI</button>
+            <button type="button" class="bubble-button button">Learn key</button>
+        </form>
+
+        <a class="midi-thumb thumb" href="#midi-pan">
+            <svg viewbox="0 0 22 22">
+                <use href="#midi-logo"></use>
+            </svg>
+        </a>
+    </template>
+
+    <template id="gain-controls-bubble">
+        <form fn="start-on:dom-activate" class="controls-bubble left-top-bubble top-bubble bubble" popable id="midi-gain">
+            <template include="#{[length|yesno:'control-table','none']}"></template>
+            <button type="button" class="bubble-button button">Learn MIDI</button>
+            <button type="button" class="bubble-button button">Learn key</button>
+        </form>
+        <a class="midi-thumb thumb" href="#midi-gain">
+            <svg viewbox="0 0 22 22">
+                <use href="#midi-logo"></use>
+            </svg>
+        </a>
+    </template>
+
     <template id="node-mix" fn="get:data">
-        <p>{[gain.value]}</p>
-        <range-control fn="param:pan" unit="pan" min="-1" max="1" transform="linear" ticks="-1 0 1">Pan</range-control>
-        <range-control fn="param:gain" unit="dB" min="-60dB" max="1" transform="linear-logarithmic" ticks="0 0.0009765625 0.001953125 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Gain</range-control>
+        <range-control fn="param:pan" unit="pan" min="-1" max="1" transform="linear" ticks="-1 0 1">
+            <span class="text-10">Pan</span>
+            <section slot="plugs" fn="controls:pan" include="#pan-controls-bubble"></section>
+        </range-control>
+
+        <range-control fn="param:gain" unit="dB" min="-60dB" max="1" transform="linear-logarithmic" ticks="0 0.0009765625 0.001953125 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
+            <span class="text-10">Gain</span>
+            <section slot="plugs" fn="controls:gain" include="#gain-controls-bubble"></section>
+        </range-control>
     </template>
 
     <template id="node-/soundstage/nodes/metronome.js" fn="get:data">
@@ -158,7 +255,7 @@
         <ul>
             <li fn="get:events each">{[.]}</li>
         </ul>
-        <range-control fn="param:gain" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">Output</range-control>
+        <range-control fn="param:gain" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1"><span class="text-10">Output</span></range-control>
     </template>
 
     <template id="source-device-midi">
@@ -230,6 +327,41 @@
                 <line class="thin-control-line control-line" :x1="{[0]}" :x2="{[.|sum033333]}" :y1="{[2|normalise:logarithmic,16,16384|multiply:-1]}" :y2="{[2|normalise:logarithmic,16,16384|multiply:-1]}"></line>
                 <use fn="scope" class="control-handle" href="#control-handle" :x="{[0]}" :y="{[valueAtBeat|normalise:logarithmic,16,16384|multiply:-1]}" width="0.075" height="0.075"></use>
                 <use fn="scope" class="duration-handle" href="#control-handle" :x="{[.|sum03]}" :y="{[2|normalise:logarithmic,16,16384|multiply:-1]}" width="0.075" height="0.075"></use>
+            </g>
+
+
+
+            <style>
+                .icon-stroke {
+                    fill: none;
+                    /* A chrome bug is preventing us using currentcolor */
+                    stroke: #00181f;
+                	stroke-width: 1.5;
+                	stroke-linecap: round;
+                	stroke-linejoin: round;
+                }
+
+                .icon-fill {
+                    /* A chrome bug is preventing us using currentcolor */
+                    fill: #00181f;
+                    stroke: none;
+                }
+
+                svg {
+                    stroke: currentcolor;
+                    fill: currentcolor;
+                }
+            </style>
+
+            <g id="midi-logo">
+                <path class="icon-stroke" d="M11,21 C16.5228478,21 21,16.5228478 21,11 C21,6.19593378 17.6123878,2.18308725 13.0956435,1.21994044 C12.5255117,1.68950188 11.973918,2.29999994 11,2.3 C10.026082,2.30000007 9.60099125,1.6059539 9.04931995,1.19015455 C4.4602892,2.09754304 1,6.14467455 1,11 C1,16.5228478 5.47715223,21 11,21 Z"></path>
+                <g class="icon-fill">
+                    <circle cx="11" cy="17" r="1.5"></circle>
+                    <circle cx="17" cy="11" r="1.5"></circle>
+                    <circle cx="5" cy="11" r="1.5"></circle>
+                    <circle cx="6.8" cy="15.2" r="1.5"></circle>
+                    <circle cx="15.2" cy="15.2" r="1.5"></circle>
+                </g>
             </g>
         </defs>
     </svg>
@@ -327,25 +459,26 @@
 
     <!-- Tests -->
     <script type="module">
+    import '../../dom/js/dom.popable.js';
+
     import './components/sparky/midi/fns.js';
     import "./components/sparky/envelope-control/fns.js";
 
     import * as Fn from '../fn/fn.js';
     window.Fn = Fn;
 
-    import * as norm from '../fn/modules/normalise.js';
-    window.norm = norm;
+    import * as normalise from '../fn/modules/normalise.js';
+    window.normalise = normalise;
 
-    import * as denorm from '../fn/modules/denormalise.js';
-    window.denorm = denorm;
+    import * as denormalise from '../fn/modules/denormalise.js';
+    window.denormalise = denormalise;
 
     import { Stream } from '../fn/fn.js';
     window.Stream = Stream;
 
-    import Timer from './modules/timer.js';
-    window.Timer = Timer;
+    import { statuses }  from '../midi/midi.js';
 
-    import Soundstage from './soundstage.js';
+    import Soundstage, { transforms } from './soundstage.js';
     window.Soundstage = Soundstage;
 
     import Sparky, { functions, notify, mountConfig } from '../sparky/sparky.js';
@@ -377,6 +510,26 @@
 
         return output;
     };
+
+    functions['transforms'] = function(node, input, params) {
+        return Fn.Fn.of(transforms);
+    };
+
+    functions['midi-types'] = function(node, input, params) {
+        var types = Object.keys(statuses);
+        types.unshift('note');
+        return Fn.Fn.of(types);
+    };
+
+    functions['controls'] = function(node, input, params) {
+        const paramName = params[0];
+        return input.map((scope) => {
+            return stage.controls
+            .filter((control) => control.target.data === scope)
+            .filter((control) => control.data.name === paramName);
+        });
+    };
+
     </script>
 
     <script type="module" src="../dom/components/control/range-control.js"></script>

@@ -66,7 +66,7 @@ const keymap = {
 function fireNoteOn(e, fn) {
     // Don't trigger keys that don't map to something
     if (keymap[e.keyCode] === undefined) { return; }
-    fn(e.timeStamp, 'noteon', keymap[e.keyCode], 0.75);
+    fn(e.timeStamp, 'noteon', keymap[e.keyCode], 1);
     return e;
 }
 

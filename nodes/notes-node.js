@@ -1,14 +1,11 @@
 
 //import AudioObject from '../../context-object/modules/context-object.js';
-import { log, logGroup, logGroupEnd } from './print.js';
-import { remove } from '../../fn/fn.js';
+import { logGroup, logGroupEnd } from './print.js';
 import { Privates } from '../modules/utilities/privates.js';
-import { numberToFrequency } from '../../midi/midi.js';
 import NodeGraph from './node-graph.js';
-import { automate } from '../modules/automate.js';
 import { assignSettings } from '../modules/assign-settings.js';
 import Pool from '../modules/pool.js';
-import { connect, disconnect } from '../modules/connect.js';
+import { getSink } from '../modules/context.js';
 
 const DEBUG = window.DEBUG;
 const assign = Object.assign;
@@ -49,10 +46,6 @@ var defaults = {
 	Q:         1,
 	output:    1
 };
-
-function by0(a, b) {
-	return a[0] > b[0] ? 1 : a[0] < b[0] ? -1 : 0 ;
-}
 
 function isDefined(val) {
 	return val !== undefined && val !== null;
@@ -99,17 +92,35 @@ export default function NotesNode(context, settings, Voice, setup) {
 		}
 	});
 
-	// Params
-	this.gain      = this.get('gain').offset;
-	this.pitch     = this.get('pitch').offset;
-	this.frequency = this.get('frequency').offset;
-	this.Q         = this.get('Q').offset;
-	this.output    = this.get('output').gain;
+	// Get sink fromn context. The sink is a gain with a value of 0. We use
+	// it to conect things to just to make them autmatable.
+	const sink      = getSink(context);
+	const gain      = this.get('gain');
+	const pitch     = this.get('pitch');
+	const frequency = this.get('frequency');
+	const q         = this.get('Q');
+	const output    = this.get('output');
 
-	this.get('gain').start();
-	this.get('pitch').start();
-	this.get('frequency').start();
-	this.get('Q').start();
+	// Params are not attached to anything by default - they wait
+	// to be attached to voices. You can't automate them until they have
+	// a route to context.destination. That's just the way things work.
+	// Attach them to sink to get them nice and active.
+	gain.connect(sink);
+	pitch.connect(sink);
+	frequency.connect(sink);
+	q.connect(sink);
+
+	// Start them
+	gain.start();
+	pitch.start();
+	frequency.start();
+	q.start();
+
+	this.gain      = gain.offset;
+	this.pitch     = pitch.offset;
+	this.frequency = frequency.offset;
+	this.Q         = q.offset;
+	this.output    = output.gain;
 
 	// Note pool
 	privates.voices = new Pool(Voice, isIdle, setup);
@@ -155,10 +166,17 @@ assign(NotesNode.prototype, NodeGraph.prototype, {
 		});
 
 		if (note) {
-			console.log(time, number, velocity);
 			note.stop(time, number, velocity);
 		}
 
 		return this;
+	},
+
+	destroy: function() {
+		this.get('gain').disconnect();
+		this.get('pitch').disconnect();
+		this.get('frequency').disconnect();
+		this.get('Q').disconnect();
+		this.get('output').disconnect();
 	}
 });
