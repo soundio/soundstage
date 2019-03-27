@@ -2,6 +2,8 @@
 import { last } from '../../fn/fn.js';
 import { timeAtDomTime } from './context.js';
 
+const DEBUG = false;
+
 // 60 frames/sec frame rate
 const frameDuration = 1000 / 60;
 
@@ -222,12 +224,12 @@ export function automate(param, time, curve, value, duration, notify, context) {
 	automateParamEvents(param, events, time, value, curve, duration);
 
     if (!notify) {
-        console.warn('No notify for param change', value, curve, param);
+        if (DEBUG) { console.warn('No notify for param change', value, curve, param); }
         return;
     }
 
     if (!context) {
-        console.warn('No context for param change', value, curve, param);
+        if (DEBUG) { console.warn('No context for param change', value, curve, param); }
         return;
     }
 

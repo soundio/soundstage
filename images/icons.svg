@@ -1,0 +1,27 @@
+<svg viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+    <style>
+        .icon-stroke {
+            fill: none;
+            stroke: #00181f;
+            stroke-width: 1.6;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .icon-fill {
+            fill: #00181f;
+            stroke: none;
+        }
+    </style>
+
+    <g id="midi-logo">
+        <path class="icon-stroke" d="M11,21 C16.5228478,21 21,16.5228478 21,11 C21,6.19593378 17.6123878,2.18308725 13.0956435,1.21994044 C12.5255117,1.68950188 11.973918,2.29999994 11,2.3 C10.026082,2.30000007 9.60099125,1.6059539 9.04931995,1.19015455 C4.4602892,2.09754304 1,6.14467455 1,11 C1,16.5228478 5.47715223,21 11,21 Z"></path>
+        <g class="icon-fill">
+            <circle cx="11" cy="17" r="1.5"></circle>
+            <circle cx="17" cy="11" r="1.5"></circle>
+            <circle cx="5" cy="11" r="1.5"></circle>
+            <circle cx="6.8" cy="15.2" r="1.5"></circle>
+            <circle cx="15.2" cy="15.2" r="1.5"></circle>
+        </g>
+    </g>
+</svg>

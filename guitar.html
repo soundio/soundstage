@@ -51,20 +51,20 @@
         <slot name="plugs"></slot>
     </template>
 
-    <template id="node-input" fn="get:data">
-        {[name]} {[.]}
-        <select value="{[channels|numbers-string:',']}">
+    <template id="node-input">
+        {[data.name]} {[data]}
+        <select value="{[data.channels|numbers-string:',']}">
             <option value="0,1" selected>1-2</option>
             <option value="0">1</option>
             <option value="1">2</option>
         </select>
     </template>
 
-    <template id="node-/soundstage/nodes/tone-synth.js" fn="get:data">
+    <template id="node-/soundstage/nodes/tone-synth.js">
         <range-control fn="param:gain" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1"><span class="text-10">Gain</span></range-control>
 
         <section class="sources-block block">
-            <article fn="get:sources each">
+            <article fn="get:data.sources each">
                 <select value="{[type]}">
                     <option value="triangle">Triangle</option>
                     <option value="square">Square</option>
@@ -77,7 +77,7 @@
         </section>
 
         <div class="envelopes-block block">
-            <div fn="get:gainEnvelope entries each">
+            <div fn="get:data.gainEnvelope entries each">
                 <h3 class="text-10">{[0]}</h3>
 
                 <div fn="get:1">
@@ -96,7 +96,7 @@
         </div>
 
         <div class="envelopes-block block">
-            <div fn="get:frequencyEnvelope entries each">
+            <div fn="get:data.frequencyEnvelope entries each">
                 <h3 class="text-10">{[0]}</h3>
 
                 <div fn="get:1">
@@ -114,32 +114,157 @@
             </div>
         </div>
 
-        <range-control fn="param:pitch" unit="semitone" min="-200" max="200" ticks="-200 -100 0 100 200"><span class="text-10">Pitch</span></range-control>
-        <range-control fn="param:frequency" unit="Hz" min="16" max="16384" transform="logarithmic" ticks="16 32 64 125 250 500 1000 2000 4000 8000 16000"><span class="text-10">Frequency</span></range-control>
-        <range-control fn="param:Q" unit="Q" min="0.16" max="20" transform="logarithmic" ticks="0.16 0.32 0.64 1.25 2.5 5 10 20"><span class="text-10">Q</span></range-control>
-        <range-control fn="param:output" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1"><span class="text-10">Output</span></range-control>
+        <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-pitch-toggle">
+            <template fn="controls:pitch" include="#control-toggle"></template>
+        </form>
+
+        <range-control fn="param:pitch" unit="semitone" min="-200" max="200" ticks="-200 -100 0 100 200">
+            <span class="text-10">Pitch</span>
+            <a class="midi-thumb thumb" href="#node-{[id]}-pitch-toggle" slot="plugs"></a>
+        </range-control>
+
+        <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-frequency-toggle">
+            <template fn="controls:frequency" include="#control-toggle"></template>
+        </form>
+
+        <range-control fn="param:frequency" unit="Hz" min="16" max="16384" transform="logarithmic" ticks="16 32 64 125 250 500 1000 2000 4000 8000 16000">
+            <span class="text-10">Frequency</span>
+            <a class="midi-thumb thumb" href="#node-{[id]}-frequency-toggle" slot="plugs"></a>
+        </range-control>
+
+        <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-Q-toggle">
+            <template fn="controls:Q" include="#control-toggle"></template>
+        </form>
+
+        <range-control fn="param:Q" unit="Q" min="0.16" max="20" transform="logarithmic" ticks="0.16 0.32 0.64 1.25 2.5 5 10 20">
+            <span class="text-10">Q</span>
+            <a class="midi-thumb thumb" href="#node-{[id]}-Q-toggle" slot="plugs"></a>
+        </range-control>
+
+        <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-output-toggle">
+            <template fn="controls:output" include="#control-toggle"></template>
+        </form>
+
+        <range-control fn="param:output" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
+            <span class="text-10">Output</span>
+            <a class="midi-thumb thumb" href="#node-{[id]}-output-toggle" slot="plugs"></a>
+        </range-control>
     </template>
 
-    <template id="node-/soundstage/nodes/flanger.js" fn="get:data">
-        <range-control fn="param:gain" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1"><span class="text-10">Gain</span></range-control>
-        <range-control fn="param:delay" unit="s" min="0.0125" max="2" transform="linear-logarithmic" ticks="0 0.02 0.04 0.06 0.08 0.1 0.2 0.4 0.6 0.8 1 2"><span class="text-10">Delay</span></range-control>
-        <range-control fn="param:frequency" unit="Hz" min="0.083333333" max="96" transform="linear-logarithmic" ticks="0 0.1 0.2 0.4 0.6 0.8 1 2 4 6 8 10 20 40 60 80"><span class="text-10">LFO Frequency</span></range-control>
-        <range-control fn="param:depth" unit="s" min="0.012" max="0.18" transform="linear-logarithmic" prefix="±" ticks="0 0.02 0.04 0.06 0.08 0.1 0.12 0.14 0.16 0.18"><span class="text-10">LFO Depth</span></range-control>
-        <range-control fn="param:feedback" unit="dB" min="-37.3dB" max="1" transform="linear-logarithmic" ticks="0 -36dB -30dB -24dB -18dB -12dB -6dB 0dB"><span class="text-10">Feedback</span></range-control>
-        <range-control fn="param:wet" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1"><span class="text-10">Wet</span></range-control>
-        <range-control fn="param:dry" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1"><span class="text-10">Dry</span></range-control>
+    <template id="node-/soundstage/nodes/flanger.js">
+        <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-gain-toggle">
+            <template fn="controls:gain" include="#control-toggle"></template>
+        </form>
+
+        <range-control fn="param:gain" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
+            <span class="text-10">Gain</span>
+            <a class="midi-thumb thumb" href="#node-{[id]}-gain-toggle" slot="plugs"></a>
+        </range-control>
+
+        <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-delay-toggle">
+            <template fn="controls:delay" include="#control-toggle"></template>
+        </form>
+
+        <range-control fn="param:delay" unit="s" min="0.0125" max="2" transform="linear-logarithmic" ticks="0 0.02 0.04 0.06 0.08 0.1 0.2 0.4 0.6 0.8 1 2">
+            <span class="text-10">Delay</span>
+            <a class="midi-thumb thumb" href="#node-{[id]}-delay-toggle" slot="plugs"></a>
+        </range-control>
+
+        <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-frequency-toggle">
+            <template fn="controls:frequency" include="#control-toggle"></template>
+        </form>
+
+        <range-control fn="param:frequency" unit="Hz" min="0.083333333" max="96" transform="linear-logarithmic" ticks="0 0.1 0.2 0.4 0.6 0.8 1 2 4 6 8 10 20 40 60 80">
+            <span class="text-10">LFO Frequency</span>
+            <a class="midi-thumb thumb" href="#node-{[id]}-frequency-toggle" slot="plugs"></a>
+        </range-control>
+
+        <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-depth-toggle">
+            <template fn="controls:depth" include="#control-toggle"></template>
+        </form>
+
+        <range-control fn="param:depth" unit="s" min="0.012" max="0.18" transform="linear-logarithmic" prefix="±" ticks="0 0.02 0.04 0.06 0.08 0.1 0.12 0.14 0.16 0.18">
+            <span class="text-10">LFO Depth</span>
+            <a class="midi-thumb thumb" href="#node-{[id]}-depth-toggle" slot="plugs"></a>
+        </range-control>
+
+        <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-feedback-toggle">
+            <template fn="controls:feedback" include="#control-toggle"></template>
+        </form>
+
+        <range-control fn="param:feedback" unit="dB" min="-37.3dB" max="1" transform="linear-logarithmic" ticks="0 -36dB -30dB -24dB -18dB -12dB -6dB 0dB">
+            <span class="text-10">Feedback</span>
+            <a class="midi-thumb thumb" href="#node-{[id]}-feedback-toggle" slot="plugs"></a>
+        </range-control>
+
+        <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-wet-toggle">
+            <template fn="controls:wet" include="#control-toggle"></template>
+        </form>
+
+        <range-control fn="param:wet" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
+            <span class="text-10">Wet</span>
+            <a class="midi-thumb thumb" href="#node-{[id]}-wet-toggle" slot="plugs"></a>
+        </range-control>
+
+        <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-dry-toggle">
+            <template fn="controls:dry" include="#control-toggle"></template>
+        </form>
+
+        <range-control fn="param:dry" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
+            <span class="text-10">Dry</span>
+            <a class="midi-thumb thumb" href="#node-{[id]}-dry-toggle" slot="plugs"></a>
+        </range-control>
     </template>
 
-    <template id="node-compressor" fn="get:data">
-        <range-control fn="param:threshold" min="-60" max="0" transform="linear" ticks="-60 -54 -48 -42 -36 -30 -24 -18 -12 -6 0"><span class="text-10">Threshold</span></range-control>
-        <range-control fn="param:ratio" min="1" max="20" transform="cubic"><span class="text-10">Ratio</span></range-control>
-        <range-control fn="param:knee" min="0" max="40" transform="cubic"><span class="text-10">Knee</span></range-control>
-        <range-control fn="param:attack" unit="s" min="0.012" max="0.8" transform="linear-logarithmic" ticks="0 0.02 0.04 0.06 0.08 0.1 0.2 0.4 0.6 0.8"><span class="text-10">Attack</span></range-control>
-        <range-control fn="param:release" unit="s" min="0.012" max="0.8" transform="linear-logarithmic" ticks="0 0.02 0.04 0.06 0.08 0.1 0.2 0.4 0.6 0.8"><span class="text-10">Release</span></range-control>
+    <template id="node-compressor">
+        <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-threshold-toggle">
+            <template fn="controls:threshold" include="#control-toggle"></template>
+        </form>
+
+        <range-control fn="param:threshold" min="-60" max="0" transform="linear" ticks="-60 -54 -48 -42 -36 -30 -24 -18 -12 -6 0">
+            <span class="text-10">Threshold</span>
+            <a class="midi-thumb thumb" href="#node-{[id]}-threshold-toggle" slot="plugs"></a>
+        </range-control>
+
+        <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-ratio-toggle">
+            <template fn="controls:ratio" include="#control-toggle"></template>
+        </form>
+
+        <range-control fn="param:ratio" min="1" max="20" transform="cubic">
+            <span class="text-10">Ratio</span>
+            <a class="midi-thumb thumb" href="#node-{[id]}-ratio-toggle" slot="plugs"></a>
+        </range-control>
+
+        <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-knee-toggle">
+            <template fn="controls:knee" include="#control-toggle"></template>
+        </form>
+
+        <range-control fn="param:knee" min="0" max="40" transform="cubic">
+            <span class="text-10">Knee</span>
+            <a class="midi-thumb thumb" href="#node-{[id]}-knee-toggle" slot="plugs"></a>
+        </range-control>
+
+        <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-attack-toggle">
+            <template fn="controls:attack" include="#control-toggle"></template>
+        </form>
+
+        <range-control fn="param:attack" unit="s" min="0.012" max="0.8" transform="linear-logarithmic" ticks="0 0.02 0.04 0.06 0.08 0.1 0.2 0.4 0.6 0.8">
+            <span class="text-10">Attack</span>
+            <a class="midi-thumb thumb" href="#node-{[id]}-attack-toggle" slot="plugs"></a>
+        </range-control>
+
+        <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-release-toggle">
+            <template fn="controls:release" include="#control-toggle"></template>
+        </form>
+
+        <range-control fn="param:release" unit="s" min="0.012" max="0.8" transform="linear-logarithmic" ticks="0 0.02 0.04 0.06 0.08 0.1 0.2 0.4 0.6 0.8">
+            <span class="text-10">Release</span>
+            <a class="midi-thumb thumb" href="#node-{[id]}-release-toggle" slot="plugs"></a>
+        </range-control>
     </template>
 
     <template id="node-output" fn="get:data">
-        {[name]} {[channels]}
+        {[id]} {[data.name]} {[data.channels]}
         <!--select value="{[channels|numbers-string:',']}">
             <option value="0,1" selected>1-2</option>
             <option value="0">1</option>
@@ -149,24 +274,12 @@
 
     <template id="control-source-keyboard">
         <div class="key-source-grid source-grid">
-            <kbd class="keyboard-thumb thumb">
-                <svg viewbox="0 0 22 22">
-                    <use href="#keyboard-logo"></use>
-                </svg>
-            </kbd>
-
             <input class="key-code-input code-input" type="text" maxlength="1" :value="{[key]}" />
         </div>
     </template>
 
     <template id="control-source-midi">
         <div class="midi-source-grid source-grid">
-            <div class="midi-thumb thumb">
-                <svg viewbox="0 0 22 22">
-                    <use href="#midi-logo"></use>
-                </svg>
-            </div>
-
             <input class="channel-code-input code-input" type="number" min="1" max="16" :value="{[channel]}" />
 
             <label class="type-code-select-button code-select-button select-button button {[data.transform|is:'pass'|yesno:'none-value','']}">
@@ -210,50 +323,57 @@
         </table>
     </template>
 
-    <template id="pan-controls-bubble">
-        <form fn="start-on:dom-activate" class="controls-bubble left-top-bubble top-bubble bubble" popable id="midi-pan">
-            <template include="#{[length|yesno:'control-table','none']}"></template>
-            <button type="button" class="bubble-button button">Learn MIDI</button>
-            <button type="button" class="bubble-button button">Learn key</button>
-        </form>
-
-        <a class="midi-thumb thumb" href="#midi-pan">
-            <svg viewbox="0 0 22 22">
-                <use href="#midi-logo"></use>
-            </svg>
-        </a>
+    <template id="control-index">
+        <h3 class="text-10">Controls</h3>
+        <ul class="control-index index">
+            <li fn="each">
+                <template fn="get:source" include="#control-source-{[device]}"></template>
+                <div class="transform-grid">
+                    <label class="transform-code-select-button code-select-button select-button button {[data.transform|is:'pass'|yesno:'none-value','']}">
+                        <select id="" :value="{[data.transform]}">
+                            <option fn="transforms entries each" value="{[0]}">{[0]}</option>
+                        </select>
+                    </label>
+                    <input class="min-code-input code-input" type="text" :value="{[data.min]}" hidden="{[data.transform|is:'pass']}" />
+                    <input class="max-code-input code-input" type="text" :value="{[data.max]}" hidden="{[data.transform|is:'pass']}" />
+                </div>
+            </li>
+        </ul>
     </template>
 
-    <template id="gain-controls-bubble">
-        <form fn="start-on:dom-activate" class="controls-bubble left-top-bubble top-bubble bubble" popable id="midi-gain">
-            <template include="#{[length|yesno:'control-table','none']}"></template>
-            <button type="button" class="bubble-button button">Learn MIDI</button>
-            <button type="button" class="bubble-button button">Learn key</button>
-        </form>
-        <a class="midi-thumb thumb" href="#midi-gain">
-            <svg viewbox="0 0 22 22">
-                <use href="#midi-logo"></use>
-            </svg>
-        </a>
+    <template id="control-toggle">
+        <template include="{[length|yesno:'#control-index','']}"></template>
+        <div class="buttons-block block">
+            <button type="button" class="bottom-button button">Learn MIDI</button>
+            <button type="button" class="bottom-button button">Learn key</button>
+        </div>
     </template>
 
-    <template id="node-mix" fn="get:data">
+    <template id="node-mix">
+        <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-mix-pan-toggle">
+            <template fn="controls:pan" include="#control-toggle"></template>
+        </form>
+
         <range-control fn="param:pan" unit="pan" min="-1" max="1" transform="linear" ticks="-1 0 1">
             <span class="text-10">Pan</span>
-            <section slot="plugs" fn="controls:pan" include="#pan-controls-bubble"></section>
+            <a class="midi-thumb thumb" href="#node-{[id]}-mix-pan-toggle" slot="plugs"></a>
         </range-control>
+
+        <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-mix-gain-toggle">
+            <template fn="controls:gain" include="#control-toggle"></template>
+        </form>
 
         <range-control fn="param:gain" unit="dB" min="-60dB" max="1" transform="linear-logarithmic" ticks="0 0.0009765625 0.001953125 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
             <span class="text-10">Gain</span>
-            <section slot="plugs" fn="controls:gain" include="#gain-controls-bubble"></section>
+            <a class="midi-thumb thumb" href="#node-{[id]}-mix-gain-toggle" slot="plugs"></a>
         </range-control>
     </template>
 
-    <template id="node-/soundstage/nodes/metronome.js" fn="get:data">
-        <p>Tick {[tick]}</p>
-        <p>Tick {[tock]}</p>
+    <template id="node-/soundstage/nodes/metronome.js">
+        <p>Tick {[data.tick]}</p>
+        <p>Tick {[data.tock]}</p>
         <ul>
-            <li fn="get:events each">{[.]}</li>
+            <li fn="get:data.events each">{[.]}</li>
         </ul>
         <range-control fn="param:gain" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1"><span class="text-10">Output</span></range-control>
     </template>
@@ -460,6 +580,7 @@
     <!-- Tests -->
     <script type="module">
     import '../../dom/js/dom.popable.js';
+    import '../../dom/js/dom.toggleable.js';
 
     import './components/sparky/midi/fns.js';
     import "./components/sparky/envelope-control/fns.js";
@@ -523,9 +644,9 @@
 
     functions['controls'] = function(node, input, params) {
         const paramName = params[0];
-        return input.map((scope) => {
+        return input.map((graphNode) => {
             return stage.controls
-            .filter((control) => control.target.data === scope)
+            .filter((control) => control.target.data === graphNode.data)
             .filter((control) => control.data.name === paramName);
         });
     };

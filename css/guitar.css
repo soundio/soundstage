@@ -202,13 +202,11 @@ range-control + range-control {
     color: #00181f;
 }
 
-.midi-thumb.on > svg > use {
-    color: red;
-}
-
-.midi-thumb > svg {
-    width: 100%;
-    height: auto;
+.midi-thumb:empty {
+    width: 0.9375rem;
+    padding-top: 0.9375rem;
+    height: 0;
+    background-image: url('../images/icons.svg');
 }
 
 .control-grid {
@@ -241,6 +239,57 @@ range-control + range-control {
 
 .controls-bubble .code-input,
 .controls-bubble .select-button {
+    background-color: hsl(44, 8%, 21%);
+}
+
+.controls-toggle-block {
+    padding: 0.75rem;
+    max-width: 32rem;
+    right: auto;
+    font-size: 12px;
+    color: #a6a191;
+    background-color: #00181f;
+    background-color: #373327;
+    background-color: #29220e;
+    border-top: 2px solid #b0890a;
+    border-bottom: 2px solid #b0890a;
+}
+
+.controls-toggle-block.active {
+    /*overflow: visible;*/
+}
+/*
+.controls-toggle-block::after {
+    content: '';
+	display: block;
+	position: absolute;
+	width: 1.25rem;
+	height: 1.25rem;
+	transform: rotate(45deg) translate(0, -1px);
+	background-color: inherit;
+	border-color: inherit;
+	border-width: inherit;
+	border-style: inherit;
+	-webkit-transition: left 120ms ease-out;
+	        transition: left 120ms ease-out;
+
+	left: 100%;
+	right: auto;
+	margin-left: -1.5625rem;
+
+    bottom: -12px;
+    border-top-width: 0;
+    border-left-width: 0;
+    border-right: 2px solid #b0890a;
+    background-color: #b0890a;
+}
+*/
+.controls-toggle-block > table {
+    width: 100%;
+}
+
+.controls-toggle-block .code-input,
+.controls-toggle-block .select-button {
     background-color: hsl(44, 8%, 21%);
 }
 
@@ -434,12 +483,17 @@ range-control + range-control {
     border-bottom-left-radius: 0;
 }
 
+.source-grid + .transform-grid {
+    margin-top: 3px;
+}
+
 .transform-grid {
     display: grid;
     grid-gap: 1px 1px;
     grid-template-columns: [transform] min-content [min] min-content [max] min-content;
     grid-auto-flow: column;
     justify-items: stretch;
+    justify-content: start;
 }
 
 .transform-grid > * {
@@ -482,4 +536,62 @@ range-control + range-control {
     .js .left-top-bubble.active {
     	transform: translate3d(calc(-100% + 1.4375rem), calc(-100% - 1.75rem), 0);
     }
+}
+
+
+* > .toggle-block {
+    /* Closed height of toggle-block is 4px, bringing this gap to 21px */
+    margin-top: 1.0625rem;
+}
+
+range-control + .toggle-block {
+    margin-top: 0.1875rem;
+}
+
+range-control + .toggle-block.active {
+    margin-top: 0.75rem;
+}
+
+.toggle-block + range-control {
+    margin-top: 0.5625rem;
+}
+
+.toggle-block > .buttons-block {
+    margin-left: -12px;
+    margin-bottom: -14px;
+    margin-right: -12px;
+    width: calc(100% + 24px);
+}
+
+.buttons-block {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: stretch;
+    z-index: 2;
+}
+
+.buttons-block > .button {
+    flex: 1 0 auto;
+    margin: 0;
+    color: black;
+    background-color: #b0890a
+}
+
+.buttons-block > .button + .button {
+    margin-left: 1px;
+}
+
+* + .buttons-block {
+    margin-top: 15px;
+}
+
+template + .buttons-block {
+    margin-top: -14px;
+}
+
+
+.bottom-button {
+    padding-top: 6px;
+    padding-bottom: 6px;
 }

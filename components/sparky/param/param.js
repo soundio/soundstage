@@ -58,8 +58,8 @@ functions.param = function(node, scopes, params) {
     var renderer;
     const audioParamName = params[0];
 
-    return scopes.tap((audioNode) => {
-        const target = Target(audioNode);
+    return scopes.tap((graphNode) => {
+        const target = Target(graphNode.data);
         renderer && renderer.stop();
         renderer = target && target[audioParamName] && new ParamRenderer(node, target, audioParamName);
     });
