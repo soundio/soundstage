@@ -155,7 +155,7 @@ export default function Control(controls, source, target, settings, notify) {
     this.source   = source;
     this.target   = target;
     this.data     = data;
-
+console.log('CONTROL',data, source)
     seal(this);
 
     const distribute = Distribute(target.data, notify);

@@ -129,6 +129,10 @@ range-control + range-control {
     margin-top: 15px;
 }
 
+range-control + .sources-block {
+    margin-top: 30px;
+}
+
 .envelope-svg {
     height: 150px;
     width: 100%;
@@ -257,33 +261,48 @@ range-control + range-control {
 
 .controls-toggle-block.active {
     /*overflow: visible;*/
+    /* Compensating for border top and bottom of 2px, adds up to 75px */
+    padding-bottom: 58px;
+    padding-top: 13px;
+
+    padding-bottom: 32px;
+    padding-top: 0;
 }
-/*
-.controls-toggle-block::after {
+
+.controls-toggle-block.active > template + .bottoms-block {
+
+}
+
+/* Really we wan this on controls-toggle-block, but we need
+   selector to tell us when things are in the list, and
+   we don't have one. */
+.controls-toggle-block > .text-10:first-child::after {
     content: '';
-	display: block;
-	position: absolute;
-	width: 1.25rem;
-	height: 1.25rem;
-	transform: rotate(45deg) translate(0, -1px);
-	background-color: inherit;
-	border-color: inherit;
-	border-width: inherit;
-	border-style: inherit;
-	-webkit-transition: left 120ms ease-out;
-	        transition: left 120ms ease-out;
-
-	left: 100%;
-	right: auto;
-	margin-left: -1.5625rem;
-
-    bottom: -12px;
-    border-top-width: 0;
-    border-left-width: 0;
-    border-right: 2px solid #b0890a;
-    background-color: #b0890a;
+    display: block;
+    position: absolute;
+    width: 0.9375rem;
+    height: 0.9375rem;
+    transform: rotate(45deg);
+    background-color: #29220e;;
+    border-color: inherit;
+    border-top: 2px solid #b0890a;
+    transition: left 120ms ease-out;
+    /* Nothing special about this number. Golden ratio. */
+    left: 61.8%;
+    right: auto;
+    margin-left: -7.5px;
+    top: -9px;
+    border-left: 2px solid #b0890a;
 }
-*/
+
+.controls-toggle-block > *:first-child {
+    margin-top: 6px;
+}
+
+.controls-toggle-block > .control-index {
+    margin-bottom: 15px;
+}
+
 .controls-toggle-block > table {
     width: 100%;
 }
@@ -334,7 +353,7 @@ range-control + range-control {
 .code-select-button {
     display: inline-block;
     vertical-align: top;
-	font-family: 'Fira Mono', sans-serif;
+	font-family: 'Fira Mono', 'Andale Mono', sans-serif;
 	font-size: 0.8125rem;
     text-indent: 6px;
 	padding-top: 0;
@@ -363,8 +382,8 @@ range-control + range-control {
 	color: white;
 }
 
-.type-code-select-button {
-    letter-spacing: -0.03125rem;
+.code-select-button > select {
+    letter-spacing: -0.033333em;
 }
 
 .type-code-select-button {
@@ -545,7 +564,7 @@ range-control + range-control {
 }
 
 range-control + .toggle-block {
-    margin-top: 0.1875rem;
+    margin-top: 0.125rem;
 }
 
 range-control + .toggle-block.active {
@@ -553,14 +572,20 @@ range-control + .toggle-block.active {
 }
 
 .toggle-block + range-control {
-    margin-top: 0.5625rem;
+    margin-top: 0.375rem;
+    transition: margin-top 400ms cubic-bezier(0.06, 0.39, 0.26, 0.76);
+}
+
+.toggle-block.active + range-control {
+    margin-top: 24px;
+    transition: margin-top 400ms cubic-bezier(0.24, 0.74, 0.64, 0.96);
 }
 
 .toggle-block > .buttons-block {
-    margin-left: -12px;
-    margin-bottom: -14px;
-    margin-right: -12px;
-    width: calc(100% + 24px);
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
 }
 
 .buttons-block {
@@ -594,4 +619,162 @@ template + .buttons-block {
 .bottom-button {
     padding-top: 6px;
     padding-bottom: 6px;
+}
+
+label > svg {
+    width: 100%;
+}
+
+
+
+
+
+
+.tab-button,
+.radio-button {
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	color: #2B3134;
+	background-color: #565d60;/*#4C565C;*/
+}
+
+.tab-button {
+	border-top-left-radius: 0.375rem;
+	border-top-right-radius: 0.375rem;
+}
+
+.radio-button {
+    padding-left: 6px;
+    padding-right: 6px;
+	border-radius: 0.1875rem;
+}
+
+.radio-button > svg {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	width: 0.9375rem;
+	height: 1.25rem;
+}
+
+.tab-button.on {
+	color: #B6B2B0;
+	background-color: #2B3134;
+}
+
+.radio-button.on,
+input:checked + .radio-button {
+	/*color: #B6B2B0;*/
+	color: #72B8A9;
+	background-color: #00181f;
+}
+
+
+
+.radios-block {
+    display: flex;
+    justify-items: stretch;
+    justify-content: stretch;
+    align-items: center;
+    flex-direction: row;
+}
+
+.radios-block > .radio-button {
+    margin: 0;
+    flex: 1 0 auto;
+}
+
+.radios-block > .masked:first-child + .radio-button {
+    border-top-right-radius: 0;
+	border-bottom-right-radius: 0;
+}
+
+.radios-block > .radio-button + .masked + .radio-button {
+    border-radius: 0;
+    margin-left: 1px;
+}
+
+.radios-block > .radio-button + .masked + .radio-button:last-child {
+    border-top-right-radius: 3px;
+	border-bottom-right-radius: 3px;
+}
+
+.radios-block + range-control {
+    margin-top: 15px;
+}
+
+
+
+
+.tab-index,
+.radio-index {
+	display: table;
+	width: 100%;
+	margin-top: 1.25rem;
+}
+
+.tab-index > li,
+.radio-index > li {
+	display: table-cell;
+}
+
+.tab-index > li + li,
+.radio-index > li + li {
+	padding-left: 1px;
+}
+
+.radio-index > li > input {
+	position: absolute;
+	opacity: 0;
+}
+
+.tab-index > li > .button,
+.radio-index > li > .button {
+	width: 100%;
+	display: block;
+	padding-left: 0.125rem;
+	padding-right: 0.125rem;
+}
+
+.tab-index > li:first-child > .button {
+	border-top-right-radius: 0;
+}
+
+.radio-index > li:first-child > .button {
+	border-top-right-radius: 0;
+	border-bottom-right-radius: 0;
+}
+
+.tab-index > li + li > .button,
+.radio-index > li + li > .button {
+	border-top-left-radius: 0;
+	border-bottom-left-radius: 0;
+	border-top-right-radius: 0;
+	border-bottom-right-radius: 0;
+}
+
+.tab-index > li:last-child > .button {
+	border-top-right-radius: 0.375rem;
+}
+
+.radio-index > li:last-child > .button {
+	border-top-right-radius: 0.375rem;
+	border-bottom-right-radius: 0.375rem;
+}
+
+.tab-index > li > .tab-button,
+.radio-index > li > .radio-button {
+	white-space: nowrap;
+}
+
+.radio-index + label {
+	margin-top: 0.375rem;
+}
+
+.radio-index + .grid-wrap {
+	margin-top: 0;
+}
+
+.node-button + .radio-index {
+	margin-top: 2rem;
 }

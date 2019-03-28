@@ -7,3 +7,9 @@
 	text-align: left;
     border-radius: 0.375rem;
 }
+
+.node-block > .midi-thumb {
+    position: absolute;
+    top: 15px;
+    right: 9px;
+}

@@ -51,17 +51,6 @@
             "output": 0.1
         }
     }, {
-        "id":    "compressor",
-        "type":  "compressor",
-        "label": "Compressor",
-        "data": {
-            "attack":    0.028,
-            "release":   0.08,
-            "knee":      12,
-            "ratio":     2.5,
-            "threshold": -28
-        }
-    }, {
         "id":    "flanger",
         "type":  "/soundstage/nodes/flanger.js",
         "label": "Flanger",
@@ -108,7 +97,6 @@
 
     "connections": [
         { "source": "input",      "target": "flanger" },
-        { "source": "compressor", "target": "flanger" },
         { "source": "flanger",    "target": "delay-send" },
         { "source": "flanger",    "target": "output" },
         { "source": "delay-send", "target": "delay" },

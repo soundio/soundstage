@@ -86,13 +86,20 @@ const controlValues = [
     }
 ];
 
-export default function MIDIInputSource(selector) {
+export default function MIDIInputSource(data) {
     const handler = function handler(e) {
         const n = Math.floor((e.data[0] - 128) / 16);
         return fn(e.timeStamp, controlTypes[n], controlParams[n](e.data), controlValues[n](e.data));
     };
 
-    let toControlValue = controlValues['note'];
+    const selector = {
+        port: data.port,
+        0:    data.channel,
+        1:    data.type,
+        2:    data.param,
+        3:    data.value
+    };
+
     let fn;
 
     define(this, {
