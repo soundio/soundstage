@@ -324,9 +324,7 @@ register('envelope-control', function(svg, scopes, params) {
         svg.style.backgroundImage = 'url(' + data + ')';
     }
 
-    scopes
-    .toPromise()
-    .then(() => gestures.stop());
+    scopes.done(() => gestures.stop());
 
     return scopes
     .tap((s) => {

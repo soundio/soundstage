@@ -61,6 +61,26 @@
         </select>
     </template>
 
+    <template id="node-mix">
+        <range-control fn="param:pan" unit="pan" min="-1" max="1" transform="linear" ticks="-1 0 1">
+            <span class="text-10">Pan</span>
+            <a class="midi-thumb thumb" href="#node-{[id]}-pan-toggle" slot="plugs"></a>
+        </range-control>
+
+        <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-pan-toggle">
+            <template fn="controls:pan" include="#control-toggle"></template>
+        </form>
+
+        <range-control fn="param:gain" unit="dB" min="-60dB" max="1" transform="linear-logarithmic" ticks="0 0.0009765625 0.001953125 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
+            <span class="text-10">Gain</span>
+            <a class="midi-thumb thumb" href="#node-{[id]}-gain-toggle" slot="plugs"></a>
+        </range-control>
+
+        <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-gain-toggle">
+            <template fn="controls:gain" include="#control-toggle"></template>
+        </form>
+    </template>
+
     <template id="node-/soundstage/nodes/tone-synth.js">
         <a class="midi-thumb thumb" href="#node-{[id]}-toggle"></a>
 
@@ -365,6 +385,7 @@
                     <input class="min-code-input code-input" type="number" :value="{[min]}" hidden="{[transform|is:'pass']}" />
                     <input class="max-code-input code-input" type="number" :value="{[max]}" hidden="{[transform|is:'pass']}" />
                 </div>
+                <button type="button" fn="on:click,remove">Remove</button>
             </li>
         </ul>
     </template>
@@ -372,12 +393,12 @@
     <template id="control-toggle">
         <template include="{[length|yesno:'#control-index','']}"></template>
         <div class="buttons-block block">
-            <button type="button" class="bottom-button button">Learn MIDI</button>
-            <button type="button" class="bottom-button button">Learn key</button>
+            <button type="button" class="bottom-button button" fn="on:click,learn-midi">Learn MIDI</button>
+            <button type="button" class="bottom-button button" fn="on:click,learn-keyboard">Learn key</button>
         </div>
     </template>
 
-    <template id="control-index">
+    <!--template id="control-index">
         <h3 class="text-10">Controls</h3>
         <ul class="control-index index">
             <li fn="each">
@@ -391,36 +412,16 @@
                     <input class="min-code-input code-input" type="text" :value="{[data.min]}" hidden="{[data.transform|is:'pass']}" />
                     <input class="max-code-input code-input" type="text" :value="{[data.max]}" hidden="{[data.transform|is:'pass']}" />
                 </div>
+                <button type="button" fn="on:click,remove">Remove</button>
             </li>
         </ul>
-    </template>
+    </template-->
 
     <template id="node-control-toggle">
-        <!--template include="{[length|yesno:'#node-control-index','']}"></template-->
         <div class="buttons-block block">
-            <button type="button" class="bottom-button button">Learn MIDI</button>
-            <button type="button" class="bottom-button button">Learn key</button>
+            <button type="button" class="bottom-button button" fn="on:click,learn-midi">Learn MIDI</button>
+            <button type="button" class="bottom-button button" fn="on:click,learn-keyboard">Learn key</button>
         </div>
-    </template>
-
-    <template id="node-mix">
-        <range-control fn="param:pan" unit="pan" min="-1" max="1" transform="linear" ticks="-1 0 1">
-            <span class="text-10">Pan</span>
-            <a class="midi-thumb thumb" href="#node-{[id]}-pan-toggle" slot="plugs"></a>
-        </range-control>
-
-        <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-pan-toggle">
-            <template fn="controls:pan" include="#control-toggle"></template>
-        </form>
-
-        <range-control fn="param:gain" unit="dB" min="-60dB" max="1" transform="linear-logarithmic" ticks="0 0.0009765625 0.001953125 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
-            <span class="text-10">Gain</span>
-            <a class="midi-thumb thumb" href="#node-{[id]}-gain-toggle" slot="plugs"></a>
-        </range-control>
-
-        <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-gain-toggle">
-            <template fn="controls:gain" include="#control-toggle"></template>
-        </form>
     </template>
 
     <template id="node-/soundstage/nodes/metronome.js">
@@ -650,8 +651,9 @@
     import './components/sparky/midi/fns.js';
     import "./components/sparky/envelope-control/fns.js";
 
+    import { isDefined, Observable } from '../fn/fn.js';
+
     import * as Fn from '../fn/fn.js';
-    import { isDefined } from '../fn/fn.js';
     window.Fn = Fn;
 
     import * as normalise from '../fn/modules/normalise.js';
@@ -713,11 +715,17 @@
 
     functions['controls'] = function(node, input, params) {
         const paramName = params[0];
-        return input.map((graphNode) => {
-            return stage.controls
-            .filter((control) => control.target.data === graphNode.data)
-            .filter((control) => control.data.name === paramName);
-        });
+
+        var stream = Stream.of();
+
+        input
+        .each((graphNode) => Observable('.', stage.controls)
+            .map((controls) => controls
+                .filter((control) => control.target.data === graphNode.data)
+                .filter((control) => control.data.name === paramName))
+            .each(stream.push));
+
+        return stream;
     };
 
     function isMIDIControl(control) {

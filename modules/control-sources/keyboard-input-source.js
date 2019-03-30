@@ -63,6 +63,21 @@ const keymap = {
     221: 74
 };
 
+
+function fireKeydown(e, fn) {
+    // Don't trigger keys that don't map to something
+    if (toKeyString(e.keyCode) === undefined) { return; }
+    fn(e.timeStamp, 'keydown', toKeyString(e.keyCode), 1);
+    return e;
+}
+
+function fireKeyup(e, fn) {
+    // Don't trigger keys that don't map to something
+    if (toKeyString(e.keyCode) === undefined) { return; }
+    fn(e.timeStamp, 'keyup', toKeyString(e.keyCode), 0);
+    return e;
+}
+
 function fireNoteOn(e, fn) {
     // Don't trigger keys that don't map to something
     if (keymap[e.keyCode] === undefined) { return; }
@@ -82,16 +97,24 @@ function keydown(e) {
     // when a key is left depressed for some time
     if (keyStates[e.keyCode]) { return; }
     keyStates[e.keyCode] = true;
-    keyRoutes[e.keyCode] && keyRoutes[e.keyCode].reduce(fireNoteOn, e);
-    keyRoutes['undefined'] && keyRoutes['undefined'].reduce(fireNoteOn, e);
+
+    keyRoutes[e.keyCode] && keyRoutes[e.keyCode].reduce(fireKeydown, e);
+    keyRoutes['undefined'] && keyRoutes['undefined'].reduce(fireKeydown, e);
+
+    // keyRoutes[e.keyCode] && keyRoutes[e.keyCode].reduce(fireNoteOn, e);
+    // keyRoutes['undefined'] && keyRoutes['undefined'].reduce(fireNoteOn, e);
 }
 
 function keyup(e) {
     // Track key states in order to avoid double triggering
     if (!keyStates[e.keyCode]) { return; }
     keyStates[e.keyCode] = false;
-    keyRoutes[e.keyCode] && keyRoutes[e.keyCode].reduce(fireNoteOff, e);
-    keyRoutes['undefined'] && keyRoutes['undefined'].reduce(fireNoteOff, e);
+
+    keyRoutes[e.keyCode] && keyRoutes[e.keyCode].reduce(fireKeyup, e);
+    keyRoutes['undefined'] && keyRoutes['undefined'].reduce(fireKeyup, e);
+
+    // keyRoutes[e.keyCode] && keyRoutes[e.keyCode].reduce(fireNoteOff, e);
+    // keyRoutes['undefined'] && keyRoutes['undefined'].reduce(fireNoteOff, e);
 }
 
 document.addEventListener('keydown', keydown);

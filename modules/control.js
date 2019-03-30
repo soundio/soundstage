@@ -30,23 +30,13 @@ through a selectable transform function to a target stream.
 
 */
 
-import { id } from '../../fn/fn.js';
-import { Distribute }    from './distribute.js';
+import { noop, remove }     from '../../fn/fn.js';
+import { Distribute } from './distribute.js';
 
 const DEBUG  = window.DEBUG;
 
-const A      = Array.prototype;
 const assign = Object.assign;
 const seal   = Object.seal;
-
-function remove(controls, control) {
-    let n = controls.length;
-    while (n--) {
-        if (controls[n] === control) {
-            A.splice.call(controls, n, 1);
-        }
-    }
-}
 
 export const types = {
     'note':    function control(type, name, value) {
@@ -155,7 +145,8 @@ export default function Control(controls, source, target, settings, notify) {
     this.source   = source;
     this.target   = target;
     this.data     = data;
-console.log('CONTROL',data, source)
+    this.notify   = notify || noop;
+
     seal(this);
 
     const distribute = Distribute(target.data, notify);
@@ -218,6 +209,7 @@ assign(Control.prototype, {
     remove: function() {
         this.source.stop();
         remove(this.controls, this);
+        this.notify(this.controls, '.');
     },
 
     toJSON: function() {
