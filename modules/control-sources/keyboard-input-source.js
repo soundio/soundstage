@@ -93,6 +93,11 @@ function fireNoteOff(e, fn) {
 }
 
 function keydown(e) {
+    // Ignore key presses from interactive elements
+    if ('value' in e.target) {
+        return;
+    }
+
     // Track key states in order to avoid double triggering of noteons
     // when a key is left depressed for some time
     if (keyStates[e.keyCode]) { return; }
@@ -106,6 +111,11 @@ function keydown(e) {
 }
 
 function keyup(e) {
+    // Ignore key presses from interactive elements
+    if ('value' in e.target) {
+        return;
+    }
+
     // Track key states in order to avoid double triggering
     if (!keyStates[e.keyCode]) { return; }
     keyStates[e.keyCode] = false;
@@ -146,13 +156,19 @@ export default function KeyboardInputSource(selector) {
     });
 
     this.each = function each(input) {
-        (keyRoutes[keyCode] && remove(keyRoutes[keyCode], fn));
+        //(keyRoutes[keyCode] && remove(keyRoutes[keyCode], fn));
         fn = input;
-        (keyRoutes[keyCode] || (keyRoutes[keyCode] = [])).push(fn);
+
+        if (!keyRoutes[keyCode]) {
+            keyRoutes[keyCode] = [handler];
+        }
+        else if (keyRoutes[keyCode].indexOf(handler) === -1) {
+            keyRoutes[keyCode].push(handler);
+        }
     };
 
     this.stop = function() {
-        (keyRoutes[keyCode] && remove(keyRoutes[keyCode], fn));
+        (keyRoutes[keyCode] && remove(keyRoutes[keyCode], handler));
         fn = noop;
     };
 }

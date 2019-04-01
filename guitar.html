@@ -68,7 +68,7 @@
         </range-control>
 
         <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-pan-toggle">
-            <template fn="controls:pan" include="#control-toggle"></template>
+            <template fn="controls:pan" include="#controls-toggle"></template>
         </form>
 
         <range-control fn="param:gain" unit="dB" min="-60dB" max="1" transform="linear-logarithmic" ticks="0 0.0009765625 0.001953125 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
@@ -77,7 +77,7 @@
         </range-control>
 
         <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-gain-toggle">
-            <template fn="controls:gain" include="#control-toggle"></template>
+            <template fn="controls:gain" include="#controls-toggle"></template>
         </form>
     </template>
 
@@ -85,7 +85,7 @@
         <a class="midi-thumb thumb" href="#node-{[id]}-toggle"></a>
 
         <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-toggle">
-            <template include="#node-control-toggle"></template>
+            <template fn="controls" include="#node-controls-toggle"></template>
         </form>
 
         <range-control fn="param:gain" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1"><span class="text-10">Gain</span></range-control>
@@ -168,7 +168,7 @@
         </range-control>
 
         <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-pitch-toggle">
-            <template fn="controls:pitch" include="#control-toggle"></template>
+            <template fn="controls:pitch" include="#controls-toggle"></template>
         </form>
 
         <range-control fn="param:frequency" unit="Hz" min="16" max="16384" transform="logarithmic" ticks="16 32 64 125 250 500 1000 2000 4000 8000 16000">
@@ -177,7 +177,7 @@
         </range-control>
 
         <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-frequency-toggle">
-            <template fn="controls:frequency" include="#control-toggle"></template>
+            <template fn="controls:frequency" include="#controls-toggle"></template>
         </form>
 
         <range-control fn="param:Q" unit="Q" min="0.16" max="20" transform="logarithmic" ticks="0.16 0.32 0.64 1.25 2.5 5 10 20">
@@ -186,7 +186,7 @@
         </range-control>
 
         <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-Q-toggle">
-            <template fn="controls:Q" include="#control-toggle"></template>
+            <template fn="controls:Q" include="#controls-toggle"></template>
         </form>
 
         <range-control fn="param:output" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
@@ -195,7 +195,7 @@
         </range-control>
 
         <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-output-toggle">
-            <template fn="controls:output" include="#control-toggle"></template>
+            <template fn="controls:output" include="#controls-toggle"></template>
         </form>
     </template>
 
@@ -206,7 +206,7 @@
         </range-control>
 
         <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-gain-toggle">
-            <template fn="controls:gain" include="#control-toggle"></template>
+            <template fn="controls:gain" include="#controls-toggle"></template>
         </form>
 
         <range-control fn="param:delay" unit="s" min="0.0125" max="2" transform="linear-logarithmic" ticks="0 0.02 0.04 0.06 0.08 0.1 0.2 0.4 0.6 0.8 1 2">
@@ -215,7 +215,7 @@
         </range-control>
 
         <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-delay-toggle">
-            <template fn="controls:delay" include="#control-toggle"></template>
+            <template fn="controls:delay" include="#controls-toggle"></template>
         </form>
 
         <range-control fn="param:frequency" unit="Hz" min="0.083333333" max="96" transform="linear-logarithmic" ticks="0 0.1 0.2 0.4 0.6 0.8 1 2 4 6 8 10 20 40 60 80">
@@ -224,7 +224,7 @@
         </range-control>
 
         <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-frequency-toggle">
-            <template fn="controls:frequency" include="#control-toggle"></template>
+            <template fn="controls:frequency" include="#controls-toggle"></template>
         </form>
 
         <range-control fn="param:depth" unit="s" min="0.012" max="0.18" transform="linear-logarithmic" prefix="±" ticks="0 0.02 0.04 0.06 0.08 0.1 0.12 0.14 0.16 0.18">
@@ -233,7 +233,7 @@
         </range-control>
 
         <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-depth-toggle">
-            <template fn="controls:depth" include="#control-toggle"></template>
+            <template fn="controls:depth" include="#controls-toggle"></template>
         </form>
 
         <range-control fn="param:feedback" unit="dB" min="-37.3dB" max="1" transform="linear-logarithmic" ticks="0 -36dB -30dB -24dB -18dB -12dB -6dB 0dB">
@@ -242,7 +242,7 @@
         </range-control>
 
         <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-feedback-toggle">
-            <template fn="controls:feedback" include="#control-toggle"></template>
+            <template fn="controls:feedback" include="#controls-toggle"></template>
         </form>
 
         <range-control fn="param:wet" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
@@ -251,7 +251,7 @@
         </range-control>
 
         <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-wet-toggle">
-            <template fn="controls:wet" include="#control-toggle"></template>
+            <template fn="controls:wet" include="#controls-toggle"></template>
         </form>
 
         <range-control fn="param:dry" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
@@ -260,7 +260,7 @@
         </range-control>
 
         <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-dry-toggle">
-            <template fn="controls:dry" include="#control-toggle"></template>
+            <template fn="controls:dry" include="#controls-toggle"></template>
         </form>
     </template>
 
@@ -271,7 +271,7 @@
         </range-control>
 
         <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-threshold-toggle">
-            <template fn="controls:threshold" include="#control-toggle"></template>
+            <template fn="controls:threshold" include="#controls-toggle"></template>
         </form>
 
         <range-control fn="param:ratio" min="1" max="20" transform="cubic">
@@ -280,7 +280,7 @@
         </range-control>
 
         <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-ratio-toggle">
-            <template fn="controls:ratio" include="#control-toggle"></template>
+            <template fn="controls:ratio" include="#controls-toggle"></template>
         </form>
 
         <range-control fn="param:knee" min="0" max="40" transform="cubic">
@@ -289,7 +289,7 @@
         </range-control>
 
         <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-knee-toggle">
-            <template fn="controls:knee" include="#control-toggle"></template>
+            <template fn="controls:knee" include="#controls-toggle"></template>
         </form>
 
         <range-control fn="param:attack" unit="s" min="0.012" max="0.8" transform="linear-logarithmic" ticks="0 0.02 0.04 0.06 0.08 0.1 0.2 0.4 0.6 0.8">
@@ -298,7 +298,7 @@
         </range-control>
 
         <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-attack-toggle">
-            <template fn="controls:attack" include="#control-toggle"></template>
+            <template fn="controls:attack" include="#controls-toggle"></template>
         </form>
 
         <range-control fn="param:release" unit="s" min="0.012" max="0.8" transform="linear-logarithmic" ticks="0 0.02 0.04 0.06 0.08 0.1 0.2 0.4 0.6 0.8">
@@ -307,7 +307,7 @@
         </range-control>
 
         <form class="controls-toggle-block toggle-block block" toggleable id="node-{[id]}-release-toggle">
-            <template fn="controls:release" include="#control-toggle"></template>
+            <template fn="controls:release" include="#controls-toggle"></template>
         </form>
     </template>
 
@@ -385,39 +385,77 @@
                     <input class="min-code-input code-input" type="number" :value="{[min]}" hidden="{[transform|is:'pass']}" />
                     <input class="max-code-input code-input" type="number" :value="{[max]}" hidden="{[transform|is:'pass']}" />
                 </div>
-                <button type="button" fn="on:click,remove">Remove</button>
+                <button type="button" class="remove-thumb thumb" fn="on:click,remove">Remove</button>
             </li>
         </ul>
     </template>
 
-    <template id="control-toggle">
-        <template include="{[length|yesno:'#control-index','']}"></template>
-        <div class="buttons-block block">
-            <button type="button" class="bottom-button button" fn="on:click,learn-midi">Learn MIDI</button>
-            <button type="button" class="bottom-button button" fn="on:click,learn-keyboard">Learn key</button>
-        </div>
+    <template id="node-controls-keyboard-index">
+        <h3 class="text-10">Keyboard</h3>
+        <ul class="control-index index">
+            <li fn="each">
+                <div>
+                    <span>keyboard as piano</span>
+                </div>
+                <div fn="get:data" class="transform-grid">
+                    Velocity
+                    <!-- Must be transform="switch" -->
+                    <!-- Must be min="0" -->
+                    <input class="max-code-input code-input" type="number" :value="{[max]}" hidden="{[transform|is:'pass']}" />
+                </div>
+                <button type="button" class="small-remove-thumb remove-thumb thumb" fn="on:click,remove">Remove</button>
+            </li>
+        </ul>
     </template>
 
-    <!--template id="control-index">
-        <h3 class="text-10">Controls</h3>
+    <template id="node-controls-midi-index">
+        <h3 class="text-10">MIDI</h3>
         <ul class="control-index index">
             <li fn="each">
                 <template fn="get:source" include="#control-source-{[device]}"></template>
-                <div class="transform-grid">
-                    <label class="transform-code-select-button code-select-button select-button button {[data.transform|is:'pass'|yesno:'none-value','']}">
-                        <select id="" :value="{[data.transform]}">
-                            <option fn="transforms entries each" value="{[0]}">{[0]}</option>
+                <div fn="get:data" class="transform-grid">
+                    Notes
+                    <label class="transform-code-select-button code-select-button select-button button {[transform|is:'pass'|yesno:'none-value','']}">
+                        <select id="" :value="{[transform]}">
+                            <option fn="transforms entries each" :value="{[0]}">{[0]}</option>
                         </select>
                     </label>
-                    <input class="min-code-input code-input" type="text" :value="{[data.min]}" hidden="{[data.transform|is:'pass']}" />
-                    <input class="max-code-input code-input" type="text" :value="{[data.max]}" hidden="{[data.transform|is:'pass']}" />
+                    <!-- Must be min="0" -->
+                    <output class="min-code-input code-input" hidden="{[transform|is:'pass']}" />{[min]}</output>
+                    <input class="max-code-input code-input" type="number" :value="{[max]}" hidden="{[transform|is:'pass']}" />
                 </div>
-                <button type="button" fn="on:click,remove">Remove</button>
+                <div fn="get:data" class="transform-grid">
+                    Pitch Bend
+                    linear
+
+                    <input class="max-code-input code-input" type="number" :value="{[pitchRange]}" />
+                </div>
+                <div fn="get:data" class="transform-grid">
+                    Modulation Wheel
+                    <label class="transform-code-select-button code-select-button select-button button {[transform|is:'pass'|yesno:'none-value','']}">
+                        <select id="" :value="{[transform]}">
+                            <option fn="transforms entries each" :value="{[0]}">{[0]}</option>
+                        </select>
+                    </label>
+                    <input class="min-code-input code-input" type="number" :value="{[min]}" hidden="{[transform|is:'pass']}" />
+                    <input class="max-code-input code-input" type="number" :value="{[max]}" hidden="{[transform|is:'pass']}" />
+                </div>
+                <button type="button" class="small-remove-thumb remove-thumb thumb" fn="on:click,remove">Remove</button>
             </li>
         </ul>
-    </template-->
+    </template>
 
-    <template id="node-control-toggle">
+    <template id="node-controls-toggle">
+        <template fn="get:controls filter-controls-keyboard" include="{[length|yesno:'#node-controls-keyboard-index','']}"></template>
+        <template fn="get:controls filter-controls-midi" include="{[length|yesno:'#node-controls-midi-index','']}"></template>
+        <div class="buttons-block block">
+            <button type="button" class="bottom-button button" fn="get:node scope" action="learn-midi">Learn MIDI</button>
+            <button type="button" class="bottom-button button" fn="get:node scope" action="learn-keyboard">Learn key</button>
+        </div>
+    </template>
+
+    <template id="controls-toggle">
+        <template fn="get:controls" include="{[length|yesno:'#control-index','']}"></template>
         <div class="buttons-block block">
             <button type="button" class="bottom-button button" fn="on:click,learn-midi">Learn MIDI</button>
             <button type="button" class="bottom-button button" fn="on:click,learn-keyboard">Learn key</button>
@@ -431,14 +469,6 @@
             <li fn="get:data.events each">{[.]}</li>
         </ul>
         <range-control fn="param:gain" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1"><span class="text-10">Output</span></range-control>
-    </template>
-
-    <template id="source-device-midi">
-        MIDI {[.]}
-    </template>
-
-    <template id="source-device-keys">
-        KEYS {[.]}
     </template>
 </head>
 
@@ -541,7 +571,7 @@
         </defs>
     </svg>
 
-    <template is="sparky" fn="import:json/mix.json soundstage">
+    <template is="sparky" fn="import:json/tone-synth.json soundstage">
         <div class="bar-block block">
             <h1 class="logo-thumb thumb"><pre>label: {[label]}</pre></h1>
 
@@ -644,14 +674,14 @@
 
     <!-- Tests -->
     <script type="module">
-    import { get, query, trigger } from '../../dom/dom.js';
+    import { closest, get, query, trigger } from '../../dom/dom.js';
     import '../../dom/js/dom.popable.js';
     import '../../dom/js/dom.toggleable.js';
 
     import './components/sparky/midi/fns.js';
     import "./components/sparky/envelope-control/fns.js";
 
-    import { isDefined, Observable } from '../fn/fn.js';
+    import { choose, isDefined, Observable, Target } from '../fn/fn.js';
 
     import * as Fn from '../fn/fn.js';
     window.Fn = Fn;
@@ -673,10 +703,11 @@
     import Soundstage, { transforms } from './soundstage.js';
     window.Soundstage = Soundstage;
 
-    import Sparky, { functions, notify, mountConfig } from '../sparky/sparky.js';
+    import Sparky, { functions, notify, mountConfig, getScope } from '../sparky/sparky.js';
     window.Sparky = Sparky;
 
     import context from './modules/context.js';
+    import { learnKeyboard, learnMIDI } from './modules/controls.js';
     import './components/sparky/param/param.js';
 
     // Sparky extensions
@@ -689,15 +720,49 @@
         'rotary-control': { attributes: [], booleans: ['disabled'], value: 'number' }
     });
 
-    functions.soundstage = function(node, scope, params) {
+
+    const actions = choose({
+        'learn-keyboard': function(stage, target, param) {
+            learnKeyboard(target, {})
+            .then((source) => {
+                const control = stage.createControl(source, target, {
+                    type: 'all'
+                });
+            });
+        },
+
+        'learn-midi': function() {
+            learnMIDI(target, {})
+            .then((source) => {
+                const control = stage.createControl(source, target, {
+                    type: 'all'
+                });
+            });
+        }
+    });
+
+    functions.soundstage = function(node, scope, params, options) {
         const output = Stream.of();
+        var stage;
 
         scope.each(function(data) {
-            var stage = window.stage = new Soundstage(data, { notify: notify });
+            stage = window.stage = new Soundstage(data, { notify: notify });
 
             stage.ready(function(stage) {
                 output.push(stage);
             });
+        });
+
+        // Delegate events from buttons with an action attribute
+        document.body.addEventListener('click', function(e) {
+            const node = closest('[action]', e.target);
+            if (!node) { return; }
+            const action = node.getAttribute('action');
+            if (!stage || !action || actions[action]) { return; }
+            const scope = getScope(node);
+            const effect = Target(scope);
+console.log('SCOPE', scope, stage.nodes.find((node) => node.data === effect))
+            actions(action, stage, stage.nodes.find((node) => node.data === effect), {});
         });
 
         return output;
@@ -714,16 +779,30 @@
     };
 
     functions['controls'] = function(node, input, params) {
-        const paramName = params[0];
+        const paramName = params && params[0];
 
         var stream = Stream.of();
 
-        input
-        .each((graphNode) => Observable('.', stage.controls)
-            .map((controls) => controls
-                .filter((control) => control.target.data === graphNode.data)
-                .filter((control) => control.data.name === paramName))
-            .each(stream.push));
+        return input
+        .chain((graphNode) => Observable('.', stage.controls)
+            .tap((n) => console.log('Controls mutated', n))
+            .map((controls) => ({
+                node:     graphNode.data,
+
+                controls: paramName ?
+                    controls
+                    .filter((control) => control.target === graphNode)
+                    .filter((control) =>
+                        control.data.type    === 'param'
+                        && control.data.name === paramName) :
+                    controls
+                    .filter((control) => control.target === graphNode)
+                    .filter((control) =>
+                        control.data.type !== 'param'
+                        || (control.data.name === undefined || control.data.name === 'all')
+                    )
+            }))
+        );
 
         return stream;
     };
@@ -731,6 +810,18 @@
     function isMIDIControl(control) {
         return control.source.device === 'midi';
     }
+
+    function isKeyboardControl(control) {
+        return control.source.device === 'midi';
+    }
+
+    functions['filter-controls-midi'] = function(node, input) {
+        return input.map((controls) => controls.filter(isMIDIControl));
+    };
+
+    functions['filter-controls-keyboard'] = function(node, input) {
+        return input.map((controls) => controls.filter(isKeyboardControl));
+    };
 
     // Open all control toggle blocks with bindings, close all
     // control toggle blocks.

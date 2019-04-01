@@ -1,5 +1,5 @@
 
-import { isDefined, noop, nothing, matches }   from '../../fn/fn.js';
+import { isDefined, noop, nothing, matches, notify }   from '../../fn/fn.js';
 import requestInputSplitter   from '../../audio-object/modules/request-input-splitter.js';
 
 import { print, printGroup, printGroupEnd }     from './utilities/print.js';
@@ -7,6 +7,7 @@ import { Privates } from './utilities/privates.js';
 import audio, { timeAtDomTime } from './context.js';
 import constructors  from './constructors';
 import { connect, disconnect } from './connect.js';
+import Control       from './control.js';
 import Input         from '../nodes/input.js';
 import Output        from '../nodes/output.js';
 import Metronome     from '../nodes/metronome.js';
@@ -285,6 +286,14 @@ seconds relative to window.performance.now().
 */
 
 assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
+    createControl: function(source, target, data) {
+        const control = new Control(this.controls, source, target, data);
+        this.controls.push(control);
+        notify(this.controls, '.');
+        console.log('Control', control);
+        return control;
+    },
+
     connect: function(input, port, channel) {
         const outputs = Privates(this).outputs;
         let output = typeof port === 'string' ? outputs[port] : outputs.default ;

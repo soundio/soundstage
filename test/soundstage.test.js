@@ -29,8 +29,8 @@ const data = {
     ],
 
     controls: [
-        //{ source: { device: 'keys', key: 'b' }, target: '1', data: { name: 'pitch', transform: 'linear', min: 0, max: 1 }},
-        { source: { device: 'keys' }, target: '2', data: { type: 'note', transform: 'linear', min: 0, max: 1 }}
+        //{ source: { device: 'keyboard', key: 'b' }, target: '1', data: { name: 'pitch', transform: 'linear', min: 0, max: 1 }},
+        { source: { device: 'keyboard' }, target: '2', data: { type: 'note', transform: 'linear', min: 0, max: 1 }}
     ],
 
     sequences: [{

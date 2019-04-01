@@ -59,8 +59,8 @@ test('ToneSynth', function(run, print, fixture) {
             ],
 
             controls: [
-                //{ source: { device: 'keys', key: 'b' }, target: '1', data: { name: 'pitch', transform: 'linear', min: 0, max: 1 }},
-                //{ source: { device: 'keys' }, target: 'sampler', data: { type: 'note', transform: 'linear', min: 0, max: 1 }}
+                //{ source: { device: 'keyboard', key: 'b' }, target: '1', data: { name: 'pitch', transform: 'linear', min: 0, max: 1 }},
+                //{ source: { device: 'keyboard' }, target: 'sampler', data: { type: 'note', transform: 'linear', min: 0, max: 1 }}
                 { source: { device: 'midi' }, target: 'tonesynth', data: { type: 'note', transform: 'linear', min: 0, max: 1 }}
             ]
         });

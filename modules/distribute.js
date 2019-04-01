@@ -109,7 +109,7 @@ export function Distribute(target, notify) {
             notes[name] = undefined;
         }
         else {
-if (!notify) { console.log('No notify!!'); debugger; }
+//if (!notify) { console.log('No notify!!'); debugger; }
             distribute(target, time, type, name, value, duration, notify);
         }
     };

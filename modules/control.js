@@ -130,13 +130,15 @@ function getContextTime(context, domTime) {
 }
 
 export default function Control(controls, source, target, settings, notify) {
-    const data = settings || {
-        type:      undefined,
-        name:      undefined,
-        transform: undefined,
-        min:       0,
-        max:       1,
-        latencyCompensation: true
+    const data = {
+        type:      settings.type,
+        name:      settings.name,
+        transform: settings.transform || 'linear',
+        min:       settings.min || 0,
+        max:       settings.max || 1,
+        latencyCompensation: settings.latencyCompensation === undefined ?
+            true :
+            settings.latencyCompensation
     };
 
     let value;
@@ -153,8 +155,6 @@ export default function Control(controls, source, target, settings, notify) {
 
     // Bind source output to route input
     source.each(function input(timeStamp, type, name, n) {
-        if (DEBUG) { console.log('INPUT', timeStamp, type, name, n); }
-
         // Catch keys with no name
         if (!name && !data.name) { return; }
 

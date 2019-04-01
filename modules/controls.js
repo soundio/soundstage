@@ -67,7 +67,7 @@ function createControl(controls, getTarget, setting, notify) {
 }
 
 export default function Controls(getTarget, settings, notify) {
-    const controls = [];
+    const controls = assign([], Controls.prototype);
 
     // Set up routes from data
     if (settings) {
@@ -82,6 +82,7 @@ export default function Controls(getTarget, settings, notify) {
     print('controls', sources.filter(isKeyboardInputSource).length + ' keyboard, ' + sources.filter(isMIDIInputSource).length + ' MIDI');
     return controls;
 }
+
 /*
 define(Controls.prototype, {
     length: {
@@ -90,44 +91,36 @@ define(Controls.prototype, {
         value: 0
     }
 });
-/*
-assign(Controls.prototype, {
-    create: function(source, target) {
+*/
 
-    },
+export function learnMIDI(target, data) {
+    const controls = this;
+    on(nothing, function learn(e) {
+        off(nothing, learn);
 
-    learnMIDI: function(target) {
-        const controls = this;
-        on(nothing, function learn(e) {
-            off(nothing, learn);
+        // Create control
+        const selector = toMIDISelector(e);
+        const source   = new MIDIInputSource(selector);
+        const control  = new Control(controls, source, target, data);
 
-            // Create control
-            const selector = toMIDISelector(e);
-            const source   = new MIDIInputSource(selector);
-            const control  = new Control(controls, source, target);
+        // Add route to controls
+        push(controls, control);
+    });
+}
 
-            // Add route to controls
-            push(controls, control);
-        });
-    },
-
-    learnKey: function(target) {
-        const controls = this;
+export function learnKeyboard(target, data) {
+    return new Promise(function(resolve, reject) {
         document.addEventListener('keydown', function learn(e) {
             document.removeEventListener('keydown', learn);
 
             // Create control
             const selector = toKeySelector(e);
             const source   = new KeyboardInputSource(selector);
-            const control  = new Control(controls, source, target);
-
+            // const control  = new Control(controls, source, target, data);
             // Add route to controls
-            push(controls, control);
-        });
-    },
+            //push(controls, control);
 
-    toJSON: function() {
-        return Array.from(this);
-    }
-});
-*/
+            resolve(source);
+        });
+    });
+}

@@ -2,12 +2,7 @@
     "label": "Guitar",
 
     "nodes": [{
-        "id":    "input",
-        "type":  "input",
-        "label": "Input",
-        "data":  {}
-    }, {
-        "id":    "synth",
+        "id":    "tone-synth",
         "type":  "/soundstage/nodes/tone-synth.js",
         "label": "Tone Synth",
         "data": {
@@ -51,44 +46,6 @@
             "output": 0.1
         }
     }, {
-        "id":    "flanger",
-        "type":  "/soundstage/nodes/flanger.js",
-        "label": "Flanger",
-        "data": {
-            "delay":     0.008,
-            "frequency": 0.333333,
-            "depth":     0.004,
-            "feedback":  0.1,
-            "dry":       0,
-            "wet":       0.5
-        }
-    }, {
-        "id":    "delay-send",
-        "type":  "mix",
-        "label": "Delay feed",
-        "data": {
-            "pan":  0,
-            "gain": 0.5,
-            "mute": true
-        }
-    }, {
-        "id":    "delay",
-        "type":  "/soundstage/nodes/flanger.js",
-        "label": "Delay",
-        "data": {
-            "delay":     0.26,
-            "frequency": 0.1,
-            "depth":     0.02,
-            "feedback":  0.4,
-            "dry":       1,
-            "wet":       0.04
-        }
-    }, {
-        "id":    "metronome",
-        "type":  "/soundstage/nodes/metronome.js",
-        "label": "Metronome",
-        "data": {}
-    }, {
         "id":    "output",
         "type":  "output",
         "label": "Output",
@@ -96,27 +53,21 @@
     }],
 
     "connections": [
-        { "source": "input",      "target": "flanger" },
-        { "source": "flanger",    "target": "delay-send" },
-        { "source": "flanger",    "target": "output" },
-        { "source": "delay-send", "target": "delay" },
-        { "source": "delay",      "target": "output" },
-        { "source": "synth",      "target": "output" },
-        { "source": "metronome",  "target": "output" }
+        { "source": "tone-synth", "target": "output" }
     ],
 
     "controls": [{
         "source": {
             "device": "keyboard",
-            "key": "a"
+            "type":   "notes",
+            "key": "b"
         },
 
-        "target": "delay-send",
+        "target": "tone-synth",
 
         "data": {
             "transform": "linear",
-            "type":   "param",
-            "name":   "gain",
+            "type":   "all",
             "min":    0,
             "max":    1
         }
@@ -124,17 +75,14 @@
         "source": {
             "device": "midi",
             "channel": 1,
-            "type":    "control"
+            "type":    "all"
         },
 
-        "target": "synth",
+        "target": "tone-synth",
 
         "data": {
             "transform": "linear",
-            "type":   "param",
-            "name":   "gain",
-            "min":    0,
-            "max":    1
+            "type":   "all"
         }
     }, {
         "source": {

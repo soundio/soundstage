@@ -197,6 +197,79 @@ range-control + .sources-block {
     text-transform: uppercase;
 }
 
+
+
+
+/* thumb */
+
+.add-thumb,
+.remove-thumb {
+	position: relative;
+	border: 2px solid #4C565C;
+	border-radius: 1.25rem;
+	color: currentcolor;
+	background-color: transparent;
+    border-color: currentcolor;
+}
+
+.add-thumb {
+	width: 2.5rem;
+	padding-top: 2.25rem;
+	line-height: 2.125rem;
+}
+
+.add-thumb:focus,
+.add-thumb:hover {
+	color: #FE337E;
+}
+
+.remove-thumb {
+	width: 1.875rem;
+	padding-top: 1.625rem;
+	line-height: 1.625rem;
+	/* background-color: #354147; */
+}
+
+.remove-thumb:focus,
+.remove-thumb:hover {
+	color: #FE681F;
+}
+
+.add-thumb:before,
+.remove-thumb:before {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	font-size: 1.25rem;
+	text-align: center;
+	line-height: inherit;
+}
+
+.add-thumb:before {
+	content: '+';
+}
+
+.remove-thumb:before {
+	content: '⨯';
+}
+
+.small-remove-thumb {
+	line-height: 1.25rem;
+	padding-top: 1.25rem;
+	width: 1.5rem;
+}
+
+/*
+.small-remove-thumb:focus,
+.small-remove-thumb:hover {
+	/* Don't draw attention to small thumbs. *//*
+	color: #4C565C;
+	border-color: #4C565C;
+}
+*/
+
 .keyboard-thumb,
 .midi-thumb {
     width: 0.9375rem;
@@ -260,7 +333,7 @@ range-control + .sources-block {
 }
 
 .controls-toggle-block.active {
-    /*overflow: visible;*/
+    overflow: visible;
     /* Compensating for border top and bottom of 2px, adds up to 75px */
     padding-bottom: 58px;
     padding-top: 13px;
@@ -301,6 +374,9 @@ range-control + .sources-block {
 
 .controls-toggle-block > .control-index {
     margin-bottom: 15px;
+    /* Not perfect, but can't set 100% because height is auto on parent. */
+    max-height: inherit;
+    overflow: hidden;
 }
 
 .controls-toggle-block > table {
@@ -332,7 +408,11 @@ range-control + .sources-block {
     padding-right: 0;
 }
 
-
+.control-index > li > .remove-thumb {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
 
 
 /* -------------------------------- */
@@ -541,6 +621,10 @@ range-control + .sources-block {
 .transform-grid > .max-code-input {
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
+}
+
+.transform-grid + .transform-grid {
+    margin-top: 3px;
 }
 
 .left-top-bubble::after {
