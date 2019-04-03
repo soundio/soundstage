@@ -352,7 +352,9 @@
             </thead>
             <tbody>
                 <tr fn="each">
-                    <td fn="get:source" include="#control-source-{[device]}"></td>
+                    <td fn="get:source">
+                        <template include="#control-source-{[device]}"></template>
+                    </td>
                     <!--td><input class="type-code-input code-input" type="text" :value="{[data.type]}" /></td>
                     <td><input class="name-code-input code-input" type="text" :value="{[data.name]}" /></td-->
                     <td>
@@ -609,7 +611,9 @@
                     <h2>Controls</h2>
                     <div fn="each">
                         <pre>{[.]}</pre>
-                        <div fn="get:source" include="source-device-{[device]}"></div>
+                        <div fn="get:source">
+                            <template include="source-device-{[device]}"></template>
+                        </div>
                         <div fn="get:data">
                             {[.]} {[latencyCompensation]}
                             <label>Min</label>

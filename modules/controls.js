@@ -11,7 +11,7 @@ Constructor for an array-like of Control objects. Has the methods:
 
 import { get, map, nothing } from '../../fn/fn.js';
 import push        from '../../fn/modules/lists/push.js';
-import { toKeyString, toKeyCode } from '../../../dom/dom.js';
+import { toKeyString } from '../../../dom/dom.js';
 import { on, off, toChannel, toType } from '../../midi/midi.js';
 import { print }           from './utilities/print.js';
 import KeyboardInputSource, { isKeyboardInputSource } from './control-sources/keyboard-input-source.js';
@@ -19,16 +19,6 @@ import MIDIInputSource, { isMIDIInputSource }     from './control-sources/midi-i
 import Control from './control.js';
 
 const assign = Object.assign;
-const define = Object.defineProperties;
-const A      = Array.prototype;
-
-function toEvent(audio, time, type, value) {
-    this[0] = this.time = timeAtDomTime(audio, event[0]);
-    this[1] = this.type = type;
-    // Huh?
-    this[3] = value;
-    this.recordable = true;
-}
 
 function toMIDISelector(e) {
     const type = toType(e.data);
@@ -82,16 +72,6 @@ export default function Controls(getTarget, settings, notify) {
     print('controls', sources.filter(isKeyboardInputSource).length + ' keyboard, ' + sources.filter(isMIDIInputSource).length + ' MIDI');
     return controls;
 }
-
-/*
-define(Controls.prototype, {
-    length: {
-        writable: true,
-        enumerable: false,
-        value: 0
-    }
-});
-*/
 
 export function learnMIDI(target, data) {
     const controls = this;
