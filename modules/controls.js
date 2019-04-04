@@ -10,10 +10,10 @@ Constructor for an array-like of Control objects. Has the methods:
 */
 
 import { get, map, nothing } from '../../fn/module.js';
-import push        from '../../fn/modules/lists/push.js';
-import { toKeyString } from '../../../dom/module.js';
+import push from '../../fn/modules/lists/push.js';
+import { toKeyString } from '../../dom/module.js';
 import { on, off, toChannel, toType } from '../../midi/module.js';
-import { print }           from './utilities/print.js';
+import { print } from './utilities/print.js';
 import KeyboardInputSource, { isKeyboardInputSource } from './control-sources/keyboard-input-source.js';
 import MIDIInputSource, { isMIDIInputSource }     from './control-sources/midi-input-source.js';
 import Control from './control.js';

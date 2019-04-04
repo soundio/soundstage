@@ -3,7 +3,7 @@
         .icon-stroke {
             fill: none;
             stroke: #00181f;
-            stroke-width: 1.5;
+            stroke-width: 1.6;
             stroke-linecap: round;
             stroke-linejoin: round;
         }
