@@ -635,10 +635,10 @@
                         </div>
                     </div>
                 </div>
-            </template-->
+            </template>
         </div>
 
-        <!--div class="events-block block" fn="get:events">
+        <div class="events-block block" fn="get:events">
             <h2>Events</h2>
             <pre>
             <table>
@@ -666,9 +666,9 @@
                 </tbody>
             </table>
             </pre>
-        </div-->
+        </div>
 
-        <!--div class="sequences-block block" fn="get:sequences">
+        <div class="sequences-block block" fn="get:sequences">
             <h2>Sequences</h2>
             <div fn="each">
                 {[.]}
@@ -690,11 +690,11 @@
     import * as Fn from '../fn/module.js';
     window.Fn = Fn;
 
-    import * as normalise from '../fn/modules/normalisers.js';
-    window.normalise = normalise;
+    import * as normalisers from '../fn/modules/normalisers.js';
+    window.normalisers = normalisers;
 
-    import * as denormalise from '../fn/modules/denormalisers.js';
-    window.denormalise = denormalise;
+    import * as denormalisers from '../fn/modules/denormalisers.js';
+    window.denormalisers = denormalisers;
 
     import { Stream } from '../fn/module.js';
     window.Stream = Stream;
@@ -709,6 +709,7 @@
 
     import Sparky, { functions, notify, mountConfig, getScope } from '../sparky/module.js';
     window.Sparky = Sparky;
+    window.Sparky.getScope = getScope;
 
     import context from './modules/context.js';
     import { learnKeyboard, learnMIDI } from './modules/controls.js';

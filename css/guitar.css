@@ -342,8 +342,14 @@ range-control + .sources-block {
     padding-top: 0;
 }
 
-.controls-toggle-block.active > template + .bottoms-block {
+.controls-toggle-block > .buttons-block {
+    transition:  opacity 200ms linear 100ms;
+    opacity: 0;
+}
 
+.controls-toggle-block.active > .buttons-block {
+    transition: opacity 300ms linear 260ms;
+    opacity: 1;
 }
 
 /* Really we wan this on controls-toggle-block, but we need
