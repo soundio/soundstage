@@ -1,4 +1,4 @@
-import { test } from '../../fn/fn.js';
+import { test } from '../../fn/module.js';
 import * as MIDI from '../../midi/midi.js';
 import Controls from '../modules/controls.js';
 

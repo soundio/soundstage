@@ -1,7 +1,7 @@
 
 //import AudioObject from '../../context-object/modules/context-object.js';
 import { print, printGroup, printGroupEnd, log } from './print.js';
-import { remove, id } from '../../fn/fn.js';
+import { remove, id } from '../../fn/module.js';
 import { Privates } from '../modules/utilities/privates.js';
 import { numberToFrequency } from '../../midi/midi.js';
 import Tick from './tick.js';

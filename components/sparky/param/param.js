@@ -1,5 +1,5 @@
-import { cue, functions } from '../../../../sparky/sparky.js';
-import { notify, observe, Target } from '../../../../fn/fn.js';
+import { cue, functions } from '../../../../sparky/module.js';
+import { notify, observe, Target } from '../../../../fn/module.js';
 import { isAudioParam, automate } from '../../../soundstage.js';
 
 const DEBUG    = true;//window.DEBUG;

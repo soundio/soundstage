@@ -1,5 +1,5 @@
-import { test } from '../../fn/fn.js';
-import { create, append, find } from '../../dom/dom.js';
+import { test } from '../../fn/module.js';
+import { create, append, find } from '../../dom/module.js';
 import Recorder from './recorder.js';
 import context from '../modules/context.js';
 import { drawYAxisAmplitude, drawCurve, drawPoint } from '../modules/canvas.js';

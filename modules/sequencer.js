@@ -29,7 +29,7 @@ Returns the beat at a given `time`.
 Returns the time at a given `beat`.
 */
 
-import { each, get, id, insert, isDefined, Pool, toArray, by, noop, nothing, matches } from '../../fn/fn.js';
+import { each, get, id, insert, isDefined, Pool, toArray, by, noop, nothing, matches } from '../../fn/module.js';
 import { Privates } from './utilities/privates.js';
 import { createId } from './utilities/utilities.js';
 import { isRateEvent, isMeterEvent, getDuration, getBeat, isValidEvent, eventValidationHint } from './event.js';

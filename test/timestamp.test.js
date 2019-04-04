@@ -1,4 +1,4 @@
-import { test, Stream } from '../../fn/fn.js';
+import { test, Stream } from '../../fn/module.js';
 import context from '../modules/context.js';
 
 window.context = context;

@@ -1,5 +1,5 @@
 
-import { noop, nothing } from '../../fn/fn.js';
+import { noop, nothing } from '../../fn/module.js';
 import { Privates } from '../modules/utilities/privates.js';
 import PlayNode from './play-node.js';
 

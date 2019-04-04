@@ -1,6 +1,6 @@
-import { capture, id, toLevel } from '../../fn/fn.js';
-import * as normalise from '../../fn/modules/normalise.js';
-import * as denormalise from '../../fn/modules/denormalise.js';
+import { capture, id, toLevel } from '../../fn/module.js';
+import * as normalise from '../../fn/modules/normalisers.js';
+import * as denormalise from '../../fn/modules/denormalisers.js';
 import { numberToFrequency } from '../../midi/midi.js';
 
 export const transforms = {

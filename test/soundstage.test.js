@@ -1,4 +1,4 @@
-import { test } from '../../fn/fn.js';
+import { test } from '../../fn/module.js';
 import Soundstage from '../modules/soundstage.js';
 
 // Event types

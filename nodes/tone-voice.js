@@ -1,4 +1,4 @@
-import { nothing } from '../../fn/fn.js';
+import { nothing } from '../../fn/module.js';
 import { Privates } from '../modules/utilities/privates.js';
 import Tone from './tone.js';
 import NodeGraph   from './node-graph.js';

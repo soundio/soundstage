@@ -1,9 +1,9 @@
 
-import { limit as clamp, by, insert, get, noop, overload, Stream, toCamelCase, toLevel, id, notify, nothing, observe, remove } from '../../../../fn/fn.js';
-import * as normalise from '../../../../fn/modules/normalise.js';
-import * as denormalise from '../../../../fn/modules/denormalise.js';
-import { box, events, isPrimaryButton } from '../../../../dom/dom.js';
-import { register, getScope } from '../../../../sparky/sparky.js';
+import { limit as clamp, by, insert, get, noop, overload, Stream, toCamelCase, toLevel, id, notify, nothing, observe, remove } from '../../../../fn/module.js';
+import * as normalise from '../../../../fn/modules/normalisers.js';
+import * as denormalise from '../../../../fn/modules/denormalisers.js';
+import { box, events, isPrimaryButton } from '../../../../dom/module.js';
+import { register, getScope } from '../../../../sparky/module.js';
 import parseValue from '../../../../fn/modules/parse-value.js';
 
 window.toLevel = toLevel;

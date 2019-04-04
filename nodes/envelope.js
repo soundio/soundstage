@@ -1,5 +1,5 @@
 
-import { get, overload } from '../../../fn/fn.js';
+import { get, overload } from '../../../fn/module.js';
 import PlayNode from './play-node.js';
 import { automate, getAutomationEvents } from '../modules/automate.js';
 

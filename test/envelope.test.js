@@ -1,5 +1,5 @@
-import { test } from '../../fn/fn.js';
-import { create, append, find } from '../../dom/dom.js';
+import { test } from '../../fn/module.js';
+import { create, append, find } from '../../dom/module.js';
 import { getValueAtTime, getAutomationEvents, requestAutomationData } from '../modules/automate.js';
 import Envelope from './envelope.js';
 import { drawYAxisAmplitude, drawCurve, drawPoint } from '../modules/canvas.js';

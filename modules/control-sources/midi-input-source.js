@@ -16,7 +16,7 @@ and the methods:
 - `stop()`: stops the stream of input messages
 */
 
-import { id, noop } from '../../../fn/fn.js';
+import { id, noop } from '../../../fn/module.js';
 import { on, off, toType, bytesToSignedFloat, int7ToFloat, int14ToSignedFloat, numberToControl } from '../../../midi/midi.js';
 
 const define = Object.defineProperties;

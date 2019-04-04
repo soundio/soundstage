@@ -11,7 +11,7 @@ Returns the beat at a given `bar`.
 Returns the bar at a given `beat`.
 */
 
-import { nothing } from '../../fn/fn.js';
+import { nothing } from '../../fn/module.js';
 import { isMeterEvent } from './event.js';
 
 var assign = Object.assign;

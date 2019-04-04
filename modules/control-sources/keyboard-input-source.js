@@ -12,8 +12,8 @@ and the methods:
 - `stop()`: stops the stream of input messages
 */
 
-import { noop, remove } from '../../../fn/fn.js';
-import { toKeyString, toKeyCode } from '../../../dom/dom.js';
+import { noop, remove } from '../../../fn/module.js';
+import { toKeyString, toKeyCode } from '../../../dom/module.js';
 
 const define    = Object.defineProperties;
 const keyRoutes = {};

@@ -1,6 +1,6 @@
 
 import Clock from './clock.js';
-import { nothing, insert, get } from '../../fn/fn.js';
+import { nothing, insert, get } from '../../fn/module.js';
 import { Privates } from './utilities/privates.js';
 import { beatAtLocation, locationAtBeat } from './location.js';
 import { isRateEvent, isValidEvent } from './event.js';

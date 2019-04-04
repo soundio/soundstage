@@ -1,5 +1,5 @@
 
-import { isDefined, noop, nothing, matches, notify }   from '../../fn/fn.js';
+import { isDefined, noop, nothing, matches, notify }   from '../../fn/module.js';
 import requestInputSplitter   from '../../audio-object/modules/request-input-splitter.js';
 
 import { print, printGroup, printGroupEnd }     from './utilities/print.js';

@@ -1,6 +1,6 @@
 
-import { isDefined } from '../../fn/fn.js';
-import { create, append, style, events } from '../../dom/dom.js';
+import { isDefined } from '../../fn/module.js';
+import { create, append, style, events } from '../../dom/module.js';
 
 
 // Create inspector and place it in the DOM

@@ -1,5 +1,5 @@
-import { test, noop } from '../../fn/fn.js';
-import { find } from '../../../dom/dom.js';
+import { test, noop } from '../../fn/module.js';
+import { find } from '../../../dom/module.js';
 import Recorder from '../nodes/recorder.js';
 import { drawYAxisAmplitude, drawCurve, drawPoint } from '../modules/canvas.js';
 import Soundstage from '../soundstage.js';

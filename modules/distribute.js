@@ -1,6 +1,6 @@
-import { matches } from '../../fn/fn.js';
+import { matches } from '../../fn/module.js';
 import { print } from './utilities/print.js';
-import { overload } from '../../fn/fn.js';
+import { overload } from '../../fn/module.js';
 import { noteToNumber } from '../../midi/midi.js';
 import { automate } from './automate.js';
 

@@ -1,5 +1,5 @@
 
-import { id, Stream } from '../../fn/fn.js';
+import { id, Stream } from '../../fn/module.js';
 import { Privates } from './utilities/privates.js';
 import { roundBeat } from '../modules/utilities/utilities.js';
 import { automate, getValueAtTime, getAutomationEvents } from './automate.js';

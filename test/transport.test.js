@@ -1,4 +1,4 @@
-import { test }      from '../../fn/fn.js';
+import { test }      from '../../fn/module.js';
 import Transport     from '../modules/transport.js';
 import Timer         from '../modules/timer.js';
 import context       from '../modules/context.js';

@@ -1,5 +1,5 @@
 
-import { get, isDefined }      from '../../fn/fn.js';
+import { get, isDefined }      from '../../fn/module.js';
 import { connect, disconnect } from './connect.js';
 import { print }               from './utilities/print.js';
 

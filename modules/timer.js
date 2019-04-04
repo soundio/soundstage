@@ -1,6 +1,6 @@
 
 import { logGroup, logGroupEnd } from './utilities/print.js';
-import { remove } from '../../fn/fn.js';
+import { remove } from '../../fn/module.js';
 import globalConfig from './config.js';
 
 const DEBUG          = true;

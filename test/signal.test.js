@@ -1,4 +1,4 @@
-import { test } from '../../fn/fn.js';
+import { test } from '../../fn/module.js';
 import SignalDetector from './signal.js';
 import context from '../modules/context.js';
 

@@ -30,7 +30,7 @@ through a selectable transform function to a target stream.
 
 */
 
-import { noop, remove }     from '../../fn/fn.js';
+import { noop, remove }     from '../../fn/module.js';
 import { Distribute } from './distribute.js';
 
 const DEBUG  = window.DEBUG;

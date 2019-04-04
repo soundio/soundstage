@@ -1,5 +1,5 @@
 
-import { Fn, compose, get, is, nothing } from '../../fn/fn.js';
+import { Fn, compose, get, is, nothing } from '../../fn/module.js';
 import { Privates } from './utilities/privates.js';
 import { default as Event, isRateEvent, release } from './event.js';
 

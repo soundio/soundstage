@@ -1,5 +1,5 @@
 
-import { last } from '../../fn/fn.js';
+import { last } from '../../fn/module.js';
 import { timeAtDomTime } from './context.js';
 
 const DEBUG = false;

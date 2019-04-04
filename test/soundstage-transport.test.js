@@ -1,4 +1,4 @@
-import { test } from '../../fn/fn.js';
+import { test } from '../../fn/module.js';
 import Soundstage from '../soundstage.js';
 
 test('Soundstage transport', function(run, print, fixture) {

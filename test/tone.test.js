@@ -1,4 +1,4 @@
-import { test } from '../../fn/fn.js';
+import { test } from '../../fn/module.js';
 import Tone from './tone.js';
 import context from '../modules/context.js';
 

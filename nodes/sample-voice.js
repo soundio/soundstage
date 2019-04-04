@@ -1,6 +1,6 @@
 import Sample from './sample.js';
 
-import { nothing } from '../../fn/fn.js';
+import { nothing } from '../../fn/module.js';
 import { Privates } from '../modules/utilities/privates.js';
 import NodeGraph   from './node-graph.js';
 import PlayNode from './play-node.js';

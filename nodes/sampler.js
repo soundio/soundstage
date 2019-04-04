@@ -1,6 +1,6 @@
 
 import { log, logGroup, logGroupEnd } from './print.js';
-import { get } from '../../fn/fn.js';
+import { get } from '../../fn/module.js';
 import { fetchBuffer } from '../modules/utilities/utilities.js';
 import { Privates } from '../modules/utilities/privates.js';
 import NotesNode from './notes-node.js';

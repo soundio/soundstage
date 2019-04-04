@@ -678,28 +678,28 @@
 
     <!-- Tests -->
     <script type="module">
-    import { closest, get, query, trigger } from '../../dom/dom.js';
+    import { closest, get, query, trigger } from '../../dom/module.js';
     import '../../dom/js/dom.popable.js';
     import '../../dom/js/dom.toggleable.js';
 
     import './components/sparky/midi/fns.js';
     import "./components/sparky/envelope-control/fns.js";
 
-    import { choose, isDefined, Observable, Target } from '../fn/fn.js';
+    import { choose, isDefined, Observable, Target } from '../fn/module.js';
 
-    import * as Fn from '../fn/fn.js';
+    import * as Fn from '../fn/module.js';
     window.Fn = Fn;
 
-    import * as normalise from '../fn/modules/normalise.js';
+    import * as normalise from '../fn/modules/normalisers.js';
     window.normalise = normalise;
 
-    import * as denormalise from '../fn/modules/denormalise.js';
+    import * as denormalise from '../fn/modules/denormalisers.js';
     window.denormalise = denormalise;
 
-    import { Stream } from '../fn/fn.js';
+    import { Stream } from '../fn/module.js';
     window.Stream = Stream;
 
-    import * as dom from '../../dom/dom.js';
+    import * as dom from '../../dom/module.js';
     window.dom = dom;
 
     import { statuses }  from '../midi/midi.js';
@@ -707,7 +707,7 @@
     import Soundstage, { transforms } from './soundstage.js';
     window.Soundstage = Soundstage;
 
-    import Sparky, { functions, notify, mountConfig, getScope } from '../sparky/sparky.js';
+    import Sparky, { functions, notify, mountConfig, getScope } from '../sparky/module.js';
     window.Sparky = Sparky;
 
     import context from './modules/context.js';
