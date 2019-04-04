@@ -2,7 +2,7 @@ import { test, noop } from '../../fn/module.js';
 import { find } from '../../../dom/module.js';
 import Recorder from '../nodes/recorder.js';
 import { drawYAxisAmplitude, drawCurve, drawPoint } from '../modules/canvas.js';
-import Soundstage from '../soundstage.js';
+import Soundstage from '../module.js';
 import context    from '../modules/context.js';
 import { Privates } from '../modules/utilities/privates.js';
 

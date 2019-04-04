@@ -1,7 +1,7 @@
 import { test } from '../../fn/module.js';
 import context from '../modules/context.js';
 import ToneSynth from '../nodes/tone-synth.js';
-import Soundstage from '../soundstage.js';
+import Soundstage from '../module.js';
 import { cueChromaticScale, cueVelocityScale } from '../test/utils.js';
 
 const settings =  {

@@ -100,7 +100,7 @@ import Soundstage from 'http://stephen.band/soundstage/soundstage.js';</code></p
 	<script type="module">
 		import { choose, compose, get, is, overload, requestTick } from '../fn/module.js';
 		import { events, query, toKey } from '../dom/module.js';
-		import Soundstage from './soundstage.js';
+		import Soundstage from './module.js';
 		import './modules/inspector.js';
 
 		var stage = Soundstage({
@@ -437,7 +437,7 @@ import Soundstage from 'http://stephen.band/soundstage/soundstage.js';</code></p
     import Timer from './modules/timer.js';
     window.Timer = Timer;
 
-    import Soundstage from './soundstage.js';
+    import Soundstage from './module.js';
     window.Soundstage = Soundstage;
 
     import { frequencyToNumber, numberToFrequency, noteToNumber, numberToNote } from '../midi/midi.js';

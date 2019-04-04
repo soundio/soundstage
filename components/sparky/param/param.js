@@ -1,6 +1,6 @@
 import { cue, functions } from '../../../../sparky/module.js';
 import { notify, observe, Target } from '../../../../fn/module.js';
-import { isAudioParam, automate } from '../../../soundstage.js';
+import { isAudioParam, automate } from '../../../module.js';
 
 const DEBUG    = true;//window.DEBUG;
 const assign   = Object.assign;

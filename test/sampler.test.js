@@ -1,7 +1,7 @@
 import { test } from '../../fn/module.js';
 import context from '../modules/context.js';
 import Sampler from '../nodes/sampler.js';
-import Soundstage from '../soundstage.js';
+import Soundstage from '../module.js';
 import { cueChromaticScale, cueVelocityScale } from './utils.js';
 
 test('Sampler', function(run, print, fixture) {
