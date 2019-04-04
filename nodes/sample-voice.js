@@ -6,7 +6,7 @@ import NodeGraph   from './node-graph.js';
 import PlayNode from './play-node.js';
 import { automate, getAutomationEvents, getAutomationEndTime } from '../modules/automate.js';
 import { assignSettings } from '../modules/assign-settings.js';
-import { numberToFrequency, frequencyToNumber } from '../../midi/midi.js';
+import { numberToFrequency, frequencyToNumber } from '../../midi/module.js';
 
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;

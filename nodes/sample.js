@@ -4,7 +4,7 @@ import PlayNode from './play-node.js';
 import { requestBuffer } from '../modules/utilities/requests.js';
 import { Privates } from '../modules/utilities/privates.js';
 import { automate, getAutomationEvents } from '../modules/automate.js';
-import { numberToFrequency, frequencyToNumber } from '../../midi/midi.js';
+import { numberToFrequency, frequencyToNumber } from '../../midi/module.js';
 import { assignSettings } from '../modules/assign-settings.js';
 
 const assign = Object.assign;

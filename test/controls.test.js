@@ -1,5 +1,5 @@
 import { test } from '../../fn/module.js';
-import * as MIDI from '../../midi/midi.js';
+import * as MIDI from '../../midi/module.js';
 import Controls from '../modules/controls.js';
 
 test('Controls()', function(run, print, fixture) {

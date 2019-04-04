@@ -1,7 +1,7 @@
 import { matches } from '../../fn/module.js';
 import { print } from './utilities/print.js';
 import { overload } from '../../fn/module.js';
-import { noteToNumber } from '../../midi/midi.js';
+import { noteToNumber } from '../../midi/module.js';
 import { automate } from './automate.js';
 
 function arg2() {

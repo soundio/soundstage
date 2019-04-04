@@ -17,7 +17,7 @@ and the methods:
 */
 
 import { id, noop } from '../../../fn/module.js';
-import { on, off, toType, bytesToSignedFloat, int7ToFloat, int14ToSignedFloat, numberToControl } from '../../../midi/midi.js';
+import { on, off, toType, bytesToSignedFloat, int7ToFloat, int14ToSignedFloat, numberToControl } from '../../../midi/module.js';
 
 const define = Object.defineProperties;
 

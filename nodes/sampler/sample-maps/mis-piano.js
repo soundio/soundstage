@@ -18,7 +18,7 @@
 //   phaseAlign: 100      // Aligns the first 100ms of this sample with others with which it is cross-faded
 // }
 
-import { noteToNumber, numberToFrequency } from '../../../../midi/midi.js';
+import { noteToNumber, numberToFrequency } from '../../../../midi/module.js';
 
 
 // Note: URLs are temporary! They will change.

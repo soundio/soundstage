@@ -16,7 +16,7 @@
 
 // Note: URLs are temporary! They will change.
 
-import { numberToFrequency } from '../../../../midi/midi.js';
+import { numberToFrequency } from '../../../../midi/module.js';
 
 export default {
 	label: 'Gretsch Kit',

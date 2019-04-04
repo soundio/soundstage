@@ -1,6 +1,6 @@
 
 import { Fn, Pool, compose, get, noop, overload } from '../../fn/module.js';
-import { bytesToSignedFloat, toType } from '../../midi/midi.js';
+import { bytesToSignedFloat, toType } from '../../midi/module.js';
 
 const assign           = Object.assign;
 const defineProperties = Object.defineProperties;

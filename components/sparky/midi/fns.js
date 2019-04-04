@@ -1,6 +1,6 @@
 import { functions }  from '../../../../sparky/module.js';
 import { frameClass } from '../../../../dom/module.js';
-import * as MIDI from '../../../../midi/midi.js';
+import * as MIDI from '../../../../midi/module.js';
 
 const flashClass = frameClass('flash');
 
