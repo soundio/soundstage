@@ -94,28 +94,13 @@
             <article fn="get:data.sources entries each">
                 <div class="radios-block block">
                     <input class="masked" type="radio" name="tone-synth-source-{[0]}-type" :value="{[1.type]}" value="sine" id="tone-synth-source-{[0]}-type-sine">
-                    <label title="Sine" class="radio-button button" for="tone-synth-source-{[0]}-type-sine">
-                      <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewbox="0 -1 6.283185 1">
-                        <title>Sine</title>
-                        <use class="icon-stroke" transform="scale(1,2) translate(0,-0.25)" xlink:href="#sine-wave"></use>
-                      </svg>
-                    </label>
-
+                    <label title="Sine" class="sine-radio-button radio-button button" for="tone-synth-source-{[0]}-type-sine"></label>
                     <input class="masked" type="radio" name="tone-synth-source-{[0]}-type" :value="{[1.type]}" value="square" id="tone-synth-source-{[0]}-type-square">
-                    <label title="Square" class="radio-button button" for="tone-synth-source-{[0]}-type-square">
-                      <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewbox="0 -1 6.283185 1">
-                        <title>Square</title>
-                        <use class="icon-stroke" transform="scale(1,2) translate(0,-0.25)" xlink:href="#square-wave"></use>
-                      </svg>
-                    </label>
-
+                    <label title="Square" class="square-radio-button radio-button button" for="tone-synth-source-{[0]}-type-square"></label>
                     <input class="masked" type="radio" name="tone-synth-source-{[0]}-type" :value="{[1.type]}" value="triangle" id="tone-synth-source-{[0]}-type-triangle">
-                    <label title="Triangle" class="radio-button button" for="tone-synth-source-{[0]}-type-triangle">
-                      <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewbox="0 -1 6.283185 1">
-                        <title>Triangle</title>
-                        <use class="icon-stroke" transform="scale(1,2) translate(0,-0.25)" xlink:href="#triangle-wave"></use>
-                      </svg>
-                    </label>
+                    <label title="Triangle" class="triangle-radio-button radio-button button" for="tone-synth-source-{[0]}-type-triangle"></label>
+                    <input class="masked" type="radio" name="tone-synth-source-{[0]}-type" :value="{[1.type]}" value="sawtooth" id="tone-synth-source-{[0]}-type-sawtooth">
+                    <label title="Sawtooth" class="sawtooth-radio-button radio-button button" for="tone-synth-source-{[0]}-type-sawtooth"></label>
                 </div>
 
                 <range-control :value="{[1.detune]}" unit="semitone" min="-1200" max="2400" transform="linear" ticks="-1200 -700 0 700 1200 1600 1900 2200 2400"><span class="text-10">Tune</span></range-control>
@@ -561,15 +546,6 @@
                     <circle cx="15.2" cy="15.2" r="1.5"></circle>
                 </g>
             </g>
-
-
-            <path id="sine-wave" vector-effect="non-scaling-stroke" d="M0 0 C0.512287 -0.512287 1.002314 -1 1.570796 -1 C2.139279 -1 2.629306 -0.512287 3.141593 0 C3.653879 0.512287 4.143906 1 4.712389 1 C5.280872 1 5.770899 0.512287 6.283185 0"></path>
-    		<path id="triangle-wave" vector-effect="non-scaling-stroke" d="M0,0 L3.141593,-1 L3.141593,1 L6.283185,0"></path>
-    		<path id="square-wave" vector-effect="non-scaling-stroke" d="M0,0 L0,-1 L3.141593,-1 L3.141593,1 L6.283185,1 L6.283185,0"></path>
-    		<path id="lowpass-filter" vector-effect="non-scaling-stroke" d="M0,-1 L0.625,-1 C0.875,-1 0.9375,-0.125 1,0"></path>
-    		<path id="highpass-filter" vector-effect="non-scaling-stroke" d="M0,0 C0.0625,-0.125 0.125,-1 0.375,-1 L1,-1 "></path>
-    		<path id="bandpass-filter" vector-effect="non-scaling-stroke" d="M0,0 C0.5,0 0.375,-1 0.5,-1 C0.625,-1 0.5,0 1,0"></path>
-    		<path id="notch-filter" vector-effect="non-scaling-stroke" d="M0,-1 C0.5,-1 0.375,0 0.5,0 C0.625,0 0.5,-1 1,-1"></path>
         </defs>
     </svg>
 
