@@ -88,7 +88,7 @@
             <template fn="controls" include="#node-controls-toggle"></template>
         </form>
 
-        <range-control fn="param:gain" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1"><span class="text-10">Gain</span></range-control>
+        <!--range-control fn="param:gain" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1"><span class="text-10">Gain</span></range-control-->
 
         <section class="sources-block block">
             <article fn="get:data.sources entries each">
@@ -358,8 +358,27 @@
         </table>
     </template>
 
-    <template id="control-index">
-        <h3 class="text-10">Controls</h3>
+    <template id="controls-keyboard-index">
+        <h3 class="text-10">Keyboard</h3>
+        <ul class="control-index index">
+            <li fn="each">
+                <template fn="get:source" include="#control-source-{[device]}"></template>
+                <div fn="get:data" class="transform-grid">
+                    <label class="transform-code-select-button code-select-button select-button button {[transform|is:'pass'|yesno:'none-value','']}">
+                        <select id="" :value="{[transform]}">
+                            <option fn="transforms entries each" :value="{[0]}">{[0]}</option>
+                        </select>
+                    </label>
+                    <input class="min-code-input code-input" type="number" :value="{[min]}" hidden="{[transform|is:'pass']}" />
+                    <input class="max-code-input code-input" type="number" :value="{[max]}" hidden="{[transform|is:'pass']}" />
+                </div>
+                <button type="button" class="remove-thumb thumb" fn="on:click,remove">Remove</button>
+            </li>
+        </ul>
+    </template>
+
+    <template id="controls-midi-index">
+        <h3 class="text-10">MIDI</h3>
         <ul class="control-index index">
             <li fn="each">
                 <template fn="get:source" include="#control-source-{[device]}"></template>
@@ -436,16 +455,17 @@
         <template fn="get:controls filter-controls-keyboard" include="{[length|yesno:'#node-controls-keyboard-index','']}"></template>
         <template fn="get:controls filter-controls-midi" include="{[length|yesno:'#node-controls-midi-index','']}"></template>
         <div class="buttons-block block">
-            <button type="button" class="bottom-button button" fn="get:node scope" action="learn-midi">Learn MIDI</button>
-            <button type="button" class="bottom-button button" fn="get:node scope" action="learn-keyboard">Learn key</button>
+            <button type="button" class="bottom-button button" fn="scope" action="learn-midi">Learn MIDI</button>
+            <button type="button" class="bottom-button button" fn="scope" action="learn-keyboard">Learn key</button>
         </div>
     </template>
 
     <template id="controls-toggle">
-        <template fn="get:controls" include="{[length|yesno:'#control-index','']}"></template>
+        <template fn="get:controls" include="{[length|yesno:'#controls-keyboard-index','']}"></template>
+        <!--template fn="get:controls" include="{[length|yesno:'#controls-midi-index','']}"></template-->
         <div class="buttons-block block">
-            <button type="button" class="bottom-button button" fn="on:click,learn-midi">Learn MIDI</button>
-            <button type="button" class="bottom-button button" fn="on:click,learn-keyboard">Learn key</button>
+            <button type="button" class="bottom-button button" fn="scope" action="learn-midi">Learn MIDI</button>
+            <button type="button" class="bottom-button button" fn="scope" action="learn-keyboard">Learn key</button>
         </div>
     </template>
 
@@ -569,7 +589,7 @@
 
         <div class="nodes-block block">
             <h2 class="label-block block">Nodes</h2>
-            <div class="node-block block" fn="get:nodes each">
+            <div class="{[id|append:-node-block]} node-block block" fn="get:nodes each">
                 <pre>{[id]} <small>{[type]}</small></pre>
 
                 <template include="node-{[type]}"></template>
@@ -581,8 +601,9 @@
                     <pre fn="each">{[.]}</pre>
                 </div>
             </template>
+        </div>
 
-            <!--template fn="get:controls">
+        <!--template fn="get:controls">
                 <div class="controls-block block">
                     <h2>Controls</h2>
                     <div fn="each">
@@ -683,12 +704,12 @@
     import Soundstage, { transforms } from './module.js';
     window.Soundstage = Soundstage;
 
-    import Sparky, { functions, notify, mountConfig, getScope } from '../sparky/module.js';
+    import Sparky, { functions, notify, observe, mountConfig, getScope } from '../sparky/module.js';
     window.Sparky = Sparky;
     window.Sparky.getScope = getScope;
 
     import context from './modules/context.js';
-    import { learnKeyboard, learnMIDI } from './modules/controls.js';
+    import { learnKeyboard, learnMIDI } from './modules/learn.js';
     import './components/sparky/param/param.js';
 
     // Sparky extensions
@@ -703,21 +724,18 @@
 
 
     const actions = choose({
-        'learn-keyboard': function(stage, target, param) {
-            learnKeyboard(target, {})
+        'learn-keyboard': function(stage, target, data) {
+            data.transform = 'switch';
+            return learnKeyboard()
             .then((source) => {
-                const control = stage.createControl(source, target, {
-                    type: 'all'
-                });
+                return stage.createControl(source, target, data);
             });
         },
 
         'learn-midi': function() {
-            learnMIDI(target, {})
+            return learnMIDI(target, data)
             .then((source) => {
-                const control = stage.createControl(source, target, {
-                    type: 'all'
-                });
+                return stage.createControl(source, target, data);
             });
         }
     });
@@ -740,10 +758,9 @@
             if (!node) { return; }
             const action = node.getAttribute('action');
             if (!stage || !action || actions[action]) { return; }
-            const scope = getScope(node);
-            const effect = Target(scope);
-console.log('SCOPE', scope, stage.nodes.find((node) => node.data === effect))
-            actions(action, stage, stage.nodes.find((node) => node.data === effect), {});
+            const scope = Target(getScope(node));
+            actions(action, stage, scope.node, scope.data)
+            .then(() => node.blur());
         });
 
         return output;
@@ -762,13 +779,10 @@ console.log('SCOPE', scope, stage.nodes.find((node) => node.data === effect))
     functions['controls'] = function(node, input, params) {
         const paramName = params && params[0];
 
-        var stream = Stream.of();
-
         return input
         .chain((graphNode) => Observable('.', stage.controls)
-            .tap((n) => console.log('Controls mutated', n))
             .map((controls) => ({
-                node:     graphNode.data,
+                node: graphNode,
 
                 controls: paramName ?
                     controls
@@ -781,11 +795,14 @@ console.log('SCOPE', scope, stage.nodes.find((node) => node.data === effect))
                     .filter((control) =>
                         control.data.type !== 'param'
                         || (control.data.name === undefined || control.data.name === 'all')
-                    )
+                    ),
+
+                data: paramName && {
+                    type: 'param',
+                    name: paramName
+                }
             }))
         );
-
-        return stream;
     };
 
     function isMIDIControl(control) {

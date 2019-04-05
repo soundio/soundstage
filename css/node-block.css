@@ -3,6 +3,8 @@
     margin: 0;
     padding: 9px;
     height: auto;
+    min-width: 200px;
+    max-width: 320px;
 	white-space: normal;
 	text-align: left;
     border-radius: 0.375rem;
@@ -17,4 +19,31 @@
 .node-block > .toggle-block {
     margin-left: -9px;
     margin-right: -9px;
+}
+
+.output-node-block {
+    min-width: 150px;
+    max-width: 240px;
+}
+
+.tone-synth-node-block {
+    display: grid;
+    grid-gap: 0 24px;
+    grid-auto-columns: 1fr 1fr 1fr;
+    min-width: 300px;
+    max-width: 480px;
+}
+
+.tone-synth-node-block > * {
+    margin-left: 0;
+    margin-right: 0;
+    grid-column: 1 / span 3;
+}
+
+.tone-synth-node-block > range-control {
+    grid-column: 1 / span 2;
+}
+
+.tone-synth-node-block > range-control + .toggle-block {
+    grid-column: 1 / span 2;
 }

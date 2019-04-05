@@ -114,6 +114,7 @@ export default function Soundstage(data = nothing, settings = nothing) {
 
     const privates = Privates(this);
 
+    privates.notify = notify;
     privates.outputs = {
         default: output,
         rate:    rateNode
@@ -287,10 +288,10 @@ seconds relative to window.performance.now().
 
 assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
     createControl: function(source, target, data) {
-        const control = new Control(this.controls, source, target, data);
+        const privates = Privates(this);
+        const control = new Control(this.controls, source, target, data, privates.notify);
         this.controls.push(control);
         notify(this.controls, '.');
-        console.log('Control', control);
         return control;
     },
 

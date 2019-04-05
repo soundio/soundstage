@@ -147,6 +147,7 @@ assign(NodeGraph.prototype, {
 
     toJSON: function toJSON() {
         const json = {};
+        var name;
 
         for (name in this) {
             //if (!this.hasOwnProperty(name)) { continue; }

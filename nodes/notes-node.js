@@ -17,17 +17,17 @@ export const config = {
 
 const graph = {
 	nodes: [
-		{ id: 'output',    type: 'gain',     data: {
+		{ id: 'expression', type: 'constant', data: { offset: 0 } },
+		{ id: 'pitch',      type: 'constant', data: { offset: 0 } },
+		{ id: 'detune',     type: 'gain',     data: { gain: 100 } },
+		{ id: 'frequency',  type: 'constant', data: { offset: 0 } },
+		{ id: 'Q',          type: 'constant', data: { offset: 0 } },
+		{ id: 'output',     type: 'gain',     data: {
 			channelInterpretation: 'speakers',
 			channelCountMode: 'explicit',
 			channelCount: 2,
 			gain: 1
-		}},
-		{ id: 'gain',      type: 'constant', data: { offset: 0 } },
-		{ id: 'pitch',     type: 'constant', data: { offset: 0 } },
-		{ id: 'detune',    type: 'gain',     data: { gain: 100 } },
-		{ id: 'frequency', type: 'constant', data: { offset: 0 } },
-		{ id: 'Q',         type: 'constant', data: { offset: 0 } }
+		}}
 	],
 
 	connections: [
@@ -94,33 +94,33 @@ export default function NotesNode(context, settings, Voice, setup) {
 
 	// Get sink fromn context. The sink is a gain with a value of 0. We use
 	// it to conect things to just to make them autmatable.
-	const sink      = getSink(context);
-	const gain      = this.get('gain');
-	const pitch     = this.get('pitch');
-	const frequency = this.get('frequency');
-	const q         = this.get('Q');
-	const output    = this.get('output');
+	const sink       = getSink(context);
+	const expression = this.get('expression');
+	const pitch      = this.get('pitch');
+	const frequency  = this.get('frequency');
+	const q          = this.get('Q');
+	const output     = this.get('output');
 
 	// Params are not attached to anything by default - they wait
 	// to be attached to voices. You can't automate them until they have
 	// a route to context.destination. That's just the way things work.
 	// Attach them to sink to get them nice and active.
-	gain.connect(sink);
+	expression.connect(sink);
 	pitch.connect(sink);
 	frequency.connect(sink);
 	q.connect(sink);
 
 	// Start them
-	gain.start();
+	expression.start();
 	pitch.start();
 	frequency.start();
 	q.start();
 
-	this.gain      = gain.offset;
-	this.pitch     = pitch.offset;
-	this.frequency = frequency.offset;
-	this.Q         = q.offset;
-	this.output    = output.gain;
+	this.expression = expression.offset;
+	this.pitch      = pitch.offset;
+	this.frequency  = frequency.offset;
+	this.Q          = q.offset;
+	this.output     = output.gain;
 
 	// Note pool
 	privates.voices = new Pool(Voice, isIdle, setup);
@@ -173,7 +173,7 @@ assign(NotesNode.prototype, NodeGraph.prototype, {
 	},
 
 	destroy: function() {
-		this.get('gain').disconnect();
+		this.get('expression').disconnect();
 		this.get('pitch').disconnect();
 		this.get('frequency').disconnect();
 		this.get('Q').disconnect();

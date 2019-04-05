@@ -15,7 +15,7 @@ export default class Mix extends GainNode {
         super(context, options);
 
         // Set up the node graph
-    	NodeGraph.call(this, context, graph);
+        NodeGraph.call(this, context, graph);
         this.pan = this.get('pan').pan;
 
         // Connect gain (this) to pan

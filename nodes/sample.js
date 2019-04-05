@@ -7,12 +7,7 @@ import { automate, getAutomationEvents } from '../modules/automate.js';
 import { numberToFrequency, frequencyToNumber } from '../../midi/module.js';
 import { assignSettings } from '../modules/assign-settings.js';
 
-const assign = Object.assign;
-const create = Object.create;
 const define = Object.defineProperties;
-
-// Time multiplier to wait before we accept target value has 'arrived'
-const decayFactor = 12;
 
 const properties = {
     path:      { enumerable: true, writable: true },

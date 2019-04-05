@@ -17,6 +17,7 @@ export const config = {
 
 // Declare some useful defaults
 var defaults = {
+	"gain": 0,
 	"pitch": 0
 };
 
@@ -29,24 +30,29 @@ const properties = {
 	"frequencyEnvelope":      { enumerable: true, writable: true }
 };
 
-export default function ToneSynth(context, settings, stage) {
-	if (DEBUG) { logGroup(new.target === ToneSynth ? 'Node' : 'mixin ', 'ToneSynth'); }
+export default class ToneSynth extends GainNode {
+	constructor(context, settings, stage) {
+		if (DEBUG) { logGroup(new.target === ToneSynth ? 'Node' : 'mixin ', 'ToneSynth'); }
 
-	// Mixin
-	NotesNode.call(this, context, settings, ToneVoice, (voice) => {
-		connect(this.get('detune'), voice.get('detune').offset);
-		connect(this.get('frequency'), voice.frequency);
-		connect(this.get('Q'), voice.Q);
-		connect(voice.get('filter'), this.get('output'));
-	});
+		// Init gain node
+        super(context, settings);
 
-	// Properties
-	define(this, properties);
+		// Mixin
+		NotesNode.call(this, context, settings, ToneVoice, (voice) => {
+			connect(this.get('detune'), voice.get('detune').offset);
+			connect(this.get('frequency'), voice.frequency);
+			connect(this.get('Q'), voice.Q);
+			connect(voice.get('filter'), this.get('output'));
+		});
 
-	// Update settings
-	assignSettings(this, defaults, settings);
+		// Properties
+		define(this, properties);
 
-	if (DEBUG) { logGroupEnd(); }
+		// Update settings
+		assignSettings(this, defaults, settings);
+
+		if (DEBUG) { logGroupEnd(); }
+	}
 }
 
 // Mix AudioObject prototype into MyObject prototype

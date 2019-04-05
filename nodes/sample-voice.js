@@ -11,7 +11,6 @@ import { numberToFrequency, frequencyToNumber } from '../../midi/module.js';
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
-const max    = Math.max;
 
 const graph = {
     nodes: [

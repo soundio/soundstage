@@ -19,8 +19,8 @@ export const config = {
 
 // Declare some useful defaults
 var defaults = {
-	"gain":   0,
-	"pitch":  0
+	"expression": 1,
+	"pitch":      0
 };
 
 const properties = {
@@ -87,7 +87,7 @@ export default function Sampler(context, settings) {
 
 	// Mixin
 	NotesNode.call(this, context, settings, SampleVoice, (voice) => {
-		connect(this.get('gain'), voice.gain);
+		connect(this.get('expression'), voice.gain);
 		connect(this.get('frequency'), voice.frequency);
 		connect(this.get('Q'), voice.Q);
 		connect(this.get('detune'), voice.detune);
