@@ -363,6 +363,17 @@ range-control + .sources-block {
     padding-top: 0;
 }
 
+.controls-toggle-block.learn-midi,
+.controls-toggle-block.learn-keyboard {
+    border-color: #c35100;
+    background-color: hsl(25, 51%, 10%);
+}
+
+.controls-toggle-block.learn-midi [action="learn-midi"],
+.controls-toggle-block.learn-keyboard [action="learn-keyboard"] {
+    background-color: #c35100;
+}
+
 .controls-toggle-block > .buttons-block {
     transition:  opacity 150ms linear 150ms;
     opacity: 0;
@@ -376,6 +387,10 @@ range-control + .sources-block {
 /* Really we wan this on controls-toggle-block, but we need
    selector to tell us when things are in the list, and
    we don't have one. */
+.controls-toggle-block > .text-10:first-child {
+   border-color: inherit;
+}
+
 .controls-toggle-block > .text-10:first-child::after {
     content: '';
     display: block;
@@ -393,6 +408,7 @@ range-control + .sources-block {
     margin-left: -7.5px;
     top: -9px;
     border-left: 2px solid #b0890a;
+    border-color: inherit;
 }
 
 .controls-toggle-block > *:first-child {
@@ -730,6 +746,10 @@ template + .buttons-block {
 .bottom-button {
     padding-top: 6px;
     padding-bottom: 6px;
+}
+
+.bottom-button:focus {
+    box-shadow: none;
 }
 
 label > svg {

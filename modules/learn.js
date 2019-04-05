@@ -5,6 +5,8 @@ import { on, off, toChannel, toType } from '../../midi/module.js';
 import KeyboardInputSource from './control-sources/keyboard-input-source.js';
 import MIDIInputSource from './control-sources/midi-input-source.js';
 
+const assign = Object.assign;
+
 function toMIDISelector(e) {
     const type = toType(e.data);
 
@@ -23,8 +25,16 @@ function toKeySelector(e) {
     };
 }
 
+function StopablePromise(fn) {
+    const methods = {};
+    return assign(new Promise((resolve, reject) => {
+        methods.stop = reject;
+        fn(resolve, reject);
+    }), methods);
+}
+
 export function learnMIDI() {
-    return new Promise(function(resolve, reject) {
+    return StopablePromise(function(resolve, reject) {
         on(nothing, function learn(e) {
             off(nothing, learn);
 
@@ -36,7 +46,7 @@ export function learnMIDI() {
 }
 
 export function learnKeyboard() {
-    return new Promise(function(resolve, reject) {
+    return StopablePromise((resolve, reject) => {
         document.addEventListener('keydown', function learn(e) {
             document.removeEventListener('keydown', learn);
 

@@ -69,7 +69,7 @@ export const transforms = {
     },
 
     'switch': {
-        tx: function toggle(min, max, current, n) {
+        tx: function swtch(min, max, current, n) {
             return n < 0.5 ? min : max ;
         },
 
