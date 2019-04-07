@@ -30,7 +30,7 @@ through a selectable transform function to a target stream.
 
 */
 
-import { noop, remove }     from '../../fn/module.js';
+import { id, noop, remove }     from '../../fn/module.js';
 import { Distribute } from './distribute.js';
 
 const DEBUG  = window.DEBUG;
@@ -43,9 +43,11 @@ export const types = {
         return value ? 'noteon' : 'noteoff' ;
     },
 
-    'control': function control(type, param) {
+    'control': function control(type) {
         return 'param';
-    }
+    },
+
+    'all': id
 };
 
 export const transforms = {

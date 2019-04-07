@@ -16,9 +16,10 @@ and the methods:
 - `stop()`: stops the stream of input messages
 */
 
-import { id, noop } from '../../../fn/module.js';
-import { on, off, toType, bytesToSignedFloat, int7ToFloat, int14ToSignedFloat, numberToControl } from '../../../midi/module.js';
+import { noop, nothing } from '../../../fn/module.js';
+import { on, off, toType, bytesToSignedFloat, int7ToFloat, numberToControl, toChannel } from '../../../midi/module.js';
 
+const assign = Object.assign;
 const define = Object.defineProperties;
 
 const pitchBendRange = 2;
@@ -91,7 +92,7 @@ export default function MIDIInputSource(data) {
         const n = Math.floor((e.data[0] - 128) / 16);
         return fn(e.timeStamp, controlTypes[n], controlParams[n](e.data), controlValues[n](e.data));
     };
-
+console.log('MIDIInputSource', data);
     const selector = {
         port: data.port,
         0:    data.channel,
@@ -130,7 +131,7 @@ export default function MIDIInputSource(data) {
 
         type: {
             enumerable: true,
-            get: function() { return selector[1]; },
+            get: function() { return selector[1] || 'all'; },
             set: function(value) {
                 off(selector, handler);
                 selector[1] = value;
@@ -170,6 +171,66 @@ export default function MIDIInputSource(data) {
 
     on(selector, handler);
 }
+
+
+
+function toMIDISelector(e, options) {
+    const selector = {
+        port: e.target.id
+    };
+
+    if (options.channel === 'all') {
+        return selector;
+    }
+
+    selector.channel = options.channel === undefined ?
+        toChannel(e.data) :
+        options.channel ;
+
+    if (options.type === 'all') {
+        return selector;
+    }
+
+    const type = toType(e.data);
+    selector.type = options.type === undefined ?
+        (type === 'noteon' || type === 'noteoff' ? 'note' : type) :
+        options.type ;
+
+    if (options.param === 'all') {
+        return selector;
+    }
+
+    selector.param = options.param === undefined ?
+        e.data[1] :
+        options.param ;
+
+    return selector;
+}
+
+
+function StopablePromise(fn) {
+    const methods = {};
+    return assign(new Promise((resolve, reject) => {
+        methods.stop = reject;
+        fn(resolve, reject);
+    }), methods);
+}
+
+export function learn(options) {
+    return StopablePromise(function(resolve, reject) {
+        on(nothing, function learn(e) {
+            off(nothing, learn);
+
+            // Create source
+            const selector = toMIDISelector(e, options);
+console.log('SELECTOR', e, selector);
+            resolve(new MIDIInputSource(selector));
+        });
+    });
+}
+
+
+
 
 export function isMIDIInputSource(source) {
     return source instanceof MIDIInputSource;

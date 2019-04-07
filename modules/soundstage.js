@@ -291,7 +291,7 @@ assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
         const privates = Privates(this);
         const control = new Control(this.controls, source, target, data, privates.notify);
         this.controls.push(control);
-        notify(this.controls, '.');
+        privates.notify(this.controls, '.');
         return control;
     },
 

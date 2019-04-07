@@ -149,7 +149,7 @@ assign(ToneVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
         //getAutomationEvents(this.env1.offset).length = 0;
         //getAutomationEvents(this.env2.offset).length = 0;
 
-        assignSettings(this, defaults, settings);
+        assignSettings(this, defaults, settings, ['context']);
         return this;
     },
 

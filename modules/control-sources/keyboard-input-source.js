@@ -15,9 +15,16 @@ and the methods:
 import { noop, remove } from '../../../fn/module.js';
 import { toKeyString, toKeyCode } from '../../../dom/module.js';
 
+const assign    = Object.assign;
 const define    = Object.defineProperties;
+
+const ignoreTypes = {
+    'text': true,
+    'number': true,
+    'select-one': true
+};
+
 const keyRoutes = {};
-const keyStates = {};
 
 const keymap = {
     192: 43,
@@ -63,6 +70,22 @@ const keymap = {
     221: 74
 };
 
+// A map of currently pressed keys
+const keys = {};
+
+const ignoreInputs = {
+    'text': true,
+    'number': true
+};
+
+const ignoreTags = {
+    'select': (e) => true,
+    'input': (e) => ignoreInputs[e.target.type]
+}
+
+function ignore(e) {
+    return ignoreTags[e.target.tagName] && ignoreTags[e.target.tagName](e);
+}
 
 function fireKeydown(e, fn) {
     // Don't trigger keys that don't map to something
@@ -93,38 +116,28 @@ function fireNoteOff(e, fn) {
 }
 
 function keydown(e) {
-    // Ignore key presses from interactive elements
-    if ('value' in e.target) {
-        return;
-    }
+    // Protect against multiple keydowns fired by the OS when
+    // the key is held down
+    if (keys[e.keyCode]) { return; }
+    keys[e.keyCode] = true;
 
-    // Track key states in order to avoid double triggering of noteons
-    // when a key is left depressed for some time
-    if (keyStates[e.keyCode]) { return; }
-    keyStates[e.keyCode] = true;
+    // Ignore key presses from interactive elements - inputs etc.
+    if (ignore(e)) { return; }
 
     keyRoutes[e.keyCode] && keyRoutes[e.keyCode].reduce(fireKeydown, e);
-    keyRoutes['undefined'] && keyRoutes['undefined'].reduce(fireKeydown, e);
-
-    // keyRoutes[e.keyCode] && keyRoutes[e.keyCode].reduce(fireNoteOn, e);
-    // keyRoutes['undefined'] && keyRoutes['undefined'].reduce(fireNoteOn, e);
+    keyRoutes.piano && keyRoutes.piano.reduce(fireNoteOn, e);
+    keyRoutes['undefined'] && keyRoutes['undefined'].reduce(fireNoteOn, e);
 }
 
 function keyup(e) {
-    // Ignore key presses from interactive elements
-    if ('value' in e.target) {
-        return;
-    }
+    keys[e.keyCode] = false;
 
-    // Track key states in order to avoid double triggering
-    if (!keyStates[e.keyCode]) { return; }
-    keyStates[e.keyCode] = false;
+    // Ignore key presses from interactive elements
+    if (ignore(e)) { return; }
 
     keyRoutes[e.keyCode] && keyRoutes[e.keyCode].reduce(fireKeyup, e);
-    keyRoutes['undefined'] && keyRoutes['undefined'].reduce(fireKeyup, e);
-
-    // keyRoutes[e.keyCode] && keyRoutes[e.keyCode].reduce(fireNoteOff, e);
-    // keyRoutes['undefined'] && keyRoutes['undefined'].reduce(fireNoteOff, e);
+    keyRoutes.piano && keyRoutes.piano.reduce(fireNoteOff, e);
+    keyRoutes['undefined'] && keyRoutes['undefined'].reduce(fireNoteOff, e);
 }
 
 document.addEventListener('keydown', keydown);
@@ -136,7 +149,9 @@ export default function KeyboardInputSource(selector) {
     };
 
     let fn      = noop;
-    let keyCode = toKeyCode(selector.key);
+    let keyCode = selector.key === 'piano' ?
+        'piano' :
+        toKeyCode(selector.key) ;
 
     define(this, {
         device: {
@@ -149,7 +164,9 @@ export default function KeyboardInputSource(selector) {
             get: function() { return toKeyString(keyCode); },
             set: function(value) {
                 (keyRoutes[keyCode] && remove(keyRoutes[keyCode], handler));
-                keyCode = toKeyCode(value);
+                keyCode = value === 'piano' ?
+                    'piano' :
+                    toKeyCode(value) ;
                 (keyRoutes[keyCode] || (keyRoutes[keyCode] = [])).push(handler);
             }
         }
@@ -171,6 +188,32 @@ export default function KeyboardInputSource(selector) {
         (keyRoutes[keyCode] && remove(keyRoutes[keyCode], handler));
         fn = noop;
     };
+}
+
+function StopablePromise(fn) {
+    const methods = {};
+    return assign(new Promise((resolve, reject) => {
+        methods.stop = reject;
+        fn(resolve, reject);
+    }), methods);
+}
+
+function toKeySelector(e) {
+    return {
+        key: toKeyString(e.keyCode)
+    };
+}
+
+export function learn() {
+    return StopablePromise((resolve, reject) => {
+        document.addEventListener('keydown', function learn(e) {
+            document.removeEventListener('keydown', learn);
+
+            // Create source
+            const selector = toKeySelector(e);
+            resolve(new KeyboardInputSource(selector));
+        });
+    });
 }
 
 export function isKeyboardInputSource(source) {

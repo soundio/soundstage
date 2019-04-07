@@ -315,13 +315,27 @@
         <div class="midi-source-grid source-grid">
             <input class="channel-code-input code-input" type="number" min="1" max="16" :value="{[channel]}" />
 
-            <label class="type-code-select-button code-select-button select-button button {[data.transform|is:'pass'|yesno:'none-value','']}">
+            <label class="type-code-select-button code-select-button select-button button {[type|is:'all'|yesno:'last','']}">
                 <select id="" :value="{[type]}">
+                    <option value="all">all</option>
                     <option fn="midi-types each" value="{[.]}">{[.]}</option>
                 </select>
             </label>
 
             <input class="number-code-input code-input" type="number" min="0" max="127" :value="{[param]}" hidden="{[type|is:pitch]}" />
+        </div>
+    </template>
+
+    <template id="node-control-source-keyboard">
+        <div class="key-source-grid source-grid">
+            <input class="key-code-input code-input" type="text" maxlength="1" :value="{[key]}" />
+        </div>
+    </template>
+
+    <template id="node-control-source-midi">
+        <div class="midi-source-grid source-grid">
+            <input class="channel-code-input code-input" type="number" min="1" max="16" :value="{[channel]}" />
+            <output class="code-output">{[type]}</output>
         </div>
     </template>
 
@@ -373,7 +387,7 @@
                     <input class="min-code-input code-input" type="number" :value="{[min]}" hidden="{[transform|is:'pass']}" />
                     <input class="max-code-input code-input" type="number" :value="{[max]}" hidden="{[transform|is:'pass']}" />
                 </div>
-                <button type="button" class="remove-thumb thumb" fn="on:click,remove">Remove</button>
+                <button type="button" class="small-remove-thumb remove-thumb thumb" fn="on:click,remove">Remove</button>
             </li>
         </ul>
     </template>
@@ -392,23 +406,20 @@
                     <input class="min-code-input code-input" type="number" :value="{[min]}" hidden="{[transform|is:'pass']}" />
                     <input class="max-code-input code-input" type="number" :value="{[max]}" hidden="{[transform|is:'pass']}" />
                 </div>
-                <button type="button" class="remove-thumb thumb" fn="on:click,remove">Remove</button>
+                <button type="button" class="small-remove-thumb remove-thumb thumb" fn="on:click,remove">Remove</button>
             </li>
         </ul>
     </template>
 
     <template id="node-controls-keyboard-index">
-        <h3 class="text-10">Keyboard</h3>
+        <h3 class="text-10">Keyboard map</h3>
         <ul class="control-index index">
             <li fn="each">
-                <div>
-                    <span>keyboard as piano</span>
+                <div class="source-grid">
+                    <output class="code-output">piano</output>
                 </div>
                 <div fn="get:data" class="transform-grid">
-                    Velocity
-                    <!-- Must be transform="switch" -->
-                    <!-- Must be min="0" -->
-                    <input class="max-code-input code-input" type="number" :value="{[max]}" hidden="{[transform|is:'pass']}" />
+                    <input class="number-code-input code-input" type="number" :value="{[max]}" />
                 </div>
                 <button type="button" class="small-remove-thumb remove-thumb thumb" fn="on:click,remove">Remove</button>
             </li>
@@ -419,34 +430,7 @@
         <h3 class="text-10">MIDI</h3>
         <ul class="control-index index">
             <li fn="each">
-                <template fn="get:source" include="#control-source-{[device]}"></template>
-                <div fn="get:data" class="transform-grid">
-                    Notes
-                    <label class="transform-code-select-button code-select-button select-button button {[transform|is:'pass'|yesno:'none-value','']}">
-                        <select id="" :value="{[transform]}">
-                            <option fn="transforms entries each" :value="{[0]}">{[0]}</option>
-                        </select>
-                    </label>
-                    <!-- Must be min="0" -->
-                    <output class="min-code-input code-input" hidden="{[transform|is:'pass']}" />{[min]}</output>
-                    <input class="max-code-input code-input" type="number" :value="{[max]}" hidden="{[transform|is:'pass']}" />
-                </div>
-                <div fn="get:data" class="transform-grid">
-                    Pitch Bend
-                    linear
-
-                    <input class="max-code-input code-input" type="number" :value="{[pitchRange]}" />
-                </div>
-                <div fn="get:data" class="transform-grid">
-                    Modulation Wheel
-                    <label class="transform-code-select-button code-select-button select-button button {[transform|is:'pass'|yesno:'none-value','']}">
-                        <select id="" :value="{[transform]}">
-                            <option fn="transforms entries each" :value="{[0]}">{[0]}</option>
-                        </select>
-                    </label>
-                    <input class="min-code-input code-input" type="number" :value="{[min]}" hidden="{[transform|is:'pass']}" />
-                    <input class="max-code-input code-input" type="number" :value="{[max]}" hidden="{[transform|is:'pass']}" />
-                </div>
+                <template fn="get:source" include="#node-control-source-{[device]}"></template>
                 <button type="button" class="small-remove-thumb remove-thumb thumb" fn="on:click,remove">Remove</button>
             </li>
         </ul>
@@ -457,7 +441,7 @@
         <template fn="get:controls filter-controls-midi" include="{[length|yesno:'#node-controls-midi-index','']}"></template>
         <div class="buttons-block block">
             <button type="button" class="bottom-button button" fn="scope" action="learn-midi">Learn MIDI</button>
-            <button type="button" class="bottom-button button" fn="scope" action="learn-keyboard">Learn key</button>
+            <button type="button" class="bottom-button button" fn="scope" action="piano-keyboard">Keyboard as Piano</button>
         </div>
     </template>
 
@@ -466,7 +450,7 @@
         <template fn="get:controls filter-controls-midi" include="{[length|yesno:'#controls-midi-index','']}"></template>
         <div class="buttons-block block">
             <button type="button" class="bottom-button button" fn="scope" action="learn-midi">Learn MIDI</button>
-            <button type="button" class="bottom-button button" fn="scope" action="learn-keyboard">Learn key</button>
+            <button type="button" class="bottom-button button" fn="scope" action="learn-keyboard">Learn Key</button>
         </div>
     </template>
 
@@ -683,7 +667,7 @@
     import './components/sparky/midi/fns.js';
     import "./components/sparky/envelope-control/fns.js";
 
-    import { choose, isDefined, Observable, Target, nothing } from '../fn/module.js';
+    import { choose, isDefined, Observable, Target, nothing, noop } from '../fn/module.js';
 
     import * as Fn from '../fn/module.js';
     window.Fn = Fn;
@@ -702,6 +686,9 @@
 
     import { statuses }  from '../midi/module.js';
 
+    import * as MIDI from '../midi/module.js';
+    window.MIDI = MIDI;
+
     import Soundstage, { transforms } from './module.js';
     window.Soundstage = Soundstage;
 
@@ -710,7 +697,8 @@
     window.Sparky.getScope = getScope;
 
     import context from './modules/context.js';
-    import { learnKeyboard, learnMIDI } from './modules/learn.js';
+    import KeyboardSource, { learn as learnKeyboard } from './modules/control-sources/keyboard-input-source.js';
+    import { learn as learnMIDI } from './modules/control-sources/midi-input-source.js';
     import './components/sparky/param/param.js';
 
     // Sparky extensions
@@ -741,12 +729,22 @@
         'learn-midi': function(stage, scope) {
             // Do a little dance to pass the stop() method down the chain.
             // Todo: find a better way instead of bastardising promises.
-            const promise = learnMIDI();
+            const promise = learnMIDI(scope.source);
             const output = promise.then((source) => {
+                console.log(source);
                 return stage.createControl(source, scope.target, scope.data);
             });
             output.stop = promise.stop;
             return output;
+        },
+
+        'piano-keyboard': function(stage, scope) {
+            const source = new KeyboardSource('piano');
+            return Object.assign(Promise.resolve(
+                stage.createControl(source, scope.target, scope.data)
+            ), {
+                stop: noop
+            });
         }
     });
 
@@ -804,6 +802,10 @@
         return input
         .chain((graphNode) => Observable('.', stage.controls)
             .map((controls) => ({
+                source: paramName ? {} : {
+                    type: 'all'
+                },
+
                 target: graphNode,
 
                 controls: paramName ?
@@ -819,9 +821,11 @@
                         || (control.data.name === undefined || control.data.name === 'all')
                     ),
 
-                data: paramName && {
+                data: paramName ? {
                     type: 'param',
                     name: paramName
+                } : {
+                    type: 'all'
                 }
             }))
         );
