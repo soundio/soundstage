@@ -1,6 +1,5 @@
 
 import { Pool, noop, nothing } from '../../fn/module.js';
-import AudioObject from '../../audio-object/modules/audio-object.js';
 import { fetchBuffer } from './utilities/utilities.js';
 import Sequence  from './sequence.js';
 import Sequencer from './sequencer.js';

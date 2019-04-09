@@ -12,7 +12,7 @@ export default {
     // https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/AnalyserNode
     'analyser': AnalyserNode,
     // https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode/AudioBufferSourceNode
-    'buffer': AudioBufferSourceNode,
+    'buffer-source': AudioBufferSourceNode,
     // https://developer.mozilla.org/en-US/docs/Web/API/BiquadFilterNode/BiquadFilterNode
     'biquad-filter': BiquadFilterNode,
     // https://developer.mozilla.org/en-US/docs/Web/API/ConstantSourceNode/ConstantSourceNode
@@ -30,7 +30,7 @@ export default {
     // https://developer.mozilla.org/en-US/docs/Web/API/MediaElementAudioSourceNode/MediaElementAudioSourceNode
     'element': MediaElementAudioSourceNode,
     // https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamAudioSourceNode/MediaStreamAudioSourceNode
-    'media': MediaStreamAudioSourceNode,
+    'media-source': MediaStreamAudioSourceNode,
     // https://developer.mozilla.org/en-US/docs/Web/API/ChannelMergerNode
     'merger': ChannelMergerNode,
     // https://developer.mozilla.org/en-US/docs/Web/API/OscillatorNode/OscillatorNode

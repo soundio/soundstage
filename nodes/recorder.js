@@ -1,6 +1,6 @@
 
 import { noop, nothing } from '../../fn/module.js';
-import { Privates } from '../modules/utilities/privates.js';
+import { Privates } from '../../fn/module.js';
 import PlayNode from './play-node.js';
 
 function resolve(privates, buffers) {

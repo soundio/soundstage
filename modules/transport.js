@@ -1,6 +1,6 @@
 
 import { id, Stream } from '../../fn/module.js';
-import { Privates } from './utilities/privates.js';
+import { Privates } from '../../fn/module.js';
 import { roundBeat } from '../modules/utilities/utilities.js';
 import { automate, getValueAtTime, getAutomationEvents } from './automate.js';
 import { barAtBeat, beatAtBar } from './meter.js';

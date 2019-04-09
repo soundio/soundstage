@@ -1,6 +1,6 @@
-import { nothing } from '../../fn/module.js';
-import { Privates } from '../modules/utilities/privates.js';
+import { nothing, Privates } from '../../fn/module.js';
 import Tone from './tone.js';
+import Noise from './noise.js';
 import NodeGraph   from './node-graph.js';
 import PlayNode from './play-node.js';
 import { automate, getAutomationEvents, getAutomationEndTime } from '../modules/automate.js';
@@ -99,16 +99,35 @@ function updateSources(node, sources, destination) {
         // Sources are pooled here, so effectively each voice has it's own
         // source pool. Add a new source to the pool if there is not yet one
         // available at this index.
-        if (!sources[i]) {
-            sources[i] = new Tone(destination.context, options);
-            node.get('gainEnvelope').connect(sources[i].get('gain').gain);
-            node.get('detune').connect(sources[i].detune);
+        if (!sources[i] || !sources[i].type === options.type) {
+			if (options.type === 'white' || options.type === 'pink') {
+				// Source is a Noise
+				sources[i] = new Noise(destination.context, options);
+
+				// Hook up the envelope to the noise gain
+				node
+				.get('gainEnvelope')
+				.connect(sources[i].get('gain').gain);
+			}
+			else {
+				// Source is a Tone
+				sources[i] = new Tone(destination.context, options);
+
+				// Hook up the envelope to the noise gain
+	            node
+				.get('gainEnvelope')
+				.connect(sources[i].get('gain').gain);
+
+				// Hook up detune
+	            node
+				.get('detune')
+				.connect(sources[i].detune);
+			}
+
             sources[i].connect(destination);
         }
-        else {
-            sources[i].reset(destination.context, options);
-        }
 
+        sources[i].reset(destination.context, options);
         sources.length = i + 1;
         return sources;
     }, sources);

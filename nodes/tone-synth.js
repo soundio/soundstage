@@ -1,5 +1,5 @@
 import { log, logGroup, logGroupEnd } from './print.js';
-import { Privates } from '../modules/utilities/privates.js';
+import { Privates } from '../../fn/module.js';
 import ToneVoice from './tone-voice.js';
 import NotesNode from './notes-node.js';
 import NodeGraph from './node-graph.js';

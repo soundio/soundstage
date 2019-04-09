@@ -1,5 +1,5 @@
 import { log, logGroup, logGroupEnd } from './print.js';
-import { Privates } from '../modules/utilities/privates.js';
+import { Privates } from '../../fn/module.js';
 import Sample from './sample.js';
 import NodeGraph from './node-graph.js';
 import PlayNode from './play-node.js';

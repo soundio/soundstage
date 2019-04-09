@@ -1,4 +1,4 @@
-import { Privates } from '../modules/utilities/privates.js';
+import { Privates } from '../../fn/module.js';
 import { assignSettings } from '../modules/assign-settings.js';
 import GraphNode from './node-graph.js';
 

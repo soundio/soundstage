@@ -40,7 +40,7 @@ Provides the methods:
 
 */
 
-import { Privates } from '../modules/utilities/privates.js';
+import { Privates } from '../../fn/module.js';
 import { logGroup, logGroupEnd } from '../modules/utilities/print.js';
 import { connect, disconnect } from '../modules/connect.js';
 import constructors from '../modules/constructors';

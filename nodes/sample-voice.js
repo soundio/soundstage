@@ -1,7 +1,7 @@
 import Sample from './sample.js';
 
 import { nothing } from '../../fn/module.js';
-import { Privates } from '../modules/utilities/privates.js';
+import { Privates } from '../../fn/module.js';
 import NodeGraph   from './node-graph.js';
 import PlayNode from './play-node.js';
 import { automate, getAutomationEvents, getAutomationEndTime } from '../modules/automate.js';

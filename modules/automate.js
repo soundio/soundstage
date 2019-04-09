@@ -86,7 +86,7 @@ if (!AudioParam.prototype.cancelAndHoldAtTime) {
 // Automate audio param
 
 function getObjectParam(name, object) {
-    console.log('TODO: get param ' + name + ' of audio-object ', object);
+    console.log('TODO: get param ' + name + ' of node ', object);
 }
 
 export function getParam(name, node) {

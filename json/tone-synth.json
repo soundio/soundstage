@@ -7,7 +7,7 @@
         "label": "Tone Synth",
         "data": {
             "sources": [
-                { "type": "triangle", "detune": -1192, "mix": 0.5, "pan": -0.8 },
+                { "type": "white", "detune": -1192, "mix": 0.5, "pan": -0.8 },
                 { "type": "sine",   "detune": 0, "mix": 0.25, "pan": 0.8 },
                 { "type": "square", "detune": -1208,     "mix": 0.125, "pan": 0.2 }
             ],

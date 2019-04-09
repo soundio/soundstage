@@ -1,6 +1,6 @@
 
 import { log, logGroup, logGroupEnd } from './print.js';
-import { Privates } from '../modules/utilities/privates.js';
+import { Privates } from '../../fn/module.js';
 import NodeGraph from './node-graph.js';
 import { assignSettings } from '../modules/assign-settings.js';
 import { connect, disconnect } from '../modules/connect.js';

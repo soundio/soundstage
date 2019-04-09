@@ -800,11 +800,11 @@ label > svg {
 }
 
 .radio-button {
-    min-width: 30px;
+    min-width: 24px;
     min-height: 21px;
     padding-left: 6px;
     padding-right: 6px;
-	border-radius: 0.1875rem;
+    border-radius: 0.1875rem;
 }
 
 .radio-button > svg {
@@ -870,7 +870,8 @@ input:checked + .radio-button .icon-stroke {
 .sine-radio-button,
 .square-radio-button,
 .triangle-radio-button,
-.sawtooth-radio-button {
+.sawtooth-radio-button,
+.white-radio-button {
     background-image: url(../images/waveforms.svg),         linear-gradient(#858d90, #5c676c);
     background-size:
         30px auto,
@@ -880,7 +881,8 @@ input:checked + .radio-button .icon-stroke {
 .masked:checked + .sine-radio-button,
 .masked:checked + .square-radio-button,
 .masked:checked + .triangle-radio-button,
-.masked:checked + .sawtooth-radio-button {
+.masked:checked + .sawtooth-radio-button,
+.masked:checked + .white-radio-button {
     background-image:
         url('../images/waveforms.svg'),
         linear-gradient(#182d34, #12272d);
@@ -890,11 +892,13 @@ input:checked + .radio-button .icon-stroke {
 .square-radio-button   { background-position: center -122.2px, 0 0; }
 .triangle-radio-button { background-position: center -40.5px, 0 0; }
 .sawtooth-radio-button { background-position: center -81.2px, 0 0; }
+.white-radio-button    { background-position: center -162px, 0 0; }
 
 .masked:checked + .sine-radio-button     { background-position: center -20px, 0 0; }
 .masked:checked + .square-radio-button   {background-position: center -142.6px, 0 0;}
 .masked:checked + .triangle-radio-button {background-position: center -61.3px, 0 0;}
 .masked:checked + .sawtooth-radio-button {background-position: center -102px, 0 0;}
+.masked:checked + .white-radio-button    {background-position: center -182px, 0 0;}
 
 .tab-index,
 .radio-index {

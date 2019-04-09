@@ -1,9 +1,8 @@
 
-import { isDefined, noop, nothing, matches, notify }   from '../../fn/module.js';
-import requestInputSplitter   from '../../audio-object/modules/request-input-splitter.js';
-
+import { isDefined, noop, nothing, matches }   from '../../fn/module.js';
+import requestInputSplitter   from './request-input-splitter.js';
 import { print, printGroup, printGroupEnd }     from './utilities/print.js';
-import { Privates } from './utilities/privates.js';
+import { Privates } from '../../fn/module.js';
 import audio, { timeAtDomTime } from './context.js';
 import constructors  from './constructors';
 import { connect, disconnect } from './connect.js';
