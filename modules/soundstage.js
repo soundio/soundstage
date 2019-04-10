@@ -4,7 +4,7 @@ import requestInputSplitter   from './request-input-splitter.js';
 import { print, printGroup, printGroupEnd }     from './utilities/print.js';
 import { Privates } from '../../fn/module.js';
 import audio, { timeAtDomTime } from './context.js';
-import constructors  from './constructors';
+import constructors  from './constructors.js';
 import { connect, disconnect } from './connect.js';
 import Control       from './control.js';
 import Input         from '../nodes/input.js';
