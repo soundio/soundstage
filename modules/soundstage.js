@@ -59,11 +59,17 @@ function createOutputMerger(context, target) {
     return merger;
 }
 
-function requestAudioNode(context, settings, transport) {
+function rewriteURL(base, url) {
+    // Rewrite relative URLs to be absolute
+    return /^https?:\/\/|^\//.test(url) ? url : base + '/' + url ;
+}
+
+function requestAudioNode(base, context, settings, transport) {
     return (
         constructors[settings.type] ?
             Promise.resolve(constructors[settings.type]) :
-            requestPlugin(settings.type)
+            // settings.type is a URL
+            requestPlugin(rewriteURL(base, settings.type))
     )
     .then(function(Node) {
         // If the constructor has a preload fn, it has special things
@@ -72,12 +78,10 @@ function requestAudioNode(context, settings, transport) {
         // Todo: Need some way of passing base url from soundstage settings
         // (not these node settings) into preload fn, I fear
         return Node.preload ?
-
-            Node.preload(context).then(() => {
-                print('AudioWorklet', Node.name, 'loaded');
+            Node.preload(base, context).then(() => {
+                print('Node', Node.name, 'preload complete');
                 return Node;
             }) :
-
             Node ;
     })
     .then(function(Node) {
@@ -98,6 +102,7 @@ export default function Soundstage(data = nothing, settings = nothing) {
 
     if (DEBUG) { printGroup('Soundstage()'); }
 
+    const base        = settings.baseURL || '/soundstage';
     const context     = settings.context || audio;
     const destination = settings.destination || context.destination;
     const notify      = settings.notify || noop;
@@ -161,7 +166,9 @@ export default function Soundstage(data = nothing, settings = nothing) {
             return Promise.resolve(new Output(context, data.data, output));
         },
 
-        default: requestAudioNode
+        default: function(context, data, transport) {
+            return requestAudioNode(base, context, data, transport);
+        }
     };
 
     Graph.call(this, context, requestTypes, data, transport);

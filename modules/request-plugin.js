@@ -1,4 +1,4 @@
-var registry = {};
+/*var registry = {};
 
 function register(path, module) {
     if (registry[path]) {
@@ -7,7 +7,7 @@ function register(path, module) {
 
     registry[name] = module;
 }
-
+*/
 var modules = {};
 
 export default function importPlugin(path) {
@@ -16,7 +16,7 @@ export default function importPlugin(path) {
     // Don't request the module again if it's already been registered
     return modules[path] || (
         modules[path] = import(path).then(function(module) {
-            register(path, module);
+            /*register(path, module);*/
             return module.default;
         })
     );

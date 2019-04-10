@@ -89,7 +89,7 @@
         <div>Noise</div>
     </template>
 
-    <template id="node-/soundstage/nodes/tone-synth.js">
+    <template id="node-nodes/tone-synth.js">
         <a class="midi-thumb thumb" href="#node-{[id]}-toggle"></a>
 
         <form fn="controls" class="controls-toggle-block toggle-block block {[action]}" toggleable id="node-{[target.id]}-toggle">
@@ -193,7 +193,7 @@
         </form>
     </template>
 
-    <template id="node-/soundstage/nodes/flanger.js">
+    <template id="node-nodes/flanger.js">
         <range-control fn="param:gain" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
             <span class="text-10">Gain</span>
             <a class="midi-thumb thumb" href="#node-{[id]}-gain-toggle" slot="plugs"></a>
@@ -463,7 +463,7 @@
         </div>
     </template>
 
-    <template id="node-/soundstage/nodes/metronome.js">
+    <template id="node-nodes/metronome.js">
         <p>Tick {[data.tick]}</p>
         <p>Tick {[data.tock]}</p>
         <ul>
@@ -762,7 +762,7 @@
         var  stage;
 
         scope.each(function(data) {
-            stage = window.stage = new Soundstage(data, { notify: notify });
+            stage = window.stage = new Soundstage(data, { notify: notify, baseURL: '/soundstage' });
 
             stage.ready(function(stage) {
                 output.push(stage);

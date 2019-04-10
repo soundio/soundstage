@@ -29,8 +29,8 @@ export default class SignalDetector extends AudioWorkletNode {
     }
 }
 
-SignalDetector.preload = function(context) {
+SignalDetector.preload = function(base, context) {
     return  context
     .audioWorklet
-    .addModule('./nodes/signal.worklet.js');
+    .addModule(base + '/nodes/signal.worklet.js');
 };

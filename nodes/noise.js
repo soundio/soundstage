@@ -54,7 +54,6 @@ function requestNoiseBuffer(context) {
 }
 
 export default function Noise(context, options) {
-	console.log('NOISE', options);
 	Privates(this).type = options.type || 'white';
 
     // Set up the node graph
@@ -101,7 +100,8 @@ assign(Noise.prototype, NodeGraph.prototype, PlayNode.prototype, {
         assignSettings(this, defaults, options);
     },
 
-    start: function(time, gain = 0.25) {
+    start: function(time, frequency, gain = 0.25) {
+		// Frequency is unused
         PlayNode.prototype.start.apply(this, arguments);
         this.get('gain').gain.setValueAtTime(gain, this.startTime);
         return this;

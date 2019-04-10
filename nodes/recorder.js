@@ -75,8 +75,8 @@ export default class Recorder extends AudioWorkletNode {
     }
 }
 
-Recorder.preload = function(context) {
+Recorder.preload = function(base, context) {
     return context
     .audioWorklet
-    .addModule('./nodes/recorder.worklet.js');
+    .addModule(base + '/nodes/recorder.worklet.js');
 };

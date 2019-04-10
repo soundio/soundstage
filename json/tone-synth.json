@@ -3,7 +3,7 @@
 
     "nodes": [{
         "id":    "tone-synth",
-        "type":  "/soundstage/nodes/tone-synth.js",
+        "type":  "nodes/tone-synth.js",
         "label": "Tone Synth",
         "data": {
             "sources": [
@@ -59,8 +59,7 @@
     "controls": [{
         "source": {
             "device": "keyboard",
-            "type":   "notes",
-            "key": "b"
+            "type":   "notes"
         },
 
         "target": "tone-synth",

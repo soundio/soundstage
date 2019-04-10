@@ -855,7 +855,11 @@ input:checked + .radio-button .icon-stroke {
 
 .radios-block > .radio-button + .masked + .radio-button {
     border-radius: 0;
-    margin-left: 1px;
+    /* margin-left: 1px; */
+    border-left: 1px solid hsla(198, 39%, 14%, 0.25);
+    background-clip: border-box;
+    background-origin: border-box;
+    /* border-right: 3px solid #0000; */
 }
 
 .radios-block > .radio-button + .masked + .radio-button:last-child {
