@@ -8,8 +8,6 @@ import Envelope from '../nodes/envelope.js';
 import Tick     from '../nodes/tick.js';
 import Recorder from '../nodes/recorder.js';
 
-console.log('MIX', Mix);
-
 export default {
     // https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/AnalyserNode
     'analyser': AnalyserNode,
