@@ -172,11 +172,11 @@ export default function Control(controls, source, target, settings, notify) {
             getControlTime(context, timeStamp) :
             getContextTime(context, timeStamp) ;
 
-        if (data.latencyCompensation && time < context.currentTime) {
-            if (DEBUG) { console.log('Jitter warning. Control time (' + time + ') less than currentTime (' + context.currentTime + '). Advancing to currentTime.'); }
+        if (time < context.currentTime) {
+            if (DEBUG) { console.log('Soundstage jitter warning. Control time (' + time + ') less than currentTime (' + context.currentTime + '). Using currentTime.'); }
             time = context.currentTime;
         }
-
+console.log(type, name, n)
         // Set type, name, value based on data
         type = data.type ?
             types[data.type] ?
@@ -184,12 +184,14 @@ export default function Control(controls, source, target, settings, notify) {
                 data.type :
             type ;
 
-        name = data.name || name ;
+        name = data.name ?
+            data.name[name] :
+            name ;
 
         value = denormalisers[data.transform] ?
             denormalisers[data.transform](data.min, data.max, n, value) :
             n ;
-
+console.log(type, name, value)
         distribute(time, type, name, value);
 
         // Call taps

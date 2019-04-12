@@ -44,7 +44,7 @@ var defaults = {
 	pitch:     0,
 	frequency: 120,
 	Q:         1,
-	output:    1
+	volume:    1
 };
 
 function isDefined(val) {
@@ -120,7 +120,7 @@ export default function NotesNode(context, settings, Voice, setup) {
 	this.pitch      = pitch.offset;
 	this.frequency  = frequency.offset;
 	this.Q          = q.offset;
-	this.output     = output.gain;
+	this.volume     = output.gain;
 
 	// Note pool
 	privates.voices = new Pool(Voice, isIdle, setup);

@@ -47,12 +47,6 @@ const properties = {
 	}
 };
 
-function requestNoiseBuffer(context) {
-	return new Promise(function() {
-
-	})
-}
-
 export default function Noise(context, options) {
 	Privates(this).type = options.type || 'white';
 
@@ -75,6 +69,8 @@ export default function Noise(context, options) {
 	});
 
 	// Fill buffer with white noise
+	// Todo: pink noise, brown noise, some clues about noise here:
+	// https://noisehack.com/generate-noise-web-audio-api/
 	let n = buffer.numberOfChannels;
 	while (n--) {
 		const channel = buffer.getChannelData(n);
@@ -109,6 +105,7 @@ assign(Noise.prototype, NodeGraph.prototype, PlayNode.prototype, {
 
     stop: function(time) {
         PlayNode.prototype.stop.apply(this, arguments);
+console.log('STOP', this.stopTime >= this.context.currentTime, this);
         this.get('gain').gain.setValueAtTime(0, this.stopTime);
         return this;
     }

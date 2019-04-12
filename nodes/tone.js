@@ -83,8 +83,8 @@ assign(Tone.prototype, NodeGraph.prototype, PlayNode.prototype, {
     },
 
     stop: function(time, frequency, gain) {
-console.log('STOP');
         PlayNode.prototype.stop.apply(this, arguments);
+console.log('STOP', this.stopTime >= this.context.currentTime, this);
         this.get('gain').gain.setValueAtTime(0, this.stopTime);
         return this;
     }

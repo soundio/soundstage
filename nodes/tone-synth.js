@@ -38,6 +38,8 @@ export default class ToneSynth extends GainNode {
 
 		// Mixin
 		NotesNode.call(this, context, settings, ToneVoice, (voice) => {
+			// In Notes node, pitch is connected into detune, and we use
+			// detune to control the voice detune
 			connect(this.get('detune'), voice.get('detune').offset);
 			connect(this.get('frequency'), voice.frequency);
 			connect(this.get('Q'), voice.Q);

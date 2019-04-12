@@ -68,6 +68,12 @@ export const distributors = {
 
     'param': function(target, time, type, name, value, duration, notify, context) {
         const param = target[name];
+
+        if (!param || !param.setValueAtTime) {
+            console.warn('Node property "' + name + '" is not an AudioParam', target);
+            return;
+        }
+
         // param, time, curve, value, duration, notify, context
         automate(param, time, 'step', value, null, notify, target.context);
         return target;

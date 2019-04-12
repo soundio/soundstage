@@ -10,7 +10,7 @@
 
     <script>
     document.documentElement.className = 'js';
-    window.DEBUG = true;
+    window.DEBUG = false;
     </script>
 
     <link rel="stylesheet" href="../bolt/css/html.css" />
@@ -96,8 +96,6 @@
             <template include="#node-controls-toggle"></template>
         </form>
 
-        <!--range-control fn="param:gain" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1"><span class="text-10">Gain</span></range-control-->
-
         <section class="sources-block block">
             <article fn="get:data.sources entries each">
                 <div class="radios-block block">
@@ -121,17 +119,11 @@
         <div class="envelopes-block block">
             <div fn="get:data.gainEnvelope entries each">
                 <h3 class="text-10">{[0]}</h3>
-
                 <div fn="get:1">
                     <svg fn="envelope-control" class="envelope-svg" viewBox="0 -1.125 2 1.125" y-transform="linear-logarithmic" y-min="-36dB" y-max="1.125" y-ticks="0dB -6dB -12dB -18dB -24dB -30dB -36dB -42dB -48dB" preserveAspectRatio="xMinYMid slice">
                         <text text-anchor="end" x="-0.05" y="-0.965" style="font-size: 0.07; fill: #01181e;">0</text>
                         <text text-anchor="end" x="-0.05" y="0.035" style="font-size: 0.07; fill: #01181e;">-∞</text>
-                        <!-- Todo: Sparky has a conflict where each and include
-                             cannot be used together, so we need to wrap our
-                             includes. Fix Sparky. -->
-                        <g fn="each">
-                            <use include="#{[1]}-db-control"></use>
-                        </g>
+                        <use fn="each" include="#{[1]}-db-control"></use>
                     </svg>
                 </div>
             </div>
@@ -140,23 +132,17 @@
         <div class="envelopes-block block">
             <div fn="get:data.frequencyEnvelope entries each">
                 <h3 class="text-10">{[0]}</h3>
-
                 <div fn="get:1">
                     <svg fn="envelope-control" class="envelope-svg" viewBox="0 -1 2 1" y-transform="logarithmic" y-min="16" y-max="16384" y-ticks="22.5 55 110 220 440 880 1760 3520 7040 14080" preserveAspectRatio="xMinYMax slice">
                         <text text-anchor="end" x="-0.05" y="-0.965" style="font-size: 0.07; fill: #01181e;">16k</text>
                         <text text-anchor="end" x="-0.05" y="0.035" style="font-size: 0.07; fill: #01181e;">16</text>
-                        <!-- Todo: Sparky has a conflict where each and include
-                             cannot be used together, so we need to wrap our
-                             includes. Fix Sparky. -->
-                        <g fn="each">
-                            <use include="#{[1]}-hz-control"></use>
-                        </g>
+                        <use fn="each" include="#{[1]}-hz-control"></use>
                     </svg>
                 </div>
             </div>
         </div>
 
-        <range-control fn="param:pitch" unit="semitone" min="-200" max="200" ticks="-200 -100 0 100 200">
+        <range-control fn="param:pitch" unit="" min="-2" max="2" ticks="-2 -1 0 1 2">
             <span class="text-10">Pitch</span>
             <a class="midi-thumb thumb" href="#node-{[id]}-pitch-toggle" slot="plugs"></a>
         </range-control>
@@ -183,12 +169,12 @@
             <template include="#controls-toggle"></template>
         </form>
 
-        <range-control fn="param:output" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
+        <range-control fn="param:volume" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
             <span class="text-10">Output</span>
             <a class="midi-thumb thumb" href="#node-{[id]}-output-toggle" slot="plugs"></a>
         </range-control>
 
-        <form fn="controls:output" class="controls-toggle-block toggle-block block {[action]}" toggleable id="node-{[target.id]}-output-toggle">
+        <form fn="controls:volume" class="controls-toggle-block toggle-block block {[action]}" toggleable id="node-{[target.id]}-output-toggle">
             <template include="#controls-toggle"></template>
         </form>
     </template>

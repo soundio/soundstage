@@ -44,6 +44,7 @@ const controlParams = [
     get1,
     get1,
 
+    //get1,
     function control(message) {
         return numberToControl(message[1]);
     },
