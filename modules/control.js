@@ -30,7 +30,8 @@ through a selectable transform function to a target stream.
 
 */
 
-import { id, noop, remove }     from '../../fn/module.js';
+import { id, noop, Privates, remove }     from '../../fn/module.js';
+import { numberToFrequency }     from '../../midi/module.js';
 import { Distribute } from './distribute.js';
 
 const DEBUG  = window.DEBUG;
@@ -50,42 +51,42 @@ export const types = {
     'all': id
 };
 
-export const transforms = {
-    'pass': function linear(min, max, current, n) {
+export const denormalisers = {
+    'pass': function linear(min, max, n, current) {
         return n;
     },
 
-    'linear': function linear(min, max, current, n) {
+    'linear': function linear(min, max, n, current) {
         return n * (max - min) + min;
     },
 
-    'quadratic': function quadratic(min, max, current, n) {
+    'quadratic': function quadratic(min, max, n, current) {
         return Math.pow(n, 2) * (max - min) + min;
     },
 
-    'cubic': function pow3(min, max, current, n) {
+    'cubic': function pow3(min, max, n, current) {
         return Math.pow(n, 3) * (max - min) + min;
     },
 
-    'logarithmic': function log(min, max, current, n) {
+    'logarithmic': function log(min, max, n, current) {
         return min * Math.pow(max / min, n);
     },
 
-    'frequency': function toggle(min, max, current, n) {
-        return (MIDI.numberToFrequency(n) - min) * (max - min) / MIDI.numberToFrequency(127) + min ;
+    'frequency': function toggle(min, max, n, current) {
+        return (numberToFrequency(n) - min) * (max - min) / numberToFrequency(127) + min ;
     },
 
-    'toggle': function toggle(min, max, current, n) {
+    'toggle': function toggle(min, max, n, current) {
         if (n > 0) {
             return current <= min ? max : min ;
         }
     },
 
-    'switch': function sw(min, max, current, n) {
+    'switch': function sw(min, max, n, current) {
         return n < 0.5 ? min : max ;
     },
 
-    'continuous': function toggle(min, max, current, n) {
+    'continuous': function toggle(min, max, n, current) {
         return current + 64 - n ;
     }
 };
@@ -143,17 +144,23 @@ export default function Control(controls, source, target, settings, notify) {
             settings.latencyCompensation
     };
 
-    let value;
+    const privates = Privates(this);
+    const taps = privates.taps = [];
+
+    privates.notify = notify || noop;
 
     this.controls = controls;
     this.source   = source;
     this.target   = target;
     this.data     = data;
-    this.notify   = notify || noop;
 
     seal(this);
 
-    const distribute = Distribute(target.data, notify);
+    const distribute = Distribute(target.data, privates.notify);
+
+    // Keep track of value, it is passed back into transfoms to enable
+    // continuous controls
+    var value;
 
     // Bind source output to route input
     source.each(function input(timeStamp, type, name, n) {
@@ -170,7 +177,7 @@ export default function Control(controls, source, target, settings, notify) {
             time = context.currentTime;
         }
 
-        // Select type based on data
+        // Set type, name, value based on data
         type = data.type ?
             types[data.type] ?
                 types[data.type](type, name, n) :
@@ -179,12 +186,17 @@ export default function Control(controls, source, target, settings, notify) {
 
         name = data.name || name ;
 
-        value = transforms[data.transform] ?
-            transforms[data.transform](data.min, data.max, value, n) :
+        value = denormalisers[data.transform] ?
+            denormalisers[data.transform](data.min, data.max, n, value) :
             n ;
 
-        // target, time, type, name, value, duration, notify
         distribute(time, type, name, value);
+
+        // Call taps
+        var m = taps.length;
+        while (m--) {
+            taps[m](time, type, name, value);
+        }
 
         if (target.record) {
             if (!target.recordDestination) {
@@ -208,10 +220,15 @@ export default function Control(controls, source, target, settings, notify) {
 }
 
 assign(Control.prototype, {
+    tap: function(fn) {
+        Privates(this).taps.push(fn);
+        return this;
+    },
+
     remove: function() {
         this.source.stop();
         remove(this.controls, this);
-        this.notify(this.controls, '.');
+        Privates(this).notify(this.controls, '.');
     },
 
     toJSON: function() {

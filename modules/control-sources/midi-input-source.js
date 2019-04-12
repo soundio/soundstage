@@ -17,7 +17,7 @@ and the methods:
 */
 
 import { noop, nothing } from '../../../fn/module.js';
-import { on, off, toType, bytesToSignedFloat, int7ToFloat, numberToControl, toChannel } from '../../../midi/module.js';
+import { on, off, toType, bytesToSignedFloat, int7ToFloat, int7ToWeightedFloat, numberToControl, toChannel } from '../../../midi/module.js';
 
 const assign = Object.assign;
 const define = Object.defineProperties;
@@ -64,7 +64,7 @@ const controlValues = [
         return 0;
     },
 
-    function noten(message) {
+    function noteon(message) {
         return int7ToFloat(message[2]);
     },
 
@@ -73,7 +73,7 @@ const controlValues = [
     },
 
     function control(message) {
-        return int7ToFloat(message[2]);
+        return int7ToWeightedFloat(message[2]);
     },
 
     noop,
@@ -92,11 +92,11 @@ export default function MIDIInputSource(data) {
         const n = Math.floor((e.data[0] - 128) / 16);
         return fn(e.timeStamp, controlTypes[n], controlParams[n](e.data), controlValues[n](e.data));
     };
-console.log('MIDIInputSource', data);
+
     const selector = {
         port: data.port,
         0:    data.channel,
-        1:    data.type,
+        1:    data.type === 'all' ? undefined : data.type,
         2:    data.param,
         3:    data.value
     };

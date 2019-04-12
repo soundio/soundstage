@@ -805,38 +805,51 @@
         return Fn.Fn.of(types);
     };
 
+    function listen(scope, control) {
+        control.tap(function() { scope.latestEvent = arguments; });
+        return scope;
+    }
+
     functions['controls'] = function(node, input, params) {
         const paramName  = params && params[0];
 
         return input
-        .chain((graphNode) => Observable('.', stage.controls)
-            .map((controls) => ({
-                source: paramName ? {} : {
-                    type: 'all'
-                },
+        .chain((graphNode) =>
+            Observable('.', stage.controls)
+            .map(function(controls) {
+                // Prepare control scope
+                const scope = {
+                    source: paramName ? {} : {
+                        type: 'all'
+                    },
 
-                target: graphNode,
+                    target: graphNode,
 
-                controls: paramName ?
-                    controls
-                    .filter((control) => control.target === graphNode)
-                    .filter((control) =>
-                        control.data.type    === 'param'
-                        && control.data.name === paramName) :
-                    controls
-                    .filter((control) => control.target === graphNode)
-                    .filter((control) =>
-                        control.data.type !== 'param'
-                        || (control.data.name === undefined || control.data.name === 'all')
-                    ),
+                    controls: paramName ?
+                        controls
+                        .filter((control) => control.target === graphNode)
+                        .filter((control) =>
+                            control.data.type    === 'param'
+                            && control.data.name === paramName) :
+                        controls
+                        .filter((control) => control.target === graphNode)
+                        .filter((control) =>
+                            control.data.type !== 'param'
+                            || (control.data.name === undefined || control.data.name === 'all')
+                        ),
 
-                data: paramName ? {
-                    type: 'param',
-                    name: paramName
-                } : {
-                    type: 'all'
-                }
-            }))
+                    data: paramName ? {
+                        type: 'param',
+                        name: paramName
+                    } : {
+                        type: 'all'
+                    }
+                };
+
+                scope.controls.reduce(listen, scope);
+
+                return scope
+            })
         );
     };
 
@@ -895,6 +908,22 @@
             })
         });
     };
+
+    setTimeout(function() {
+        stage.get('tone-synth')
+        .start(stage.context.currentTime, 40, 1)
+        .stop(stage.context.currentTime + 0.2);
+        setTimeout(function() {
+            MIDI.trigger(null, 1, 'noteon', 40, 1);
+            setTimeout(function() {
+                MIDI.trigger(null, 1, 'pitch', 2, -1);
+                setTimeout(function() {
+                    MIDI.trigger(null, 1, 'noteoff', 40);
+                    MIDI.trigger(null, 1, 'pitch', 2, 0);
+                }, 200)
+            }, 200)
+        }, 400)
+    }, 2000)
 
     </script>
 

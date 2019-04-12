@@ -83,17 +83,6 @@
             "transform": "linear",
             "type":   "all"
         }
-    }, {
-        "source": {
-            "device": "midi",
-            "channel": 1,
-            "type":    "pitch"
-        },
-        "transform": "linear",
-        "type":  "pitch",
-        "min":   0,
-        "max":   1,
-        "target": "synth"
     }],
 
     "sequences": [{
