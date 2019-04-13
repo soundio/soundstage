@@ -189,7 +189,7 @@ assign(ToneVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 
 		// Todo: gain and rate
 		this.gainEnvelope.start(this.startTime, 'attack', (1 - this.gainFromVelocity) + (velocity * this.gainFromVelocity), 1);
-		this.frequencyEnvelope.start(this.startTime, 'attack', (1 - this.frequencyFromVelocity) + (velocity * this.frequencyFromVelocity), 1);
+//		this.frequencyEnvelope.start(this.startTime, 'attack', (1 - this.frequencyFromVelocity) + (velocity * this.frequencyFromVelocity), 1);
 		return this;
 	},
 
@@ -199,16 +199,16 @@ assign(ToneVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 
 		// Todo: gain and rate
 		this.gainEnvelope.start(this.stopTime, 'release', (1 - this.gainFromVelocity) + (velocity * this.gainFromVelocity), 1);
-		this.frequencyEnvelope.start(this.stopTime, 'release', (1 - this.frequencyFromVelocity) + (velocity * this.frequencyFromVelocity), 1);
+//		this.frequencyEnvelope.start(this.stopTime, 'release', (1 - this.frequencyFromVelocity) + (velocity * this.frequencyFromVelocity), 1);
 
 		// Advance .stopTime to include release tail
 		this.stopTime += Math.max(
 			getAutomationEndTime(this.gainEnvelope.release),
-			getAutomationEndTime(this.frequencyEnvelope.release)
+//			getAutomationEndTime(this.frequencyEnvelope.release)
 		);
 
 		this.gainEnvelope.stop(this.stopTime);
-		this.frequencyEnvelope.stop(this.stopTime);
+//		this.frequencyEnvelope.stop(this.stopTime);
 
 		let n = privates.sources.length;
 		while (n--) {

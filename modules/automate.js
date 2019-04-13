@@ -64,21 +64,23 @@ export function isAudioParam(object) {
 
 if (!AudioParam.prototype.cancelAndHoldAtTime) {
     AudioParam.prototype.cancelAndHoldAtTime = function cancelAndHoldAtTime(time) {
-    	const param  = this;
+        console.log('.cancelAndHoldAtTime() polyfill')
+
+        const param  = this;
         const events = getAutomationEvents(param);
-    	const tValue = getValueAtTime(events, time);
+        const tValue = getValueAtTime(events, time);
+        var n = events.length;
 
         while (events[--n] && events[n][0] >= time);
 
-    	const event1 = events[n];
-    	const event2 = events[n + 1];
-    	const tCurve = event2[2];
+        const event1 = events[n];
+        const event2 = events[n + 1];
+        const tCurve = event2[2];
 
-    	console.log(event1, event2, tValue);
-    	console.log(methodNames[curve], value, time, duration);
+        console.log(event1, event2, tValue);
 
         param.cancelScheduledValues(time);
-    	param[methodNames[tCurve]](tValue, time);
+        param[methodNames[tCurve]](tValue, time);
     }
 }
 

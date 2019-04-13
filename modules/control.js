@@ -176,7 +176,7 @@ export default function Control(controls, source, target, settings, notify) {
             if (DEBUG) { console.log('Soundstage jitter warning. Control time (' + time + ') less than currentTime (' + context.currentTime + '). Using currentTime.'); }
             time = context.currentTime;
         }
-console.log(type, name, n)
+
         // Set type, name, value based on data
         type = data.type ?
             types[data.type] ?

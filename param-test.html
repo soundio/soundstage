@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head template-fn="import:package.json">
+    <meta charset="utf-8" />
+    <meta name="author" content="@{[author.twitter]}" />
+    <meta name="description" content="Documentation for {[title]}. {[description]}" />
+    <meta name="viewport" content="width=device-width" />
+
+    <title>{[title]}</title>
+
+    <script>
+    document.documentElement.className = 'js';
+    window.DEBUG = false;
+    </script>
+
+    <link rel="stylesheet" href="../bolt/css/html.css" />
+	<link rel="stylesheet" href="../bolt/css/svg.css" />
+	<link rel="stylesheet" href="../bolt/css/body.css" />
+	<link rel="stylesheet" href="../bolt/css/input.css" />
+	<link rel="stylesheet" href="../bolt/css/label.css" />
+	<link rel="stylesheet" href="../bolt/css/block.css" />
+	<link rel="stylesheet" href="../bolt/css/index.css" />
+	<link rel="stylesheet" href="../bolt/css/layer.css" />
+	<link rel="stylesheet" href="../bolt/css/button.css" />
+	<link rel="stylesheet" href="../bolt/css/thumb.css" />
+    <link rel="stylesheet" href="../bolt/css/bubble.css" />
+	<link rel="stylesheet" href="../bolt/css/type.css" />
+	<link rel="stylesheet" href="../bolt/css/text.css" />
+	<link rel="stylesheet" href="../bolt/css/color.css" />
+	<link rel="stylesheet" href="../bolt/css/modifiers.css" />
+    <link rel="stylesheet" href="../bolt/components/grid/grid.css" />
+	<link rel="stylesheet" href="../bolt/components/dialog/dialog.css" />
+
+    <link rel="stylesheet" href="css/thumb.css" />
+    <link rel="stylesheet" href="css/node-block.css" />
+    <link rel="stylesheet" href="css/guitar.css" />
+    <link rel="stylesheet" href="components/sparky/midi/style.css" />
+
+    <!-- Preload to prevent empty cache on first render. Doesnt work, but it's
+         a nice idea anyway. -->
+    <link rel="stylesheet" href="../dom/components/control/range-control.css" />
+
+    <style>
+    body {
+        display: block;
+    }
+
+    canvas {
+        display: block;
+        width: 300px;
+        height: 150px;
+        margin: 15px;
+    }
+    </style>
+</head>
+
+<body>
+    <canvas width="600" height="300" id="canvas-1"></canvas>
+    <canvas width="600" height="300" id="canvas-2"></canvas>
+    <canvas width="600" height="300" id="canvas-3"></canvas>
+    <canvas width="600" height="300" id="canvas-4"></canvas>
+    <canvas width="600" height="300" id="canvas-5"></canvas>
+
+    <!-- Tests -->
+    <script type="module">
+    import { drawXLine, drawYLine, drawCurvePositive } from './modules/canvas.js';
+
+    // Allow 1px paddng to accomodate half of 2px stroke of graph line
+    const viewBox  = [1, 1, 598, 298];
+    const valueBox = [0, 1, 3, -1];
+    const methodNames = {
+        'step':        'setValueAtTime',
+        'linear':      'linearRampToValueAtTime',
+        'exponential': 'exponentialRampToValueAtTime',
+        'target':      'setTargetAtTime',
+        'curve':       'setValueCurveAtTime',
+        'hold':        'cancelAndHoldAtTime',
+        'cancel':      'cancelScheduledValues'
+    };
+
+    function drawTest(canvas, events) {
+        const ctx     = canvas.getContext('2d');
+        const offline = new OfflineAudioContext(1, 3 * 44100, 44100);
+        const source  = new ConstantSourceNode(offline);
+
+        source.connect(offline.destination);
+
+        source.start(0);
+        events.forEach(function(event) {
+            console.log(event[0], event[2], event[3]);
+
+            if (event[1] === 'hold' || event[1] === 'cancel') {
+                source.offset[methodNames[event[1]]](event[0]);
+            }
+            else {
+                source.offset[methodNames[event[1]]](event[2], event[0], event[3]);
+            }
+        });
+
+        return offline
+        .startRendering()
+        .then(function(buffer) {
+            //canvas.width = 300;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawXLine(ctx, viewBox, valueBox, 0, '#000d11');
+            drawXLine(ctx, viewBox, valueBox, 1, '#000d11');
+            drawXLine(ctx, viewBox, valueBox, 2, '#000d11');
+            drawXLine(ctx, viewBox, valueBox, 3, '#000d11');
+            drawYLine(ctx, viewBox, valueBox, 0, '#000d11');
+            drawYLine(ctx, viewBox, valueBox, 1, '#000d11');
+
+            const data = buffer.getChannelData(0);
+            drawCurvePositive(ctx, viewBox, 220, data, '#acb9b8');
+
+            return canvas.toDataURL();
+        });
+
+    }
+
+    drawTest(document.getElementById('canvas-1'), [
+        [0, 'step', 1],
+        [2, 'target', 0, 2],
+        [1, 'hold']
+    ]);
+
+    drawTest(document.getElementById('canvas-2'), [
+        [0, 'step', 1],
+        [2, 'step', 0, 2],
+        [1, 'hold']
+    ]);
+
+    drawTest(document.getElementById('canvas-3'), [
+        [0, 'step', 1],
+        [2, 'linear', 0, 2],
+        [1, 'hold']
+    ]);
+
+    drawTest(document.getElementById('canvas-4'), [
+        [0, 'step', 1],
+        [2, 'exponential', 0.1, 2],
+        [1, 'hold']
+    ]);
+
+    drawTest(document.getElementById('canvas-5'), [
+        [0, 'step', 1],
+        [2, 'target', 0, 2],
+        [1, 'cancel']
+    ]);
+    </script>
+</body>

@@ -14,8 +14,6 @@ function ParamRenderer(node, audioNode, name) {
     this.audioParamName = name;
 
     if (DEBUG && !isAudioParam(this.audioParam)) {
-        //console.warn('Property "' + name + '" is not an AudioParam', this.audioNode);
-        //return false;
         throw new Error('Property "' + name + '" is not an AudioParam');
     }
 
@@ -59,7 +57,6 @@ assign(ParamRenderer.prototype, {
 functions.param = function(node, scopes, params) {
     var renderer;
     const audioParamName = params[0];
-
     return scopes.tap((graphNode) => {
         const target = Target(graphNode.data);
         renderer && renderer.stop();
