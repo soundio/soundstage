@@ -3,7 +3,7 @@ import Tone from './tone.js';
 import Noise from './noise.js';
 import NodeGraph   from './node-graph.js';
 import PlayNode from './play-node.js';
-import { automate, getAutomationEvents, getAutomationEndTime } from '../modules/automate.js';
+import { automate, getAutomation, getAutomationEndTime } from '../modules/automate.js';
 import { assignSettings } from '../modules/assign-settings.js';
 import { numberToFrequency, frequencyToNumber } from '../../midi/module.js';
 
@@ -15,16 +15,12 @@ const graph = {
 	nodes: [
 		{ id: 'gainEnvelope', type: 'envelope' },
 		{ id: 'frequencyEnvelope', type: 'envelope' },
-		// For some reason this is not working
-		//{ id: 'detuneK',           type: 'constant',      data: { offset: 1 }},
-		// Instead ...
 		{ id: 'detune', type: 'constant', data: { offset: 0 }},
 		{ id: 'filter', type: 'biquad-filter', data: { type: 'lowpass', frequency: 6000, Q: 8 }}
 	],
 
 	connections: [
 		{ source: 'frequencyEnvelope', target: 'filter.frequency' },
-		//{ source: 'detuneK', target: 'detune' }
 	],
 
 	output: 'filter'
@@ -165,8 +161,8 @@ assign(ToneVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
         PlayNode.prototype.reset.apply(this, arguments);
 
         // Purge automation events
-        //getAutomationEvents(this.env1.offset).length = 0;
-        //getAutomationEvents(this.env2.offset).length = 0;
+        //getAutomation(this.env1.offset).length = 0;
+        //getAutomation(this.env2.offset).length = 0;
 
         assignSettings(this, defaults, settings, ['context']);
         return this;
@@ -189,7 +185,7 @@ assign(ToneVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 
 		// Todo: gain and rate
 		this.gainEnvelope.start(this.startTime, 'attack', (1 - this.gainFromVelocity) + (velocity * this.gainFromVelocity), 1);
-//		this.frequencyEnvelope.start(this.startTime, 'attack', (1 - this.frequencyFromVelocity) + (velocity * this.frequencyFromVelocity), 1);
+		this.frequencyEnvelope.start(this.startTime, 'attack', (1 - this.frequencyFromVelocity) + (velocity * this.frequencyFromVelocity), 1);
 		return this;
 	},
 
@@ -199,16 +195,16 @@ assign(ToneVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 
 		// Todo: gain and rate
 		this.gainEnvelope.start(this.stopTime, 'release', (1 - this.gainFromVelocity) + (velocity * this.gainFromVelocity), 1);
-//		this.frequencyEnvelope.start(this.stopTime, 'release', (1 - this.frequencyFromVelocity) + (velocity * this.frequencyFromVelocity), 1);
+		this.frequencyEnvelope.start(this.stopTime, 'release', (1 - this.frequencyFromVelocity) + (velocity * this.frequencyFromVelocity), 1);
 
 		// Advance .stopTime to include release tail
 		this.stopTime += Math.max(
 			getAutomationEndTime(this.gainEnvelope.release),
-//			getAutomationEndTime(this.frequencyEnvelope.release)
+			getAutomationEndTime(this.frequencyEnvelope.release)
 		);
 
 		this.gainEnvelope.stop(this.stopTime);
-//		this.frequencyEnvelope.stop(this.stopTime);
+		this.frequencyEnvelope.stop(this.stopTime);
 
 		let n = privates.sources.length;
 		while (n--) {

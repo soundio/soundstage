@@ -4,7 +4,7 @@ import { nothing } from '../../fn/module.js';
 import { Privates } from '../../fn/module.js';
 import NodeGraph   from './node-graph.js';
 import PlayNode from './play-node.js';
-import { automate, getAutomationEvents, getAutomationEndTime } from '../modules/automate.js';
+import { automate, getAutomation, getAutomationEndTime } from '../modules/automate.js';
 import { assignSettings } from '../modules/assign-settings.js';
 import { numberToFrequency, frequencyToNumber } from '../../midi/module.js';
 

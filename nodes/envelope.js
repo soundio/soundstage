@@ -1,7 +1,7 @@
 
 import { get, overload } from '../../fn/module.js';
 import PlayNode from './play-node.js';
-import { automate, getAutomationEvents } from '../modules/automate.js';
+import { automate, getAutomation } from '../modules/automate.js';
 
 const assign = Object.assign;
 const create = Object.create;
@@ -45,7 +45,7 @@ const validateEvent = overload(get(1), {
 });
 
 function cueAutomation(param, events, time, gain, rate) {
-    param.cancelAndHoldAtTime(time);
+    automate(param, time, 'hold');
 
     for (let event of events) {
         validateEvent(event);
@@ -93,8 +93,6 @@ function mock(param) {
 export default class Envelope extends ConstantSourceNode {
     constructor(context, options) {
         super(context, constantOptions);
-
-mock(this.offset);
 
         super.start.call(this, context.currentTime);
 

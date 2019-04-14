@@ -191,7 +191,7 @@ export default function Control(controls, source, target, settings, notify) {
         value = denormalisers[data.transform] ?
             denormalisers[data.transform](data.min, data.max, n, value) :
             n ;
-console.log(type, name, value)
+
         distribute(time, type, name, value);
 
         // Call taps

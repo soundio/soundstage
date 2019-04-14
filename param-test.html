@@ -32,6 +32,8 @@
     <!-- Tests -->
     <script type="module">
 
+    import { automate, getAutomation } from './modules/automate.js';
+
     /* Drawing functions for canvas */
 
     const viewBox  = [1, 1, 598, 298];
@@ -102,16 +104,6 @@
 
     /* Test */
 
-    const methods = {
-        'step':        (param, event) => param.setValueAtTime(event[2], event[0]),
-        'linear':      (param, event) => param.linearRampToValueAtTime(event[2], event[0]),
-        'exponential': (param, event) => param.exponentialRampToValueAtTime(event[2], event[0]),
-        'target':      (param, event) => param.setTargetAtTime(event[2], event[0], event[3]),
-        'curve':       (param, event) => param.setValueCurveAtTime(event[2], event[0], event[3]),
-        'hold':        (param, event) => param.cancelAndHoldAtTime(event[0]),
-        'cancel':      (param, event) => param.cancelScheduledValues(event[0]),
-    };
-
     function drawTest(canvas, events) {
         const ctx     = canvas.getContext('2d');
         const offline = new OfflineAudioContext(1, 3 * 44100, 44100);
@@ -121,8 +113,11 @@
 
         source.start(0);
         events.forEach(function(event) {
-            methods[event[1]](source.offset, event);
+            // param, time, curve, value, duration, notify, context
+            automate(source.offset, event[0], event[1], event[2], event[3]);
         });
+
+console.log('Automation:', getAutomation(source.offset));
 
         return offline
         .startRendering()
@@ -142,7 +137,6 @@
 
             return canvas.toDataURL();
         });
-
     }
 
 
@@ -151,6 +145,7 @@
     drawTest(document.getElementById('canvas-1'), [
         [0, 'step', 1],
         [2, 'target', 0, 2],
+        [3, 'step', 1],
         [1, 'hold']
     ]);
 
@@ -174,8 +169,14 @@
 
     drawTest(document.getElementById('canvas-5'), [
         [0, 'step', 1],
-        [2, 'curve', [0,1,0,1], 2],
-        [1, 'cancel']
+        [0, 'target', 0, 2],
+        [1, 'hold']
     ]);
+
+//    drawTest(document.getElementById('canvas-5'), [
+//        [0, 'step', 1],
+//        [2, 'curve', [0,1,0,1], 2],
+//        [1, 'cancel']
+//    ]);
     </script>
 </body>

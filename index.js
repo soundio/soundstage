@@ -3714,7 +3714,7 @@ function isAudioParam(object) {
 if (!AudioParam.prototype.cancelAndHoldAtTime) {
     AudioParam.prototype.cancelAndHoldAtTime = function cancelAndHoldAtTime(time) {
     	const param  = this;
-        const events = getAutomationEvents(param);
+        const events = getAutomation(param);
     	const tValue = getValueAtTime(events, time);
 
         while (events[--n] && events[n][0] >= time);
@@ -3731,7 +3731,7 @@ if (!AudioParam.prototype.cancelAndHoldAtTime) {
     };
 }
 
-function getAutomationEvents(param) {
+function getAutomation(param) {
 
 	// Todo: I would love to use a WeakMap to store data about AudioParams,
 	// but FF refuses to allow AudioParams as WeakMap keys. So... lets use
@@ -3852,7 +3852,7 @@ decay - where curve is 'target', decay is a time constant for the decay curve
 
 function automate(param, time, curve, value, duration, notify, context) {
     //console.log('AUTOMATE', arguments[5], time, curve, value, duration, param);
-	var events = getAutomationEvents(param);
+	var events = getAutomation(param);
 	automateParamEvents(param, events, time, value, curve, duration);
 
     if (!notify) {
@@ -3965,7 +3965,7 @@ function getEventsValueAtTime(events, time) {
 }
 
 function getValueAtTime(param, time) {
-	var events = getAutomationEvents(param);
+	var events = getAutomation(param);
 
 	if (!events || events.length === 0) {
 		return param.value;
@@ -8227,7 +8227,7 @@ assign$n(Transport.prototype, Clock.prototype, {
 		if (time < 0) { throw new Error('Location: beatAtLoc(loc) does not accept -ve values.'); }
 
 		const privates  = Privates(this);
-		const events    = getAutomationEvents(privates.rateParam);
+		const events    = getAutomation(privates.rateParam);
 		// Cache startLocation as it is highly likely to be needed again
 		//console.log('transport.beatAtTime', this.startTime, defaultRateEvent, events);
 		const startBeat = this.startLocation || (this.startLocation = beatAtTimeOfAutomation(events, defaultRateEvent, this.startTime));
@@ -8240,7 +8240,7 @@ assign$n(Transport.prototype, Clock.prototype, {
 		if (beat < 0) { throw new Error('Location: locAtBeat(beat) does not accept -ve values.'); }
 
 		const privates  = Privates(this);
-		const events    = getAutomationEvents(privates.rateParam);
+		const events    = getAutomation(privates.rateParam);
 		// Cache startLocation as it is highly likely to be needed again
 		const startBeat = this.startLocation || (this.startLocation = beatAtTimeOfAutomation(events, defaultRateEvent, this.startTime));
 
