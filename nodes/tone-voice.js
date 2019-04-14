@@ -87,6 +87,47 @@ const properties = {
 	active: { writable: true, value: undefined }
 };
 
+const constructors = {
+	'noise': Noise,
+	'tone':  Tone,
+	//'sample':     Sample
+};
+
+function connectSource(node, source, destination) {
+	if (source.get('gain')) {
+		// Hook up the envelope to the noise gain
+		node
+		.get('gainEnvelope')
+		.connect(source.get('gain').gain);
+	}
+
+	if (source.detune) {
+		// Hook up detune
+		node
+		.get('detune')
+		.connect(source.detune);
+	}
+
+	source.connect(destination);
+}
+
+function disconnectSource(node, source, destination) {
+	// Disconnect existing source
+	if (source.get('gain')) {
+		node
+		.get('gainEnvelope')
+		.disconnect(source.get('gain').gain);
+	}
+
+	if (source.detune) {
+		node
+		.get('detune')
+		.disconnect(source.detune)
+	}
+
+	source.disconnect(destination);
+}
+
 function updateSources(node, sources, destination) {
     sources.length = 0;
 
@@ -95,35 +136,21 @@ function updateSources(node, sources, destination) {
         // Sources are pooled here, so effectively each voice has it's own
         // source pool. Add a new source to the pool if there is not yet one
         // available at this index.
-        if (!sources[i] || !sources[i].type === options.type) {
-			if (options.type === 'white' || options.type === 'pink') {
-				// Source is a Noise
-				sources[i] = new Noise(destination.context, options);
+        if (!sources[i] || sources[i].type !== options.type) {
+			// Unpool, disconnect existing source
+			sources[i] && disconnectSource(node, sources[i].data, destination);
 
-				// Hook up the envelope to the noise gain
-				node
-				.get('gainEnvelope')
-				.connect(sources[i].get('gain').gain);
-			}
-			else {
-				// Source is a Tone
-				sources[i] = new Tone(destination.context, options);
+			// Create new source
+			sources[i] = {
+				type: options.type,
+				data: new constructors[options.type](destination.context, options.data)
+			};
 
-				// Hook up the envelope to the noise gain
-	            node
-				.get('gainEnvelope')
-				.connect(sources[i].get('gain').gain);
-
-				// Hook up detune
-	            node
-				.get('detune')
-				.connect(sources[i].detune);
-			}
-
-            sources[i].connect(destination);
+			// Connect it up
+			connectSource(node, sources[i].data, destination);
         }
 
-        sources[i].reset(destination.context, options);
+        sources[i].data.reset(destination.context, options.data);
         sources.length = i + 1;
         return sources;
     }, sources);
@@ -180,7 +207,7 @@ assign(ToneVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 		while (n--) {
 			// Set gain to 0 - we have an envelope connected to gain, which
 			// will control it
-			privates.sources[n].start(this.startTime, frequency, 0);
+			privates.sources[n].data.start(this.startTime, frequency, 0);
 		}
 
 		// Todo: gain and rate
@@ -208,7 +235,7 @@ assign(ToneVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 
 		let n = privates.sources.length;
 		while (n--) {
-			privates.sources[n].stop(this.stopTime);
+			privates.sources[n].data.stop(this.stopTime);
 		}
 
 		// Prevent filter feedback from ringing past note end

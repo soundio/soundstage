@@ -6,11 +6,30 @@
         "type":  "nodes/tone-synth.js",
         "label": "Tone Synth",
         "data": {
-            "sources": [
-                { "type": "white", "detune": -1192, "mix": 0.5, "pan": -0.8 },
-                { "type": "sine",   "detune": 0, "mix": 0.25, "pan": 0.8 },
-                { "type": "square", "detune": -1208,     "mix": 0.125, "pan": 0.2 }
-            ],
+            "sources": [{
+                "type": "noise",
+                "data": {
+                    "type": "white",
+                    "mix": 0.5,
+                    "pan": -0.8
+                }
+            }, {
+                "type": "tone",
+                "data": {
+                    "type": "sine",
+                    "detune": 0,
+                    "mix": 0.25,
+                    "pan": 0.8
+                }
+            }, {
+                "type": "tone",
+                "data": {
+                    "type": "square",
+                    "detune": -1208,
+                    "mix": 0.125,
+                    "pan": 0.2
+                }
+            }],
 
             "gainEnvelope": {
                 "attack": [

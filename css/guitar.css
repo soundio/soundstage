@@ -834,6 +834,15 @@ input:checked + .radio-button .icon-stroke {
 	color: blue;
 }
 
+.select-button {
+    min-width: 24px;
+    min-height: 21px;
+    line-height: 21px;
+    padding-left: 6px;
+    padding-right: 6px;
+    border-radius: 0.1875rem;
+}
+
 
 .radios-block {
     display: flex;
@@ -843,17 +852,22 @@ input:checked + .radio-button .icon-stroke {
     flex-direction: row;
 }
 
-.radios-block > .radio-button {
+.radios-block > .button {
     margin: 0;
     flex: 1 0 auto;
 }
 
-.radios-block > .masked:first-child + .radio-button {
+.radios-block > .source-select-button {
+    width: auto;
+}
+
+.radios-block > .button:first-child,
+.radios-block > .masked:first-child + .button {
     border-top-right-radius: 0;
 	border-bottom-right-radius: 0;
 }
 
-.radios-block > .radio-button + .masked + .radio-button {
+.radios-block > .button + .masked + .button {
     border-radius: 0;
     /* margin-left: 1px; */
     border-left: 1px solid hsla(198, 39%, 14%, 0.25);
@@ -862,7 +876,7 @@ input:checked + .radio-button .icon-stroke {
     /* border-right: 3px solid #0000; */
 }
 
-.radios-block > .radio-button + .masked + .radio-button:last-child {
+.radios-block > .button + .masked + .button:last-child {
     border-top-right-radius: 3px;
 	border-bottom-right-radius: 3px;
 }
@@ -871,15 +885,23 @@ input:checked + .radio-button .icon-stroke {
     margin-top: 18px;
 }
 
+.button + .radios-block {
+    margin-top: 6px;
+}
+
+
 .sine-radio-button,
 .square-radio-button,
 .triangle-radio-button,
 .sawtooth-radio-button,
 .white-radio-button {
-    background-image: url(../images/waveforms.svg),         linear-gradient(#858d90, #5c676c);
+    background-image:
+        url(../images/waveforms.svg),
+        linear-gradient(#858d90, #5c676c);
     background-size:
         30px auto,
         100% 100%;
+    max-width: 45px;
 }
 
 .masked:checked + .sine-radio-button,
@@ -903,6 +925,16 @@ input:checked + .radio-button .icon-stroke {
 .masked:checked + .triangle-radio-button {background-position: center -61.3px, 0 0;}
 .masked:checked + .sawtooth-radio-button {background-position: center -102px, 0 0;}
 .masked:checked + .white-radio-button    {background-position: center -182px, 0 0;}
+
+.source-select-button {
+    color: #01171e;
+    background-image: linear-gradient(#858d90, #5c676c);
+}
+
+.source-select-button > select {
+    padding-left: 6px;
+    padding-right: 6px;
+}
 
 .tab-index,
 .radio-index {
