@@ -1,4 +1,4 @@
-import { nothing, Privates } from '../../fn/module.js';
+import { nothing, Privates, denormalise } from '../../fn/module.js';
 import Tone from './tone.js';
 import Noise from './noise.js';
 import NodeGraph   from './node-graph.js';
@@ -26,7 +26,7 @@ const graph = {
 	output: 'filter'
 };
 
-const defaults = {
+export const defaults = {
 	sources: [
 		{ type: 'triangle', detune: -1200, mix: 1,   pan: -0.7 },
 	    { type: 'square',   detune: 0,     mix: 0.5, pan: 0.7 }
@@ -36,7 +36,6 @@ const defaults = {
 	frequency: 60,
 	Q:         6,
 
-	gainFromVelocity: 0.9,
     gainEnvelope: {
         attack: [
             [0,     "step",   0],
@@ -49,7 +48,6 @@ const defaults = {
         ]
     },
 
-	frequencyFromVelocity: 0.9,
     frequencyEnvelope: {
         attack: [
             [0,    "step",   0],
@@ -60,11 +58,28 @@ const defaults = {
         release: [
             [0, "target", 0, 0.2]
         ]
-    }
+    },
+
+	data: {
+		velocity: {
+			amplitude: {
+				scale: 'logarithmic',
+				gain: { min: 0.125, max: 1 },
+				rate: { min: 1, max: 1 }
+			},
+
+			frequency: {
+				scale: 'logarithmic',
+				gain: { min: 0.125, max: 1 },
+				rate: { min: 1, max: 1 }
+			}
+		}
+	}
 };
 
 const properties = {
 	sources: { writable: true, enumerable: true },
+	data:    { writable: true, enumerable: true },
 
 	type: {
 		enumerable: true,
@@ -186,16 +201,11 @@ function ToneVoice(context, settings) {
 assign(ToneVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 	reset: function(context, settings) {
         PlayNode.prototype.reset.apply(this, arguments);
-
-        // Purge automation events
-        //getAutomation(this.env1.offset).length = 0;
-        //getAutomation(this.env2.offset).length = 0;
-
         assignSettings(this, defaults, settings, ['context']);
         return this;
     },
 
-	start: function(time, note, velocity) {
+	start: function(time, note, velocity = 1) {
 		const privates = Privates(this);
 
 		PlayNode.prototype.start.apply(this, arguments);
@@ -210,9 +220,14 @@ assign(ToneVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 			privates.sources[n].data.start(this.startTime, frequency, 0);
 		}
 
-		// Todo: gain and rate
-		this.gainEnvelope.start(this.startTime, 'attack', (1 - this.gainFromVelocity) + (velocity * this.gainFromVelocity), 1);
-		this.frequencyEnvelope.start(this.startTime, 'attack', (1 - this.frequencyFromVelocity) + (velocity * this.frequencyFromVelocity), 1);
+		const amplitudeVelocityGain = denormalise('logarithmic', this.data.velocity.amplitude.gain.min, this.data.velocity.amplitude.gain.max, velocity);
+		const amplitudeVelocityRate = denormalise('logarithmic', this.data.velocity.amplitude.rate.min, this.data.velocity.amplitude.rate.max, velocity);
+		this.gainEnvelope.start(this.startTime, 'attack', amplitudeVelocityGain, amplitudeVelocityRate);
+
+		const frequencyVelocityGain = denormalise('logarithmic', this.data.velocity.frequency.gain.min, this.data.velocity.frequency.gain.max, velocity);
+		const frequencyVelocityRate = denormalise('logarithmic', this.data.velocity.frequency.rate.min, this.data.velocity.frequency.rate.max, velocity);
+		this.frequencyEnvelope.start(this.startTime, 'attack', frequencyVelocityGain, frequencyVelocityRate);
+
 		return this;
 	},
 
@@ -220,9 +235,13 @@ assign(ToneVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 		const privates = Privates(this);
 		PlayNode.prototype.stop.apply(this, arguments);
 
-		// Todo: gain and rate
-		this.gainEnvelope.start(this.stopTime, 'release', (1 - this.gainFromVelocity) + (velocity * this.gainFromVelocity), 1);
-		this.frequencyEnvelope.start(this.stopTime, 'release', (1 - this.frequencyFromVelocity) + (velocity * this.frequencyFromVelocity), 1);
+		const amplitudeVelocityGain = denormalise('logarithmic', this.data.velocity.amplitude.gain.min, this.data.velocity.amplitude.gain.max, velocity);
+		const amplitudeVelocityRate = denormalise('logarithmic', this.data.velocity.amplitude.rate.min, this.data.velocity.amplitude.rate.max, velocity);
+		this.gainEnvelope.start(this.stopTime, 'release', amplitudeVelocityGain, amplitudeVelocityRate);
+
+		const frequencyVelocityGain = denormalise('logarithmic', this.data.velocity.frequency.gain.min, this.data.velocity.frequency.gain.max, velocity);
+		const frequencyVelocityRate = denormalise('logarithmic', this.data.velocity.frequency.rate.min, this.data.velocity.frequency.rate.max, velocity);
+		this.frequencyEnvelope.start(this.stopTime, 'release', frequencyVelocityGain, frequencyVelocityRate);
 
 		// Advance .stopTime to include release tail
 		this.stopTime += Math.max(

@@ -1010,3 +1010,20 @@ input:checked + .radio-button .icon-stroke {
 }
 
 * + .text-10 { margin-top: 9px; }
+
+
+
+
+.scales-block {
+    display: grid;
+    grid-gap: 0 1.5rem;
+    grid-auto-flow: column;
+}
+
+.scales-block > * {
+    margin: 0;
+}
+
+* + .scales-block {
+    margin-top: 15px;
+}

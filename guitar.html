@@ -119,6 +119,30 @@
         <range-control :value="{[1.data.mix]}" unit="dB" min="-36dB" max="0dB" transform="linear-logarithmic" ticks="0 0.015625 0.03125 0.0625 0.125 0.25 0.5 1"><span class="text-10">Mix</span></range-control>
     </template>
 
+    <template id="tone-synth-scales-block">
+        <div class="scales-block block">
+            <label class="text-10 row-1 span-2 no-wrap">Gain via velocity</label>
+
+            <range-control class="row-2" :value="{[gain.min]}" unit="dB" min="-48dB" max="12dB" transform="logarithmic" ticks="-48dB -36dB -24dB -12dB 0dB 12dB">
+                <span class="text-10">Min</span>
+            </range-control>
+
+            <range-control class="row-2" :value="{[gain.max]}" unit="dB" min="-48dB" max="12dB" transform="logarithmic" ticks="-48dB -36dB -24dB -12dB 0dB 12dB">
+                <span class="text-10">Max</span>
+            </range-control>
+
+            <label class="text-10 row-1 span-2 no-wrap">Rate via velocity</label>
+
+            <range-control class="row-2" :value="{[rate.min]}" unit="" min="0.333333333" max="3" transform="logarithmic" ticks="0.333333333 1 3">
+                <span class="text-10">Min</span>
+            </range-control>
+
+            <range-control class="row-2" :value="{[rate.max]}" unit="" min="0.333333333" max="3" transform="logarithmic" ticks="0.333333333 1 3">
+                <span class="text-10">Max</span>
+            </range-control>
+        </div>
+    </template>
+
     <template id="node-nodes/tone-synth.js">
         <a class="midi-thumb thumb" href="#node-{[id]}-toggle"></a>
 
@@ -146,6 +170,8 @@
             </div>
         </div>
 
+        <template fn="get:data.data.velocity.amplitude" include="#tone-synth-scales-block"></template>
+
         <div class="envelopes-block block">
             <div fn="get:data.frequencyEnvelope entries each">
                 <h3 class="text-10">{[0]}</h3>
@@ -158,6 +184,8 @@
                 </div>
             </div>
         </div>
+
+        <template fn="get:data.data.velocity.frequency" include="#tone-synth-scales-block"></template>
 
         <range-control fn="param:pitch" unit="" min="-2" max="2" ticks="-2 -1 0 1 2">
             <span class="text-10">Pitch</span>

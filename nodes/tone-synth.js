@@ -1,5 +1,5 @@
 import { log, logGroup, logGroupEnd } from './print.js';
-import ToneVoice from './tone-voice.js';
+import ToneVoice, { defaults as voiceDefaults } from './tone-voice.js';
 import NotesNode from './notes-node.js';
 import NodeGraph from './node-graph.js';
 import { assignSettings } from '../modules/assign-settings.js';
@@ -15,18 +15,15 @@ export const config = {
 };
 
 // Declare some useful defaults
-var defaults = {
-	"gain": 0,
-	"pitch": 0
-};
+var defaults = assign({
+	gain: 0,
+	pitch: 0
+}, voiceDefaults);
 
 const properties = {
-	"sources":                { enumerable: true, writable: true },
-	"type":                   { enumerable: true, writable: true },
-	"gainFromVelocity":       { enumerable: true, writable: true },
-	"gainEnvelope":           { enumerable: true, writable: true },
-	"frequencyFromVelocity":  { enumerable: true, writable: true },
-	"frequencyEnvelope":      { enumerable: true, writable: true }
+	"sources":                  { enumerable: true, writable: true },
+	"type":                     { enumerable: true, writable: true },
+	"data":                     { enumerable: true, writable: true }
 };
 
 export default class ToneSynth extends GainNode {
@@ -43,7 +40,7 @@ export default class ToneSynth extends GainNode {
 		// .Q
 		// .volume
 		NotesNode.call(this, context, settings, ToneVoice, (voice) => {
-			// In Notes node, pitch is connected into detune, and we use
+			// In NotesNode pitch is connected into detune, and we use
 			// detune to control the voice detune
 			connect(this.get('detune'), voice.get('detune').offset);
 			connect(this.get('frequency'), voice.frequency);
