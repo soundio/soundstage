@@ -93,7 +93,7 @@ export default function NotesNode(context, settings, Voice, setup) {
 	});
 
 	// Get sink fromn context. The sink is a gain with a value of 0. We use
-	// it to conect things to just to make them autmatable.
+	// it to conect things to just to make them automatable.
 	const sink       = getSink(context);
 	const expression = this.get('expression');
 	const pitch      = this.get('pitch');

@@ -64,6 +64,7 @@ function cycleType(event) {
 }
 
 function createMouseGesture(e) {
+    // Start gesture stream with mousedown event
     var gesture = Stream.of(e);
 
     var moves = events('mousemove', document).each((e) => {
@@ -96,8 +97,8 @@ function setXY(e, data) {
     const px = e.clientX - rect.left - data.offset.x;
     const py = e.clientY - rect.top - data.offset.y;
 
-    // Normalise to 0-1
-    const rx = clamp(0, 1, px / rect.height);
+    // Normalise to 0-1, allowing x position to extend beyond viewbox
+    const rx = clamp(0, 4, px / rect.height);
     const ry = clamp(0, 1, py / rect.height);
 
     // Assume viewbox is always full height, use box height as scale

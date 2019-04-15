@@ -133,11 +133,11 @@
 
             <label class="text-10 row-1 span-2 no-wrap">Rate via velocity</label>
 
-            <range-control class="row-2" :value="{[rate.min]}" unit="" min="0.333333333" max="3" transform="logarithmic" ticks="0.333333333 1 3">
+            <range-control class="row-2" :value="{[rate.min]}" min="0.25" max="4" transform="logarithmic" ticks="0.25 1 4">
                 <span class="text-10">Min</span>
             </range-control>
 
-            <range-control class="row-2" :value="{[rate.max]}" unit="" min="0.333333333" max="3" transform="logarithmic" ticks="0.333333333 1 3">
+            <range-control class="row-2" :value="{[rate.max]}" min="0.25" max="4" transform="logarithmic" ticks="0.25 1 4">
                 <span class="text-10">Max</span>
             </range-control>
         </div>
@@ -196,7 +196,7 @@
             <template include="#controls-toggle"></template>
         </form>
 
-        <range-control fn="param:frequency" unit="Hz" min="16" max="16384" transform="logarithmic" ticks="16 32 64 125 250 500 1000 2000 4000 8000 16000">
+        <range-control fn="param:frequency" unit="" min="0.125" max="2" transform="logarithmic" ticks="0.125 0.25 0.5 1 2">
             <span class="text-10">Frequency</span>
             <a class="midi-thumb thumb" href="#node-{[id]}-frequency-toggle" slot="plugs"></a>
         </range-control>
@@ -616,7 +616,6 @@
             <h2 class="label-block block">Nodes</h2>
             <div class="{[id|append:-node-block]} node-block block" fn="get:nodes each">
                 <pre>{[id]} <small>{[type]}</small></pre>
-
                 <template include="node-{[type]}"></template>
             </div>
 
@@ -626,6 +625,20 @@
                     <pre fn="each">{[.]}</pre>
                 </div>
             </template>
+
+            <div>
+                <label class="select-button button">
+                    <select>
+                        <option value="flanger">Flanger</option>
+                        <option value="sampler">Sampler</option>
+                        <option value="output">Output</option>
+                        <option value="mix">Mix</option>
+                        <option value="looper">Looper</option>
+                        <option value="saturator">Saturator</option>
+                        <option value="tone-synth">Tone Synth</option>
+                    </select>
+                </label>
+            </div>
         </div>
 
         <!--template fn="get:controls">

@@ -57,12 +57,21 @@
             },
 
             "type": "lowpass",
-            "frequency": 100,
-            "frequencyFromVelocity": 0.5,
-
+            "frequency": 1,
             "Q": 5,
-
             "output": 0.1
+        }
+    }, {
+        "id":    "flanger",
+        "type":  "nodes/flanger.js",
+        "label": "Flanger",
+        "data": {
+            "delay":     0.024,
+            "frequency": 0.333333,
+            "depth":     0.004,
+            "feedback":  0.9,
+            "dry":       1,
+            "wet":       1
         }
     }, {
         "id":    "output",
@@ -72,7 +81,8 @@
     }],
 
     "connections": [
-        { "source": "tone-synth", "target": "output" }
+        { "source": "tone-synth", "target": "flanger" },
+        { "source": "flanger", "target": "output" }
     ],
 
     "controls": [{

@@ -43,11 +43,9 @@
             },
 
             "type": "lowpass",
-            "frequency": 100,
+            "frequency": 1,
             "frequencyFromVelocity": 0.5,
-
             "Q": 5,
-
             "output": 0.1
         }
     }, {

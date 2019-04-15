@@ -13,14 +13,16 @@ const define = Object.defineProperties;
 
 const graph = {
 	nodes: [
-		{ id: 'gainEnvelope', type: 'envelope' },
+		{ id: 'gainEnvelope',      type: 'envelope' },
 		{ id: 'frequencyEnvelope', type: 'envelope' },
-		{ id: 'detune', type: 'constant', data: { offset: 0 }},
-		{ id: 'filter', type: 'biquad-filter', data: { type: 'lowpass', frequency: 6000, Q: 8 }}
+		{ id: 'frequencyGain',     type: 'gain',          data: { gain: 0 }},
+		{ id: 'detune',            type: 'constant',      data: { offset: 0 }},
+		{ id: 'filter',            type: 'biquad-filter', data: { type: 'lowpass', frequency: 0, Q: 8 }}
 	],
 
 	connections: [
-		{ source: 'frequencyEnvelope', target: 'filter.frequency' },
+		{ source: 'frequencyEnvelope', target: 'frequencyGain' },
+		{ source: 'frequencyGain',     target: 'filter.frequency' },
 	],
 
 	output: 'filter'
@@ -33,7 +35,7 @@ export const defaults = {
 	],
 
 	type:      'lowpass',
-	frequency: 60,
+	frequency: 0,
 	Q:         6,
 
     gainEnvelope: {
@@ -189,7 +191,7 @@ function ToneVoice(context, settings) {
 	// Assign audio nodes and params
     this.gainEnvelope      = this.get('gainEnvelope');
     this.frequencyEnvelope = this.get('frequencyEnvelope');
-    this.frequency         = this.get('filter').frequency;
+    this.frequency         = this.get('frequencyGain').gain;
     this.Q                 = this.get('filter').Q;
 	this.detune            = this.get('detune').offset;
 

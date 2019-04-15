@@ -1018,12 +1018,17 @@ input:checked + .radio-button .icon-stroke {
     display: grid;
     grid-gap: 0 1.5rem;
     grid-auto-flow: column;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
 }
 
 .scales-block > * {
     margin: 0;
 }
 
+.scales-block > label {
+    line-height: 21px;
+}
+
 * + .scales-block {
-    margin-top: 15px;
+    margin-top: 24px;
 }
