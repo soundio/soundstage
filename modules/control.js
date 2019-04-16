@@ -110,7 +110,7 @@ function getControlLatency(stamps, context) {
         context.controlLatency = Math.ceil(diffTime / blockTime) * blockTime;
 
         // Let's keep tabs on how often this happens
-        console.log('Control latency change', context.controlLatency, '(' + Math.round(context.controlLatency * context.sampleRate) + ' frames)');
+        console.log('Control latency changed to ' + Math.round(context.controlLatency * context.sampleRate) + ' sample frames (' + context.controlLatency.toFixed(3) + 's @ ' + context.sampleRate + 'Hz)');
     }
 
     return context.controlLatency;
