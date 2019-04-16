@@ -119,19 +119,19 @@
         <range-control :value="{[1.data.mix]}" unit="dB" min="-36dB" max="0dB" transform="linear-logarithmic" ticks="0 0.015625 0.03125 0.0625 0.125 0.25 0.5 1"><span class="text-10">Mix</span></range-control>
     </template>
 
-    <template id="tone-synth-scales-block">
+    <template id="tone-synth-gain-block">
         <div class="scales-block block">
-            <label class="text-10 row-1 span-2 no-wrap">Gain via velocity</label>
+            <label class="text-10 row-1 span-2 no-wrap">Gain via note</label>
 
-            <range-control class="row-2" :value="{[gain.min]}" unit="dB" min="-48dB" max="12dB" transform="logarithmic" ticks="-48dB -36dB -24dB -12dB 0dB 12dB">
+            <range-control class="row-2" :value="{[gain.min]}" unit="dB" min="-48dB" max="0dB" transform="logarithmic" ticks="-48dB -36dB -24dB -12dB 0dB">
                 <span class="text-10">Min</span>
             </range-control>
 
-            <range-control class="row-2" :value="{[gain.max]}" unit="dB" min="-48dB" max="12dB" transform="logarithmic" ticks="-48dB -36dB -24dB -12dB 0dB 12dB">
+            <range-control class="row-2" :value="{[gain.max]}" unit="dB" min="-48dB" max="0dB" transform="logarithmic" ticks="-48dB -36dB -24dB -12dB 0dB">
                 <span class="text-10">Max</span>
             </range-control>
 
-            <label class="text-10 row-1 span-2 no-wrap">Rate via velocity</label>
+            <label class="text-10 row-1 span-2 no-wrap">Rate via note</label>
 
             <range-control class="row-2" :value="{[rate.min]}" min="0.25" max="4" transform="logarithmic" ticks="0.25 1 4">
                 <span class="text-10">Min</span>
@@ -139,6 +139,18 @@
 
             <range-control class="row-2" :value="{[rate.max]}" min="0.25" max="4" transform="logarithmic" ticks="0.25 1 4">
                 <span class="text-10">Max</span>
+            </range-control>
+        </div>
+    </template>
+
+    <template id="tone-synth-octave-block">
+        <div class="scales-block block">
+            <range-control class="row-1 span-2" :value="{[gain.scale]}" min="-2" max="2" transform="linear" ticks="-2 -1 0 1 2">
+                <span class="text-10 no-wrap">Per octave</span>
+            </range-control>
+
+            <range-control class="row-1 span-2" :value="{[rate.scale]}" min="-2" max="2" transform="linear" ticks="-2 -1 0 1 2">
+                <span class="text-10 no-wrap">Per octave</span>
             </range-control>
         </div>
     </template>
@@ -170,7 +182,8 @@
             </div>
         </div>
 
-        <template fn="get:data.data.velocity.amplitude" include="#tone-synth-scales-block"></template>
+        <template fn="get:data.data.velocity.gain" include="#tone-synth-gain-block"></template>
+        <template fn="get:data.data.frequency.gain" include="#tone-synth-octave-block"></template>
 
         <div class="envelopes-block block">
             <div fn="get:data.frequencyEnvelope entries each">
@@ -185,7 +198,8 @@
             </div>
         </div>
 
-        <template fn="get:data.data.velocity.frequency" include="#tone-synth-scales-block"></template>
+        <template fn="get:data.data.velocity.frequency" include="#tone-synth-gain-block"></template>
+        <template fn="get:data.data.frequency.frequency" include="#tone-synth-octave-block"></template>
 
         <range-control fn="param:pitch" unit="" min="-2" max="2" ticks="-2 -1 0 1 2">
             <span class="text-10">Pitch</span>

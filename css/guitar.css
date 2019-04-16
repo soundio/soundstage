@@ -1032,3 +1032,7 @@ input:checked + .radio-button .icon-stroke {
 * + .scales-block {
     margin-top: 24px;
 }
+
+.scales-block + .scales-block {
+    margin-top: 9px;
+}

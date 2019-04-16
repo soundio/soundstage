@@ -35,8 +35,11 @@ export const defaults = {
 	],
 
 	type:      'lowpass',
-	frequency: 0,
+	frequency: 1,
 	Q:         6,
+
+	// Default to -12dB, play it safe-ish with people's ears
+	output:    0.25,
 
     gainEnvelope: {
         attack: [
@@ -64,16 +67,26 @@ export const defaults = {
 
 	data: {
 		velocity: {
-			amplitude: {
-				scale: 'logarithmic',
+			gain: {
 				gain: { min: 0.125, max: 1 },
-				rate: { min: 1, max: 1 }
+				rate: { min: 0.5, max: 2 }
 			},
 
 			frequency: {
-				scale: 'logarithmic',
 				gain: { min: 0.125, max: 1 },
-				rate: { min: 1, max: 1 }
+				rate: { min: 0.5, max: 1 }
+			}
+		},
+
+		frequency: {
+			gain: {
+				gain: { scale: 0 },
+				rate: { scale: 0.2 }
+			},
+
+			frequency: {
+				gain: { scale: 0.4 },
+				rate: { scale: 0 }
 			}
 		}
 	}
@@ -215,6 +228,9 @@ assign(ToneVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 
 		const frequency = numberToFrequency(440, note);
 
+		// Frequency relative to C4, middle C
+		const frequencyRatio = frequency / numberToFrequency(440, 60);
+
 		let n = privates.sources.length;
 		while (n--) {
 			// Set gain to 0 - we have an envelope connected to gain, which
@@ -222,13 +238,17 @@ assign(ToneVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 			privates.sources[n].data.start(this.startTime, frequency, 0);
 		}
 
-		const amplitudeVelocityGain = denormalise('logarithmic', this.data.velocity.amplitude.gain.min, this.data.velocity.amplitude.gain.max, velocity);
-		const amplitudeVelocityRate = denormalise('logarithmic', this.data.velocity.amplitude.rate.min, this.data.velocity.amplitude.rate.max, velocity);
-		this.gainEnvelope.start(this.startTime, 'attack', amplitudeVelocityGain, amplitudeVelocityRate);
+		const amplitudeVelocityGain = denormalise('logarithmic', this.data.velocity.gain.gain.min, this.data.velocity.gain.gain.max, velocity);
+		const amplitudeVelocityRate = denormalise('logarithmic', this.data.velocity.gain.rate.min, this.data.velocity.gain.rate.max, velocity);
+		const amplitudeOctaveGain   = Math.pow(frequencyRatio, this.data.frequency.gain.gain.scale);
+		const amplitudeOctaveRate   = Math.pow(frequencyRatio, this.data.frequency.gain.rate.scale);
+		this.gainEnvelope.start(this.startTime, 'attack', amplitudeVelocityGain * amplitudeOctaveGain, amplitudeVelocityRate * amplitudeOctaveRate);
 
 		const frequencyVelocityGain = denormalise('logarithmic', this.data.velocity.frequency.gain.min, this.data.velocity.frequency.gain.max, velocity);
 		const frequencyVelocityRate = denormalise('logarithmic', this.data.velocity.frequency.rate.min, this.data.velocity.frequency.rate.max, velocity);
-		this.frequencyEnvelope.start(this.startTime, 'attack', frequencyVelocityGain, frequencyVelocityRate);
+		const frequencyOctaveGain   = Math.pow(frequencyRatio, this.data.frequency.frequency.gain.scale);
+		const frequencyOctaveRate   = Math.pow(frequencyRatio, this.data.frequency.frequency.rate.scale);
+		this.frequencyEnvelope.start(this.startTime, 'attack', frequencyVelocityGain * frequencyOctaveGain, frequencyVelocityRate * frequencyOctaveRate);
 
 		return this;
 	},
@@ -237,8 +257,8 @@ assign(ToneVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 		const privates = Privates(this);
 		PlayNode.prototype.stop.apply(this, arguments);
 
-		const amplitudeVelocityGain = denormalise('logarithmic', this.data.velocity.amplitude.gain.min, this.data.velocity.amplitude.gain.max, velocity);
-		const amplitudeVelocityRate = denormalise('logarithmic', this.data.velocity.amplitude.rate.min, this.data.velocity.amplitude.rate.max, velocity);
+		const amplitudeVelocityGain = denormalise('logarithmic', this.data.velocity.gain.gain.min, this.data.velocity.gain.gain.max, velocity);
+		const amplitudeVelocityRate = denormalise('logarithmic', this.data.velocity.gain.rate.min, this.data.velocity.gain.rate.max, velocity);
 		this.gainEnvelope.start(this.stopTime, 'release', amplitudeVelocityGain, amplitudeVelocityRate);
 
 		const frequencyVelocityGain = denormalise('logarithmic', this.data.velocity.frequency.gain.min, this.data.velocity.frequency.gain.max, velocity);

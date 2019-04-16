@@ -40,7 +40,6 @@ const properties = {
 		set: function(value) {
 			if (!/sine|square|sawtooth|triangle/.test(value)) {
 				return;
-				//throw new Error('Tone: attempt to set unrecognised type "' + value + '"');
 			}
 
 			return this.get('osc').type = value;

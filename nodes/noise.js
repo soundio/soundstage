@@ -10,6 +10,12 @@ const define = Object.defineProperties;
 
 const bufferDuration = 4;
 
+const defaults = {
+    type:      'white',
+    mix:       1,
+    pan:       0
+};
+
 const graph = {
 	nodes: [
         { id: 'source', type: 'buffer-source', data: { detune: 0, loopStart: 0, loopEnd: bufferDuration, loop: true }},
@@ -25,10 +31,51 @@ const graph = {
 	output: 'mix'
 };
 
-const defaults = {
-    type:      'white',
-    mix:       1,
-    pan:       0
+const generators = {
+	white: function generateWhiteNoise(channel) {
+		let m = channel.length;
+		while (m--) {
+			channel[m] = Math.random() * 2 - 1;
+		}
+	},
+
+	// https://noisehack.com/generate-noise-web-audio-api/
+	pink: function generatePinkNoise(channel) {
+		// http://noisehack.com/generate-noise-web-audio-api/
+		var b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+		const length = channel.length;
+		var i, white;
+
+		for (i = 0; i < length; i++) {
+			white = Math.random() * 2 - 1;
+
+			b0 = 0.99886 * b0 + white * 0.0555179;
+			b1 = 0.99332 * b1 + white * 0.0750759;
+			b2 = 0.96900 * b2 + white * 0.1538520;
+			b3 = 0.86650 * b3 + white * 0.3104856;
+			b4 = 0.55000 * b4 + white * 0.5329522;
+			b5 = -0.7616 * b5 - white * 0.0168980;
+
+			channel[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+			channel[i] *= 0.11;
+			b6 = white * 0.115926;
+		}
+	},
+
+	// https://noisehack.com/generate-noise-web-audio-api/
+	brown: function generateBrownNoise(channel) {
+		var lastOut = 0;
+		const length = channel.length;
+		var i, white;
+
+        for (i = 0; i < length; i++) {
+            white = Math.random() * 2 - 1;
+            channel[i] = (lastOut + (0.02 * white)) / 1.02;
+            lastOut = channel[i];
+			// (roughly) compensate for gain
+            channel[i] *= 3.5;
+        }
+	}
 };
 
 const properties = {
@@ -36,63 +83,71 @@ const properties = {
 		enumerable: true,
 
 		get: function() {
-			// Todo: support 'white', 'pink'
 			return Privates(this).type;
 		},
 
 		set: function(value) {
-			// Todo: support 'white', 'pink'
-			return;
+			// If type is unrecognised, or has not changed, do nothing
+			if (!/white|pink|brown/.test(value) || this.type === value) {
+				return;
+			}
+
+			// Fill buffer with noise
+			// Todo: pink noise, brown noise, some clues about noise here:
+			// https://noisehack.com/generate-noise-web-audio-api/
+			const buffer = this.get('source').buffer;
+			let n = buffer.numberOfChannels;
+			while (n--) {
+				const channel = buffer.getChannelData(n);
+				generators[value](channel);
+			}
+
+			Privates(this).type = value;
+		}
+	},
+
+	channelCount: {
+		enumerable: true,
+
+		get: function() {
+			return this.get('source').buffer.numberOfChannels;
 		}
 	}
 };
 
 export default function Noise(context, options) {
-	Privates(this).type = options.type || 'white';
-
     // Set up the node graph
     NodeGraph.call(this, context, graph);
 
     // Define .startTime and .stopTime
     PlayNode.call(this, context);
 
-    // Define type
-    define(this, properties);
+	// Define .type and .channelCount
+	define(this, properties);
 
     // Define params
 	const source = this.get('source');
-	const channelCount = 1;
-	const buffer = new AudioBuffer({
+	const channelCount = options.channelCount || 1;
+
+	source.buffer = new AudioBuffer({
 		length: bufferDuration * context.sampleRate * channelCount,
 		sampleRate: context.sampleRate,
 		numberOfChannels: channelCount
 	});
 
-	// Fill buffer with white noise
-	// Todo: pink noise, brown noise, some clues about noise here:
-	// https://noisehack.com/generate-noise-web-audio-api/
-	let n = buffer.numberOfChannels;
-	while (n--) {
-		const channel = buffer.getChannelData(n);
-		let m = channel.length;
-		while (m--) {
-			channel[m] = Math.random();
-		}
-	}
-
-	source.buffer = buffer;
-
+	// Expose params
     this.mix = this.get('mix').gain;
     this.pan = this.get('mix').pan;
 
+	// Start playing
     source.start(context.currentTime);
     this.reset(context, options);
 }
 
-
 assign(Noise.prototype, NodeGraph.prototype, PlayNode.prototype, {
     reset: function(context, options) {
         PlayNode.prototype.reset.apply(this, arguments);
+		// Here type is assigned and the buffer is filled with noise
         assignSettings(this, defaults, options);
     },
 
