@@ -2,7 +2,7 @@
 import { limit as clamp, by, insert, get, noop, overload, Stream, toCamelCase, toLevel, id, notify, nothing, observe, remove } from '../../../../fn/module.js';
 import * as normalise from '../../../../fn/modules/normalisers.js';
 import * as denormalise from '../../../../fn/modules/denormalisers.js';
-import { box, events, isPrimaryButton } from '../../../../dom/module.js';
+import { box, events, gestures, isPrimaryButton } from '../../../../dom/module.js';
 import { register, getScope } from '../../../../sparky/module.js';
 import parseValue from '../../../../fn/modules/parse-value.js';
 
@@ -61,32 +61,6 @@ function cycleType(event) {
     const arr = Object.keys(types);
     const i = arr.indexOf(event[1]);
     return types[arr[(i + 1) % arr.length]](event);
-}
-
-function createMouseGesture(e) {
-    // Start gesture stream with mousedown event
-    var gesture = Stream.of(e);
-
-    var moves = events('mousemove', document).each((e) => {
-        e.preventDefault();
-        gesture.push(e);
-    });
-
-    var ups = events('mouseup', document).each((e) => {
-        e.preventDefault();
-        gesture.push(e);
-        gesture.stop();
-        moves.stop();
-        ups.stop();
-    });
-
-    gesture.target = e.target;
-    const focusable = e.target.closest('[tabindex]');
-    focusable && focusable.focus();
-    e.preventDefault();
-
-    // Start with the mousedown event
-    return gesture;
 }
 
 function setXY(e, data) {
@@ -296,12 +270,7 @@ register('envelope-control', function(svg, scopes, params) {
             .map(parseFloat)
     };
 
-    const gestures = events('mousedown', svg)
-    .filter(isPrimaryButton)
-    // We should branch by type of control here
-    //.filter(isTargetControlPoint)
-    .map(createMouseGesture)
-    .scan(function(previous, gesture) {
+    const moves = gestures(svg).scan(function(previous, gesture) {
         const context = {
             target: gesture.target,
             svg:    svg,
@@ -330,7 +299,7 @@ register('envelope-control', function(svg, scopes, params) {
         svg.style.backgroundImage = 'url(' + data + ')';
     }
 
-    scopes.done(() => gestures.stop());
+    scopes.done(() => moves.stop());
 
     return scopes
     .tap((array) => {
