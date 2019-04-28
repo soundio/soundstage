@@ -42,7 +42,7 @@ export function getAutomation(param) {
 
     // Todo: I would love to use a WeakMap to store data about AudioParams,
     // but FF refuses to allow AudioParams as WeakMap keys. So... lets use
-    // an expando *sigh*.
+    // an expando.
     return param[config.automationEventsKey] || (param[config.automationEventsKey] = []);
 }
 

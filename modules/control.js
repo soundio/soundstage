@@ -30,8 +30,11 @@ through a selectable transform function to a target stream.
 
 */
 
+import { print } from './utilities/print.js';
 import { id, noop, Privates, remove }     from '../../fn/module.js';
-import { numberToFrequency }     from '../../midi/module.js';
+import { floatToFrequency }     from '../../midi/module.js';
+import KeyboardInputSource from './control-sources/keyboard-input-source.js';
+import MIDIInputSource from './control-sources/midi-input-source.js';
 import { Distribute } from './distribute.js';
 
 const DEBUG  = window.DEBUG;
@@ -39,18 +42,12 @@ const DEBUG  = window.DEBUG;
 const assign = Object.assign;
 const seal   = Object.seal;
 
-export const types = {
-    'note':    function control(type, name, value) {
-        return value ? 'noteon' : 'noteoff' ;
-    },
-
-    'control': function control(type) {
-        return 'param';
-    },
-
-    'all': id
+const sources = {
+    'midi':     MIDIInputSource,
+    'keyboard': KeyboardInputSource
 };
 
+// Todo: get denormalisers form global denormalisers, we're missing linear-logarithmic
 export const denormalisers = {
     'pass': function linear(min, max, n, current) {
         return n;
@@ -73,7 +70,7 @@ export const denormalisers = {
     },
 
     'frequency': function toggle(min, max, n, current) {
-        return (numberToFrequency(n) - min) * (max - min) / numberToFrequency(127) + min ;
+        return (floatToFrequency(n) - min) * (max - min) / floatToFrequency(127) + min ;
     },
 
     'toggle': function toggle(min, max, n, current) {
@@ -110,7 +107,7 @@ function getControlLatency(stamps, context) {
         context.controlLatency = Math.ceil(diffTime / blockTime) * blockTime;
 
         // Let's keep tabs on how often this happens
-        console.log('Control latency changed to ' + Math.round(context.controlLatency * context.sampleRate) + ' sample frames (' + context.controlLatency.toFixed(3) + 's @ ' + context.sampleRate + 'Hz)');
+        print('Control latency changed', Math.round(context.controlLatency * context.sampleRate) + ' samples (' + context.controlLatency.toFixed(3) + 's @ ' + context.sampleRate + 'Hz)');
     }
 
     return context.controlLatency;
@@ -133,65 +130,93 @@ function getContextTime(context, domTime) {
 }
 
 export default function Control(controls, source, target, settings, notify) {
-    const data = {
-        type:      settings.type,
-        name:      settings.name,
-        transform: settings.transform || 'linear',
-        min:       settings.min || 0,
-        max:       settings.max || 1,
-        latencyCompensation: settings.latencyCompensation === undefined ?
-            true :
-            settings.latencyCompensation
-    };
+    // Source can be either a string 'midi', 'keyboard', or an object
+    // with a device property
+    source = typeof source === 'string' ?
+        new sources[source]({}) :
+        new sources[source.device](source) ;
 
+    if (!source) {
+        throw new Error('Control source "' + source + '" not created');
+    }
+
+    if (!target) {
+        throw new Error('Control target "' + target + '" not found');
+    }
+
+    const control  = this;
     const privates = Privates(this);
-    const taps = privates.taps = [];
+    const taps     = privates.taps = [];
 
     privates.notify = notify || noop;
+    privates.controls = controls;
 
-    this.controls = controls;
-    this.source   = source;
-    this.target   = target;
-    this.data     = data;
+    // Set up source.
+    this.source = source;
 
+    // Set up target
+    this.target = target;
+    this.type   = settings.type;
+    this.name   = settings.name;
+
+    // Set up transform
+    this.transform = settings.transform || 'linear';
+    this.min       = settings.min || 0;
+    this.max       = settings.max === undefined ? 1 : settings.max ;
+    this.latencyCompensation = settings.latencyCompensation === undefined ?
+        true :
+        settings.latencyCompensation;
+console.log('CONTROL', this.type, this.name, this);
     seal(this);
 
-    const distribute = Distribute(target.data, privates.notify);
+    const distribute = Distribute(target, notify);
 
     // Keep track of value, it is passed back into transfoms to enable
     // continuous controls
     var value;
 
     // Bind source output to route input
-    source.each(function input(timeStamp, type, name, n) {
-        // Catch keys with no name
-        if (!name && !data.name) { return; }
+    this.source.each(function(timeStamp, type, name, n) {
+        const time = control.latencyCompensation ?
+            getControlTime(target.data.context, timeStamp) :
+            getContextTime(target.data.context, timeStamp) ;
 
-        const context = target.data.context;
-        let time = data.latencyCompensation ?
-            getControlTime(context, timeStamp) :
-            getContextTime(context, timeStamp) ;
+        // Set type
+        // If type is note, allow value to control whether it is noteon or noteoff
+        type = control.type || type;
 
-        if (time < context.currentTime) {
-            if (DEBUG) { console.log('Soundstage jitter warning. Control time (' + time + ') less than currentTime (' + context.currentTime + '). Using currentTime.'); }
-            time = context.currentTime;
+        if (!type) {
+            throw new Error('Control has no type (' + type + ')');
         }
 
-        // Set type, name, value based on data
-        type = data.type ?
-            types[data.type] ?
-                types[data.type](type, name, n) :
-                data.type :
-            type ;
+        // Set name
+        name = control.name || name ;
 
-        name = data.name ?
-            data.name[name] :
-            name ;
+        if (name === undefined) {
+            throw new Error('Control has no name (' + type + ', ' + name + ')');
+        }
 
-        value = denormalisers[data.transform] ?
-            denormalisers[data.transform](data.min, data.max, n, value) :
+        // Set value
+        value = denormalisers[control.transform] ?
+            denormalisers[control.transform](control.min, control.max, n, value) :
             n ;
 
+        if (value === undefined) {
+            throw new Error('Control has no value (' + type + ', ' + name + ', ' + value + ')');
+        }
+
+        // If type is note, allow value to control whether it is noteon or
+        // noteoff. This is a bit of a fudge, but it allows us to specify
+        // type 'note' on the control and have that split into on/off events
+        if (type === 'note') {
+            type = value === 0 ? 'noteoff' : 'noteon';
+        }
+
+        //if (DEBUG) {
+            console.log(control, type, type, name, value);
+        //}
+
+        // Schedule the change
         distribute(time, type, name, value);
 
         // Call taps
@@ -200,25 +225,28 @@ export default function Control(controls, source, target, settings, notify) {
             taps[m](time, type, name, value);
         }
 
-        if (target.record) {
-            if (!target.recordDestination) {
-                if (!target.recordCount) {
-                    target.recordCount = 0;
-                }
-
-                const data = {
-                    id: target.id + '-take-' + (target.recordCount++),
-                    events: []
-                };
-
-                target.recordDestination = (new Sequence(target.graph, data)).start(time);
-                target.graph.sequences.push(data);
-                target.graph.record(time, 'sequence', data.id, target.id);
-            }
-
-            target.recordDestination.record(time, type, name, value);
-        }
+        //if (target.record) {
+        //    if (!target.recordDestination) {
+        //        if (!target.recordCount) {
+        //            target.recordCount = 0;
+        //        }
+        //
+        //        const data = {
+        //            id: target.id + '-take-' + (target.recordCount++),
+        //            events: []
+        //        };
+        //
+        //        target.recordDestination = (new Sequence(target.graph, data)).start(time);
+        //        target.graph.sequences.push(data);
+        //        target.graph.record(time, 'sequence', data.id, target.id);
+        //    }
+        //
+        //    target.recordDestination.record(time, type, name, value);
+        //}
     });
+
+    // Maintain list of controls
+    controls.push(this);
 }
 
 assign(Control.prototype, {
@@ -228,9 +256,11 @@ assign(Control.prototype, {
     },
 
     remove: function() {
+        const controls = Privates(this).controls;
         this.source.stop();
-        remove(this.controls, this);
-        Privates(this).notify(this.controls, '.');
+        remove(controls, this);
+        Privates(this).notify(controls, '.');
+        return this;
     },
 
     toJSON: function() {

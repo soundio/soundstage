@@ -4,7 +4,7 @@ import PlayNode from './play-node.js';
 import { requestBuffer } from '../modules/utilities/requests.js';
 import { Privates } from '../../fn/module.js';
 import { automate, getAutomation } from '../modules/automate.js';
-import { numberToFrequency, frequencyToNumber } from '../../midi/module.js';
+import { floatToFrequency, frequencyToFloat } from '../../midi/module.js';
 import { assignSettings } from '../modules/assign-settings.js';
 
 const define = Object.defineProperties;
@@ -103,8 +103,8 @@ export default class Sample extends GainNode {
         }
         else {
             // Work out the detune factor
-            const nominalNote = frequencyToNumber(440, this.nominalFrequency);
-            const note        = frequencyToNumber(440, frequency);
+            const nominalNote = frequencyToFloat(440, this.nominalFrequency);
+            const note        = frequencyToFloat(440, frequency);
             const pitch       = note - nominalNote;
 
             // This is k-rate. Detune is k-rate on bufferSourceNodes. It is

@@ -494,8 +494,8 @@
         <template fn="get:controls filter-controls-keyboard" include="{[length|yesno:'#node-controls-keyboard-index','']}"></template>
         <template fn="get:controls filter-controls-midi" include="{[length|yesno:'#node-controls-midi-index','']}"></template>
         <div class="buttons-block block">
-            <button type="button" class="bottom-button button" fn="scope" action="learn-midi">Learn MIDI</button>
             <button type="button" class="bottom-button button" fn="scope" action="piano-keyboard">Keyboard as Piano</button>
+            <button type="button" class="bottom-button button" fn="scope" action="learn-midi-defaults">Learn MIDI defaults</button>
         </div>
     </template>
 
@@ -751,8 +751,6 @@
     import * as dom from '../../dom/module.js';
     window.dom = dom;
 
-    import { statuses }  from '../midi/module.js';
-
     import * as MIDI from '../midi/module.js';
     window.MIDI = MIDI;
 
@@ -767,6 +765,9 @@
     import KeyboardSource, { learn as learnKeyboard } from './modules/control-sources/keyboard-input-source.js';
     import { learn as learnMIDI } from './modules/control-sources/midi-input-source.js';
     import './components/sparky/param/param.js';
+
+    const assign = Object.assign;
+
 
     // Sparky extensions
     //
@@ -797,10 +798,36 @@
             // Do a little dance to pass the stop() method down the chain.
             // Todo: find a better way instead of bastardising promises.
             const promise = learnMIDI(scope.source);
-            const output = promise.then((source) => {
-                console.log(source);
-                return stage.createControl(source, scope.target, scope.data);
+            const output = promise.then((selector) => {
+                selector.device = 'midi';
+                return stage.Control(selector, scope.target, scope);
             });
+
+            output.stop = promise.stop;
+            return output;
+        },
+
+        'learn-midi-defaults': function(stage, scope) {
+            // Graph node
+            const node = scope.target;
+
+            // Defaults
+            // Todo: filter these to MIDI events
+            const defaults = node.data.constructor.defaultControls;
+
+            // Do a little dance to pass the stop() method down the chain.
+            // Todo: find a better way instead of bastardising promises.
+            const promise = learnMIDI(scope.source);
+            const output = promise.then((selector) => {
+                selector.device = 'midi';
+
+                return defaults.map(function(settings) {
+                    const source = assign({}, settings.source, selector);
+    console.log(source, settings);
+                    return stage.Control(source, scope.target, settings);
+                });
+            });
+
             output.stop = promise.stop;
             return output;
         },
@@ -842,7 +869,7 @@
             learning = actions(action, stage, Target(scope));
             learning.then(() => {
                 scope.action = undefined;
-                node.blur()
+                node.blur();
             })
             .catch(function(e) {
                 scope.action = undefined;
@@ -857,9 +884,19 @@
         return Fn.Fn.of(transforms);
     };
 
+    const statuses = [
+        'note',
+        'noteoff',
+        'noteon',
+    	'polytouch',
+    	'control',
+    	'program',
+    	'channeltouch',
+    	'pitch'
+    ];
+
     functions['midi-types'] = function(node, input, params) {
-        var types = Object.keys(statuses);
-        types.unshift('note');
+        var types = statuses;
         return Fn.Fn.of(types);
     };
 
@@ -887,21 +924,17 @@
                         controls
                         .filter((control) => control.target === graphNode)
                         .filter((control) =>
-                            control.data.type    === 'param'
-                            && control.data.name === paramName) :
+                            control.type === 'param'
+                            && control.name === paramName) :
                         controls
                         .filter((control) => control.target === graphNode)
                         .filter((control) =>
-                            control.data.type !== 'param'
-                            || (control.data.name === undefined || control.data.name === 'all')
+                            control.type !== 'param'
+                            || (control.name === undefined || control.name === 'all')
                         ),
 
-                    data: paramName ? {
-                        type: 'param',
-                        name: paramName
-                    } : {
-                        type: 'all'
-                    }
+                    type: paramName ? 'param' : 'all' ,
+                    name: paramName ? paramName : undefined
                 };
 
                 scope.controls.reduce(listen, scope);

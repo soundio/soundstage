@@ -18,7 +18,7 @@
 //   phaseAlign: 100      // Aligns the first 100ms of this sample with others with which it is cross-faded
 // }
 
-import { noteToNumber, numberToFrequency } from '../../../../midi/module.js';
+import { toNoteNumber, floatToFrequency } from '../../../../midi/module.js';
 
 
 // Note: URLs are temporary! They will change.
@@ -34,12 +34,12 @@ var mfGain = 12/7;
 var ffGain = 1;
 
 function createSample(name, dynamic) {
-	var number    = noteToNumber(name);
-	var frequency = numberToFrequency(number);
+	var number    = toNoteNumber(name);
+	var frequency = floatToFrequency(number);
 
 	return {
 		path: base + dynamic + '.' + name + extension,
-		nominalFrequency: numberToFrequency(440, number),
+		nominalFrequency: floatToFrequency(440, number),
 		noteRange: [
 			number - (name === 'C2' ? 6 : (name[name.length - 1] === '2' || name[name.length - 1] === '3' || name[name.length - 1] === '4' || name[name.length - 1] === '5' || name[name.length - 1] === '6') ? 2 : 6),
 			number,

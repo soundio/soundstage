@@ -1,8 +1,10 @@
 import { matches } from '../../fn/module.js';
 import { print } from './utilities/print.js';
 import { overload } from '../../fn/module.js';
-import { noteToNumber } from '../../midi/module.js';
+import { toNoteNumber } from '../../midi/module.js';
 import { automate } from './automate.js';
+
+const DEBUG = true;
 
 function arg2() {
     return arguments[2];
@@ -23,17 +25,17 @@ export const distributors = {
     // [time, "sequence", name || events, target, duration, transforms...]
 
     'note': function(target, time, type, name, value, duration, notify) {
-        const number = typeof name === 'number' ? name : noteToNumber(name) ;
+        const number = typeof name === 'number' ? name : toNoteNumber(name) ;
         return (target.start(time, number, value) || target).stop(time + duration, number, value);
     },
 
     'noteon': function(target, time, type, name, value, duration, notify) {
-        const number = typeof name === 'number' ? name : noteToNumber(name) ;
+        const number = typeof name === 'number' ? name : toNoteNumber(name) ;
         return target.start(time, number, value) || target;
     },
 
     'noteoff': function(target, time, type, name, value, duration, notify) {
-        const number = typeof name === 'number' ? name : noteToNumber(name) ;
+        const number = typeof name === 'number' ? name : toNoteNumber(name) ;
         target.stop(time, number, value);
         return target;
     },
@@ -100,23 +102,29 @@ export function distributeEvent(target, event) {
 
 
 export function Distribute(target, notify) {
+    const node  = target.data;
     const notes = {};
 
     return function distributeEvents(time, type, name, value, duration) {
+        if (time < node.context.currentTime) {
+            if (DEBUG) { print('Jitter warning. Control time (' + time.toFixed(3) + ') less than currentTime (' + node.context.currentTime.toFixed(3) + ')', 'Using currentTime'); }
+            time = node.context.currentTime;
+        }
+
         if (type === 'noteon') {
+            // Avoid doubled notes
             if (notes[name]) { return; }
-            // target, time, type, name, value
-            notes[name] = distribute(target, time, type, name, value, null, notify);
+            // node, time, type, name, value
+            notes[name] = distribute(node, time, type, name, value, null, notify);
         }
         else if (type === 'noteoff') {
-            // Choose a note target where there is one
-            // target, time, type, name, value
-            distribute(notes[name] || target, time, type, name, value, null, notify);
+            // Choose a note node where there is one
+            // node, time, type, name, value
+            distribute(notes[name] || node, time, type, name, value, null, notify);
             notes[name] = undefined;
         }
         else {
-//if (!notify) { console.log('No notify!!'); debugger; }
-            distribute(target, time, type, name, value, duration, notify);
+            distribute(node, time, type, name, value, duration, notify);
         }
     };
-};
+}

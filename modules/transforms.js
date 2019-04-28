@@ -1,7 +1,7 @@
 import { capture, id, toLevel } from '../../fn/module.js';
 import * as normalise from '../../fn/modules/normalisers.js';
 import * as denormalise from '../../fn/modules/denormalisers.js';
-import { numberToFrequency } from '../../midi/module.js';
+import { floatToFrequency } from '../../midi/module.js';
 
 export const transforms = {
     // From Fn
@@ -43,7 +43,7 @@ export const transforms = {
 
     'frequency': {
         tx: (value, min, max) => {
-            return (numberToFrequency(value) - min) * (max - min) / numberToFrequency(127) + min ;
+            return (floatToFrequency(value) - min) * (max - min) / floatToFrequency(127) + min ;
         },
 
         ix: function(value, min, max) {

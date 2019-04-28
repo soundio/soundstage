@@ -60,3 +60,46 @@ export default class ToneSynth extends GainNode {
 
 // Mix AudioObject prototype into MyObject prototype
 assign(ToneSynth.prototype, NodeGraph.prototype, NotesNode.prototype);
+
+// Assign defaults
+assign(ToneSynth, {
+	defaultControls: [{
+		source: {
+			device: 'midi',
+			type: 'note'
+		},
+		type: 'note'
+	}, {
+		source: {
+			device: 'midi',
+			type: 'pitch'
+		},
+		transform: 'linear',
+		min:  -2,
+		max:  2,
+		type: 'param',
+		name: 'pitch'
+	}, {
+		source: {
+			device: 'midi',
+			type: 'control',
+			name: 'modulation'
+		},
+		transform: 'logarithmic',
+		min:  0.125,
+		max:  4,
+		type: 'param',
+		name: 'frequency'
+	}, {
+		source: {
+			device: 'midi',
+			type: 'control',
+			name: 'volume'
+		},
+		transform: 'linear-logarithmic',
+		min:  0.00390625,
+		max:  1,
+		type: 'param',
+		name: 'volume'
+	}]
+});

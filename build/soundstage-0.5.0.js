@@ -3212,7 +3212,7 @@ if (!Object.setPrototypeOf) {
 	function createData(channel, message, data1, data2) {
 		var number = MIDI.typeToNumber(channel, message);
 		var data = typeof data1 === 'string' ?
-		    	MIDI.noteToNumber(data1) :
+		    	MIDI.toNoteNumber(data1) :
 		    	data1 ;
 
 		return data1 ? data2 ? [number, data, data2] : [number, data] : [number] ;
@@ -3685,7 +3685,7 @@ if (!Object.setPrototypeOf) {
 		return (range === undefined ? 2 : range) * pitchToInt(data) / 8191 ;
 	}
 
-	function noteToNumber(str) {
+	function toNoteNumber(str) {
 		var r = rnotename.exec(normaliseNoteName(str));
 		return (parseInt(r[2], 10) + 1) * 12 + noteNumbers[r[1]];
 	}
@@ -3698,11 +3698,11 @@ if (!Object.setPrototypeOf) {
 		return Math.floor(n / 12) - 1;
 	}
 
-	function numberToFrequency(n, tuning) {
+	function floatToFrequency(n, tuning) {
 		return (tuning || MIDI.tuning) * Math.pow(2, (n - A4) / 12);
 	}
 
-	function frequencyToNumber(frequency, tuning) {
+	function frequencyToFloat(frequency, tuning) {
 		var number = A4 + 12 * Math.log(frequency / (tuning || MIDI.tuning)) / Math.log(2);
 
 		// Rounded it to nearest 1,000,000th to avoid floating point errors and
@@ -3724,11 +3724,11 @@ if (!Object.setPrototypeOf) {
 	MIDI.isPitch = isPitch;
 	MIDI.isControl = isControl;
 	MIDI.typeToNumber = typeToNumber;
-	MIDI.noteToNumber = noteToNumber;
+	MIDI.toNoteNumber = toNoteNumber;
 	MIDI.numberToNote = numberToNote;
 	MIDI.numberToOctave = numberToOctave;
-	MIDI.numberToFrequency = numberToFrequency;
-	MIDI.frequencyToNumber = frequencyToNumber;
+	MIDI.floatToFrequency = floatToFrequency;
+	MIDI.frequencyToFloat = frequencyToFloat;
 	MIDI.toChannel = toChannel;
 	MIDI.toType    = toType;
 	MIDI.normaliseNoteOn = normaliseNoteOn;
@@ -5466,7 +5466,7 @@ if (!Object.setPrototypeOf) {
 		},
 
 		'frequency': function toggle(n, min, max) {
-			return (MIDI.numberToFrequency(n) - min) * (max - min) / MIDI.numberToFrequency(127) + min ;
+			return (MIDI.floatToFrequency(n) - min) * (max - min) / MIDI.floatToFrequency(127) + min ;
 		},
 
 		'toggle': function toggle(n, min, max, current) {
@@ -8105,7 +8105,7 @@ if (!Object.setPrototypeOf) {
 		function createCachedOscillator(number, velocity, time) {
 			if (osccache[number]) { return; }
 
-			var freq = MIDI.numberToFrequency(number);
+			var freq = MIDI.floatToFrequency(number);
 
 			var gainNode = audio.createGain();
 			gainNode.gain.value = 0;
@@ -8136,7 +8136,7 @@ if (!Object.setPrototypeOf) {
 			unityNode.connect(envelopeNode);
 
 			var noteFollow = object['note-follow'];
-			var noteFactor = MIDI.numberToFrequency(number, 1);
+			var noteFactor = MIDI.floatToFrequency(number, 1);
 			var noteGainNode = audio.createGain();
 			noteGainNode.gain.value = Math.pow(noteFactor, noteFollow);
 			noteGainNode.connect(envelopeGainNode);

@@ -5,7 +5,7 @@ import NodeGraph   from './node-graph.js';
 import PlayNode from './play-node.js';
 import { automate, getAutomation, getAutomationEndTime } from '../modules/automate.js';
 import { assignSettings } from '../modules/assign-settings.js';
-import { numberToFrequency, frequencyToNumber } from '../../midi/module.js';
+import { floatToFrequency, frequencyToFloat } from '../../midi/module.js';
 
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;
@@ -226,10 +226,10 @@ assign(ToneVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 		PlayNode.prototype.start.apply(this, arguments);
 		updateSources(this, privates.sources, this.get('filter'));
 
-		const frequency = numberToFrequency(440, note);
+		const frequency = floatToFrequency(440, note);
 
 		// Frequency relative to C4, middle C
-		const frequencyRatio = frequency / numberToFrequency(440, 60);
+		const frequencyRatio = frequency / floatToFrequency(440, 60);
 
 		let n = privates.sources.length;
 		while (n--) {
