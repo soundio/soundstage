@@ -513,7 +513,7 @@
         <template fn="get:controls filter-controls-midi" include="{[length|yesno:'#node-controls-midi-index','']}"></template>
         <div class="buttons-block block">
             <button type="button" class="bottom-button button" fn="scope" action="piano-keyboard">Keyboard as Piano</button>
-            <button type="button" class="bottom-button button" fn="scope" action="learn-midi-defaults">Learn MIDI defaults</button>
+            <button type="button" class="bottom-button button" fn="scope" action="learn-midi-defaults">Learn MIDI channel</button>
         </div>
     </template>
 
@@ -801,13 +801,13 @@
 
     const actions = choose({
         'learn-keyboard': function(stage, scope) {
-            scope.data.transform = 'switch';
+            scope.transform = 'switch';
 
             // Do a little dance to pass the stop() method down the chain.
             // Todo: find a better way instead of bastardising promises.
             const promise = learnKeyboard();
             const output = promise.then((source) => {
-                return stage.createControl(source, scope.target, scope.data);
+                return stage.createControl(source, scope.target, scope);
             });
             output.stop = promise.stop;
             return output;
@@ -830,9 +830,9 @@
             // Graph node
             const node = scope.target;
 
-            // Defaults
-            // Todo: filter these to MIDI events
-            const defaults = node.data.constructor.defaultControls;
+            // Defaults, filtered to MIDI events
+            const defaults = node.data.constructor.defaultControls
+                && node.data.constructor.defaultControls.filter((control) => control.source.device === 'midi');
 
             // Do a little dance to pass the stop() method down the chain.
             // Todo: find a better way instead of bastardising promises.
@@ -842,6 +842,18 @@
 
                 return defaults.map(function(settings) {
                     const source = assign({}, settings.source, selector);
+
+                    // Do not create controls for control routes that already exist
+                    if (stage.controls.find((control) => {
+                        return control.target === node
+                        && control.name === settings.name
+                        && control.source.device === source.device
+                        && control.source.type === source.type
+                        && MIDI.toControlNumber(control.source.name) === MIDI.toControlNumber(source.name)
+                    })) {
+                        return;
+                    }
+
                     return stage.Control(source, scope.target, settings);
                 });
             });
@@ -853,7 +865,7 @@
         'piano-keyboard': function(stage, scope) {
             const source = new KeyboardSource('piano');
             return Object.assign(Promise.resolve(
-                stage.createControl(source, scope.target, scope.data)
+                stage.createControl(source, scope.target, scope)
             ), {
                 stop: noop
             });
