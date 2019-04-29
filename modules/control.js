@@ -212,9 +212,9 @@ console.log('CONTROL', this.type, this.name, this);
             type = value === 0 ? 'noteoff' : 'noteon';
         }
 
-        //if (DEBUG) {
+        if (DEBUG) {
             console.log(control, type, type, name, value);
-        //}
+        }
 
         // Schedule the change
         distribute(time, type, name, value);
@@ -247,6 +247,7 @@ console.log('CONTROL', this.type, this.name, this);
 
     // Maintain list of controls
     controls.push(this);
+    notify(controls);
 }
 
 assign(Control.prototype, {

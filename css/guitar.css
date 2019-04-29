@@ -421,6 +421,12 @@ range-control + .sources-block {
     margin-bottom: 0.9375rem;
     /* Not perfect, but can't set 100% because height is auto on parent. */
     max-height: inherit;
+
+    /* Create room for focus shadows not to be cut by overflow hidden */
+    margin: -0.75rem;
+    padding: 0.75rem;
+
+    /* Hide overflow to help with activate transition */
     overflow: hidden;
 }
 
@@ -474,27 +480,36 @@ range-control + .sources-block {
 }
 
 
+.select-button {
+    min-width: 24px;
+    min-height: 21px;
+    line-height: 21px;
+    padding-left: 6px;
+    padding-right: 6px;
+    border-radius: 0.1875rem;
+}
+
 .code-output,
 .code-input,
 .code-select-button {
     display: inline-block;
     vertical-align: top;
-	font-family: 'Fira Mono', 'Andale Mono', sans-serif;
-	font-size: 0.8125rem;
+    font-family: 'Fira Mono', 'Andale Mono', sans-serif;
+    font-size: 0.78125rem;
     text-indent: 6px;
-	padding-top: 0;
-	padding-bottom: 0;
-	padding-left: 0;
-	padding-right: 0.5625rem;
-	line-height: 1.6875rem;
-	height: auto;
-	height: 1.6875rem;
-	color: #B6B2B0;
-	background-color: #00181f;
-	border-width: 0;
-	border-radius: 6px;
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+    padding-right: 0.375rem;
+    line-height: 1.6875rem;
+    height: auto;
+    height: 1.6875rem;
+    color: #B6B2B0;
+    background-color: #00181f;
+    border-width: 0;
+    border-radius: 6px;
     width: auto;
-    min-width: 2.25rem;
+    min-width: 1.875rem;
     white-space: nowrap;
 }
 
@@ -508,11 +523,15 @@ range-control + .sources-block {
 }
 
 .type-code-select-button {
-    min-width: 90px;
+    min-width: 75px;
 }
 
 .transform-code-select-button {
     min-width: 135px;
+}
+
+.name-code-select-button {
+    min-width: 75px;
 }
 
 .code-select-button > select {
@@ -543,8 +562,8 @@ range-control + .sources-block {
 
 .min-code-input,
 .max-code-input {
-    width: 3.75rem;
-	min-width: 3.75rem;
+    width: 60px;
+    min-width: 60px;
     text-align: right;
 }
 
@@ -661,7 +680,7 @@ range-control + .sources-block {
 .transform-grid > .code-select-button {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
-    min-width: 90px;
+    min-width: 75px;
 }
 
 .transform-grid > .code-select-button.none-value {
@@ -833,16 +852,6 @@ input:checked + .radio-button .icon-stroke {
 	/*color: #B6B2B0;*/
 	color: blue;
 }
-
-.select-button {
-    min-width: 24px;
-    min-height: 21px;
-    line-height: 21px;
-    padding-left: 6px;
-    padding-right: 6px;
-    border-radius: 0.1875rem;
-}
-
 
 .radios-block {
     display: flex;
