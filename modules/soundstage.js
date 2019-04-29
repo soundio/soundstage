@@ -1,10 +1,11 @@
 
-import { isDefined, noop, nothing, matches }   from '../../fn/module.js';
+import { get, isDefined, noop, nothing, map, matches, Privates }   from '../../fn/module.js';
 import requestInputSplitter   from './request-input-splitter.js';
 import { print, printGroup, printGroupEnd }     from './utilities/print.js';
-import { Privates } from '../../fn/module.js';
 import audio, { timeAtDomTime } from './context.js';
 import constructors  from './constructors.js';
+import KeyboardInputSource, { isKeyboardInputSource } from './control-sources/keyboard-input-source.js';
+import MIDIInputSource, { isMIDIInputSource } from './control-sources/midi-input-source.js';
 import { connect, disconnect } from './connect.js';
 import Control       from './control.js';
 import Input         from '../nodes/input.js';
@@ -12,7 +13,6 @@ import Output        from '../nodes/output.js';
 import Metronome     from '../nodes/metronome.js';
 import Graph         from './graph.js';
 import requestPlugin from './request-plugin.js';
-import Controls      from './controls.js';
 import Timer         from './timer.js';
 import Transport     from './transport.js';
 import Sequencer     from './sequencer.js';
@@ -27,7 +27,7 @@ const idSelect = { id: undefined };
 const matchesId = matches(idSelect);
 
 
-// Soundstage
+// Nodes
 
 function createOutputMerger(context, target) {
     // Safari sets audio.destination.maxChannelCount to
@@ -89,6 +89,17 @@ function requestAudioNode(base, context, settings, transport) {
         return new Node(context, settings.data, transport);
     });
 }
+
+
+// Controls
+
+const sources = {
+    'midi':     MIDIInputSource,
+    'keyboard': KeyboardInputSource
+};
+
+
+// Soundstage
 
 export default function Soundstage(data = nothing, settings = nothing) {
     if (!Soundstage.prototype.isPrototypeOf(this)) {
@@ -182,18 +193,19 @@ export default function Soundstage(data = nothing, settings = nothing) {
         define(stage, {
             controls: {
                 enumerable: true,
-                value: new Controls(function findTarget(selector) {
-                    const parts = selector.split('.');
-                    const param = parts[1];
-
-                    idSelect.id = parts[0];
-
-                    return param === undefined ?
-                        stage.nodes.find(matchesId) :
-                        stage.nodes.find(matchesId)[param] ;
-                }, data.controls, notify)
+                value: data.controls.reduce(function(controls, options) {
+                    // Get target graph node from target id
+                    const target  = stage.nodes.find((object) => object.id === options.target);
+                    const control = new Control(controls, options.source, target, options, notify);
+                    return controls;
+                }, [])
             }
         });
+
+        if (DEBUG) {
+            const sources = map(get('source'), stage.controls);
+            print('controls', sources.filter(isKeyboardInputSource).length + ' keyboard, ' + sources.filter(isMIDIInputSource).length + ' MIDI');
+        }
 
         // Notify observers that objects have mutated
         // Todo: work out what's happening in Observer that we have to do
@@ -293,12 +305,15 @@ seconds relative to window.performance.now().
 */
 
 assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
-    createControl: function(source, target, data) {
+    Control: function(source, target, options) {
         const privates = Privates(this);
-        const control = new Control(this.controls, source, target, data, privates.notify);
-        this.controls.push(control);
-        privates.notify(this.controls, '.');
-        return control;
+
+        // Target must be the graph node
+        target = typeof target === 'string' ?
+            this.nodes.find((object) => object.id === target) :
+            target ;
+
+        return new Control(this.controls, source, target, options, privates.notify);
     },
 
     connect: function(input, port, channel) {

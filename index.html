@@ -440,10 +440,10 @@ import Soundstage from 'http://stephen.band/soundstage/soundstage.js';</code></p
     import Soundstage from './module.js';
     window.Soundstage = Soundstage;
 
-    import { frequencyToNumber, numberToFrequency, noteToNumber, numberToNote } from '../midi/module.js';
-    window.frequencyToNumber = frequencyToNumber;
-    window.numberToFrequency = numberToFrequency;
-    window.noteToNumber = noteToNumber;
+    import { frequencyToFloat, floatToFrequency, toNoteNumber, numberToNote } from '../midi/module.js';
+    window.frequencyToFloat = frequencyToFloat;
+    window.floatToFrequency = floatToFrequency;
+    window.toNoteNumber = toNoteNumber;
     window.numberToNote = numberToNote;
 
     //import context from './modules/context.js';

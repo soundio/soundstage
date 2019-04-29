@@ -1,11 +1,11 @@
-import { nothing, Privates } from '../../fn/module.js';
+import { nothing, Privates, denormalise } from '../../fn/module.js';
 import Tone from './tone.js';
 import Noise from './noise.js';
 import NodeGraph   from './node-graph.js';
 import PlayNode from './play-node.js';
-import { automate, getAutomationEvents, getAutomationEndTime } from '../modules/automate.js';
+import { automate, getAutomation, getAutomationEndTime } from '../modules/automate.js';
 import { assignSettings } from '../modules/assign-settings.js';
-import { numberToFrequency, frequencyToNumber } from '../../midi/module.js';
+import { floatToFrequency, frequencyToFloat } from '../../midi/module.js';
 
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;
@@ -13,34 +13,34 @@ const define = Object.defineProperties;
 
 const graph = {
 	nodes: [
-		{ id: 'gainEnvelope', type: 'envelope' },
+		{ id: 'gainEnvelope',      type: 'envelope' },
 		{ id: 'frequencyEnvelope', type: 'envelope' },
-		// For some reason this is not working
-		//{ id: 'detuneK',           type: 'constant',      data: { offset: 1 }},
-		// Instead ...
-		{ id: 'detune', type: 'constant', data: { offset: 0 }},
-		{ id: 'filter', type: 'biquad-filter', data: { type: 'lowpass', frequency: 6000, Q: 8 }}
+		{ id: 'frequencyGain',     type: 'gain',          data: { gain: 0 }},
+		{ id: 'detune',            type: 'constant',      data: { offset: 0 }},
+		{ id: 'filter',            type: 'biquad-filter', data: { type: 'lowpass', frequency: 0, Q: 8 }}
 	],
 
 	connections: [
-		{ source: 'frequencyEnvelope', target: 'filter.frequency' },
-		//{ source: 'detuneK', target: 'detune' }
+		{ source: 'frequencyEnvelope', target: 'frequencyGain' },
+		{ source: 'frequencyGain',     target: 'filter.frequency' },
 	],
 
 	output: 'filter'
 };
 
-const defaults = {
+export const defaults = {
 	sources: [
 		{ type: 'triangle', detune: -1200, mix: 1,   pan: -0.7 },
 	    { type: 'square',   detune: 0,     mix: 0.5, pan: 0.7 }
 	],
 
 	type:      'lowpass',
-	frequency: 60,
+	frequency: 1,
 	Q:         6,
 
-	gainFromVelocity: 0.9,
+	// Default to -12dB, play it safe-ish with people's ears
+	output:    0.25,
+
     gainEnvelope: {
         attack: [
             [0,     "step",   0],
@@ -53,7 +53,6 @@ const defaults = {
         ]
     },
 
-	frequencyFromVelocity: 0.9,
     frequencyEnvelope: {
         attack: [
             [0,    "step",   0],
@@ -64,11 +63,38 @@ const defaults = {
         release: [
             [0, "target", 0, 0.2]
         ]
-    }
+    },
+
+	data: {
+		velocity: {
+			gain: {
+				gain: { min: 0.125, max: 1 },
+				rate: { min: 0.5, max: 2 }
+			},
+
+			frequency: {
+				gain: { min: 0.125, max: 1 },
+				rate: { min: 0.5, max: 1 }
+			}
+		},
+
+		frequency: {
+			gain: {
+				gain: { scale: 0 },
+				rate: { scale: 0.2 }
+			},
+
+			frequency: {
+				gain: { scale: 0.4 },
+				rate: { scale: 0 }
+			}
+		}
+	}
 };
 
 const properties = {
 	sources: { writable: true, enumerable: true },
+	data:    { writable: true, enumerable: true },
 
 	type: {
 		enumerable: true,
@@ -91,6 +117,47 @@ const properties = {
 	active: { writable: true, value: undefined }
 };
 
+const constructors = {
+	'noise': Noise,
+	'tone':  Tone,
+	//'sample':     Sample
+};
+
+function connectSource(node, source, destination) {
+	if (source.get('gain')) {
+		// Hook up the envelope to the noise gain
+		node
+		.get('gainEnvelope')
+		.connect(source.get('gain').gain);
+	}
+
+	if (source.detune) {
+		// Hook up detune
+		node
+		.get('detune')
+		.connect(source.detune);
+	}
+
+	source.connect(destination);
+}
+
+function disconnectSource(node, source, destination) {
+	// Disconnect existing source
+	if (source.get('gain')) {
+		node
+		.get('gainEnvelope')
+		.disconnect(source.get('gain').gain);
+	}
+
+	if (source.detune) {
+		node
+		.get('detune')
+		.disconnect(source.detune)
+	}
+
+	source.disconnect(destination);
+}
+
 function updateSources(node, sources, destination) {
     sources.length = 0;
 
@@ -99,35 +166,21 @@ function updateSources(node, sources, destination) {
         // Sources are pooled here, so effectively each voice has it's own
         // source pool. Add a new source to the pool if there is not yet one
         // available at this index.
-        if (!sources[i] || !sources[i].type === options.type) {
-			if (options.type === 'white' || options.type === 'pink') {
-				// Source is a Noise
-				sources[i] = new Noise(destination.context, options);
+        if (!sources[i] || sources[i].type !== options.type) {
+			// Unpool, disconnect existing source
+			sources[i] && disconnectSource(node, sources[i].data, destination);
 
-				// Hook up the envelope to the noise gain
-				node
-				.get('gainEnvelope')
-				.connect(sources[i].get('gain').gain);
-			}
-			else {
-				// Source is a Tone
-				sources[i] = new Tone(destination.context, options);
+			// Create new source
+			sources[i] = {
+				type: options.type,
+				data: new constructors[options.type](destination.context, options.data)
+			};
 
-				// Hook up the envelope to the noise gain
-	            node
-				.get('gainEnvelope')
-				.connect(sources[i].get('gain').gain);
-
-				// Hook up detune
-	            node
-				.get('detune')
-				.connect(sources[i].detune);
-			}
-
-            sources[i].connect(destination);
+			// Connect it up
+			connectSource(node, sources[i].data, destination);
         }
 
-        sources[i].reset(destination.context, options);
+        sources[i].data.reset(destination.context, options.data);
         sources.length = i + 1;
         return sources;
     }, sources);
@@ -151,7 +204,7 @@ function ToneVoice(context, settings) {
 	// Assign audio nodes and params
     this.gainEnvelope      = this.get('gainEnvelope');
     this.frequencyEnvelope = this.get('frequencyEnvelope');
-    this.frequency         = this.get('filter').frequency;
+    this.frequency         = this.get('frequencyGain').gain;
     this.Q                 = this.get('filter').Q;
 	this.detune            = this.get('detune').offset;
 
@@ -163,33 +216,40 @@ function ToneVoice(context, settings) {
 assign(ToneVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 	reset: function(context, settings) {
         PlayNode.prototype.reset.apply(this, arguments);
-
-        // Purge automation events
-        //getAutomationEvents(this.env1.offset).length = 0;
-        //getAutomationEvents(this.env2.offset).length = 0;
-
         assignSettings(this, defaults, settings, ['context']);
         return this;
     },
 
-	start: function(time, note, velocity) {
+	start: function(time, note, velocity = 1) {
 		const privates = Privates(this);
 
 		PlayNode.prototype.start.apply(this, arguments);
 		updateSources(this, privates.sources, this.get('filter'));
 
-		const frequency = numberToFrequency(440, note);
+		const frequency = floatToFrequency(440, note);
+
+		// Frequency relative to C4, middle C
+		const frequencyRatio = frequency / floatToFrequency(440, 60);
 
 		let n = privates.sources.length;
 		while (n--) {
 			// Set gain to 0 - we have an envelope connected to gain, which
 			// will control it
-			privates.sources[n].start(this.startTime, frequency, 0);
+			privates.sources[n].data.start(this.startTime, frequency, 0);
 		}
 
-		// Todo: gain and rate
-		this.gainEnvelope.start(this.startTime, 'attack', (1 - this.gainFromVelocity) + (velocity * this.gainFromVelocity), 1);
-		this.frequencyEnvelope.start(this.startTime, 'attack', (1 - this.frequencyFromVelocity) + (velocity * this.frequencyFromVelocity), 1);
+		const amplitudeVelocityGain = denormalise('logarithmic', this.data.velocity.gain.gain.min, this.data.velocity.gain.gain.max, velocity);
+		const amplitudeVelocityRate = denormalise('logarithmic', this.data.velocity.gain.rate.min, this.data.velocity.gain.rate.max, velocity);
+		const amplitudeOctaveGain   = Math.pow(frequencyRatio, this.data.frequency.gain.gain.scale);
+		const amplitudeOctaveRate   = Math.pow(frequencyRatio, this.data.frequency.gain.rate.scale);
+		this.gainEnvelope.start(this.startTime, 'attack', amplitudeVelocityGain * amplitudeOctaveGain, amplitudeVelocityRate * amplitudeOctaveRate);
+
+		const frequencyVelocityGain = denormalise('logarithmic', this.data.velocity.frequency.gain.min, this.data.velocity.frequency.gain.max, velocity);
+		const frequencyVelocityRate = denormalise('logarithmic', this.data.velocity.frequency.rate.min, this.data.velocity.frequency.rate.max, velocity);
+		const frequencyOctaveGain   = Math.pow(frequencyRatio, this.data.frequency.frequency.gain.scale);
+		const frequencyOctaveRate   = Math.pow(frequencyRatio, this.data.frequency.frequency.rate.scale);
+		this.frequencyEnvelope.start(this.startTime, 'attack', frequencyVelocityGain * frequencyOctaveGain, frequencyVelocityRate * frequencyOctaveRate);
+
 		return this;
 	},
 
@@ -197,9 +257,13 @@ assign(ToneVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 		const privates = Privates(this);
 		PlayNode.prototype.stop.apply(this, arguments);
 
-		// Todo: gain and rate
-		this.gainEnvelope.start(this.stopTime, 'release', (1 - this.gainFromVelocity) + (velocity * this.gainFromVelocity), 1);
-		this.frequencyEnvelope.start(this.stopTime, 'release', (1 - this.frequencyFromVelocity) + (velocity * this.frequencyFromVelocity), 1);
+		const amplitudeVelocityGain = denormalise('logarithmic', this.data.velocity.gain.gain.min, this.data.velocity.gain.gain.max, velocity);
+		const amplitudeVelocityRate = denormalise('logarithmic', this.data.velocity.gain.rate.min, this.data.velocity.gain.rate.max, velocity);
+		this.gainEnvelope.start(this.stopTime, 'release', amplitudeVelocityGain, amplitudeVelocityRate);
+
+		const frequencyVelocityGain = denormalise('logarithmic', this.data.velocity.frequency.gain.min, this.data.velocity.frequency.gain.max, velocity);
+		const frequencyVelocityRate = denormalise('logarithmic', this.data.velocity.frequency.rate.min, this.data.velocity.frequency.rate.max, velocity);
+		this.frequencyEnvelope.start(this.stopTime, 'release', frequencyVelocityGain, frequencyVelocityRate);
 
 		// Advance .stopTime to include release tail
 		this.stopTime += Math.max(
@@ -212,7 +276,7 @@ assign(ToneVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 
 		let n = privates.sources.length;
 		while (n--) {
-			privates.sources[n].stop(this.stopTime);
+			privates.sources[n].data.stop(this.stopTime);
 		}
 
 		// Prevent filter feedback from ringing past note end

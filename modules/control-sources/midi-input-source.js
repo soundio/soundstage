@@ -7,7 +7,7 @@ the properties:
 - `port`
 - `channel;`
 - `type`
-- `param`
+- `name`
 - `value`
 
 and the methods:
@@ -16,89 +16,37 @@ and the methods:
 - `stop()`: stops the stream of input messages
 */
 
-import { noop, nothing } from '../../../fn/module.js';
-import { on, off, toType, bytesToSignedFloat, int7ToFloat, int7ToWeightedFloat, numberToControl, toChannel } from '../../../midi/module.js';
+import { choose, noop, nothing } from '../../../fn/module.js';
+import { on, off, toChannel, toType, bytesToWeightedFloat, int7ToFloat, int7ToWeightedFloat } from '../../../midi/module.js';
 
 const assign = Object.assign;
 const define = Object.defineProperties;
 
-const pitchBendRange = 2;
+const normaliseName = choose({
+    pitch:        (message) => 'pitch',
+    channeltouch: (message) => 'all',
+    default:      (message) => message[1]
+});
 
-function get1(object) {
-    return object[1];
-}
-
-// noteoff, noteon, polytouch, control, program, channeltouch, pitch
-const controlTypes = [
-    'noteoff',
-    'noteon',
-    'touch',
-    'param',
-    'patch',
-    'touch',
-    'param'
-];
-
-const controlParams = [
-    get1,
-    get1,
-    get1,
-
-    function control(message) {
-        return numberToControl(message[1]);
-    },
-
-    get1,
-
-    function channeltouch() {
-        return 'noteparam';
-    },
-
-    function pitch(message) {
-        return 'pitch';
-    }
-];
-
-const controlValues = [
-    function noteoff(message) {
-        return 0;
-    },
-
-    function noteon(message) {
-        return int7ToFloat(message[2]);
-    },
-
-    function polytouch(message) {
-        return int7ToFloat(message[2]);
-    },
-
-    function control(message) {
-        return int7ToWeightedFloat(message[2]);
-    },
-
-    noop,
-
-    function channeltouch(message) {
-        return int7ToFloat(message[2]);
-    },
-
-    function pitch(message) {
-        return pitchBendRange * bytesToSignedFloat(message[1], message[2]);
-    }
-];
+const normaliseValue = choose({
+    control:      (message) => int7ToWeightedFloat(message[2]),
+    pitch:        (message) => bytesToWeightedFloat(message[1], message[2]),
+    default:      (message) => int7ToFloat(message[2])
+});
 
 export default function MIDIInputSource(data) {
     const handler = function handler(e) {
-        const n = Math.floor((e.data[0] - 128) / 16);
-        return fn(e.timeStamp, controlTypes[n], controlParams[n](e.data), controlValues[n](e.data));
+        const message = e.data;
+        const type    = toType(message[0]);
+        return fn(e.timeStamp, type, normaliseName(type, message), normaliseValue(type, message));
     };
 
     const selector = {
-        port: data.port,
-        0:    data.channel,
-        1:    data.type === 'all' ? undefined : data.type,
-        2:    data.param,
-        3:    data.value
+        port:    data.port,
+        channel: data.channel,
+        type:    data.type === 'all' ? undefined : data.type,
+        name:    data.name,
+        value:   data.value
     };
 
     let fn;
@@ -121,40 +69,40 @@ export default function MIDIInputSource(data) {
 
         channel: {
             enumerable: true,
-            get: function() { return selector[0]; },
+            get: function() { return selector.channel; },
             set: function(value) {
                 off(selector, handler);
-                selector[0] = value;
+                selector.channel = value;
                 on(selector, handler);
             }
         },
 
         type: {
             enumerable: true,
-            get: function() { return selector[1] || 'all'; },
+            get: function() { return selector.type || 'all'; },
             set: function(value) {
                 off(selector, handler);
-                selector[1] = value;
+                selector.type = value;
                 on(selector, handler);
             }
         },
 
-        param: {
+        name: {
             enumerable: true,
-            get: function() { return selector[2]; },
+            get: function() { return selector.name; },
             set: function(value) {
                 off(selector, handler);
-                selector[2] = value;
+                selector.name = value;
                 on(selector, handler);
             }
         },
 
         value: {
             enumerable: true,
-            get: function() { return selector[3]; },
+            get: function() { return selector.value; },
             set: function(value) {
                 off(selector, handler);
-                selector[3] = value;
+                selector.value = value;
                 on(selector, handler);
             }
         }
@@ -175,6 +123,8 @@ export default function MIDIInputSource(data) {
 
 
 function toMIDISelector(e, options) {
+    const message = e.data;
+
     const selector = {
         port: e.target.id
     };
@@ -184,25 +134,25 @@ function toMIDISelector(e, options) {
     }
 
     selector.channel = options.channel === undefined ?
-        toChannel(e.data) :
+        toChannel(message[0]) :
         options.channel ;
 
     if (options.type === 'all') {
         return selector;
     }
 
-    const type = toType(e.data);
+    const type = toType(message[0]);
     selector.type = options.type === undefined ?
         (type === 'noteon' || type === 'noteoff' ? 'note' : type) :
         options.type ;
 
-    if (options.param === 'all') {
+    if (options.name === 'all') {
         return selector;
     }
 
-    selector.param = options.param === undefined ?
-        e.data[1] :
-        options.param ;
+    selector.name = options.name === undefined ?
+        message[1] :
+        options.name ;
 
     return selector;
 }
@@ -220,11 +170,7 @@ export function learn(options) {
     return StopablePromise(function(resolve, reject) {
         on(nothing, function learn(e) {
             off(nothing, learn);
-
-            // Create source
-            const selector = toMIDISelector(e, options);
-console.log('SELECTOR', e, selector);
-            resolve(new MIDIInputSource(selector));
+            resolve(toMIDISelector(e, options));
         });
     });
 }

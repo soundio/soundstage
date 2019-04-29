@@ -1,5 +1,5 @@
 import { log, logGroup, logGroupEnd } from './utilities/print.js';
-import { automate } from './automate.js';
+import { automate, getAutomation } from './automate.js';
 
 const DEBUG = false;//true;
 
@@ -13,6 +13,11 @@ function assignSetting(node, key, value, notify) {
     // Does it quack like an AudioParam?
     if (node[key] && node[key].setValueAtTime) {
         if (DEBUG) { log('param', key + ' =', value); }
+
+        // If we are assigning settings we can assume we are in a state to
+        // purge old automation events. Keep an eye, might be a bit aggressive
+        getAutomation(node[key]).length = 0;
+
         // param, time, curve, value, duration, notify, context
         automate(node[key], node.context.currentTime, 'step', value, null);
     }
@@ -21,15 +26,6 @@ function assignSetting(node, key, value, notify) {
     else if (node[key] && node[key].connect) {
         assignSettings(node[key], value);
     }
-
-    // Or an array-like?
-//    else if (node[key] && typeof node[key] === 'object' && node[key].length !== undefined) {
-//        let n = node[key].length;
-//        while (n--) {
-//            console.log(node[key][n], value[n]);
-//            assignSettings(node[key][n], value[n]);
-//        }
-//    }
 
     // Then set it as a property
     else {
@@ -48,7 +44,7 @@ export function assignSettings(node, defaults, settings, ignored) {
             // Ignore ignored key
             if (ignored && ignored.indexOf(key) > -1) { continue; }
 
-            // Ignore AudioParams
+            // Ignore AudioParams coming from a parent node
             if (settings[key] && settings[key].setValueAtTime) { continue; }
 
     		// We want to assign only when a property has been declared, as we may

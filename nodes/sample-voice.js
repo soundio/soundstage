@@ -4,9 +4,9 @@ import { nothing } from '../../fn/module.js';
 import { Privates } from '../../fn/module.js';
 import NodeGraph   from './node-graph.js';
 import PlayNode from './play-node.js';
-import { automate, getAutomationEvents, getAutomationEndTime } from '../modules/automate.js';
+import { automate, getAutomation, getAutomationEndTime } from '../modules/automate.js';
 import { assignSettings } from '../modules/assign-settings.js';
-import { numberToFrequency, frequencyToNumber } from '../../midi/module.js';
+import { floatToFrequency, frequencyToFloat } from '../../midi/module.js';
 
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;
@@ -171,7 +171,7 @@ assign(SampleVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
                 velocity > veloRange[veloRange.length - 2] ? 1 - (velocity - veloRange[2]) / (veloRange[1] - veloRange[2]) :
                 1 ;
 
-            const frequency = numberToFrequency(440, note);
+            const frequency = floatToFrequency(440, note);
 
             sources[n].start(time, frequency, gain * noteGain * veloGain);
 

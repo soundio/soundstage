@@ -18,7 +18,7 @@ var AudioObject = window.AudioObject;
 
 // Note: URLs are temporary! They will change.
 
-import { numberToFrequency } from '../../../../midi/module.js';
+import { floatToFrequency } from '../../../../midi/module.js';
 
 export default {
 	label: 'Fender Rhodes Mark II',
@@ -34,7 +34,7 @@ export default {
 			while (++i < names.length) {
 				data.push({
 					path: 'http://localhost/sound.io/soundio/static/audio/fender-rhodes-mark-ii/samples/corsica-s-cs-rhodes-mark-ii-' + names[i] + o + '.wav',
-					nominalFrequency: numberToFrequency(440, n++),
+					nominalFrequency: floatToFrequency(440, n++),
 					noteRange: [n],
 					velocityRange: [0, 1],
 					gainFromVelocity: 1,

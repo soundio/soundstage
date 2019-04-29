@@ -39,7 +39,7 @@ const properties = {
 
 		set: function(value) {
 			if (!/sine|square|sawtooth|triangle/.test(value)) {
-				throw new Error('Tone: attempt to set unrecognised type "' + value + '"');
+				return;
 			}
 
 			return this.get('osc').type = value;
@@ -83,7 +83,6 @@ assign(Tone.prototype, NodeGraph.prototype, PlayNode.prototype, {
     },
 
     stop: function(time, frequency, gain) {
-console.log('STOP');
         PlayNode.prototype.stop.apply(this, arguments);
         this.get('gain').gain.setValueAtTime(0, this.stopTime);
         return this;

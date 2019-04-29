@@ -2,7 +2,7 @@
 import { id, Stream } from '../../fn/module.js';
 import { Privates } from '../../fn/module.js';
 import { roundBeat } from '../modules/utilities/utilities.js';
-import { automate, getValueAtTime, getAutomationEvents } from './automate.js';
+import { automate, getValueAtTime, getAutomation } from './automate.js';
 import { barAtBeat, beatAtBar } from './meter.js';
 //import { isRateEvent } from './event.js';
 import { connect, disconnect } from './connect.js';
@@ -31,7 +31,7 @@ assign(Transport.prototype, Clock.prototype, {
 		if (time < 0) { throw new Error('Location: beatAtLoc(loc) does not accept -ve values.'); }
 
 		const privates  = Privates(this);
-		const events    = getAutomationEvents(privates.rateParam);
+		const events    = getAutomation(privates.rateParam);
 		// Cache startLocation as it is highly likely to be needed again
 		//console.log('transport.beatAtTime', this.startTime, defaultRateEvent, events);
 		const startBeat = this.startLocation || (this.startLocation = beatAtTimeOfAutomation(events, defaultRateEvent, this.startTime));
@@ -44,7 +44,7 @@ assign(Transport.prototype, Clock.prototype, {
 		if (beat < 0) { throw new Error('Location: locAtBeat(beat) does not accept -ve values.'); }
 
 		const privates  = Privates(this);
-		const events    = getAutomationEvents(privates.rateParam);
+		const events    = getAutomation(privates.rateParam);
 		// Cache startLocation as it is highly likely to be needed again
 		const startBeat = this.startLocation || (this.startLocation = beatAtTimeOfAutomation(events, defaultRateEvent, this.startTime));
 

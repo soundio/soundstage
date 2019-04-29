@@ -10,7 +10,7 @@
 
     <script>
     document.documentElement.className = 'js';
-    window.DEBUG = true;
+    window.DEBUG = false;
     </script>
 
     <link rel="stylesheet" href="../bolt/css/html.css" />
@@ -68,7 +68,7 @@
         </range-control>
 
         <form fn="controls:pan" class="controls-toggle-block toggle-block block {[action]}" toggleable id="node-{[target.id]}-pan-toggle">
-            <template include="#controls-toggle"></template>
+            <template include="#param-controls-toggle"></template>
         </form>
 
         <range-control fn="param:gain" unit="dB" min="-60dB" max="1" transform="linear-logarithmic" ticks="0 0.0009765625 0.001953125 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
@@ -77,16 +77,82 @@
         </range-control>
 
         <form fn="controls:gain" class="controls-toggle-block toggle-block block {[action]}" toggleable id="node-{[target.id]}-gain-toggle">
-            <template include="#controls-toggle"></template>
+            <template include="#param-controls-toggle"></template>
         </form>
     </template>
 
+    <template id="source-select-button">
+        <label class="source-select-button select-button button">
+            <select id="source-select" :value="{[type]}">
+                <option selected value="tone">Tone</option>
+                <option value="noise">Noise</option>
+            </select>
+        </label>
+    </template>
+
     <template id="tone-source">
-        <range-control :value="{[1.detune]}" unit="semitone" min="-1200" max="2400" transform="linear" ticks="-1200 -700 0 700 1200 1600 1900 2200 2400"><span class="text-10">Tune</span></range-control>
+        <div class="radios-block block">
+            <input class="masked" type="radio" name="tone-synth-source-{[0]}-type" :value="{[1.data.type]}" value="square" id="tone-synth-source-{[0]}-type-square">
+            <label title="Square" class="square-radio-button radio-button button" for="tone-synth-source-{[0]}-type-square"></label>
+            <input class="masked" type="radio" name="tone-synth-source-{[0]}-type" :value="{[1.data.type]}" value="sine" id="tone-synth-source-{[0]}-type-sine">
+            <label title="Sine" class="sine-radio-button radio-button button" for="tone-synth-source-{[0]}-type-sine"></label>
+            <input class="masked" type="radio" name="tone-synth-source-{[0]}-type" :value="{[1.data.type]}" value="triangle" id="tone-synth-source-{[0]}-type-triangle">
+            <label title="Triangle" class="triangle-radio-button radio-button button" for="tone-synth-source-{[0]}-type-triangle"></label>
+            <input class="masked" type="radio" name="tone-synth-source-{[0]}-type" :value="{[1.data.type]}" value="sawtooth" id="tone-synth-source-{[0]}-type-sawtooth">
+            <label title="Sawtooth" class="sawtooth-radio-button radio-button button" for="tone-synth-source-{[0]}-type-sawtooth"></label>
+        </div>
+        <range-control :value="{[1.data.detune]}" unit="semitone" min="-1200" max="2400" transform="linear" ticks="-1200 -700 0 700 1200 1600 1900 2200 2400"><span class="text-10">Tune</span></range-control>
+        <range-control :value="{[1.data.pan]}" unit="pan" min="-1" max="1" transform="linear" ticks="-1 0 1"><span class="text-10">Pan</span></range-control>
+        <range-control :value="{[1.data.mix]}" unit="dB" min="-36dB" max="0dB" transform="linear-logarithmic" ticks="0 0.015625 0.03125 0.0625 0.125 0.25 0.5 1"><span class="text-10">Mix</span></range-control>
     </template>
 
     <template id="noise-source">
-        <div>Noise</div>
+        <div class="radios-block block">
+            <input class="masked" type="radio" name="noise-source-{[0]}-type" :value="{[1.data.type]}" value="white" id="noise-source-{[0]}-type-white">
+            <label title="White" class="white-radio-button radio-button button" for="noise-source-{[0]}-type-white"></label>
+            <input class="masked" type="radio" name="noise-source-{[0]}-type" :value="{[1.data.type]}" value="pink" id="noise-source-{[0]}-type-pink">
+            <label title="Pink" class="white-radio-button radio-button button" for="noise-source-{[0]}-type-pink"></label>
+            <input class="masked" type="radio" name="noise-source-{[0]}-type" :value="{[1.data.type]}" value="brown" id="noise-source-{[0]}-type-brown">
+            <label title="Brown" class="brown-radio-button radio-button button" for="noise-source-{[0]}-type-brown"></label>
+        </div>
+        <range-control :value="{[1.data.pan]}" unit="pan" min="-1" max="1" transform="linear" ticks="-1 0 1"><span class="text-10">Pan</span></range-control>
+        <range-control :value="{[1.data.mix]}" unit="dB" min="-36dB" max="0dB" transform="linear-logarithmic" ticks="0 0.015625 0.03125 0.0625 0.125 0.25 0.5 1"><span class="text-10">Mix</span></range-control>
+    </template>
+
+    <template id="tone-synth-gain-block">
+        <div class="scales-block block">
+            <label class="text-10 row-1 span-2 no-wrap">Gain via note</label>
+
+            <range-control class="row-2" :value="{[gain.min]}" unit="dB" min="-48dB" max="0dB" transform="logarithmic" ticks="-48dB -36dB -24dB -12dB 0dB">
+                <span class="text-10">Min</span>
+            </range-control>
+
+            <range-control class="row-2" :value="{[gain.max]}" unit="dB" min="-48dB" max="0dB" transform="logarithmic" ticks="-48dB -36dB -24dB -12dB 0dB">
+                <span class="text-10">Max</span>
+            </range-control>
+
+            <label class="text-10 row-1 span-2 no-wrap">Rate via note</label>
+
+            <range-control class="row-2" :value="{[rate.min]}" min="0.25" max="4" transform="logarithmic" ticks="0.25 1 4">
+                <span class="text-10">Min</span>
+            </range-control>
+
+            <range-control class="row-2" :value="{[rate.max]}" min="0.25" max="4" transform="logarithmic" ticks="0.25 1 4">
+                <span class="text-10">Max</span>
+            </range-control>
+        </div>
+    </template>
+
+    <template id="tone-synth-octave-block">
+        <div class="scales-block block">
+            <range-control class="row-1 span-2" :value="{[gain.scale]}" min="-2" max="2" transform="linear" ticks="-2 -1 0 1 2">
+                <span class="text-10 no-wrap">Per octave</span>
+            </range-control>
+
+            <range-control class="row-1 span-2" :value="{[rate.scale]}" min="-2" max="2" transform="linear" ticks="-2 -1 0 1 2">
+                <span class="text-10 no-wrap">Per octave</span>
+            </range-control>
+        </div>
     </template>
 
     <template id="node-nodes/tone-synth.js">
@@ -96,82 +162,61 @@
             <template include="#node-controls-toggle"></template>
         </form>
 
-        <!--range-control fn="param:gain" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1"><span class="text-10">Gain</span></range-control-->
-
         <section class="sources-block block">
             <article fn="get:data.sources entries each">
-                <div class="radios-block block">
-                    <input class="masked" type="radio" name="tone-synth-source-{[0]}-type" :value="{[1.type]}" value="square" id="tone-synth-source-{[0]}-type-square">
-                    <label title="Square" class="square-radio-button radio-button button" for="tone-synth-source-{[0]}-type-square"></label>
-                    <input class="masked" type="radio" name="tone-synth-source-{[0]}-type" :value="{[1.type]}" value="sine" id="tone-synth-source-{[0]}-type-sine">
-                    <label title="Sine" class="sine-radio-button radio-button button" for="tone-synth-source-{[0]}-type-sine"></label>
-                    <input class="masked" type="radio" name="tone-synth-source-{[0]}-type" :value="{[1.type]}" value="triangle" id="tone-synth-source-{[0]}-type-triangle">
-                    <label title="Triangle" class="triangle-radio-button radio-button button" for="tone-synth-source-{[0]}-type-triangle"></label>
-                    <input class="masked" type="radio" name="tone-synth-source-{[0]}-type" :value="{[1.type]}" value="sawtooth" id="tone-synth-source-{[0]}-type-sawtooth">
-                    <label title="Sawtooth" class="sawtooth-radio-button radio-button button" for="tone-synth-source-{[0]}-type-sawtooth"></label>
-                    <input class="masked" type="radio" name="tone-synth-source-{[0]}-type" :value="{[1.type]}" value="white" id="tone-synth-source-{[0]}-type-white">
-                    <label title="Sawtooth" class="white-radio-button radio-button button" for="tone-synth-source-{[0]}-type-white"></label>
-                </div>
-                <template include="#{[1.type|is:white|yesno:noise,tone]}-source"></template>
-                <range-control :value="{[1.pan]}" unit="pan" min="-1" max="1" transform="linear" ticks="-1 0 1"><span class="text-10">Pan</span></range-control>
-                <range-control :value="{[1.mix]}" unit="dB" min="-36dB" max="0dB" transform="linear-logarithmic" ticks="0 0.015625 0.03125 0.0625 0.125 0.25 0.5 1"><span class="text-10">Mix</span></range-control>
+                <template fn="get:1" include="#source-select-button"></template>
+                <template include="#{[1.type]}-source"></template>
             </article>
         </section>
 
         <div class="envelopes-block block">
             <div fn="get:data.gainEnvelope entries each">
                 <h3 class="text-10">{[0]}</h3>
-
                 <div fn="get:1">
                     <svg fn="envelope-control" class="envelope-svg" viewBox="0 -1.125 2 1.125" y-transform="linear-logarithmic" y-min="-36dB" y-max="1.125" y-ticks="0dB -6dB -12dB -18dB -24dB -30dB -36dB -42dB -48dB" preserveAspectRatio="xMinYMid slice">
                         <text text-anchor="end" x="-0.05" y="-0.965" style="font-size: 0.07; fill: #01181e;">0</text>
                         <text text-anchor="end" x="-0.05" y="0.035" style="font-size: 0.07; fill: #01181e;">-∞</text>
-                        <!-- Todo: Sparky has a conflict where each and include
-                             cannot be used together, so we need to wrap our
-                             includes. Fix Sparky. -->
-                        <g fn="each">
-                            <use include="#{[1]}-db-control"></use>
-                        </g>
+                        <use fn="each" include="#{[1]}-db-control"></use>
                     </svg>
                 </div>
             </div>
         </div>
+
+        <template fn="get:data.data.velocity.gain" include="#tone-synth-gain-block"></template>
+        <template fn="get:data.data.frequency.gain" include="#tone-synth-octave-block"></template>
 
         <div class="envelopes-block block">
             <div fn="get:data.frequencyEnvelope entries each">
                 <h3 class="text-10">{[0]}</h3>
-
                 <div fn="get:1">
                     <svg fn="envelope-control" class="envelope-svg" viewBox="0 -1 2 1" y-transform="logarithmic" y-min="16" y-max="16384" y-ticks="22.5 55 110 220 440 880 1760 3520 7040 14080" preserveAspectRatio="xMinYMax slice">
                         <text text-anchor="end" x="-0.05" y="-0.965" style="font-size: 0.07; fill: #01181e;">16k</text>
                         <text text-anchor="end" x="-0.05" y="0.035" style="font-size: 0.07; fill: #01181e;">16</text>
-                        <!-- Todo: Sparky has a conflict where each and include
-                             cannot be used together, so we need to wrap our
-                             includes. Fix Sparky. -->
-                        <g fn="each">
-                            <use include="#{[1]}-hz-control"></use>
-                        </g>
+                        <use fn="each" include="#{[1]}-hz-control"></use>
                     </svg>
                 </div>
             </div>
         </div>
 
-        <range-control fn="param:pitch" unit="semitone" min="-200" max="200" ticks="-200 -100 0 100 200">
+        <template fn="get:data.data.velocity.frequency" include="#tone-synth-gain-block"></template>
+        <template fn="get:data.data.frequency.frequency" include="#tone-synth-octave-block"></template>
+
+        <range-control fn="param:pitch" unit="" min="-2" max="2" ticks="-2 -1 0 1 2">
             <span class="text-10">Pitch</span>
             <a class="midi-thumb thumb" href="#node-{[id]}-pitch-toggle" slot="plugs"></a>
         </range-control>
 
         <form fn="controls:pitch" class="controls-toggle-block toggle-block block {[action]}" toggleable id="node-{[target.id]}-pitch-toggle">
-            <template include="#controls-toggle"></template>
+            <template include="#param-controls-toggle"></template>
         </form>
 
-        <range-control fn="param:frequency" unit="Hz" min="16" max="16384" transform="logarithmic" ticks="16 32 64 125 250 500 1000 2000 4000 8000 16000">
+        <range-control fn="param:frequency" unit="" min="0.125" max="2" transform="logarithmic" ticks="0.125 0.25 0.5 1 2">
             <span class="text-10">Frequency</span>
             <a class="midi-thumb thumb" href="#node-{[id]}-frequency-toggle" slot="plugs"></a>
         </range-control>
 
         <form fn="controls:frequency" class="controls-toggle-block toggle-block block {[action]}" toggleable id="node-{[target.id]}-frequency-toggle">
-            <template include="#controls-toggle"></template>
+            <template include="#param-controls-toggle"></template>
         </form>
 
         <range-control fn="param:Q" unit="Q" min="0.16" max="20" transform="logarithmic" ticks="0.16 0.32 0.64 1.25 2.5 5 10 20">
@@ -180,16 +225,16 @@
         </range-control>
 
         <form fn="controls:Q" class="controls-toggle-block toggle-block block {[action]}" toggleable id="node-{[target.id]}-Q-toggle">
-            <template include="#controls-toggle"></template>
+            <template include="#param-controls-toggle"></template>
         </form>
 
-        <range-control fn="param:output" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
+        <range-control fn="param:volume" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
             <span class="text-10">Output</span>
             <a class="midi-thumb thumb" href="#node-{[id]}-output-toggle" slot="plugs"></a>
         </range-control>
 
-        <form fn="controls:output" class="controls-toggle-block toggle-block block {[action]}" toggleable id="node-{[target.id]}-output-toggle">
-            <template include="#controls-toggle"></template>
+        <form fn="controls:volume" class="controls-toggle-block toggle-block block {[action]}" toggleable id="node-{[target.id]}-output-toggle">
+            <template include="#param-controls-toggle"></template>
         </form>
     </template>
 
@@ -200,7 +245,7 @@
         </range-control>
 
         <form fn="controls:gain" class="controls-toggle-block toggle-block block {[action]}" toggleable id="node-{[target.id]}-gain-toggle">
-            <template include="#controls-toggle"></template>
+            <template include="#param-controls-toggle"></template>
         </form>
 
         <range-control fn="param:delay" unit="s" min="0.0125" max="2" transform="linear-logarithmic" ticks="0 0.02 0.04 0.06 0.08 0.1 0.2 0.4 0.6 0.8 1 2">
@@ -209,7 +254,7 @@
         </range-control>
 
         <form fn="controls:delay" class="controls-toggle-block toggle-block block {[action]}" toggleable id="node-{[target.id]}-delay-toggle">
-            <template include="#controls-toggle"></template>
+            <template include="#param-controls-toggle"></template>
         </form>
 
         <range-control fn="param:frequency" unit="Hz" min="0.083333333" max="96" transform="linear-logarithmic" ticks="0 0.1 0.2 0.4 0.6 0.8 1 2 4 6 8 10 20 40 60 80">
@@ -218,7 +263,7 @@
         </range-control>
 
         <form fn="controls:frequency" class="controls-toggle-block toggle-block block {[action]}" toggleable id="node-{[target.id]}-frequency-toggle">
-            <template include="#controls-toggle"></template>
+            <template include="#param-controls-toggle"></template>
         </form>
 
         <range-control fn="param:depth" unit="s" min="0.012" max="0.18" transform="linear-logarithmic" prefix="±" ticks="0 0.02 0.04 0.06 0.08 0.1 0.12 0.14 0.16 0.18">
@@ -227,7 +272,7 @@
         </range-control>
 
         <form fn="controls:depth" class="controls-toggle-block toggle-block block {[action]}" toggleable id="node-{[target.id]}-depth-toggle">
-            <template include="#controls-toggle"></template>
+            <template include="#param-controls-toggle"></template>
         </form>
 
         <range-control fn="param:feedback" unit="dB" min="-37.3dB" max="1" transform="linear-logarithmic" ticks="0 -36dB -30dB -24dB -18dB -12dB -6dB 0dB">
@@ -236,7 +281,7 @@
         </range-control>
 
         <form fn="controls:feedback" class="controls-toggle-block toggle-block block {[action]}" toggleable id="node-{[target.id]}-feedback-toggle">
-            <template include="#controls-toggle"></template>
+            <template include="#param-controls-toggle"></template>
         </form>
 
         <range-control fn="param:wet" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
@@ -245,7 +290,7 @@
         </range-control>
 
         <form fn="controls:wet" class="controls-toggle-block toggle-block block {[action]}" toggleable id="node-{[target.id]}-wet-toggle">
-            <template include="#controls-toggle"></template>
+            <template include="#param-controls-toggle"></template>
         </form>
 
         <range-control fn="param:dry" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
@@ -254,7 +299,7 @@
         </range-control>
 
         <form fn="controls:dry" class="controls-toggle-block toggle-block block {[action]}" toggleable id="node-{[target.id]}-dry-toggle">
-            <template include="#controls-toggle"></template>
+            <template include="#param-controls-toggle"></template>
         </form>
     </template>
 
@@ -265,7 +310,7 @@
         </range-control>
 
         <form fn="controls:threshold" class="controls-toggle-block toggle-block block {[action]}" toggleable id="node-{[target.id]}-threshold-toggle">
-            <template include="#controls-toggle"></template>
+            <template include="#param-controls-toggle"></template>
         </form>
 
         <range-control fn="param:ratio" min="1" max="20" transform="cubic">
@@ -274,7 +319,7 @@
         </range-control>
 
         <form fn="controls:ratio" class="controls-toggle-block toggle-block block {[action]}" toggleable id="node-{[target.id]}-ratio-toggle">
-            <template include="#controls-toggle"></template>
+            <template include="#param-controls-toggle"></template>
         </form>
 
         <range-control fn="param:knee" min="0" max="40" transform="cubic">
@@ -283,7 +328,7 @@
         </range-control>
 
         <form fn="controls:knee" class="controls-toggle-block toggle-block block {[action]}" toggleable id="node-{[target.id]}-knee-toggle">
-            <template include="#controls-toggle"></template>
+            <template include="#param-controls-toggle"></template>
         </form>
 
         <range-control fn="param:attack" unit="s" min="0.012" max="0.8" transform="linear-logarithmic" ticks="0 0.02 0.04 0.06 0.08 0.1 0.2 0.4 0.6 0.8">
@@ -292,7 +337,7 @@
         </range-control>
 
         <form fn="controls:attack" class="controls-toggle-block toggle-block block {[action]}" toggleable id="node-{[target.id]}-attack-toggle">
-            <template include="#controls-toggle"></template>
+            <template include="#param-controls-toggle"></template>
         </form>
 
         <range-control fn="param:release" unit="s" min="0.012" max="0.8" transform="linear-logarithmic" ticks="0 0.02 0.04 0.06 0.08 0.1 0.2 0.4 0.6 0.8">
@@ -301,7 +346,7 @@
         </range-control>
 
         <form fn="controls:release" class="controls-toggle-block toggle-block block {[action]}" toggleable id="node-{[target.id]}-release-toggle">
-            <template include="#controls-toggle"></template>
+            <template include="#param-controls-toggle"></template>
         </form>
     </template>
 
@@ -320,18 +365,36 @@
         </div>
     </template>
 
+    <template id="control-source-note-input">
+        <label class="name-code-select-button code-select-button select-button button">
+            <select :value="{[name|to-note-number|int-string]}">
+                <option fn="midi-note-names each" value="{[number]}">{[name]}</option>
+            </select>
+        </label>
+    </template>
+
+    <template id="control-source-control-input">
+        <label class="name-code-select-button code-select-button select-button button">
+            <select :value="{[name|to-control-number|int-string]}">
+                <option fn="midi-control-names each" value="{[number]}">{[name]}</option>
+            </select>
+        </label>
+    </template>
+
+    <template id="control-source-number-input">
+        <input class="number-code-input code-input" type="number" min="0" max="127" :value="{[name]}" />
+    </template>
+
     <template id="control-source-midi">
         <div class="midi-source-grid source-grid">
             <input class="channel-code-input code-input" type="number" min="1" max="16" :value="{[channel]}" />
-
             <label class="type-code-select-button code-select-button select-button button {[type|is:'all'|yesno:'last','']}">
                 <select id="" :value="{[type]}">
                     <option value="all">all</option>
                     <option fn="midi-types each" value="{[.]}">{[.]}</option>
                 </select>
             </label>
-
-            <input class="number-code-input code-input" type="number" min="0" max="127" :value="{[param]}" hidden="{[type|is:pitch]}" />
+            <template include="{[type|to-control-source-name-template-id]}"></template>
         </div>
     </template>
 
@@ -406,10 +469,10 @@
         <ul class="control-index index">
             <li fn="each">
                 <template fn="get:source" include="#control-source-{[device]}"></template>
-                <div fn="get:data" class="transform-grid">
+                <div class="transform-grid">
                     <label class="transform-code-select-button code-select-button select-button button {[transform|is:'pass'|yesno:'none-value','']}">
-                        <select id="" :value="{[transform]}">
-                            <option fn="transforms entries each" :value="{[0]}">{[0]}</option>
+                        <select :value="{[transform]}">
+                            <option fn="transforms each" :value="{[0]}">{[0]}</option>
                         </select>
                     </label>
                     <input class="min-code-input code-input" type="number" :value="{[min]}" hidden="{[transform|is:'pass']}" />
@@ -449,12 +512,12 @@
         <template fn="get:controls filter-controls-keyboard" include="{[length|yesno:'#node-controls-keyboard-index','']}"></template>
         <template fn="get:controls filter-controls-midi" include="{[length|yesno:'#node-controls-midi-index','']}"></template>
         <div class="buttons-block block">
-            <button type="button" class="bottom-button button" fn="scope" action="learn-midi">Learn MIDI</button>
             <button type="button" class="bottom-button button" fn="scope" action="piano-keyboard">Keyboard as Piano</button>
+            <button type="button" class="bottom-button button" fn="scope" action="learn-midi-defaults">Learn MIDI channel</button>
         </div>
     </template>
 
-    <template id="controls-toggle">
+    <template id="param-controls-toggle">
         <template fn="get:controls filter-controls-keyboard" include="{[length|yesno:'#controls-keyboard-index','']}"></template>
         <template fn="get:controls filter-controls-midi" include="{[length|yesno:'#controls-midi-index','']}"></template>
         <div class="buttons-block block">
@@ -585,7 +648,6 @@
             <h2 class="label-block block">Nodes</h2>
             <div class="{[id|append:-node-block]} node-block block" fn="get:nodes each">
                 <pre>{[id]} <small>{[type]}</small></pre>
-
                 <template include="node-{[type]}"></template>
             </div>
 
@@ -595,7 +657,22 @@
                     <pre fn="each">{[.]}</pre>
                 </div>
             </template>
+
+            <div>
+                <label class="select-button button">
+                    <select>
+                        <option value="flanger">Flanger</option>
+                        <option value="sampler">Sampler</option>
+                        <option value="output">Output</option>
+                        <option value="mix">Mix</option>
+                        <option value="looper">Looper</option>
+                        <option value="saturator">Saturator</option>
+                        <option value="tone-synth">Tone Synth</option>
+                    </select>
+                </label>
+            </div>
         </div>
+
 
         <!--template fn="get:controls">
                 <div class="controls-block block">
@@ -676,7 +753,7 @@
     import './components/sparky/midi/fns.js';
     import "./components/sparky/envelope-control/fns.js";
 
-    import { choose, isDefined, Observable, Target, nothing, noop } from '../fn/module.js';
+    import { choose, get as getProp, id, isDefined, Observable, Target, nothing, noop } from '../fn/module.js';
 
     import * as Fn from '../fn/module.js';
     window.Fn = Fn;
@@ -693,15 +770,13 @@
     import * as dom from '../../dom/module.js';
     window.dom = dom;
 
-    import { statuses }  from '../midi/module.js';
-
     import * as MIDI from '../midi/module.js';
     window.MIDI = MIDI;
 
     import Soundstage, { transforms } from './module.js';
     window.Soundstage = Soundstage;
 
-    import Sparky, { functions, notify, observe, mountConfig, getScope } from '../sparky/module.js';
+    import Sparky, { functions, transforms as pipes, transformers as pipes2, notify, observe, mountConfig, getScope } from '../sparky/module.js';
     window.Sparky = Sparky;
     window.Sparky.getScope = getScope;
 
@@ -709,6 +784,9 @@
     import KeyboardSource, { learn as learnKeyboard } from './modules/control-sources/keyboard-input-source.js';
     import { learn as learnMIDI } from './modules/control-sources/midi-input-source.js';
     import './components/sparky/param/param.js';
+
+    const assign = Object.assign;
+
 
     // Sparky extensions
     //
@@ -723,13 +801,13 @@
 
     const actions = choose({
         'learn-keyboard': function(stage, scope) {
-            scope.data.transform = 'switch';
+            scope.transform = 'switch';
 
             // Do a little dance to pass the stop() method down the chain.
             // Todo: find a better way instead of bastardising promises.
             const promise = learnKeyboard();
             const output = promise.then((source) => {
-                return stage.createControl(source, scope.target, scope.data);
+                return stage.createControl(source, scope.target, scope);
             });
             output.stop = promise.stop;
             return output;
@@ -739,10 +817,47 @@
             // Do a little dance to pass the stop() method down the chain.
             // Todo: find a better way instead of bastardising promises.
             const promise = learnMIDI(scope.source);
-            const output = promise.then((source) => {
-                console.log(source);
-                return stage.createControl(source, scope.target, scope.data);
+            const output = promise.then((selector) => {
+                selector.device = 'midi';
+                return stage.Control(selector, scope.target, scope);
             });
+
+            output.stop = promise.stop;
+            return output;
+        },
+
+        'learn-midi-defaults': function(stage, scope) {
+            // Graph node
+            const node = scope.target;
+
+            // Defaults, filtered to MIDI events
+            const defaults = node.data.constructor.defaultControls
+                && node.data.constructor.defaultControls.filter((control) => control.source.device === 'midi');
+
+            // Do a little dance to pass the stop() method down the chain.
+            // Todo: find a better way instead of bastardising promises.
+            const promise = learnMIDI(scope.source);
+            const output = promise.then((selector) => {
+                selector.device = 'midi';
+
+                return defaults.map(function(settings) {
+                    const source = assign({}, settings.source, selector);
+
+                    // Do not create controls for control routes that already exist
+                    if (stage.controls.find((control) => {
+                        return control.target === node
+                        && control.name === settings.name
+                        && control.source.device === source.device
+                        && control.source.type === source.type
+                        && MIDI.toControlNumber(control.source.name) === MIDI.toControlNumber(source.name)
+                    })) {
+                        return;
+                    }
+
+                    return stage.Control(source, scope.target, settings);
+                });
+            });
+
             output.stop = promise.stop;
             return output;
         },
@@ -750,7 +865,7 @@
         'piano-keyboard': function(stage, scope) {
             const source = new KeyboardSource('piano');
             return Object.assign(Promise.resolve(
-                stage.createControl(source, scope.target, scope.data)
+                stage.createControl(source, scope.target, scope)
             ), {
                 stop: noop
             });
@@ -784,7 +899,7 @@
             learning = actions(action, stage, Target(scope));
             learning.then(() => {
                 scope.action = undefined;
-                node.blur()
+                node.blur();
             })
             .catch(function(e) {
                 scope.action = undefined;
@@ -796,17 +911,29 @@
     };
 
     functions['transforms'] = function(node, input, params) {
-        return Fn.Fn.of(transforms);
+        console.log('TRANS', Object.entries(transforms));
+
+        return Stream.of(Object.entries(transforms));
     };
 
+    const statuses = [
+        'note',
+        'noteoff',
+        'noteon',
+    	'polytouch',
+    	'control',
+    	'program',
+    	'channeltouch',
+    	'pitch'
+    ];
+
     functions['midi-types'] = function(node, input, params) {
-        var types = Object.keys(statuses);
-        types.unshift('note');
-        return Fn.Fn.of(types);
+        var types = statuses;
+        return Stream.of(types);
     };
 
     function listen(scope, control) {
-        control.tap(function() { scope.latestEvent = arguments; });
+        control.tap(function() { scope.latestControl = arguments; });
         return scope;
     }
 
@@ -829,25 +956,21 @@
                         controls
                         .filter((control) => control.target === graphNode)
                         .filter((control) =>
-                            control.data.type    === 'param'
-                            && control.data.name === paramName) :
+                            control.type === 'param'
+                            && control.name === paramName) :
                         controls
                         .filter((control) => control.target === graphNode)
                         .filter((control) =>
-                            control.data.type !== 'param'
-                            || (control.data.name === undefined || control.data.name === 'all')
+                            control.type !== 'param'
+                            || (control.name === undefined || control.name === 'all')
                         ),
 
-                    data: paramName ? {
-                        type: 'param',
-                        name: paramName
-                    } : {
-                        type: 'all'
-                    }
+                    type: paramName ? 'param' : undefined ,
+                    name: paramName ? paramName : undefined
                 };
 
+                // Expose latest incoming control as 'latestControl'
                 scope.controls.reduce(listen, scope);
-
                 return scope
             })
         );
@@ -895,8 +1018,8 @@
             }, new Map())
             .forEach((group, node) => {
                 const names = group.reduce((names, control) => {
-                    if (control.data.type === 'param' && !names.includes(control.data.name)) {
-                        names.push(control.data.name);
+                    if (control.type === 'param' && !names.includes(control.name)) {
+                        names.push(control.name);
                     }
                     return names;
                 }, []);
@@ -909,21 +1032,59 @@
         });
     };
 
-    setTimeout(function() {
-        stage.get('tone-synth')
-        .start(stage.context.currentTime, 40, 1)
-        .stop(stage.context.currentTime + 0.2);
-        setTimeout(function() {
-            MIDI.trigger(null, 1, 'noteon', 40, 1);
-            setTimeout(function() {
-                MIDI.trigger(null, 1, 'pitch', 2, -1);
-                setTimeout(function() {
-                    MIDI.trigger(null, 1, 'noteoff', 40);
-                    MIDI.trigger(null, 1, 'pitch', 2, 0);
-                }, 200)
-            }, 200)
-        }, 400)
-    }, 2000)
+
+    pipes['to-control-source-name-template-id'] = function(type) {
+        return ({
+            note:         'control-source-note-input',
+            noteon:       'control-source-note-input',
+            noteoff:      'control-source-note-input',
+            polytouch:    'control-source-note-input',
+            control:      'control-source-control-input',
+            program:      'control-source-number-input'
+        })[type];
+    };
+
+    pipes2['to-note-number'] = {
+        tx: function(value) {
+            return typeof value === 'number' ?
+                value :
+                MIDI.toNoteNumber(value) ;
+        },
+
+        ix: id
+    };
+
+    pipes2['to-control-number'] = {
+        tx: function(value) {
+            return typeof value === 'number' ?
+                value :
+                MIDI.toControlNumber(value) ;
+        },
+
+        ix: id
+    };
+
+    window.pipes = pipes;
+
+
+    const noteNames = Array.from({ length: 128 }).map((n, i) => ({
+        number: i,
+        name:   MIDI.toNoteName(i)
+    }));
+
+    functions['midi-note-names'] = function() {
+        return Stream.of(noteNames);
+    };
+
+
+    const controlNames = Array.from({ length: 128 }).map((n, i) => ({
+        number: i,
+        name:   MIDI.toControlName(i)
+    }));
+
+    functions['midi-control-names'] = function() {
+        return Stream.of(controlNames);
+    };
 
     </script>
 

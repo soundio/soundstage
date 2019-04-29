@@ -2,7 +2,7 @@
 import { limit as clamp, by, insert, get, noop, overload, Stream, toCamelCase, toLevel, id, notify, nothing, observe, remove } from '../../../../fn/module.js';
 import * as normalise from '../../../../fn/modules/normalisers.js';
 import * as denormalise from '../../../../fn/modules/denormalisers.js';
-import { box, events, isPrimaryButton } from '../../../../dom/module.js';
+import { box, events, gestures, isPrimaryButton } from '../../../../dom/module.js';
 import { register, getScope } from '../../../../sparky/module.js';
 import parseValue from '../../../../fn/modules/parse-value.js';
 
@@ -63,31 +63,6 @@ function cycleType(event) {
     return types[arr[(i + 1) % arr.length]](event);
 }
 
-function createMouseGesture(e) {
-    var gesture = Stream.of(e);
-
-    var moves = events('mousemove', document).each((e) => {
-        e.preventDefault();
-        gesture.push(e);
-    });
-
-    var ups = events('mouseup', document).each((e) => {
-        e.preventDefault();
-        gesture.push(e);
-        gesture.stop();
-        moves.stop();
-        ups.stop();
-    });
-
-    gesture.target = e.target;
-    const focusable = e.target.closest('[tabindex]');
-    focusable && focusable.focus();
-    e.preventDefault();
-
-    // Start with the mousedown event
-    return gesture;
-}
-
 function setXY(e, data) {
     const rect = box(data.svg);
 
@@ -96,8 +71,8 @@ function setXY(e, data) {
     const px = e.clientX - rect.left - data.offset.x;
     const py = e.clientY - rect.top - data.offset.y;
 
-    // Normalise to 0-1
-    const rx = clamp(0, 1, px / rect.height);
+    // Normalise to 0-1, allowing x position to extend beyond viewbox
+    const rx = clamp(0, 4, px / rect.height);
     const ry = clamp(0, 1, py / rect.height);
 
     // Assume viewbox is always full height, use box height as scale
@@ -295,12 +270,7 @@ register('envelope-control', function(svg, scopes, params) {
             .map(parseFloat)
     };
 
-    const gestures = events('mousedown', svg)
-    .filter(isPrimaryButton)
-    // We should branch by type of control here
-    //.filter(isTargetControlPoint)
-    .map(createMouseGesture)
-    .scan(function(previous, gesture) {
+    const moves = gestures(svg).scan(function(previous, gesture) {
         const context = {
             target: gesture.target,
             svg:    svg,
@@ -329,7 +299,7 @@ register('envelope-control', function(svg, scopes, params) {
         svg.style.backgroundImage = 'url(' + data + ')';
     }
 
-    scopes.done(() => gestures.stop());
+    scopes.done(() => moves.stop());
 
     return scopes
     .tap((array) => {

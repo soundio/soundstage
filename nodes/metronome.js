@@ -3,7 +3,7 @@
 import { print, printGroup, printGroupEnd, log } from './print.js';
 import { remove, id } from '../../fn/module.js';
 import { Privates } from '../../fn/module.js';
-import { numberToFrequency } from '../../midi/module.js';
+import { floatToFrequency } from '../../midi/module.js';
 import Tick from './tick.js';
 import NodeGraph from './node-graph.js';
 import { automate } from '../modules/automate.js';
