@@ -424,6 +424,7 @@ range-control + .sources-block {
 
     /* Create room for focus shadows not to be cut by overflow hidden */
     margin: -0.75rem;
+    margin-bottom: 3px;
     padding: 0.75rem;
 
     /* Hide overflow to help with activate transition */
