@@ -166,7 +166,7 @@ export default function Control(controls, source, target, settings, notify) {
     this.latencyCompensation = settings.latencyCompensation === undefined ?
         true :
         settings.latencyCompensation;
-console.log('CONTROL', this.type, this.name, this);
+
     seal(this);
 
     const distribute = Distribute(target, notify);
