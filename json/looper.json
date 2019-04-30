@@ -1,0 +1,160 @@
+{
+    "label": "Guitar",
+
+    "nodes": [{
+        "id":    "input",
+        "type":  "input",
+        "label": "Input",
+        "data":  {}
+    }, {
+        "id":    "synth",
+        "type":  "/soundstage/nodes/looper.js",
+        "label": "Looper",
+        "data": {
+            "sources": [
+                { "type": "triangle", "detune": -1192, "mix": 0.5, "pan": -0.8 },
+                { "type": "sine",   "detune": 0, "mix": 0.25, "pan": 0.8 },
+                { "type": "square", "detune": -1208,     "mix": 0.125, "pan": 0.2 }
+            ],
+
+            "gainEnvelope": {
+                "attack": [
+                    [0, "step", 0],
+                    [0.01, "linear", 1],
+                    [0.4, "exponential", 0.125],
+                    [1, "target", 0.5, 0.4]
+                ],
+
+                "release": [
+                    [0, "target", 0, 0.1]
+                ]
+            },
+
+            "frequencyEnvelope": {
+                "attack": [
+                    [0,    "step",   0],
+                    [0.06, "linear", 1000],
+                    [5,    "exponential", 200]
+                ],
+
+                "release": [
+                    [0,  "target", 0, 0.02]
+                ]
+            },
+
+            "type": "lowpass",
+            "frequency": 1,
+            "frequencyFromVelocity": 0.5,
+            "Q": 5,
+            "output": 0.1
+        }
+    }, {
+        "id":    "flanger",
+        "type":  "/soundstage/nodes/flanger.js",
+        "label": "Flanger",
+        "data": {
+            "delay":     0.008,
+            "frequency": 0.333333,
+            "depth":     0.004,
+            "feedback":  0.1,
+            "dry":       0,
+            "wet":       0.5
+        }
+    }, {
+        "id":    "delay-send",
+        "type":  "mix",
+        "label": "Delay feed",
+        "data": {
+            "pan":  0,
+            "gain": 0.5,
+            "mute": true
+        }
+    }, {
+        "id":    "delay",
+        "type":  "/soundstage/nodes/flanger.js",
+        "label": "Delay",
+        "data": {
+            "delay":     0.26,
+            "frequency": 0.1,
+            "depth":     0.02,
+            "feedback":  0.4,
+            "dry":       1,
+            "wet":       0.04
+        }
+    }, {
+        "id":    "metronome",
+        "type":  "/soundstage/nodes/metronome.js",
+        "label": "Metronome",
+        "data": {}
+    }, {
+        "id":    "output",
+        "type":  "output",
+        "label": "Output",
+        "data": {}
+    }],
+
+    "connections": [
+        { "source": "input",      "target": "flanger" },
+        { "source": "flanger",    "target": "delay-send" },
+        { "source": "flanger",    "target": "output" },
+        { "source": "delay-send", "target": "delay" },
+        { "source": "delay",      "target": "output" },
+        { "source": "synth",      "target": "output" },
+        { "source": "metronome",  "target": "output" }
+    ],
+
+    "controls": [{
+        "source": {
+            "device": "keyboard",
+            "key": "a"
+        },
+
+        "target": "delay-send",
+
+        "data": {
+            "transform": "linear",
+            "type":   "param",
+            "name":   "gain",
+            "min":    0,
+            "max":    1
+        }
+    }, {
+        "source": {
+            "device": "midi",
+            "channel": 1,
+            "type":    "control"
+        },
+
+        "target": "synth",
+
+        "data": {
+            "transform": "linear",
+            "type":   "param",
+            "name":   "gain",
+            "min":    0,
+            "max":    1
+        }
+    }, {
+        "source": {
+            "device": "midi",
+            "channel": 1,
+            "type":    "pitch"
+        },
+        "transform": "linear",
+        "type":  "pitch",
+        "min":   0,
+        "max":   1,
+        "target": "synth"
+    }],
+
+    "sequences": [{
+        "id": "test",
+        "events": [
+            [0, "note", 49, 0.5, 1]
+        ]
+    }],
+
+    "events": [
+        [0, "sequence", "test", "synth", 2]
+    ]
+}
