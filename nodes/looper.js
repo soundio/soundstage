@@ -148,8 +148,6 @@ assign(Looper.prototype, NodeGraph.prototype, {
             }
         });
 
-console.log('startRecord', time, recorder.startTime);
-
         // If we are not yet rolling, set startTime to startTime of recorder
         if (this.startTime === undefined || this.context.currentTime >= this.stopTime) {
             this.startTime = recorder.startTime;
@@ -183,8 +181,6 @@ console.log('startRecord', time, recorder.startTime);
         time = time || this.context.currentTime;
 
         recorder.stop(time);
-
-console.log('stopRecord', time, recorder.stopTime);
 
         // Is setRate flagged? If not, return
         if (!privates.setRate) { return this; }
