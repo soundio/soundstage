@@ -59,6 +59,11 @@ functions.param = function(node, scopes, params) {
     const audioParamName = params[0];
     return scopes.tap((graphNode) => {
         const target = Target(graphNode.data);
+
+        if (!target[audioParamName]) {
+            throw new Error('fn="param" AudioNode has no param "' + audioParamName + '"');
+        }
+
         renderer && renderer.stop();
         renderer = target && target[audioParamName] && new ParamRenderer(node, target, audioParamName);
     });

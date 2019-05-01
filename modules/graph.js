@@ -33,7 +33,7 @@ Create a new node of `type`.
 Return the plugin with `id`, or undefined.
 */
 
-import { has, get, invoke, nothing, remove }  from '../../fn/module.js';
+import { has, get, nothing }  from '../../fn/module.js';
 import { print }  from './utilities/print.js';
 import { generateUnique }  from './utilities/utilities.js';
 import Node       from './node.js';

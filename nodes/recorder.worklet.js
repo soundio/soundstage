@@ -58,7 +58,7 @@ registerProcessor('recorder', class RecorderWorklet extends AudioWorkletProcesso
 
                 const firstBufferIndex = Math.floor(this.startIndex / 128) * 128;
                 const lastBufferIndex  = Math.floor(this.stopIndex / 128) * 128;
-
+console.log(firstBufferIndex);
                 const buffers = Array
                 .from({ length: this.buffers[firstBufferIndex].length })
                 .map(() => new Float32Array(this.stopIndex - this.startIndex));

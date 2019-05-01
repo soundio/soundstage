@@ -1,9 +1,9 @@
 import { logGroup, logGroupEnd } from './print.js';
 import { Privates } from '../../fn/module.js';
 import NodeGraph from './node-graph.js';
+import Sample from './sample.js';
 import { assignSettings } from '../modules/assign-settings.js';
-import { connect, disconnect } from '../modules/connect.js';
-import { automate, getValueAtTime } from '../modules/automate.js';
+import { automate } from '../modules/automate.js';
 
 const DEBUG  = window.DEBUG;
 
@@ -12,83 +12,115 @@ const define = Object.defineProperties;
 
 // Declare the node graph
 const graph = {
-	nodes: [
-		{ id: 'recorder',  type: 'recorder', data: { duration: 45 } },
+    nodes: [
+        { id: 'recorder',  type: 'recorder', data: { duration: 45 } },
         { id: 'dry',       type: 'gain',     data: { gain: 1 } },
+        { id: 'wet',       type: 'gain',     data: { gain: 1 } },
         { id: 'output',    type: 'gain',     data: { gain: 1 } }
-	],
+    ],
 
-	connections: [
+    connections: [
         //{ source: 'this', target: 'dry' },
         //{ source: 'this', target: 'recorder' },
-		{ source: 'dry',  target: 'output' }
-	],
+        { source: 'dry',  target: 'output' },
+        { source: 'wet',  target: 'output' }
+    ],
 
-	output: 'output'
+    output: 'output'
 };
 
 // Declare some useful defaults
 var defaults = {
-	gain: 1
+    gain: 1,
+    beats: 4
 };
 
 const properties = {
-	"sources":         { enumerable: true, writable: true },
-	"beatDuration":    { enumerable: true, writable: true },
+    "sources":         { enumerable: true, writable: true },
+    "beats":           { enumerable: true, writable: true },
     "recordStartTime": { enumerable: true, writable: true }
 };
 
 export default class Looper extends GainNode {
-	constructor(context, settings, transport) {
-		if (DEBUG) { logGroup(new.target === Looper ? 'Node' : 'mixin ', 'Looper'); }
+    constructor(context, settings, transport) {
+    if (DEBUG) { logGroup(new.target === Looper ? 'Node' : 'mixin ', 'Looper'); }
 
-		// Init gain node
-        super(context, settings);
+    // Init gain node
+    super(context, settings);
 
-		// Privates
-        const privates = Privates(this);
-		privates.transport = transport;
+    // Privates
+    const privates = Privates(this);
+    privates.transport = transport;
 
-		// Set up the graph
-        NodeGraph.call(this, context, graph);
+    // Set up the graph
+    NodeGraph.call(this, context, graph);
 
-		// Connect input (this) into graph
-        GainNode.prototype.connect.call(this, this.get('recorder'));
-        GainNode.prototype.connect.call(this, this.get('dry'));
+    // Connect input (this) into graph
+    // Todo: move these to graph (implement 'this' in graph connections)
+    GainNode.prototype.connect.call(this, this.get('dry'));
+    GainNode.prototype.connect.call(this, this.get('recorder'));
 
-		// Properties
-		define(this, properties);
+    // Properties
+    define(this, properties);
 
-        this.dry = this.get('dry').gain;
-        this.sources = [];
+    this.dry = this.get('dry').gain;
+    this.wet = this.get('wet').gain;
+    this.sources = [];
 
-		// Update settings
-		assignSettings(this, defaults, settings);
+    // Update settings
+    assignSettings(this, defaults, settings);
 
-		if (DEBUG) { logGroupEnd(); }
-	}
+    if (DEBUG) { logGroupEnd(); }
+    }
 }
 
 // Mix AudioObject prototype into MyObject prototype
 assign(Looper.prototype, NodeGraph.prototype, {
-	startRecord: function(time) {
-		const privates = Privates(this);
-        const recorder = this.get('recorder');
+    reset: function() {
+        this.startTime = undefined;
+        this.stopTime  = undefined;
+    },
+
+    start: function(time) {
+        if (DEBUG && this.startTime !== undefined) {
+            throw new Error('Attempt to start a node that is already started');
+        }
+
+        this.startTime = time || this.context.currentTime;
+        return this;
+    },
+
+    stop: function(time) {
+        if (DEBUG && this.startTime === undefined) {
+            throw new Error('Attempt to stop a node that has not been started');
+        }
+
+        // Clamp stopTime to startTime
+        time = time || this.context.currentTime;
+        this.stopTime = time > this.startTime ? time : this.startTime ;
+        return this;
+    },
+
+    startRecord: function(time) {
+        const privates  = Privates(this);
+        const recorder  = this.get('recorder');
         const transport = privates.transport;
 
-		// Schedule the recorder to start
-		recorder
-		.start(time)
-		.then((buffers) => {
-			// createBuffer(channelsCount, sampleCount, sampleRate)
-			// https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/createBuffer
-            const audio = recorder.context.createBuffer(
-				buffers.length,
-				privates.duration * this.context.sampleRate * buffer.length,
-				recorder.context.sampleRate
-			);
+        time = time || this.context.currentTime;
 
-			// Copy buffers to buffers - is this even necessary?
+        // Schedule the recorder to start
+        recorder
+        .start(time)
+        .then((buffers) => {
+            // createBuffer(channelsCount, sampleCount, sampleRate)
+            // https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/createBuffer
+            const audio = recorder.context.createBuffer(
+                buffers.length,
+                privates.duration * this.context.sampleRate * buffers.length,
+                recorder.context.sampleRate
+            );
+
+            // Copy buffers to buffers - is this even necessary? Todo: check.
             let n = buffers.length;
             while (n--) {
                 audio.copyToChannel(buffers[n], n, 0);
@@ -104,74 +136,81 @@ assign(Looper.prototype, NodeGraph.prototype, {
                 release:   0.004
             });
 
-            loop.connect(this.get('output'));
-			loop.start(recorder.startTime + privates.duration, 0, 1);
-			this.sources.push(loop);
+            // start(time, frequency, gain)
+            loop.connect(this.get('wet'));
+            loop.start(recorder.startTime + privates.duration, 0, 1);
+            this.sources.push(loop);
 
-			// Where looper has already been scheduled to stop, we better
-			// make sure its loops do also
-			if (this.stopTime) {
-				loop.stop(this.stopTime);
-			}
+            // Where looper has already been scheduled to stop, we better
+            // make sure its loops do also
+            if (this.stopTime) {
+                loop.stop(this.stopTime);
+            }
         });
 
-		// If we are not yet rolling, set startTime to startTime of recorder
-		if (this.startTime === undefined || this.context.currentTime >= this.stopTime) {
-			this.startTime = recorder.startTime;
-			this.stopTime  = undefined;
-		}
+console.log('startRecord', time, recorder.startTime);
 
-		// Is this the first loop?
+        // If we are not yet rolling, set startTime to startTime of recorder
+        if (this.startTime === undefined || this.context.currentTime >= this.stopTime) {
+            this.startTime = recorder.startTime;
+            this.stopTime  = undefined;
+        }
+
+        // Is this the first loop?
         if (!this.sources.length) {
             // Is transport running?
             if (transport.startTime === undefined || time < transport.startTime || time >= transport.stopTime) {
                 transport.start(recorder.startTime);
 
-				// Flag the rate so that it gets set on loop end
+                // Flag the rate so that it gets set on loop end
                 privates.setRate = true;
             }
             // Transport is running
             else {
                 // Use the current rate to set loop duration
-            	privates.duration = this.beatDuration / transport.rateAtTime(recorder.startTime);
+                privates.duration = this.beats / transport.rateAtTime(recorder.startTime);
             }
         }
 
         return this;
-	},
+    },
 
-	stopRecord: function(time) {
-		const privates  = Privates(this);
+    stopRecord: function(time) {
+        const privates  = Privates(this);
         const recorder  = this.get('recorder');
-		const transport = privates.transport;
+        const transport = privates.transport;
 
-		recorder.stop(time);
+        time = time || this.context.currentTime;
 
-		// Is setRate flagged? If not, return
+        recorder.stop(time);
+
+console.log('stopRecord', time, recorder.stopTime);
+
+        // Is setRate flagged? If not, return
         if (!privates.setRate) { return this; }
         privates.setRate = false;
 
         // Get record time difference accurate to the nearest sample
         privates.duration = recorder.stopTime - recorder.startTime;
 
-		//log('Looper', 'tempo', 60 * this.beatDuration / privates.duration);
-
         // param, time, curve, value, duration
-		// Todo: expose a better way of adjusting rate
-		const rateParam = Privates(transport).rateParam;
-        automate(rateParam, 0, 'step', this.beatDuration / privates.duration);
+        // Todo: expose a better way of adjusting rate
+        const rateParam = Privates(transport).rateParam;
+
+        //param, time, curve, value, duration, notify, context
+        automate(rateParam, recorder.stopTime, 'step', this.beats / privates.duration);
 
         return this;
-	}
+    }
 });
 
 // Assign defaults
 assign(Looper, {
-	defaultControls: [],
+    defaultControls: [],
 
-	preload: function(base, context) {
-		return context
-	    .audioWorklet
-	    .addModule(base + '/nodes/recorder.worklet.js');
-	}
+    preload: function(base, context) {
+    return context
+        .audioWorklet
+        .addModule(base + '/nodes/recorder.worklet.js');
+    }
 });

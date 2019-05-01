@@ -245,19 +245,39 @@
             <template include="#node-controls-toggle"></template>
         </form>
 
-        <section class="sources-block block">
-            <article fn="get:data.sources entries each">
-                <template fn="get:1" include="#source-select-button"></template>
-                <template include="#{[1.type]}-source"></template>
-            </article>
-        </section>
-
-        <range-control fn="param:volume" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
-            <span class="text-10">Output</span>
+        <range-control fn="param:gain" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
+            <span class="text-10">Gain</span>
             <a class="midi-thumb thumb" href="#node-{[id]}-output-toggle" slot="plugs"></a>
         </range-control>
 
-        <form fn="controls:volume" class="controls-toggle-block toggle-block block {[action]}" toggleable id="node-{[target.id]}-output-toggle">
+        <form fn="controls:gain" class="controls-toggle-block toggle-block block {[action]}" toggleable id="node-{[target.id]}-output-toggle">
+            <template include="#param-controls-toggle"></template>
+        </form>
+
+        <button fn="get:data startRecord">Start record</button>
+        <button fn="get:data stopRecord">Stop record</button>
+
+        <section fn="get:data.sources" class="loops-block block">
+            <article fn="each">
+                source <pre style="white-space: wrap; font-size: 11px;">{[.]}</pre>
+            </article>
+        </section>
+
+        <range-control fn="param:dry" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
+            <span class="text-10">Dry</span>
+            <a class="midi-thumb thumb" href="#node-{[id]}-output-toggle" slot="plugs"></a>
+        </range-control>
+
+        <form fn="controls:dry" class="controls-toggle-block toggle-block block {[action]}" toggleable id="node-{[target.id]}-output-toggle">
+            <template include="#param-controls-toggle"></template>
+        </form>
+
+        <range-control fn="param:wet" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.00390625 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
+            <span class="text-10">Wet</span>
+            <a class="midi-thumb thumb" href="#node-{[id]}-output-toggle" slot="plugs"></a>
+        </range-control>
+
+        <form fn="controls:wet" class="controls-toggle-block toggle-block block {[action]}" toggleable id="node-{[target.id]}-output-toggle">
             <template include="#param-controls-toggle"></template>
         </form>
     </template>
@@ -770,7 +790,7 @@
 
     <!-- Tests -->
     <script type="module">
-    import { closest, get, query, trigger } from '../../dom/module.js';
+    import { closest, events, get, query, trigger } from '../../dom/module.js';
     import '../../dom/js/dom.popable.js';
     import '../../dom/js/dom.toggleable.js';
 
@@ -1108,6 +1128,42 @@
 
     functions['midi-control-names'] = function() {
         return Stream.of(controlNames);
+    };
+
+    // looper
+    import { getOutputTime, getContextTime } from './modules/context.js';
+
+    functions.startRecord = function(node, scopes) {
+        return scopes.tap(function(looper) {
+            events('mousedown', node).each((e) =>
+                // In order to stay in sync with currently playing output,
+                // get the output time at domTime of the event
+                looper.startRecord(getOutputTime(looper.context, e.timeStamp))
+            );
+        });
+    };
+
+    functions.stopRecord = function(node, scopes) {
+        return scopes.tap(function(looper) {
+            function note() {
+                notify(looper.sources, '');
+            }
+
+            events('mousedown', node).each((e) => {
+                // In order to stay in sync with currently playing output,
+                // get the output time at domTime of the event
+                looper.stopRecord(getOutputTime(looper.context, e.timeStamp))
+
+                // This is a well dodgy way to be notifying changes, but at the
+                // moment notify is not available inside AudioNodes - and I'm
+                // not sure that I want it to be
+                window.requestAnimationFrame(() => {
+                    window.requestAnimationFrame(() => {
+                        window.requestAnimationFrame(note);
+                    });
+                });
+            });
+        });
     };
 
     </script>

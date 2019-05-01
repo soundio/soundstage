@@ -7,6 +7,7 @@ import { automate, getAutomation } from '../modules/automate.js';
 import { floatToFrequency, frequencyToFloat } from '../../midi/module.js';
 import { assignSettings } from '../modules/assign-settings.js';
 
+const DEBUG = true;
 const define = Object.defineProperties;
 
 const properties = {
@@ -126,27 +127,29 @@ export default class Sample extends GainNode {
 
         source.connect(this);
 
-        // Todo: if startTime is less than currentTime offset the start
         let startTime = this.startTime;
 
-        if (this.loop) {
-            if (this.loopStart < 0) {
-                // Delay actual start by loopStart offset
-                startTime = this.startTime - this.loopStart;
-                source.start(startTime);
-            }
-            else {
-                // Play from loopStart time
-                source.start(this.startTime, this.loopStart);
-            }
-        }
-        else {
-            // Play from startTime
-            source.start(this.startTime);
+        // Why? Why?
+        // if (this.loopStart < 0) {
+        //     // Delay actual start by loopStart offset
+        //     startTime = this.startTime - this.loopStart;
+        //     source.start(startTime);
+        // }
+
+        // If startTime is already in the past, offset playback
+        source.start(
+            this.startTime,
+            this.context.currentTime > this.startTime ?
+                this.context.currentTime - this.startTime :
+                0
+        );
+
+        if (DEBUG && this.context.currentTime > this.startTime) {
+            console.log('Sample start offset by', this.context.currentTime - this.startTime);
         }
 
-        this.detune    = source.detune;
-        this.rate      = source.playbackRate;
+        this.detune = source.detune;
+        this.rate   = source.playbackRate;
 
         // Schedule the attack envelope
         this.gain.cancelScheduledValues(this.startTime);

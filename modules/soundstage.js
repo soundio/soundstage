@@ -193,12 +193,14 @@ export default function Soundstage(data = nothing, settings = nothing) {
         define(stage, {
             controls: {
                 enumerable: true,
-                value: data.controls.reduce(function(controls, options) {
-                    // Get target graph node from target id
-                    const target  = stage.nodes.find((object) => object.id === options.target);
-                    const control = new Control(controls, options.source, target, options, notify);
-                    return controls;
-                }, [])
+                value: data.controls ?
+                    data.controls.reduce(function(controls, options) {
+                        // Get target graph node from target id
+                        const target  = stage.nodes.find((object) => object.id === options.target);
+                        const control = new Control(controls, options.source, target, options, notify);
+                        return controls;
+                    }, []) :
+                    []
             }
         });
 

@@ -31,7 +31,8 @@ through a selectable transform function to a target stream.
 */
 
 import { print } from './utilities/print.js';
-import { id, noop, Privates, remove }     from '../../fn/module.js';
+import { getContextTime, getOutputTime } from './context.js';
+import { noop, Privates, remove }     from '../../fn/module.js';
 import { floatToFrequency }     from '../../midi/module.js';
 import KeyboardInputSource from './control-sources/keyboard-input-source.js';
 import MIDIInputSource from './control-sources/midi-input-source.js';
@@ -88,47 +89,6 @@ export const denormalisers = {
     }
 };
 
-function getControlLatency(stamps, context) {
-    // In order to play back live controls without jitter we must add
-    // a latency to them to push them beyond currentTime.
-    // AudioContext.outputLatency is not yet implemented so we need to
-    // make a rough guess. Here we track the difference between contextTime
-    // and currentTime, ceil to the nearest 32-sample block and use that –
-    // until we detect a greater value.
-
-    const contextTime = stamps.contextTime;
-    const currentTime = context.currentTime;
-
-    if (context.controlLatency === undefined || currentTime - contextTime > context.controlLatency) {
-        const diffTime = currentTime - contextTime;
-        const blockTime = 32 / context.sampleRate;
-
-        // Cache controlLatency on the context as a stop-gap measure
-        context.controlLatency = Math.ceil(diffTime / blockTime) * blockTime;
-
-        // Let's keep tabs on how often this happens
-        print('Control latency changed', Math.round(context.controlLatency * context.sampleRate) + ' samples (' + context.controlLatency.toFixed(3) + 's @ ' + context.sampleRate + 'Hz)');
-    }
-
-    return context.controlLatency;
-}
-
-function timeAtDomTime(stamps, domTime) {
-    return stamps.contextTime + (domTime - stamps.performanceTime) / 1000;
-}
-
-function getControlTime(context, domTime) {
-    const stamps         = context.getOutputTimestamp();
-    const controlLatency = getControlLatency(stamps, context);
-    const time           = timeAtDomTime(stamps, domTime);
-    return time + controlLatency;
-}
-
-function getContextTime(context, domTime) {
-    const stamps = context.getOutputTimestamp();
-    return timeAtDomTime(stamps, domTime);
-}
-
 export default function Control(controls, source, target, settings, notify) {
     // Source can be either a string 'midi', 'keyboard', or an object
     // with a device property
@@ -178,7 +138,7 @@ export default function Control(controls, source, target, settings, notify) {
     // Bind source output to route input
     this.source.each(function(timeStamp, type, name, n) {
         const time = control.latencyCompensation ?
-            getControlTime(target.data.context, timeStamp) :
+            getOutputTime(target.data.context, timeStamp) :
             getContextTime(target.data.context, timeStamp) ;
 
         // Set type
