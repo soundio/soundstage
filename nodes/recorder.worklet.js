@@ -1,105 +1,120 @@
 
-function to0() {
-    return 0;
+function createOutputBuffer(startTime, stopTime, currentTime, sampleRate, bufferIndex, buffers) {
+    // Start and stop times relative to current time
+    const tStart = startTime - currentTime;
+    const tStop  = stopTime - currentTime;
+
+    // Start and stop frames relative to current frame
+    const fStart = Math.floor(tStart * sampleRate);
+    const fStop  = Math.floor(tStop * sampleRate);
+    const fCount = fStop - fStart;
+
+    // Index of buffer
+    const iStart = Math.floor(fStart / 128);
+    const iStop  = Math.floor(fStop / 128);
+
+    // Start and stop frame relative to the buffer they are in
+    const nStart = fStart - iStart * 128;
+    const nStop  = fStop - iStop * 128;
+
+    const channelCount = buffers[bufferIndex + iStart].length;
+    const output  = { length: channelCount };
+
+    // First block from frame nStart
+    let data    = buffers[bufferIndex + iStart];
+    let channel = channelCount;
+    let frame   = -nStart;
+    while (channel--) {
+        output[channel] = new Float32Array(fCount);
+        let n = 128;
+        while (n-- > nStart) {
+            output[channel][frame + n] = data[channel][n];
+        }
+    }
+
+    // Middle blocks all frames
+    let i = iStart;
+    while (++i < iStop) {
+        data    = buffers[bufferIndex + i];
+        channel = channelCount;
+        frame  += 128;
+        while (channel--) {
+            let n = 128;
+            while (n--) {
+                output[channel][frame + n] = data[channel][n];
+            }
+        }
+    }
+
+    // Last block to frame nStop
+    data    = buffers[bufferIndex + iStop];
+    channel = channelCount;
+    frame  += 128;
+    while (channel--) {
+        let n = nStop;
+        while (n--) {
+            output[channel][frame + n] = data[channel][n];
+        }
+    }
+
+    return output;
 }
 
 registerProcessor('recorder', class RecorderWorklet extends AudioWorkletProcessor {
     constructor() {
         super();
 
-        this.startIndex  = 0;
-        this.bufferIndex = 0;
-
-        // 2 mins at 48kHz by default
-        this.stopIndex = 5760000;
-        this.buffers   = {};
+        this.buffers        = {};
+        this.bufferIndex    = -1;
         this.recording = false;
-        this.maxIndex  = 48000 * 60;
 
         this.port.onmessage = (e) => {
-            if (e.data.type === 'start') {
-                this.recording  = true;
+            const data = e.data;
 
-                //console.log('start worklet', this.bufferIndex, e.data.bufferLength, e.data.sample);
-                this.startIndex = this.bufferIndex + e.data.sample;
-
-                this.stopIndex  = (this.bufferIndex + e.data.bufferLength) > this.maxIndex ?
-                    this.bufferIndex + e.data.bufferLength - this.maxIndex :
-                    this.bufferIndex + e.data.bufferLength ;
+            if (data.type === 'start') {
+                this.recording = true;
+                this.startTime = data.time;
             }
-            else if (e.data.type === 'stop') {
-                //console.log('stop worklet', e);
-                this.stopIndex  = (this.startIndex + e.data.bufferLength) > this.maxIndex ?
-                    this.startIndex + e.data.bufferLength - this.maxIndex :
-                    this.startIndex + e.data.bufferLength ;
+            else if (data.type === 'stop') {
+                this.stopTime = data.time;
             }
         };
     }
 
     process(inputs) {
-        // We have but one input
-        const input = inputs[0];
+        // We have one input (which may have multiple channels)
+        this.buffers[++this.bufferIndex] = inputs[0];
 
-        this.buffers[this.bufferIndex] = input;
-        this.bufferIndex += 128;
-
-        // 60 secs of sample buffers at 48kHz
-        if (this.bufferIndex > this.maxIndex) {
-            this.bufferIndex = 0;
-        }
-
-        // If we have stopped, send a message back to the main thread
-        if (
-            this.bufferIndex >= this.stopIndex
-            && (this.stopIndex > this.startIndex || this.bufferIndex <= this.startIndex)
-        ) {
-            if (this.recording) {
+        // If we have stop scheduled and it falls within this block, concat
+        // the buffers and send a message back to the main thread
+        if (this.recording) {
+            if (currentTime + 128 / sampleRate >= this.stopTime) {
                 this.recording = false;
-
-                const firstBufferIndex = Math.floor(this.startIndex / 128) * 128;
-                const lastBufferIndex  = Math.floor(this.stopIndex / 128) * 128;
-console.log(firstBufferIndex);
-                const buffers = Array
-                .from({ length: this.buffers[firstBufferIndex].length })
-                .map(() => new Float32Array(this.stopIndex - this.startIndex));
-
-                const indexes      = buffers.map(to0);
-                const channelCount = buffers.length;
-
-                let i = firstBufferIndex;
-                let n = this.startIndex - firstBufferIndex;
-
-                while (i < lastBufferIndex && (this.stopIndex > this.startIndex || i <= this.startIndex)) {
-                    let b = channelCount;
-
-                    while (b--) {
-                        let s = n - 1;
-                        while (++s < 128) {
-                            buffers[b][indexes[b]++] = this.buffers[i][b][s];
-                        }
-                    }
-
-                    i += 128;
-                    n = 0;
-                }
-
-                const m = this.stopIndex - lastBufferIndex;
-                let b = channelCount;
-
-                while (b--) {
-                    let s = -1;
-                    while (++s < m) {
-                        buffers[b][indexes[b]++] = this.buffers[i][b][s];
-                    }
-                }
 
                 this.port.postMessage({
                     type: 'done',
-                    buffers: buffers
+                    buffers: createOutputBuffer(
+                        this.startTime, this.stopTime,
+                        currentTime, sampleRate,
+                        this.bufferIndex, this.buffers
+                    )
                 });
 
-                console.log('Recorder worklet done');
+                // throw away buffers older than 1 second
+                // (96kHz / 128 = 750 buffers)
+                let i = this.bufferIndex - 750 + 1;
+                while (this.buffers[--i]) {
+                    delete this.buffers[i];
+                }
+
+                this.startTime = undefined;
+                this.stopTime = undefined;
             }
+        }
+        else {
+            // throw away buffers older than 1 second
+            // (96kHz / 128 = 750 buffers)
+            delete this.buffers[this.bufferIndex - 750];
         }
 
         return true;

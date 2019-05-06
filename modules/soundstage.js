@@ -79,7 +79,7 @@ function requestAudioNode(base, context, settings, transport) {
         // (not these node settings) into preload fn, I fear
         return Node.preload ?
             Node.preload(base, context).then(() => {
-                print('Node', Node.name, 'preload complete');
+                print('Node', Node.name, 'preloaded');
                 return Node;
             }) :
             Node ;

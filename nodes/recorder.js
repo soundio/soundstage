@@ -1,6 +1,5 @@
 
-import { noop, nothing } from '../../fn/module.js';
-import { Privates } from '../../fn/module.js';
+import { noop, nothing, Privates } from '../../fn/module.js';
 import PlayNode from './play-node.js';
 
 function resolve(privates, buffers) {
@@ -20,6 +19,7 @@ export default class Recorder extends AudioWorkletNode {
 
         this.port.onmessage = (e) => {
             if (e.data.type === 'done') {
+console.log('Data', e.data);
                 this.buffers = e.data.buffers;
                 notify(this, 'buffers');
 
@@ -38,8 +38,7 @@ export default class Recorder extends AudioWorkletNode {
 
         this.port.postMessage({
             type: 'start',
-            sample: Math.ceil((time - this.context.currentTime) * this.context.sampleRate),
-            bufferLength: Math.ceil(this.duration * this.context.sampleRate)
+            time: this.startTime
         });
 
         return this;
@@ -48,15 +47,10 @@ export default class Recorder extends AudioWorkletNode {
     stop(time) {
         PlayNode.prototype.stop.call(this, time);
 
-        // Round duration such that stopTime - startTime is a duration
-        // corresponding to an exact number of samples
-        const length = Math.ceil((this.stopTime - this.startTime) * this.context.sampleRate);
-        this.stopTime = this.startTime + length / this.context.sampleRate;
-
         // Tell the worklet to stop recording
         this.port.postMessage({
             type: 'stop',
-            bufferLength: length
+            time: this.stopTime
         });
 
         return this;
@@ -78,5 +72,5 @@ export default class Recorder extends AudioWorkletNode {
 Recorder.preload = function(base, context) {
     return context
     .audioWorklet
-    .addModule(base + '/nodes/recorder.worklet.js');
+    .addModule(base + '/nodes/recorder.worklet.js?cachebuster=1');
 };

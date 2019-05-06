@@ -1,6 +1,7 @@
 import { logGroup, logGroupEnd } from './print.js';
 import { Privates } from '../../fn/module.js';
 import NodeGraph from './node-graph.js';
+import Recorder from './recorder.js';
 import Sample from './sample.js';
 import { assignSettings } from '../modules/assign-settings.js';
 import { automate } from '../modules/automate.js';
@@ -205,8 +206,6 @@ assign(Looper, {
     defaultControls: [],
 
     preload: function(base, context) {
-    return context
-        .audioWorklet
-        .addModule(base + '/nodes/recorder.worklet.js');
+        return Recorder.preload(base, context);
     }
 });
