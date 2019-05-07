@@ -790,9 +790,9 @@
 
     <!-- Tests -->
     <script type="module">
-    import { closest, events, get, query, trigger } from '../../dom/module.js';
-    import '../../dom/js/dom.popable.js';
-    import '../../dom/js/dom.toggleable.js';
+    import { closest, events, get, query, trigger } from '../dom/module.js';
+    import '../dom/js/dom.popable.js';
+    import '../dom/js/dom.toggleable.js';
 
     import './components/sparky/midi/fns.js';
     import "./components/sparky/envelope-control/fns.js";
@@ -811,7 +811,7 @@
     import { Stream } from '../fn/module.js';
     window.Stream = Stream;
 
-    import * as dom from '../../dom/module.js';
+    import * as dom from '../dom/module.js';
     window.dom = dom;
 
     import * as MIDI from '../midi/module.js';
