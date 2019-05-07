@@ -44,34 +44,34 @@ const properties = {
 
 export default class Looper extends GainNode {
     constructor(context, settings, transport) {
-    if (DEBUG) { logGroup(new.target === Looper ? 'Node' : 'mixin ', 'Looper'); }
+        if (DEBUG) { logGroup(new.target === Looper ? 'Node' : 'mixin ', 'Looper'); }
 
-    // Init gain node
-    super(context, settings);
+        // Init gain node
+        super(context, settings);
 
-    // Privates
-    const privates = Privates(this);
-    privates.transport = transport;
+        // Privates
+        const privates = Privates(this);
+        privates.transport = transport;
 
-    // Set up the graph
-    NodeGraph.call(this, context, graph);
+        // Set up the graph
+        NodeGraph.call(this, context, graph);
 
-    // Connect input (this) into graph
-    // Todo: move these to graph (implement 'this' in graph connections)
-    GainNode.prototype.connect.call(this, this.get('dry'));
-    GainNode.prototype.connect.call(this, this.get('recorder'));
+        // Connect input (this) into graph
+        // Todo: move these to graph (implement 'this' in graph connections)
+        GainNode.prototype.connect.call(this, this.get('dry'));
+        GainNode.prototype.connect.call(this, this.get('recorder'));
 
-    // Properties
-    define(this, properties);
+        // Properties
+        define(this, properties);
 
-    this.dry = this.get('dry').gain;
-    this.wet = this.get('wet').gain;
-    this.sources = [];
+        this.dry = this.get('dry').gain;
+        this.wet = this.get('wet').gain;
+        this.sources = [];
 
-    // Update settings
-    assignSettings(this, defaults, settings);
+        // Update settings
+        assignSettings(this, defaults, settings);
 
-    if (DEBUG) { logGroupEnd(); }
+        if (DEBUG) { logGroupEnd(); }
     }
 }
 
@@ -147,6 +147,8 @@ assign(Looper.prototype, NodeGraph.prototype, {
             if (this.stopTime) {
                 loop.stop(this.stopTime);
             }
+
+            this.recording = false;
         });
 
         // If we are not yet rolling, set startTime to startTime of recorder
@@ -171,6 +173,7 @@ assign(Looper.prototype, NodeGraph.prototype, {
             }
         }
 
+        this.recording = true;
         return this;
     },
 
@@ -179,23 +182,40 @@ assign(Looper.prototype, NodeGraph.prototype, {
         const recorder  = this.get('recorder');
         const transport = privates.transport;
 
-        time = time || this.context.currentTime;
-
-        recorder.stop(time);
-
         // Is setRate flagged? If not, return
-        if (!privates.setRate) { return this; }
-        privates.setRate = false;
+        if (privates.setRate) {
+            time = time || this.context.currentTime;
+            recorder.stop(time);
 
-        // Get record time difference accurate to the nearest sample
-        privates.duration = recorder.stopTime - recorder.startTime;
+            privates.setRate = false;
 
-        // param, time, curve, value, duration
-        // Todo: expose a better way of adjusting rate
-        const rateParam = Privates(transport).rateParam;
+            // Get record time difference accurate to the nearest sample
+            privates.duration = recorder.stopTime - recorder.startTime;
 
-        //param, time, curve, value, duration, notify, context
-        automate(rateParam, recorder.stopTime, 'step', this.beats / privates.duration);
+            // param, time, curve, value, duration
+            // Todo: expose a better way of adjusting rate
+            const rateParam = Privates(transport).rateParam;
+
+            //param, time, curve, value, duration, notify, context
+            automate(rateParam, recorder.stopTime, 'step', this.beats / privates.duration);
+        }
+        else {
+            // Todo: move time handling to the promise - we don't actually want to record
+            // to a duration marker, we want silnce when not actually recording
+            time = time || this.context.currentTime;
+            let duration = time - recorder.startTime;
+
+            // Take 100ms off duration to allow late release of recordings to
+            // snap back to preceding duration end
+            const repeats = (duration - 0.1) / privates.duration;
+console.log(repeats);
+            duration = repeats < 1 ?
+                duration :
+                Math.ceil(repeats) * privates.duration ;
+
+            time = recorder.startTime + duration;
+            recorder.stop(time);
+        }
 
         return this;
     }

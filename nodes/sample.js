@@ -11,6 +11,7 @@ const DEBUG = true;
 const define = Object.defineProperties;
 
 const properties = {
+    buffer:    { enumerable: false, writable: true },
     path:      { enumerable: true, writable: true },
     attack:    { enumerable: true, writable: true },
     release:   { enumerable: true, writable: true },
@@ -63,7 +64,7 @@ export default class Sample extends GainNode {
         if (!this.buffer && typeof this.path === 'string') {
             privates.request = requestBuffer(context, this.path)
             .then((buffer) => {
-                privates.buffer = buffer;
+                this.buffer = buffer;
                 privates.source && (privates.source.buffer = buffer);
             })
             .catch((e) => { console.warn(e); });
@@ -80,7 +81,7 @@ export default class Sample extends GainNode {
 
         // Discard the old source node
         privates.source && privates.source.disconnect();
-        privates.buffer = options.buffer;
+        this.buffer = options.buffer;
         privates.gain   = options.gain || defaults.gain;
         this.release    = undefined;
 
@@ -95,7 +96,7 @@ export default class Sample extends GainNode {
         // Update .startTime
         PlayNode.prototype.start.apply(this, arguments);
 
-        if (!privates.buffer) {
+        if (!this.buffer) {
             //throw new Error('Sample has no buffer');
         }
 
@@ -119,7 +120,7 @@ export default class Sample extends GainNode {
         sourceOptions.loop         = this.loop && this.loopStart >= 0;
         sourceOptions.loopStart    = this.loopStart || 0;
         sourceOptions.loopEnd      = this.loopEnd;
-        sourceOptions.buffer       = privates.buffer;
+        sourceOptions.buffer       = this.buffer;
 
         const source
             = privates.source
@@ -177,7 +178,7 @@ export default class Sample extends GainNode {
             this.gain.setTargetAtTime(0, this.stopTime, this.release / 9);
         }
         else {
-            this.stopTime = this.startTime + (privates.buffer.length / this.context.sampleRate);
+            this.stopTime = this.startTime + (this.buffer.length / this.context.sampleRate);
         }
 
         privates.source.stop(this.stopTime);

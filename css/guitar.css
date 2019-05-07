@@ -1046,3 +1046,35 @@ input:checked + .radio-button .icon-stroke {
 .scales-block + .scales-block {
     margin-top: 9px;
 }
+
+
+
+
+.loops-block.recording::after {
+    content: '';
+    display: block;
+    height: 34px;
+    margin-top: 2px;
+    border-radius: 3px;
+    background-color: red;
+}
+
+
+.loop-block > .remove-thumb {
+    position: absolute;
+    right: -1.875rem;
+    top: 5px;
+}
+
+.loop-block > .waveform-canvas {
+    height: 34px;
+}
+
+.loop-block + .loop-block {
+    margin-top: 2px;
+}
+
+.waveform-canvas {
+    background-color: #b8c246;
+    border-radius: 3px;
+}
