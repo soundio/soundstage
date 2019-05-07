@@ -254,8 +254,7 @@
             <template include="#param-controls-toggle"></template>
         </form>
 
-        <button fn="get:data startRecord">Start record</button>
-        <button fn="get:data stopRecord">Stop record</button>
+        <button fn="get:data toggleRecord">Start record</button>
 
         <section fn="get:data looper-events" class="loops-block block {[recording|yesno:'recording','']}">
             <article class="loop-block block" fn="get:sources each">
@@ -1149,18 +1148,7 @@
 
     import { getOutputTime, getContextTime } from './modules/context.js';
 
-    functions.startRecord = function(node, scopes) {
-        return scopes.tap(function(looper) {
-            events('mousedown', node).each((e) => {
-                // In order to stay in sync with currently playing output,
-                // get the output time at domTime of the event
-                looper.startRecord(getOutputTime(looper.context, e.timeStamp));
-                //notify(looper, 'recording');
-            });
-        });
-    };
-
-    functions.stopRecord = function(node, scopes) {
+    functions.toggleRecord = function(node, scopes) {
         return scopes.tap(function(looper) {
             function note() {
                 notify(looper.sources, '');
@@ -1171,18 +1159,26 @@
             }
 
             events('mousedown', node).each((e) => {
-                // In order to stay in sync with currently playing output,
-                // get the output time at domTime of the event
-                looper.stopRecord(getOutputTime(looper.context, e.timeStamp));
+                if (looper.recording) {
+                    // In order to stay in sync with currently playing output,
+                    // get the output time at domTime of the event
+                    looper.stopRecord(getOutputTime(looper.context, e.timeStamp));
 
-                // This is a well dodgy way to be notifying changes, but at the
-                // moment notify is not available inside AudioNodes - and I'm
-                // not sure that I want it to be
-                window.requestAnimationFrame(() => {
+                    // This is a well dodgy way to be notifying changes, but at the
+                    // moment notify is not available inside AudioNodes - and I'm
+                    // not sure that I want it to be
                     window.requestAnimationFrame(() => {
-                        window.requestAnimationFrame(note);
+                        window.requestAnimationFrame(() => {
+                            window.requestAnimationFrame(note);
+                        });
                     });
-                });
+                }
+                else {
+                    // In order to stay in sync with currently playing output,
+                    // get the output time at domTime of the event
+                    looper.startRecord(getOutputTime(looper.context, e.timeStamp));
+                    //notify(looper, 'recording');
+                }
             });
         });
     };

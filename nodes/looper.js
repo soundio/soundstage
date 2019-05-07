@@ -113,15 +113,23 @@ assign(Looper.prototype, NodeGraph.prototype, {
         recorder
         .start(time)
         .then((buffers) => {
+            // Take 100ms off duration to allow late release of recordings to
+            // snap back to preceding duration end
+            const recordDuration  = recorder.stopTime - recorder.startTime - 0.2;
+            const repeats         = recordDuration / privates.duration;
+            const duration = repeats < 1 ?
+                privates.duration :
+                Math.ceil(repeats) * privates.duration ;
+
             // createBuffer(channelsCount, sampleCount, sampleRate)
             // https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/createBuffer
             const audio = recorder.context.createBuffer(
                 buffers.length,
-                privates.duration * this.context.sampleRate * buffers.length,
+                duration * this.context.sampleRate * buffers.length,
                 recorder.context.sampleRate
             );
 
-            // Copy buffers to buffers - is this even necessary? Todo: check.
+            // Copy buffers to buffers
             let n = buffers.length;
             while (n--) {
                 audio.copyToChannel(buffers[n], n, 0);
@@ -132,14 +140,14 @@ assign(Looper.prototype, NodeGraph.prototype, {
                 buffer:    audio,
                 loop:      true,
                 loopStart: 0,
-                loopEnd:   privates.duration,
+                loopEnd:   duration,
                 attack:    0.004,
                 release:   0.004
             });
 
             // start(time, frequency, gain)
             loop.connect(this.get('wet'));
-            loop.start(recorder.startTime + privates.duration, 0, 1);
+            loop.start(recorder.startTime + duration, 0, 1);
             this.sources.push(loop);
 
             // Where looper has already been scheduled to stop, we better
@@ -182,11 +190,10 @@ assign(Looper.prototype, NodeGraph.prototype, {
         const recorder  = this.get('recorder');
         const transport = privates.transport;
 
-        // Is setRate flagged? If not, return
-        if (privates.setRate) {
-            time = time || this.context.currentTime;
-            recorder.stop(time);
+        time = time || this.context.currentTime;
+        recorder.stop(time);
 
+        if (privates.setRate) {
             privates.setRate = false;
 
             // Get record time difference accurate to the nearest sample
@@ -198,23 +205,9 @@ assign(Looper.prototype, NodeGraph.prototype, {
 
             //param, time, curve, value, duration, notify, context
             automate(rateParam, recorder.stopTime, 'step', this.beats / privates.duration);
-        }
-        else {
-            // Todo: move time handling to the promise - we don't actually want to record
-            // to a duration marker, we want silnce when not actually recording
-            time = time || this.context.currentTime;
-            let duration = time - recorder.startTime;
 
-            // Take 100ms off duration to allow late release of recordings to
-            // snap back to preceding duration end
-            const repeats = (duration - 0.1) / privates.duration;
-console.log(repeats);
-            duration = repeats < 1 ?
-                duration :
-                Math.ceil(repeats) * privates.duration ;
-
-            time = recorder.startTime + duration;
-            recorder.stop(time);
+            // Start transport where it is not already running
+            privates.transport.start(time);
         }
 
         return this;

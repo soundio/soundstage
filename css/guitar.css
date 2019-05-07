@@ -1059,7 +1059,6 @@ input:checked + .radio-button .icon-stroke {
     background-color: #f1662e;
 }
 
-
 .loop-block > .remove-thumb {
     position: absolute;
     right: -1.875rem;
