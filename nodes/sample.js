@@ -1,10 +1,8 @@
 
-import Pool from '../modules/pool.js';
 import PlayNode from './play-node.js';
 import { requestBuffer } from '../modules/utilities/requests.js';
 import { Privates } from '../../fn/module.js';
-import { automate, getAutomation } from '../modules/automate.js';
-import { floatToFrequency, frequencyToFloat } from '../../midi/module.js';
+import { frequencyToFloat } from '../../midi/module.js';
 import { assignSettings } from '../modules/assign-settings.js';
 
 const DEBUG = true;
@@ -167,7 +165,7 @@ export default class Sample extends GainNode {
     }
 
     stop(time) {
-		const privates = Privates(this);
+        const privates = Privates(this);
 
         // Update .stopTime
         PlayNode.prototype.stop.apply(this, arguments);
@@ -183,10 +181,23 @@ export default class Sample extends GainNode {
 
         privates.source.stop(this.stopTime);
 
-		return this;
+        return this;
     }
 
-	toJSON() {
-		return this;
-	}
+    save() {
+console.log('HELLO')
+        // If sample already has a path it is already saved
+        if (this.path) { return; }
+        return [{
+            type: 'buffer',
+            data: this.buffer,
+            callback: (url) => {
+                this.path = url;
+            }
+        }];
+    }
+
+    toJSON() {
+        return this;
+    }
 }

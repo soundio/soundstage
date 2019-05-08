@@ -211,6 +211,13 @@ assign(Looper.prototype, NodeGraph.prototype, {
         }
 
         return this;
+    },
+
+    save: function() {
+        return this.sources.reduce((list, source) => {
+            const data = source.save && source.save();
+            return data ? list.concat(data) : list ;
+        }, []);
     }
 });
 
