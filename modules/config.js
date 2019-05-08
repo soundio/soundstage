@@ -14,7 +14,7 @@ export default {
 
     // Path used by various modules to find and load their web workers, as
     // web workers require paths relative to the base document
-    basePath: '/soundstage/',
+    basePath: window.soundstageBasePath || '/soundstage/',
 
     // Status constants
     // Start has not yet been called
