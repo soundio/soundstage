@@ -108,18 +108,18 @@ export function disconnect(source, target, sourceChan, targetChan, connections) 
         return;
     }
 
-    if (features.disconnectParameters) {
+    //if (features.disconnectParameters) {
         source.disconnect(target, sourceChan, targetChan);
-    }
-    else {
-        if (connections) {
-            disconnectDestination(source, outName, outputNode, inputNode, outputNumber, inputNumber, connections);
-        }
-        else {
-            print('Cant disconnect when features.disconnectParameters is false and connections object is not passed to disconenct.')
-            return;
-        }
-    }
+    //}
+    //else {
+    //    if (connections) {
+    //        disconnectDestination(source, outName, outputNode, inputNode, outputNumber, inputNumber, connections);
+    //    }
+    //    else {
+    //        print('Cant disconnect when features.disconnectParameters is false and connections object is not passed to disconenct.')
+    //        return;
+    //    }
+    //}
 
     // Indicate successful disconnection (we hope)
     return true;

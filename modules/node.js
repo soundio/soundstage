@@ -59,4 +59,4 @@ assign(Node.prototype, {
             return record;
         });
     }
-})
+});

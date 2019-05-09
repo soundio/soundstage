@@ -98,7 +98,7 @@ assign(Graph.prototype, {
 		return plugin;
 	},
 
-	createConnection: function(source, target, output, input) {
+	Connection: function(source, target, output, input) {
 		return new Connection(this, source, target, output, input);
 	}
 });

@@ -1,5 +1,5 @@
 
-import { get, isDefined }      from '../../fn/module.js';
+import { Privates, remove }              from '../../fn/module.js';
 import { connect, disconnect } from './connect.js';
 import { print }               from './utilities/print.js';
 
@@ -51,6 +51,7 @@ assign(Connection.prototype, {
         // Connect them up
         if (disconnect(this.source, this.targetParam || this.target, this.data && this.data[0], this.data && this.data[1])) {
             remove(this.graph.connections, this);
+            Privates(this.graph).notify(this.graph.connections, '.');
         }
 
         return this;
