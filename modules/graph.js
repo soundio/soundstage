@@ -96,5 +96,9 @@ assign(Graph.prototype, {
 		const id = generateUnique('id', this.nodes.map(get('id')));
 		this.nodes.push(new Node(this, type, id, plugin));
 		return plugin;
+	},
+
+	createConnection: function(source, target, output, input) {
+		return new Connection(this, source, target, output, input);
 	}
 });
