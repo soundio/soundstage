@@ -37,15 +37,14 @@ var defaults = {
 };
 
 const properties = {
-    "type":            { enumerable: true, writable: true },
     "sources":         { enumerable: true, writable: true },
     "beats":           { enumerable: true, writable: true },
     "recordStartTime": { enumerable: true, writable: true }
 };
 
-export default class Looper extends GainNode {
+export default class Track extends GainNode {
     constructor(context, settings, transport) {
-        if (DEBUG) { logGroup(new.target === Looper ? 'Node' : 'mixin ', 'Looper'); }
+        if (DEBUG) { logGroup(new.target === Track ? 'Node' : 'mixin ', 'Track'); }
 
         // Init gain node
         super(context, settings);
@@ -77,7 +76,7 @@ export default class Looper extends GainNode {
 }
 
 // Mix AudioObject prototype into MyObject prototype
-assign(Looper.prototype, NodeGraph.prototype, {
+assign(Track.prototype, NodeGraph.prototype, {
     reset: function() {
         this.startTime = undefined;
         this.stopTime  = undefined;
@@ -223,7 +222,7 @@ assign(Looper.prototype, NodeGraph.prototype, {
 });
 
 // Assign defaults
-assign(Looper, {
+assign(Track, {
     defaultControls: [],
 
     preload: function(base, context) {

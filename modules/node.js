@@ -50,5 +50,13 @@ assign(Node.prototype, {
             // param, time, curve, value, duration, notify, context
             automate(this.data[type], time, name, value, duration, privates.notify, this.data.context) :
         undefined ;
+    },
+
+    save: function() {
+        return this.data.save && this.data.save()
+        .map((record) => {
+            record.nodeId = this.id;
+            return record;
+        });
     }
-})
+});

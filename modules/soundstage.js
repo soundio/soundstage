@@ -369,5 +369,12 @@ assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
 
         this[$store].modify('clear');
         return this;
+    },
+
+    save: function() {
+        return this.nodes.reduce((list, node) => {
+            const data = node.save && node.save();
+            return data ? list.concat(data) : list ;
+        }, []);
     }
 });
