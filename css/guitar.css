@@ -14,44 +14,6 @@ body {
     background-image: linear-gradient(to bottom, #2D3437 0%, #354147 100%);
 }
 
-body {
-    display: grid;
-    grid-gap: 0;
-    grid-template-areas:
-        'inputs    nodes     nodes     nodes     outputs '
-        'inputs    sequencer sequencer sequencer outputs '
-        'controls  controls  controls  controls  controls';
-    grid-template-columns: 0 1fr 1fr 1fr 0;
-    grid-template-rows: 1fr max-content 3.75rem;
-    font-size: 0.9375rem;
-}
-
-body > .inputs-block {
-    grid-area: inputs;
-}
-
-body > .outputs-block {
-    grid-area: outputs;
-}
-
-body > .nodes-block {
-    grid-area: nodes;
-    min-height: 0;
-    max-height: 100vh;
-}
-
-body > .events-block {
-    grid-area: sequencer;
-    min-height: calc(33.333333vh - 3.75rem);
-    color: white;
-    background-color: #252c2d;
-}
-
-body > .bar-block {
-    grid-area: controls;
-    background-color: #252A2C;
-}
-
 .nodes-block {
     margin: 0;
     display: flex;
