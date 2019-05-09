@@ -143,9 +143,9 @@ export default class Sample extends GainNode {
                 0
         );
 
-        if (DEBUG && this.context.currentTime > this.startTime) {
-            console.log('Sample start offset by', this.context.currentTime - this.startTime);
-        }
+        //if (DEBUG && this.context.currentTime > this.startTime) {
+        //    console.log('Sample start offset by', this.context.currentTime - this.startTime);
+        //}
 
         this.detune = source.detune;
         this.rate   = source.playbackRate;

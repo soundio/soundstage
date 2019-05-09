@@ -1,10 +1,11 @@
-import { logGroup, logGroupEnd } from './print.js';
+import { print, logGroup, logGroupEnd } from './print.js';
 import { Privates } from '../../fn/module.js';
 import NodeGraph from './node-graph.js';
 import Recorder from './recorder.js';
 import Sample from './sample.js';
 import { assignSettings } from '../modules/assign-settings.js';
 import { automate } from '../modules/automate.js';
+import { getInputLatency, getOutputLatency } from '../modules/context.js';
 
 const DEBUG  = window.DEBUG;
 
@@ -33,7 +34,8 @@ const graph = {
 // Declare some useful defaults
 var defaults = {
     gain: 1,
-    beats: 4
+    beats: 4,
+    settings: {}
 };
 
 const properties = {
@@ -96,8 +98,9 @@ assign(Looper.prototype, NodeGraph.prototype, {
             throw new Error('Attempt to stop a node that has not been started');
         }
 
-        // Clamp stopTime to startTime
         time = time || this.context.currentTime;
+
+        // Clamp stopTime to startTime
         this.stopTime = time > this.startTime ? time : this.startTime ;
         return this;
     },
@@ -105,7 +108,6 @@ assign(Looper.prototype, NodeGraph.prototype, {
     startRecord: function(time) {
         const privates  = Privates(this);
         const recorder  = this.get('recorder');
-        const transport = privates.transport;
 
         time = time || this.context.currentTime;
 
@@ -113,7 +115,7 @@ assign(Looper.prototype, NodeGraph.prototype, {
         recorder
         .start(time)
         .then((buffers) => {
-            // Take 100ms off duration to allow late release of recordings to
+            // Take 200ms off duration to allow late release of recordings to
             // snap back to preceding duration end
             const recordDuration  = recorder.stopTime - recorder.startTime - 0.2;
             const repeats         = recordDuration / privates.duration;
@@ -145,9 +147,15 @@ assign(Looper.prototype, NodeGraph.prototype, {
                 release:   0.004
             });
 
+            const latencyCompensation =
+                -(this.settings.outputLatencyCompensation ? getOutputLatency(this.context) : 0)
+                - (this.settings.inputLatencyCompensation ? getInputLatency(this.context) : 0);
+
+            print('Loop latency compensation', latencyCompensation);
+
             // start(time, frequency, gain)
             loop.connect(this.get('wet'));
-            loop.start(recorder.startTime + duration, 0, 1);
+            loop.start(recorder.startTime + duration + latencyCompensation, 0, 1);
             this.sources.push(loop);
 
             // Where looper has already been scheduled to stop, we better
@@ -165,22 +173,6 @@ assign(Looper.prototype, NodeGraph.prototype, {
             this.stopTime  = undefined;
         }
 
-        // Is this the first loop?
-        if (!this.sources.length) {
-            // Is transport running?
-            if (transport.startTime === undefined || time < transport.startTime || time >= transport.stopTime) {
-                transport.start(recorder.startTime);
-
-                // Flag the rate so that it gets set on loop end
-                privates.setRate = true;
-            }
-            // Transport is running
-            else {
-                // Use the current rate to set loop duration
-                privates.duration = this.beats / transport.rateAtTime(recorder.startTime);
-            }
-        }
-
         this.recording = true;
         return this;
     },
@@ -193,21 +185,26 @@ assign(Looper.prototype, NodeGraph.prototype, {
         time = time || this.context.currentTime;
         recorder.stop(time);
 
-        if (privates.setRate) {
-            privates.setRate = false;
+        // Is this the first loop?
+        if (!this.sources.length) {
+            // Is transport running?
+            if (transport.startTime === undefined || time < transport.startTime || time >= transport.stopTime) {
+                // Get record time difference accurate to the nearest sample
+                privates.duration = recorder.stopTime - recorder.startTime;
 
-            // Get record time difference accurate to the nearest sample
-            privates.duration = recorder.stopTime - recorder.startTime;
+                // param, time, curve, value, duration
+                // Todo: expose a better way of adjusting rate
+                // automate(param, time, curve, value, duration, notify, context)
+                automate(Privates(transport).rateParam, recorder.stopTime, 'step', this.beats / privates.duration);
 
-            // param, time, curve, value, duration
-            // Todo: expose a better way of adjusting rate
-            const rateParam = Privates(transport).rateParam;
-
-            //param, time, curve, value, duration, notify, context
-            automate(rateParam, recorder.stopTime, 'step', this.beats / privates.duration);
-
-            // Start transport where it is not already running
-            privates.transport.start(time);
+                // Start transport where it is not already running
+                transport.start(recorder.stopTime);
+            }
+            // Transport is running
+            else {
+                // Use the current rate to set loop duration
+                privates.duration = this.beats / transport.rateAtTime(recorder.stopTime);
+            }
         }
 
         return this;

@@ -1,4 +1,8 @@
 
+// throw away buffers older than 0.3s
+// (@96kHz, ~256 buffers)
+const bufferCount = 256;
+
 function createOutputBuffer(startTime, stopTime, currentTime, sampleRate, bufferIndex, buffers) {
     // Start and stop times relative to current time
     const tStart = startTime - currentTime;
@@ -100,9 +104,8 @@ registerProcessor('recorder', class RecorderWorklet extends AudioWorkletProcesso
                     )
                 });
 
-                // throw away buffers older than 1 second
-                // (96kHz / 128 = 750 buffers)
-                let i = this.bufferIndex - 750 + 1;
+                // throw away buffers
+                let i = this.bufferIndex - bufferCount + 1;
                 while (this.buffers[--i]) {
                     delete this.buffers[i];
                 }
@@ -112,9 +115,8 @@ registerProcessor('recorder', class RecorderWorklet extends AudioWorkletProcesso
             }
         }
         else {
-            // throw away buffers older than 1 second
-            // (96kHz / 128 = 750 buffers)
-            delete this.buffers[this.bufferIndex - 750];
+            // throw away buffer
+            delete this.buffers[this.bufferIndex - bufferCount];
         }
 
         return true;

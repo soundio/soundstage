@@ -65,7 +65,7 @@ export function domTimeAtTime(context, time) {
     return stamp.performanceTime + (time - stamp.contextTime) * 1000;
 }
 
-function getOutputLatency(stamps, context) {
+function _getOutputLatency(stamps, context) {
     // In order to play back live controls without jitter we must add
     // a latency to them to push them beyond currentTime.
     // AudioContext.outputLatency is not yet implemented so we need to
@@ -87,19 +87,38 @@ function getOutputLatency(stamps, context) {
         print('Output latency changed to', Math.round(context._outputLatency * context.sampleRate) + ' samples (' + context._outputLatency.toFixed(3) + 's @ ' + context.sampleRate + 'Hz)');
     }
 
-    return context.outputLatency;
+    return context._outputLatency;
+}
+
+export function getInputLatency(context) {
+    const stamp = context.getOutputTimestamp();
+    return _getOutputLatency(stamp, context);
+}
+
+export function getOutputLatency(context) {
+    const stamp = context.getOutputTimestamp();
+    return _getOutputLatency(stamp, context);
 }
 
 export function getOutputTime(context, domTime) {
-    const stamp         = context.getOutputTimestamp();
-    const outputLatency = getOutputLatency(stamp, context);
-    const time          = stampTimeAtDomTime(stamp, domTime);
-    return time + outputLatency;
+    const stamp = context.getOutputTimestamp();
+    return stampTimeAtDomTime(stamp, domTime);
 }
 
 export function getContextTime(context, domTime) {
-    const stamps = context.getOutputTimestamp();
-    return timeAtDomTime(stamps, domTime);
+    const stamp = context.getOutputTimestamp();
+    const time = stampTimeAtDomTime(stamp, domTime);
+    const outputLatency = _getOutputLatency(stamp, context);
+    return time + outputLatency;
+}
+
+export function getInputTime(context, domTime) {
+    const stamp = context.getOutputTimestamp();
+    const time = stampTimeAtDomTime(stamp, domTime);
+    // Just a guess that inpuLatency == outputLatency...
+    const inputLatency  = _getOutputLatency(stamp, context);
+    const outputLatency = _getOutputLatency(stamp, context);
+    return time + inputLatency + outputLatency;
 }
 
 
