@@ -37,6 +37,7 @@ var defaults = {
 };
 
 const properties = {
+    "type":            { enumerable: true, writable: true },
     "sources":         { enumerable: true, writable: true },
     "beats":           { enumerable: true, writable: true },
     "recordStartTime": { enumerable: true, writable: true }

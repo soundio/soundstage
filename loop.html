@@ -921,7 +921,10 @@
         var  stage;
 
         scope.each(function(data) {
-            stage = window.stage = new Soundstage(data, { notify: notify, baseURL: '/soundstage' });
+            stage = window.stage = new Soundstage(data, {
+                notify: notify,
+                baseURL: '/soundstage'
+            });
 
             stage.ready(function(stage) {
                 output.push(stage);
