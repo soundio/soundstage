@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" is="sparky">
+<head build-fn="import:package.json">
+    <meta charset="utf-8" />
+    <meta name="author" content="@{[author.twitter]}" />
+    <meta name="description" content="Documentation for {[title]}. {[description]}" />
+    <meta name="viewport" content="width=device-width" />
+
+    <title>{[title]}</title>
+
+    <script>
+    document.documentElement.className = 'js';
+    window.DEBUG = true;
+    </script>
+
+    <link rel="shortcut icon" href="images/logo-64x64.ico" />
+    <link rel="icon" type="image/png" href="images/logo-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="images/logo-64x64.png" sizes="64x64">
+    <link rel="icon" type="image/png" href="images/logo-128x128.png" sizes="128x128">
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono:100,300,400,500,700" />
+    <link rel="stylesheet" href="../bolt/dist/bolt.css" />
+    <link rel="stylesheet" href="../dom/css/dom.css" />
+    <link rel="stylesheet" href="../fn/css/prism.cruncher.css" />
+    <link rel="stylesheet" href="../fn/css/docs.css" />
+    <link rel="stylesheet" href="../fn/css/tests.css" />
+    <link rel="stylesheet" href="css/theme.css" />
+	<link rel="stylesheet" href="components/midi-graph/midi-graph.css" />
+
+    <template id="functions">
+        <article build-fn="each append:body" class="toggle-block block" toggleable id="{[id]}">
+            <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
+                <a href="#{[id]}">
+                    <code build-fn="append:title" class="language-js"></code>
+                </a>
+            </h3>
+        </article>
+    </template>
+</head>
+
+<body>
+    <header build-fn="import:package.json" class="1-grid grid" id="header">
+        <h1 class="grid-0 midi-icon">{[title]} <span class="text-6">{[version]}</span></h1>
+
+        <div class="grid-1">
+            <p class="text-8">
+                {[description]}
+                <span id="support-hint" style="color: #bf004c;"></span>
+                Currently <a href="https://brave.com/">Brave</a> and Chrome support the <a href="https://caniuse.com/#feat=midi">WebMIDI API</a>.
+                Firefox have had it <a href="https://github.com/mozilla/standards-positions/issues/58">under consideration</a> for some time.
+            </p>
+
+            <ul class="link-index index">
+                <li><strong>repo:</strong> <a href="{[repository.url]}">{[repository.url]}</a></li>
+                <li><strong>bugs:</strong> <a href="{[bugs.url]}">{[bugs.url]}</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <!--div class="demo-block block site-grid grid">
+        <div class="midi-graph grid-1" id="midi-graph">
+            <p class="text-8 hint" id="instrument-hint">Plug in a MIDI instrument to try out the <code>&lt;midi-graph&gt;</code> component&hellip;</p>
+            <midi-graph/>
+        </div>
+    </div-->
+
+    <section class="1-grid grid">
+        <header class="grid-0">
+            <h2 class="text-2" style="font-size: 1.875rem;">Quick start</h2>
+            <pre><code class="language-js">// Import MIDI functions as object
+import * as MIDI from 'http://stephen.band/midi/midi.js';
+
+// Listen to incoming 'noteon' and 'noteoff' messages on channel 1
+MIDI.on({channel: 1, type: 'note'}, (e) => {
+    // Time, port and message are properties of the DOM event
+    const time    = e.timeStamp;
+    const port    = e.target;
+    const message = e.data;
+
+    // Get the note name
+    const name = MIDI.toNoteName(message[1]);
+
+    // Normalise velocity to the range 0-1
+    const velocity = MIDI.int7ToFloat(message[2]);
+});
+</code></pre>
+
+            <p>On this page, functions have been imported to the object <code>window.MIDI</code> so that you may play with them in the console.</p>
+        </header>
+    </section>
+
+    <section class="1-2-3-grid grid">
+        <header class="grid-0">
+            <h2 class="text-2" style="font-size: 1.875rem;">Functions</h2>
+            <pre><code class="language-js">// Import Soundstage
+import Soundstage from 'http://stephen.band/soundstage/soundstage.js';</code></pre>
+        </header>
+
+        <h2 class="text-3 grid-1">Soundstage()</h2>
+
+        <!--section class="grid-2">
+            <h3 class="text-4">Properties</h3>
+            <article template-fn="docs:'./modules/sequence.js?name','./modules/soundstage.js','./modules/graph.js?plugins,connections','./modules/sequence.js?events,sequences' each append:body" class="toggle-block block" toggleable id="{[id]}">
+                <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
+                    <a href="#{[id]}">
+                        <code template-fn="html:title" class="language-js"></code>
+                    </a>
+                </h3>
+            </article>
+        </section-->
+
+        <section class="grid-3">
+            <h3 class="text-4">Methods</h3>
+            <template build-fn="docs:'./modules/graph.js?create,get','./modules/sequencer.js','./modules/location.js','./modules/meter.js','./modules/soundstage.js?timeAtDomTime'" build-include="#functions"></template>
+        </section>
+    </section>
+
+    <script build-remove type="module" src="../fn/docs-build.js"></script>
+
+    <!-- Document interactivity -->
+    <script type="module" src="./components/midi-graph/midi-graph.js"></script>
+    <script type="module" src="./components/midi-monitor/midi-monitor.js"></script>
+    <script type="module">
+    import '../dom/js/dom.root.js';
+    import '../dom/js/dom.toggleable.js';
+    import * as MIDI from './module.js';
+    window.MIDI = MIDI;
+
+    import { classes, get } from '../dom/module.js';
+
+    MIDI
+    .request()
+    .catch(function() {
+        get('support-hint').innerHTML = 'This browser does not support MIDI.';
+    });
+
+    setTimeout(function() {
+        var cls = classes(get('instrument-hint'));
+        cls.add('active');
+
+        MIDI.on([], function removeHint(e) {
+            // Test events have no port, and we want to ignore them
+            if (!e.target || !e.target.onmidimessage) { return; }
+
+            MIDI.off([], removeHint);
+            cls.remove('active');
+        });
+    }, 2000);
+    </script>
+
+    <!-- Tests -->
+    <script type="module">
+    import './test/maths.js';
+    import './test/data.js';
+    import './test/messages.js';
+    import './test/events.js';
+    import './test/midi.js';
+    </script>
+</body>
