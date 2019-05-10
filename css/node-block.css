@@ -21,10 +21,79 @@
     margin-right: -9px;
 }
 
-.output-node-block {
-    min-width: 150px;
-    max-width: 240px;
+.input-node-block {
+    padding-left: 12px;
+    min-width: 66px;
+    max-width: 66px;
+    color: #8f9aa0;
 }
+
+.input-node-block > pre {
+    position: absolute;
+    left: 12px;
+    top: -15px;
+    font-size: 11px;
+}
+
+.input-node-block::before {
+    position: absolute;
+    content: '';
+    width: 100%;
+    border-top: 1px solid currentcolor;
+    top: calc(50% - 1px);
+    left: 0;
+}
+
+.input-node-block > .input-thumb {
+
+}
+
+.input-node-block > .select-button {
+    margin-top: 0;
+}
+
+* + .input-node-block {
+    margin-top: 1.875rem;
+}
+
+.output-node-block {
+    padding-left: 18px;
+    min-width: 90px;
+    max-width: 90px;
+    color: #8f9aa0;
+}
+
+.output-node-block > pre {
+    position: absolute;
+    left: 18px;
+    top: -15px;
+    font-size: 11px;
+}
+
+.output-node-block::before {
+    position: absolute;
+    content: '';
+    width: 40%;
+    border-top: 1px solid currentcolor;
+    top: calc(50% - 1px);
+    left: 0;
+}
+
+.output-node-block > .input-thumb {
+
+}
+
+.output-node-block > .select-button {
+    margin-top: 0;
+}
+
+* + .output-node-block {
+    margin-top: 1.875rem;
+}
+
+
+
+
 
 .tone-synth-node-block {
     display: grid;
