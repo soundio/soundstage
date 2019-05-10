@@ -152,7 +152,7 @@ assign(Looper.prototype, NodeGraph.prototype, {
                 -(this.settings.outputLatencyCompensation ? getOutputLatency(this.context) : 0)
                 - (this.settings.inputLatencyCompensation ? getInputLatency(this.context) : 0);
 
-            print('Loop latency compensation', latencyCompensation);
+            print('Loop latency compensation', latencyCompensation.toFixed(3));
 
             // start(time, frequency, gain)
             loop.connect(this.get('wet'));
