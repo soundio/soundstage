@@ -1,54 +1,97 @@
-<!DOCTYPE html>
-<html lang="en">
-<head template-fn="import:package.json">
-    <meta charset="utf-8" />
-    <meta name="author" content="@{[author.twitter]}" />
-    <meta name="description" content="Documentation for {[title]}. {[description]}" />
-    <meta name="viewport" content="width=device-width" />
+<!DOCTYPE html><html lang="en" is="sparky" class="js"><head>
+    <meta charset="utf-8">
+    <meta name="author" content="@stephband">
+    <meta name="description" content="Documentation for Soundstage. An audio node graph, sequencing engine, MIDI controller and JSON schema for the Web Audio API.">
+    <meta name="viewport" content="width=device-width">
 
-    <title>{[title]}</title>
+    <title>Soundstage</title>
 
     <script>
     document.documentElement.className = 'js';
     window.DEBUG = true;
     </script>
 
-    <link rel="shortcut icon" href="images/logo-64x64.ico" />
+    <link rel="shortcut icon" href="images/logo-64x64.ico">
     <link rel="icon" type="image/png" href="images/logo-32x32.png" sizes="32x32">
     <link rel="icon" type="image/png" href="images/logo-64x64.png" sizes="64x64">
     <link rel="icon" type="image/png" href="images/logo-128x128.png" sizes="128x128">
 
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono:100,300,400,500,700" />
-    <link rel="stylesheet" href="../bolt/dist/bolt.css" />
-    <link rel="stylesheet" href="../dom/css/dom.css" />
-    <link rel="stylesheet" href="../fn/css/prism.cruncher.css" />
-    <link rel="stylesheet" href="../fn/css/docs.css" />
-    <link rel="stylesheet" href="../fn/css/tests.css" />
-    <link rel="stylesheet" href="css/theme.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono:100,300,400,500,700">
+    <link rel="stylesheet" href="../bolt/dist/bolt.css">
+    <link rel="stylesheet" href="../dom/css/dom.css">
+    <link rel="stylesheet" href="../fn/css/prism.cruncher.css">
+    <link rel="stylesheet" href="../fn/css/docs.css">
+    <link rel="stylesheet" href="../fn/css/tests.css">
+    <link rel="stylesheet" href="css/theme.css">
+	<link rel="stylesheet" href="components/midi-graph/midi-graph.css">
+
+    <template id="functions">
+        <article build-fn="each append:body" class="toggle-block block" toggleable="" id="{[id]}">
+            <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
+                <a href="#{[id]}">
+                    <code build-fn="append:title" class="language-js"></code>
+                </a>
+            </h3>
+        </article>
+    </template>
 </head>
 
 <body>
-    <header template-fn="import:'package.json'" class="1-grid grid" id="header">
-        <h1 class="grid-0 midi-icon">{[title]} <span class="text-6">{[version]}</span></h1>
+    <header class="1-grid grid" id="header">
+        <h1 class="grid-0 midi-icon">Soundstage <span class="text-6">0.8.0</span></h1>
 
         <div class="grid-1">
-            <p class="text-8">{[description]} <span id="support-hint" style="color: #bf004c;"></span></p>
+            <p class="text-8">
+                An audio node graph, sequencing engine, MIDI controller and JSON schema for the Web Audio API.
+                <span id="support-hint" style="color: #bf004c;"></span>
+                Currently <a href="https://brave.com/">Brave</a> and Chrome support the <a href="https://caniuse.com/#feat=midi">WebMIDI API</a>.
+                Firefox have had it <a href="https://github.com/mozilla/standards-positions/issues/58">under consideration</a> for some time.
+            </p>
 
             <ul class="link-index index">
-        		<li><strong>repo:</strong> <a href="{[repository.url]}">{[repository.url]}</a></li>
-                <li><strong>bugs:</strong> <a href="{[bugs.url]}">{[bugs.url]}</a></li>
-        	</ul>
+                <li><strong>repo:</strong> <a href="https://github.com/soundio/soundstage.git">https://github.com/soundio/soundstage.git</a></li>
+                <li><strong>bugs:</strong> <a href="https://github.com/soundio/soundstage/issues">https://github.com/soundio/soundstage/issues</a></li>
+            </ul>
         </div>
     </header>
 
+    <!--div class="demo-block block site-grid grid">
+        <div class="midi-graph grid-1" id="midi-graph">
+            <p class="text-8 hint" id="instrument-hint">Plug in a MIDI instrument to try out the <code>&lt;midi-graph&gt;</code> component&hellip;</p>
+            <midi-graph/>
+        </div>
+    </div-->
 
+    <section class="1-grid grid">
+        <header class="grid-0">
+            <h2 class="text-2" style="font-size: 1.875rem;">Quick start</h2>
+            <pre class=" language-js"><code class=" language-js"><span class="token comment">// Import MIDI functions as object</span>
+<span class="token keyword">import</span> <span class="token operator">*</span> <span class="token keyword">as</span> <span class="token constant">MIDI</span> <span class="token keyword">from</span> <span class="token string">'http://stephen.band/midi/midi.js'</span><span class="token punctuation">;</span>
 
+<span class="token comment">// Listen to incoming 'noteon' and 'noteoff' messages on channel 1</span>
+<span class="token constant">MIDI</span><span class="token punctuation">.</span><span class="token function">on</span><span class="token punctuation">(</span><span class="token punctuation">{</span>channel<span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span> type<span class="token punctuation">:</span> <span class="token string">'note'</span><span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">(</span>e<span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+    <span class="token comment">// Time, port and message are properties of the DOM event</span>
+    <span class="token keyword">const</span> time    <span class="token operator">=</span> e<span class="token punctuation">.</span>timeStamp<span class="token punctuation">;</span>
+    <span class="token keyword">const</span> port    <span class="token operator">=</span> e<span class="token punctuation">.</span>target<span class="token punctuation">;</span>
+    <span class="token keyword">const</span> message <span class="token operator">=</span> e<span class="token punctuation">.</span>data<span class="token punctuation">;</span>
+
+    <span class="token comment">// Get the note name</span>
+    <span class="token keyword">const</span> name <span class="token operator">=</span> <span class="token constant">MIDI</span><span class="token punctuation">.</span><span class="token function">toNoteName</span><span class="token punctuation">(</span>message<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// Normalise velocity to the range 0-1</span>
+    <span class="token keyword">const</span> velocity <span class="token operator">=</span> <span class="token constant">MIDI</span><span class="token punctuation">.</span><span class="token function">int7ToFloat</span><span class="token punctuation">(</span>message<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+
+            <p>On this page, functions have been imported to the object <code>window.MIDI</code> so that you may play with them in the console.</p>
+        </header>
+    </section>
 
     <section class="1-2-3-grid grid">
         <header class="grid-0">
             <h2 class="text-2" style="font-size: 1.875rem;">Functions</h2>
-            <pre><code class="language-js">// Import Soundstage
-import Soundstage from 'http://stephen.band/soundstage/soundstage.js';</code></pre>
+            <pre class=" language-js"><code class=" language-js"><span class="token comment">// Import Soundstage</span>
+<span class="token keyword">import</span> Soundstage <span class="token keyword">from</span> <span class="token string">'http://stephen.band/soundstage/soundstage.js'</span><span class="token punctuation">;</span></code></pre>
         </header>
 
         <h2 class="text-3 grid-1">Soundstage()</h2>
@@ -66,387 +109,151 @@ import Soundstage from 'http://stephen.band/soundstage/soundstage.js';</code></p
 
         <section class="grid-3">
             <h3 class="text-4">Methods</h3>
-            <article template-fn="docs:'./modules/graph.js?create,get','./modules/sequencer.js','./modules/location.js','./modules/meter.js','./modules/soundstage.js?timeAtDomTime' each append:body" class="toggle-block block" toggleable id="{[id]}">
-                <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
-                    <a href="#{[id]}">
-                        <code template-fn="html:title" class="language-js"></code>
-                    </a>
-                </h3>
-            </article>
+
+        <!--article--><article class="toggle-block block" toggleable="" id="create-type-settings">
+            <h3 class="text-5 dot-indent">
+                <a href="#create-type-settings">
+                    <code class="language-js"><span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span>type<span class="token punctuation">,</span> settings<span class="token punctuation">)</span></code>
+                </a>
+            </h3>
+        <p>Create a new node of <code>type</code>.</p>
+</article><article class="toggle-block block" toggleable="" id="get-id">
+            <h3 class="text-5 dot-indent">
+                <a href="#get-id">
+                    <code class="language-js"><span class="token punctuation">.</span><span class="token keyword">get</span><span class="token punctuation">(</span>id<span class="token punctuation">)</span></code>
+                </a>
+            </h3>
+        <p>Return the plugin with <code>id</code>, or undefined.</p>
+</article><article class="toggle-block block" toggleable="" id="start-time-beat">
+            <h3 class="text-5 dot-indent">
+                <a href="#start-time-beat">
+                    <code class="language-js"><span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span>time<span class="token punctuation">,</span> beat<span class="token punctuation">)</span></code>
+                </a>
+            </h3>
+        <p>Starts the sequencer from <code>beat</code> at <code>time</code>.</p>
+</article><article class="toggle-block block" toggleable="" id="stop-time">
+            <h3 class="text-5 dot-indent">
+                <a href="#stop-time">
+                    <code class="language-js"><span class="token punctuation">.</span><span class="token function">stop</span><span class="token punctuation">(</span>time<span class="token punctuation">)</span></code>
+                </a>
+            </h3>
+        <p>Stops the sequencer <code>time</code>.</p>
+</article><article class="toggle-block block" toggleable="" id="cue-beat-fn">
+            <h3 class="text-5 dot-indent">
+                <a href="#cue-beat-fn">
+                    <code class="language-js"><span class="token punctuation">.</span><span class="token function">cue</span><span class="token punctuation">(</span>beat<span class="token punctuation">,</span> fn<span class="token punctuation">)</span></code>
+                </a>
+            </h3>
+        <p>Cues <code>fn</code> to be called on beat.</p>
+</article><article class="toggle-block block" toggleable="" id="beatattime-time">
+            <h3 class="text-5 dot-indent">
+                <a href="#beatattime-time">
+                    <code class="language-js"><span class="token punctuation">.</span><span class="token function">beatAtTime</span><span class="token punctuation">(</span>time<span class="token punctuation">)</span></code>
+                </a>
+            </h3>
+        <p>Returns the beat at a given <code>time</code>.</p>
+</article><article class="toggle-block block" toggleable="" id="timeatbeat-beat">
+            <h3 class="text-5 dot-indent">
+                <a href="#timeatbeat-beat">
+                    <code class="language-js"><span class="token punctuation">.</span><span class="token function">timeAtBeat</span><span class="token punctuation">(</span>beat<span class="token punctuation">)</span></code>
+                </a>
+            </h3>
+        <p>Returns the time at a given <code>beat</code>.</p>
+</article><article class="toggle-block block" toggleable="" id="beatattimeautomation-e0-e1-time">
+            <h3 class="text-5 ">
+                <a href="#beatattimeautomation-e0-e1-time">
+                    <code class="language-js"><span class="token function">beatAtTimeAutomation</span><span class="token punctuation">(</span>e0<span class="token punctuation">,</span> e1<span class="token punctuation">,</span> time<span class="token punctuation">)</span></code>
+                </a>
+            </h3>
+        <p>Returns the rate beat at a given <code>time</code>.</p>
+</article><article class="toggle-block block" toggleable="" id="timeatbeatautomation-e0-e1-beat">
+            <h3 class="text-5 ">
+                <a href="#timeatbeatautomation-e0-e1-beat">
+                    <code class="language-js"><span class="token function">timeAtBeatAutomation</span><span class="token punctuation">(</span>e0<span class="token punctuation">,</span> e1<span class="token punctuation">,</span> beat<span class="token punctuation">)</span></code>
+                </a>
+            </h3>
+        <p>Returns the time of a given rate <code>beat</code>.</p>
+</article><article class="toggle-block block" toggleable="" id="locationatbeat-beat">
+            <h3 class="text-5 dot-indent">
+                <a href="#locationatbeat-beat">
+                    <code class="language-js"><span class="token punctuation">.</span><span class="token function">locationAtBeat</span><span class="token punctuation">(</span>beat<span class="token punctuation">)</span></code>
+                </a>
+            </h3>
+        <p>Returns the location of a given <code>beat</code>.</p>
+</article><article class="toggle-block block" toggleable="" id="beatatlocation-location">
+            <h3 class="text-5 dot-indent">
+                <a href="#beatatlocation-location">
+                    <code class="language-js"><span class="token punctuation">.</span><span class="token function">beatAtLocation</span><span class="token punctuation">(</span>location<span class="token punctuation">)</span></code>
+                </a>
+            </h3>
+        <p>Returns the beat at a given <code>location</code>.</p>
+</article><article class="toggle-block block" toggleable="" id="beatatbar-bar">
+            <h3 class="text-5 dot-indent">
+                <a href="#beatatbar-bar">
+                    <code class="language-js"><span class="token punctuation">.</span><span class="token function">beatAtBar</span><span class="token punctuation">(</span>bar<span class="token punctuation">)</span></code>
+                </a>
+            </h3>
+        <p>Returns the beat at a given <code>bar</code>.</p>
+</article><article class="toggle-block block" toggleable="" id="baratbeat-beat">
+            <h3 class="text-5 dot-indent">
+                <a href="#baratbeat-beat">
+                    <code class="language-js"><span class="token punctuation">.</span><span class="token function">barAtBeat</span><span class="token punctuation">(</span>beat<span class="token punctuation">)</span></code>
+                </a>
+            </h3>
+        <p>Returns the bar at a given <code>beat</code>.</p>
+</article><article class="toggle-block block" toggleable="" id="timeatdomtime-domtime">
+            <h3 class="text-5 dot-indent">
+                <a href="#timeatdomtime-domtime">
+                    <code class="language-js"><span class="token punctuation">.</span><span class="token function">timeAtDomTime</span><span class="token punctuation">(</span>domTime<span class="token punctuation">)</span></code>
+                </a>
+            </h3>
+        <p>Returns audio context time at a given DOM time, where <code>domTime</code> is a time in
+seconds relative to window.performance.now().</p>
+</article>
+
         </section>
     </section>
 
-	<!--div class="grid-block block">
-		<select class="grid-1/6 block" id="meter-select">
-			<option value="2/4">2/4</option>
-			<option value="3/4">3/4</option>
-			<option value="4/4" selected>4/4</option>
-			<option value="5/4">5/4</option>
-			<option value="6/4">6/4</option>
-			<option value="7/4">7/4</option>
-			<option value="6/8">6/8</option>
-		</select
 
-		><input class="grid-2/3 block" type="range" min="40" max="400" id="tempo-input"
-
-		/><output class="grid-1/6 block">♩= <span id="tempo-output"></span></output>
-	</div>
-
-	<div class="grid-block block">
-		<div class="grid-1/6 block"></div
-		><button class="grid-2/3 block" id="play-button">Play / Stop</button>
-	</div>
-
-	<script type="module">
-		import { choose, compose, get, is, overload, requestTick } from '../fn/module.js';
-		import { events, query, toKey } from '../dom/module.js';
-		import Soundstage from './module.js';
-		import './modules/inspector.js';
-
-		var stage = Soundstage({
-
-			// Version
-			//
-			// If version is missing, data is assumed to be in the latest format
-			"version": 0,
-
-			// Name
-			//
-			// A string, not required
-			"name": "Test",
-
-			// Audio Objects
-			//
-			// {
-			//   "id":     number
-			//   "type":   string
-			//   "name":   string
-			//   "slug":   slug
-			//   ...
-			// }
-
-			"objects": [{
-				"id":          1,
-				"type":        "/audio-object/modules/ao-sampler.js",
-				"name":        "Piano",
-				"sample-map":  "MIS Piano",
-				"filter-type": "off",
-				"recording":   true
-			}, {
-				"id":          2,
-				"type":        "/soundstage/modules/ao-output.js",
-				"name":        "Out 1-2",
-				"channels":    [0, 1]
-			}, {
-				"id":          3,
-				"type":        "/audio-object/modules/ao-input.js",
-				"name":        "In 1-2"
-			}],
-
-			// Conections
-			//
-			// {
-			//   "src":     id
-			//   "dst":     id
-			//   "srcName": string
-			//   "dstName": string
-			// }
-
-			"connections": [
-			//	{ "src": 3, "dst": 2 },
-				{ "src": 1, "dst": 2 },
-			],
-
-			// Metronome
-			//
-			// {
-			//   "tick":    number - Note number
-			//   "tock":    number - Note number
-			// }
-
-			"metronome": {
-				"tick": 72,
-				"tock": 64
-			},
-
-			// MIDI
-			//
-			// {
-			//   "select":    [message]
-			//   "transform": [...]
-			//   "output":    id || selector
-			// }
-
-			"midi": [
-				{ "select": [1, "note"], "transform": [], "target": 1 }
-			],
-
-			// Sequence
-			//
-			// {
-			//   "id":     number
-			//   "name:    string
-			//   "slug":   slug
-			//   "events": array or functor
-			// }
-
-			"sequences": [{
-				"id": 0,
-				"name": "steps",
-				"events": [
-					[0,  "note", 40, 1, 1],
-				]
-			}, {
-				"id": 1,
-				"name": "steps",
-				"events": [
-					[0,  "rate", 2],
-					[0,  "note", 10, 1, 1],
-					[1,  "note", 20, 1, 1],
-					[2,  "note", 30, 1, 1],
-					[3,  "note", 40, 1, 1],
-					[4,  "note", 50, 1, 1],
-					[5,  "note", 60, 1, 1],
-					[6,  "note", 70, 1, 1],
-					[7,  "note", 80, 1, 1],
-					[8,  "note", 90, 1, 1],
-					[9,  "note", 100, 1, 1],
-					[10, "note", 110, 1, 1]
-				]
-			}, {
-				"id":   2,
-				"name": "London 1",
-				"events": [
-					[0,   "note", 64, 0.4, 0.5],
-					[0.5, "note", 64, 0.4, 0.5],
-					[1,   "note", 69, 0.6, 1],
-					[2,   "note", 69, 0.5, 1],
-					[3,   "sequence", 2, 1, 100],
-				]
-			}, {
-				"id":   3,
-				"name": "London 2",
-				"events": [
-					[0,   "note", 71, 0.5, 0.5],
-					[0.5, "note", 71, 0.5, 0.5],
-					[1,   "note", 73, 0.7, 1],
-					[2,   "note", 73, 0.6, 1],
-					[3,   "sequence", 3, 1, 100],
-				]
-			}, {
-				"id":   4,
-				"name": "London 3",
-				"events": [
-					[0,   "note", 76, 0.7, 1],
-					[1,   "note", 76, 0.7, 2],
-					[3,   "sequence", 4, 1, 100],
-				]
-			}, {
-				"id":   5,
-				"name": "London 4",
-				"events": [
-					[0,   "note", 76, 0.7, 0.5],
-					[0.5, "note", 74, 0.65, 0.5],
-					[1,   "note", 73, 0.6, 1],
-					[2,   "note", 73, 0.6, 1],
-					[3,   "note", 73, 0.65, 0.5],
-					[3.5, "note", 71, 0.55, 0.5],
-					[4,   "note", 69, 0.5, 1],
-					[5,   "note", 69, 0.5, 1],
-					[6,   "sequence", 5, 1, 100],
-				]
-			}],
-
-			// Event types
-			//
-			// [time, "rate", number, curve]
-			// [time, "note", number, velocity, duration]
-			// [time, "noteon", number, velocity]
-			// [time, "noteoff", number]
-			// [time, "param", name, value, curve]
-			// [time, "pitch", semitones]
-			// [time, "chord", root, mode, duration]
-			// [time, "sequence", selector || events, target, duration, transforms...]
-
-			"events": [
-				[0, "meter", 3, 1],
-				[0, "rate", 3],
-				[0,  "sequence", 0, 1, 100],
-				[2,  "sequence", 2, 1, 100],
-				[8,  "sequence", 3, 1, 100],
-				[14, "sequence", 4, 1, 100],
-				[20, "sequence", 5, 1, 100],
-			]
-		});
-
-
-		// Start
-
-		events('keydown', document)
-		.each(overload(toKey, {
-			'0': function(e) {
-				stage.beat = 0;
-			},
-
-			'space': function(e) {
-				var toggle = stage.status === "waiting" ? 'start' : 'stop';
-				stage[toggle]();
-			}
-		}));
-
-		events('click', query('#play-button', document)[0])
-		.each(function() {
-			var toggle = stage.status === "waiting" ? 'start' : 'stop';
-			stage[toggle]();
-		});
-
-
-		// Tempo input
-
-		var getTarget   = get('target');
-		var isRate      = compose(is('rate'), get('1'));
-		var tempoInput  = query('#tempo-input', document)[0];
-		var tempoOutput = query('#tempo-output', document)[0];
-
-		events('input', tempoInput)
-		.map(getTarget)
-		.each(function(node) {
-			var rate
-				= stage.events.filter(isRate)[0][2]
-				= parseInt(node.value, 10) / 60 ;
-
-			tempoOutput.innerHTML = parseInt(node.value, 10).toFixed(1);
-		});
-
-
-		// Meter input
-
-		var getValue    = get('value');
-		var isMeter     = compose(is('meter'), get('1'));
-		var meterSelect = query('#meter-select', document)[0];
-
-		events('input', meterSelect)
-		.map(getTarget)
-		.map(getValue)
-		.map(choose({
-			'2/4': function() {
-				var meter = stage.events.filter(isMeter)[0];
-				meter[2] = 2;
-				meter[3] = 1;
-				return meter;
-			},
-
-			'3/4': function() {
-				var meter = stage.events.filter(isMeter)[0];
-				meter[2] = 3;
-				meter[3] = 1;
-				return meter;
-			},
-
-			'4/4': function() {
-				var meter = stage.events.filter(isMeter)[0];
-				meter[2] = 4;
-				meter[3] = 1;
-				return meter;
-			},
-
-			'5/4': function() {
-				var meter = stage.events.filter(isMeter)[0];
-				meter[2] = 5;
-				meter[3] = 1;
-				return meter;
-			},
-
-			'6/4': function() {
-				var meter = stage.events.filter(isMeter)[0];
-				meter[2] = 6;
-				meter[3] = 1;
-				return meter;
-			},
-
-			'7/4': function() {
-				var meter = stage.events.filter(isMeter)[0];
-				meter[2] = 7;
-				meter[3] = 1;
-				return meter;
-			},
-
-			'6/8': function() {
-				var meter = stage.events.filter(isMeter)[0];
-				meter[2] = 3;
-				meter[3] = 0.5;
-				return meter;
-			}
-		}))
-		.each(function() {
-			stage.resetMeter(stage.events);
-		});
-
-
-		// Expose for debugging
-
-		var audio = stage.audio;
-
-	</script-->
-
-	<script remove-template type="module" src="../fn/docs-build.js"></script>
 
     <!-- Document interactivity -->
+    <script type="module" src="./components/midi-graph/midi-graph.js"></script>
+    <script type="module" src="./components/midi-monitor/midi-monitor.js"></script>
     <script type="module">
     import '../dom/js/dom.root.js';
     import '../dom/js/dom.toggleable.js';
+    import * as MIDI from './module.js';
+    window.MIDI = MIDI;
+
+    import { classes, get } from '../dom/module.js';
+
+    MIDI
+    .request()
+    .catch(function() {
+        get('support-hint').innerHTML = 'This browser does not support MIDI.';
+    });
+
+    setTimeout(function() {
+        var cls = classes(get('instrument-hint'));
+        cls.add('active');
+
+        MIDI.on([], function removeHint(e) {
+            // Test events have no port, and we want to ignore them
+            if (!e.target || !e.target.onmidimessage) { return; }
+
+            MIDI.off([], removeHint);
+            cls.remove('active');
+        });
+    }, 2000);
     </script>
 
     <!-- Tests -->
     <script type="module">
-
-    import './test/timestamp.test.js';
-
-//    import './test/transport.test.js';
-//    import './test/location.test.js';
-//    import './test/meter.test.js';
-//    import './test/timer.test.js';
-//    import './test/controls.test.js';
-
-//    import './test/audio-param.test.js';
-//    import './nodes/node-graph.test.js';
-//    import './nodes/tick.test.js';
-//    import './nodes/signal.test.js';
-//    import './nodes/recorder.test.js';
-//    import './nodes/envelope.test.js';
-//    import './test/sample.test.js';
-//    import './test/sample-voice.test.js';
-//    import './test/sampler.test.js';
-//    import './nodes/tone.test.js';
-//    import './nodes/tone-voice.test.js';
-//    import './nodes/tone-synth.test.js';
-//    import './test/flanger.test.js';
-//    import './test/sequencer.test.js';
-//    import './test/looper.test.js';
-
-//    import './test/soundstage.test.js';
-//    import './test/soundstage-transport.test.js';
-//    import './test/soundstage-metronome.test.js';
-
-    import * as Fn from '../fn/module.js';
-    window.Fn = Fn;
-
-    import { Stream } from '../fn/module.js';
-    window.Stream = Stream;
-
-    import Timer from './modules/timer.js';
-    window.Timer = Timer;
-
-    import Soundstage from './module.js';
-    window.Soundstage = Soundstage;
-
-    import { frequencyToFloat, floatToFrequency, toNoteNumber, numberToNote } from '../midi/module.js';
-    window.frequencyToFloat = frequencyToFloat;
-    window.floatToFrequency = floatToFrequency;
-    window.toNoteNumber = toNoteNumber;
-    window.numberToNote = numberToNote;
-
-    //import context from './modules/context.js';
-    //window.context = context;
+    import './test/maths.js';
+    import './test/data.js';
+    import './test/messages.js';
+    import './test/events.js';
+    import './test/midi.js';
     </script>
-</body>
+
+</body></html>
