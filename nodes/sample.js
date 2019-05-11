@@ -98,7 +98,7 @@ export default class Sample extends GainNode {
             //throw new Error('Sample has no buffer');
         }
 
-        if (!frequency) {
+        if (!frequency || frequency === 440) {
             sourceOptions.detune = 0;
         }
         else {
@@ -126,7 +126,7 @@ export default class Sample extends GainNode {
 
         source.connect(this);
 
-        let startTime = this.startTime;
+        const startTime = this.startTime;
 
         // Why? Why?
         // if (this.loopStart < 0) {

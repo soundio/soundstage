@@ -5,6 +5,7 @@ Sets up an object to be playable. Provides the properties:
 
 - `.startTime`
 - `.stopTime`
+- `.playing`
 
 And the methods:
 
@@ -24,7 +25,17 @@ const define = Object.defineProperties;
 
 const properties = {
     startTime: { writable: true },
-    stopTime:  { writable: true }
+    stopTime:  { writable: true },
+    playing: {
+        get: function() {
+            return this.startTime !== undefined
+            && (this.startTime <= this.context.currentTime)
+            && (this.stopTime === undefined
+                || this.startTime > this.stopTime
+                || this.context.currentTime < this.stopTime
+            );
+        }
+    }
 };
 
 export default function PlayNode() {

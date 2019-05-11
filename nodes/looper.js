@@ -1,6 +1,7 @@
 import { print, logGroup, logGroupEnd } from './print.js';
 import { Privates } from '../../fn/module.js';
 import NodeGraph from './node-graph.js';
+import PlayNode from './play-node.js';
 import Recorder from './recorder.js';
 import Sample from './sample.js';
 import { assignSettings } from '../modules/assign-settings.js';
@@ -56,6 +57,9 @@ export default class Looper extends GainNode {
         const privates = Privates(this);
         privates.transport = transport;
 
+        // Set up .start() and .stop()
+        PlayNode.call(this, context, graph);
+
         // Set up the graph
         NodeGraph.call(this, context, graph);
 
@@ -79,30 +83,20 @@ export default class Looper extends GainNode {
 }
 
 // Mix AudioObject prototype into MyObject prototype
-assign(Looper.prototype, NodeGraph.prototype, {
-    reset: function() {
-        this.startTime = undefined;
-        this.stopTime  = undefined;
-    },
-
+assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {
     start: function(time) {
-        if (DEBUG && this.startTime !== undefined) {
-            throw new Error('Attempt to start a node that is already started');
+        if (this.settings.syncToTempo) {
+            // Todo: get time of nearest beat
         }
 
-        this.startTime = time || this.context.currentTime;
+        PlayNode.prototype.start.apply(this, arguments);
+        this.sources.forEach((source) => source.start(this.startTime));
         return this;
     },
 
     stop: function(time) {
-        if (DEBUG && this.startTime === undefined) {
-            throw new Error('Attempt to stop a node that has not been started');
-        }
-
-        time = time || this.context.currentTime;
-
-        // Clamp stopTime to startTime
-        this.stopTime = time > this.startTime ? time : this.startTime ;
+        PlayNode.prototype.stop.apply(this, arguments);
+        this.sources.forEach((source) => source.stop(this.stopTime));
         return this;
     },
 

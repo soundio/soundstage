@@ -554,32 +554,6 @@ range-control + .toggle-block.active {
     right: 0;
 }
 
-.buttons-block {
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: stretch;
-    z-index: 2;
-}
-
-.buttons-block > .button {
-    flex: 1 0 auto;
-    margin: 0;
-    color: black;
-    background-color: #b0890a
-}
-
-.buttons-block > .button + .button {
-    margin-left: 1px;
-}
-
-* + .buttons-block {
-    margin-top: 15px;
-}
-
-template + .buttons-block {
-    margin-top: -14px;
-}
 
 
 .bottom-button {
