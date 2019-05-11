@@ -59,26 +59,24 @@ function createOutputMerger(context, target) {
     return merger;
 }
 
-function rewriteURL(base, url) {
+function rewriteURL(baseURL, url) {
     // Rewrite relative URLs to be absolute
-    return /^https?:\/\/|^\//.test(url) ? url : base + '/' + url ;
+    return /^https?:\/\/|^\//.test(url) ? url : baseURL + '/' + url ;
 }
 
-function requestAudioNode(base, context, settings, transport) {
+function requestAudioNode(type, context, settings, transport, baseURL) {
     return (
-        constructors[settings.type] ?
-            Promise.resolve(constructors[settings.type]) :
+        constructors[type] ?
+            Promise.resolve(constructors[type]) :
             // settings.type is a URL
-            requestPlugin(rewriteURL(base, settings.type))
+            requestPlugin(rewriteURL(baseURL, type))
     )
     .then(function(Node) {
         // If the constructor has a preload fn, it has special things
         // to prepare (such as loading AudioWorklets) before it can
         // be used.
-        // Todo: Need some way of passing base url from soundstage settings
-        // (not these node settings) into preload fn, I fear
         return Node.preload ?
-            Node.preload(base, context).then(() => {
+            Node.preload(baseURL, context).then(() => {
                 print('Node', Node.name, 'preloaded');
                 return Node;
             }) :
@@ -86,7 +84,7 @@ function requestAudioNode(base, context, settings, transport) {
     })
     .then(function(Node) {
         // Create the audio node
-        return new Node(context, settings.data, transport);
+        return new Node(context, settings, transport);
     });
 }
 
@@ -113,7 +111,7 @@ export default function Soundstage(data = nothing, settings = nothing) {
 
     if (DEBUG) { printGroup('Soundstage()'); }
 
-    const base        = settings.baseURL || '/soundstage';
+    const baseURL     = settings.baseURL || '/soundstage';
     const context     = settings.context || audio;
     const destination = settings.destination || context.destination;
     const notify      = settings.notify || noop;
@@ -138,7 +136,7 @@ export default function Soundstage(data = nothing, settings = nothing) {
 
     // Properties
 
-    this.label = data.label;
+    this.label = data.label || '';
 
     define(this, {
         mediaChannelCount: { value: undefined, writable: true, configurable: true },
@@ -163,22 +161,22 @@ export default function Soundstage(data = nothing, settings = nothing) {
     // connections: array
 
     const requestTypes = {
-        input: function(context, data) {
+        input: function(type, context, data) {
             return requestInputSplitter(context).then(function(input) {
-                return new Input(context, data.data, input);
+                return new Input(context, data, input);
             });
         },
 
-        metronome: function(context, data) {
-            return Promise.resolve(new Metronome(context, data.data, transport));
+        metronome: function(type, context, data) {
+            return Promise.resolve(new Metronome(context, data, transport));
         },
 
-        output: function(context, data) {
-            return Promise.resolve(new Output(context, data.data, output));
+        output: function(type, context, data) {
+            return Promise.resolve(new Output(context, data, output));
         },
 
-        default: function(context, data, transport) {
-            return requestAudioNode(base, context, data, transport);
+        default: function(type, context, data, transport) {
+            return requestAudioNode(type, context, data, transport, baseURL);
         }
     };
 

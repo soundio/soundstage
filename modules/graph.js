@@ -33,7 +33,7 @@ Create a new node of `type`.
 Return the plugin with `id`, or undefined.
 */
 
-import { has, get, nothing }  from '../../fn/module.js';
+import { has, get, nothing, Privates }  from '../../fn/module.js';
 import { print }  from './utilities/print.js';
 import { generateUnique }  from './utilities/utilities.js';
 import Node       from './node.js';
@@ -47,10 +47,14 @@ function addConnection(graph, setting) {
 	return graph;
 }
 
-export default function Graph(context, requests, data, api) {
+export default function Graph(context, requests, data, transport) {
 	const graph       = this;
+	const privates    = Privates(this);
     const nodes       = [];
     const connections = [];
+
+	privates.requests = requests;
+	privates.transport = transport;
 
 	define(this, {
 		nodes:       { enumerable: true, value: nodes },
@@ -60,10 +64,10 @@ export default function Graph(context, requests, data, api) {
     // Load nodes
 	const promise = Promise.all(
         data.nodes ?
-            data.nodes.map(function(data) {
-                return (requests[data.type] || requests.default)(context, data, api)
+            data.nodes.map(function(settings) {
+                return (requests[settings.type] || requests.default)(settings.type, context, settings.data, transport)
                 .then(function(module) {
-                    nodes.push(new Node(graph, data.type, data.id, module));
+                    nodes.push(new Node(graph, settings.type, settings.id, module));
                 });
             }) :
             nothing
@@ -91,11 +95,21 @@ assign(Graph.prototype, {
 		return this.nodes.find(has('data', data)).id;
 	},
 
-	create: function(type, settings) {
-		const plugin = {};
+	create: function(type, data) {
+		const graph     = this;
+		const privates  = Privates(this);
+		const requests  = privates.requests;
+		const transport = privates.transport;
+		const notify    = privates.notify;
 		const id = generateUnique('id', this.nodes.map(get('id')));
-		this.nodes.push(new Node(this, type, id, plugin));
-		return plugin;
+
+		return (requests[type] || requests.default)(type, graph.context, data, transport)
+		.then((module) => {
+			const node = new Node(graph, type, id, module);
+			graph.nodes.push(node);
+			notify(graph.nodes, '.');
+			return module;
+		});
 	},
 
 	Connection: function(source, target, output, input) {
