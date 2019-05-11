@@ -67,21 +67,29 @@
     <section class="1-grid grid">
         <header class="grid-0">
             <h2 class="text-2" style="font-size: 1.875rem;">Quick start</h2>
-            <pre><code class="language-js">// Import MIDI functions as object
-import * as MIDI from 'http://stephen.band/midi/midi.js';
+            <pre><code class="language-js">// Import Soundstage
+import Soundstage from 'http://soundstage.sound.io/module.js';
 
-// Listen to incoming 'noteon' and 'noteoff' messages on channel 1
-MIDI.on({channel: 1, type: 'note'}, (e) => {
-    // Time, port and message are properties of the DOM event
-    const time    = e.timeStamp;
-    const port    = e.target;
-    const message = e.data;
+const stage = new Soundstage({
 
-    // Get the note name
-    const name = MIDI.toNoteName(message[1]);
+    // Create a stage with an input -> looper -> output graph
+    nodes: [
+        { id: '1', type: 'input' },
+        { id: '2', type: 'looper' },
+        { id: '3', type: 'output' }
+    ],
 
-    // Normalise velocity to the range 0-1
-    const velocity = MIDI.int7ToFloat(message[2]);
+    connections: [
+        { source: '1', target: '2' },
+        { source: '2', target: '3' }
+    ],
+
+    // Control loop record with the space bar
+    controls: [{
+        source: { type: 'keyboard', data: 'space' },
+        type: 'record',
+        target: '2'
+    }]
 });
 </code></pre>
 
@@ -113,6 +121,49 @@ import Soundstage from 'http://stephen.band/soundstage/soundstage.js';</code></p
             <h3 class="text-4">Methods</h3>
             <template build-fn="docs:'./modules/graph.js?create,get','./modules/sequencer.js','./modules/location.js','./modules/meter.js','./modules/soundstage.js?timeAtDomTime'" build-include="#functions"></template>
         </section>
+    </section>
+
+    <section class="1-grid grid">
+        <header class="grid-0">
+            <h2 class="text-2" style="font-size: 1.875rem;">How to publish a Soundstage node</h2>
+            <p>A Soundstage node is a WebAudio node.
+            All the standard WebAudio nodes are available in Soundstage as built-ins,
+            as are a number of nodes such as `input`, `output`, `envelope`. Then there
+            are nodes to import from `nodes/looper.js`, `nodes/tone-synth.js`,
+            `nodes/sampler.js`.</p>
+
+            <p>You too can publish a node and import it into a stage. Here's how.</p>
+            <pre><code class="language-js">//         
+export default class Sample extends GainNode {
+    constructor(context, options) {
+        // Initialise as gain node
+        super(context, gainOptions);
+
+        // Define .startTime and .stopTime
+        PlayNode.call(this);
+
+        // Define sample properties
+        define(this, properties);
+
+        const privates = Privates(this);
+
+        this.reset(context, options);
+
+        if (!this.buffer && typeof this.path === 'string') {
+            privates.request = requestBuffer(context, this.path)
+            .then((buffer) => {
+                this.buffer = buffer;
+                privates.source && (privates.source.buffer = buffer);
+            })
+            .catch((e) => { console.warn(e); });
+        }
+        // Todo: implement buffer playing
+        //else {}
+    }
+}
+
+</code></pre>
+        </header>
     </section>
 
     <script build-remove type="module" src="../fn/docs-build.js"></script>
