@@ -39,7 +39,7 @@ body {
 }
 
 .nodes-block > .node-block + .node-block {
-    margin-left: 18px;
+    margin-left: 30px;
 }
 
 .bar-block {
@@ -629,6 +629,11 @@ input:checked + .radio-button .icon-stroke {
     justify-content: stretch;
     align-items: center;
     flex-direction: row;
+
+    border: 0.125rem solid #02161e;
+    border-radius: 0.3125rem;
+    margin-left: -0.125rem;
+    margin-right: -0.125rem;
 }
 
 .radios-block > .button {

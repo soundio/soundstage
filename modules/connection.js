@@ -48,10 +48,13 @@ export default function Connection(graph, sourceId, targetId, sourceChan, target
 
 assign(Connection.prototype, {
     remove: function() {
-        // Connect them up
+        // Disconnect them
         if (disconnect(this.source, this.targetParam || this.target, this.data && this.data[0], this.data && this.data[1])) {
             remove(this.graph.connections, this);
-            Privates(this.graph).notify(this.graph.connections, '.');
+
+            // Notify observers
+            const privates = Privates(this.graph);
+            privates.notify(this.graph.connections, '');
         }
 
         return this;

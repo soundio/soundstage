@@ -1,5 +1,5 @@
 
-import { Privates } from '../../fn/module.js';
+import { Privates, remove } from '../../fn/module.js';
 import { automate, isAudioParam } from './automate.js';
 //import Sequence from './sequence.js';
 
@@ -58,5 +58,28 @@ assign(Node.prototype, {
             record.nodeId = this.id;
             return record;
         });
+    },
+
+    remove: function() {
+        // Remove connections that source or target this
+        this.graph.connections && this.graph.connections
+        .filter((connection) => connection.source === this.data || connection.target === this.data)
+        .forEach((connection) => { connection.remove(); });
+
+        // Remove controls that target this
+        this.graph.controls && this.graph.controls
+        .filter((control) => control.target === this.data)
+        .forEach((control) => control.remove());
+
+        // Todo: remove sequences that target this
+
+        // Remove from nodes
+        remove(this.graph.nodes, this);
+
+        // Notify observers
+        const privates = Privates(this.graph);
+        privates.notify(this.graph.nodes, '');
+
+        return this;
     }
 });

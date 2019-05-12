@@ -185,7 +185,6 @@ export default class Sample extends GainNode {
     }
 
     save() {
-console.log('HELLO')
         // If sample already has a path it is already saved
         if (this.path) { return; }
         return [{
