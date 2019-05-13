@@ -22,6 +22,7 @@ body {
     grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
     overflow: auto;
     flex-wrap: wrap;
+    align-items: start;
     justify-content: stretch;
 }
 
