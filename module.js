@@ -15,3 +15,4 @@ export default Soundstage;
 export { timeAtDomTime, domTimeAtTime, getOutputTime, getContextTime } from './modules/context.js';
 export { transforms, parseValue } from './modules/transforms.js';
 export { automate, isAudioParam, getValueAtTime } from './modules/automate.js';
+export * from './modules/encode.js';
