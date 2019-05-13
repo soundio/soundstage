@@ -59,6 +59,10 @@ body {
     margin-left: 0;
 }
 
+.bar-block > .buttons-block {
+    margin-top: 0;
+}
+
 .bar-block > .buttons-block + .buttons-block {
     margin-left: auto;
 }
