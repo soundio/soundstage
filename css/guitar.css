@@ -45,9 +45,16 @@ body {
 
 .bar-block {
     display: flex;
+    justify-items: space-between;
     margin: 0;
-    background-color: #2c3a3e;
+    background-color: #252A2C;
 }
+
+.bar-block > .logo-thumb {
+    margin-left: 0;
+}
+
+
 
 .sources-block {
     display: flex;
