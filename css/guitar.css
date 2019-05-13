@@ -52,6 +52,19 @@ body {
 
 .bar-block > .logo-thumb {
     margin-left: 0;
+    margin-right: 30px;
+}
+
+.bar-block > .logo-thumb + .buttons-block {
+    margin-left: 0;
+}
+
+.bar-block > .buttons-block + .buttons-block {
+    margin-left: auto;
+}
+
+.bar-block > .buttons-block:last-child {
+    margin-right: 0;
 }
 
 
