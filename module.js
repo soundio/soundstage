@@ -16,3 +16,4 @@ export { timeAtDomTime, domTimeAtTime, getOutputTime, getContextTime } from './m
 export { transforms, parseValue } from './modules/transforms.js';
 export { automate, isAudioParam, getValueAtTime } from './modules/automate.js';
 export * from './modules/encode.js';
+export { requestBuffer } from './modules/request-buffer.js';

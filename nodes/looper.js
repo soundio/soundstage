@@ -73,10 +73,14 @@ export default class Looper extends GainNode {
 
         this.dry = this.get('dry').gain;
         this.wet = this.get('wet').gain;
-        this.sources = [];
 
         // Update settings
         assignSettings(this, defaults, settings);
+
+        // Turn sources into sample nodes
+        this.sources = this.sources ?
+            this.sources.map((data) =>  new Sample(this.context, data)) :
+            [] ;
 
         if (DEBUG) { logGroupEnd(); }
     }
@@ -89,7 +93,26 @@ assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {
             // Todo: get time of nearest beat
         }
 
+        const privates  = Privates(this);
+        const transport = privates.transport;
+
         PlayNode.prototype.start.apply(this, arguments);
+
+        // Is transport running?
+        if (transport.startTime === undefined || time < transport.startTime || time >= transport.stopTime) {
+            // Get record time difference accurate to the nearest sample
+            privates.duration = this.sources[0].loopEnd - this.sources[0].loopStart;
+
+            // param, time, curve, value, duration
+            // Todo: expose a better way of adjusting rate
+            // automate(param, time, curve, value, duration, notify, context)
+            console.log(this.startTime, 'step', this.beats, privates.duration);
+            automate(Privates(transport).rateParam, this.startTime, 'step', this.beats / privates.duration);
+
+            // Start transport where it is not already running
+            transport.start(this.startTime);
+        }
+
         this.sources.forEach((source) => source.start(this.startTime));
         return this;
     },

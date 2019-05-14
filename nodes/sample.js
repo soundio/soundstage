@@ -1,6 +1,6 @@
 
 import PlayNode from './play-node.js';
-import { requestBuffer } from '../modules/utilities/requests.js';
+import { requestBuffer } from '../modules/request-buffer.js';
 import { Privates } from '../../fn/module.js';
 import { frequencyToFloat } from '../../midi/module.js';
 import { assignSettings } from '../modules/assign-settings.js';
@@ -91,12 +91,15 @@ export default class Sample extends GainNode {
     start(time, frequency = defaults.nominalFrequency, gain = 1) {
         const privates = Privates(this);
 
+        if (!this.buffer) {
+            // Delay start if no buffer yet
+            requestBuffer(this.context, this.path)
+            .then((buffer) => this.start(time, frequency, gain));
+            return this;
+        }
+
         // Update .startTime
         PlayNode.prototype.start.apply(this, arguments);
-
-        if (!this.buffer) {
-            //throw new Error('Sample has no buffer');
-        }
 
         if (!frequency || frequency === 440) {
             sourceOptions.detune = 0;
