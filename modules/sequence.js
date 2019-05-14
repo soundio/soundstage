@@ -25,8 +25,8 @@ export default function Sequence(transport, data) {
 	Privates(this).transport = transport;
 
 	// Properties
-	this.events    = data && data.events;
-	this.sequences = data && data.sequences;
+	this.events    = data && data.events || [];
+	this.sequences = data && data.sequences || [];
 }
 
 assign(Sequence.prototype, Clock.prototype, {

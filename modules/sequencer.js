@@ -29,12 +29,11 @@ Returns the beat at a given `time`.
 Returns the time at a given `beat`.
 */
 
-import { each, get, id, insert, isDefined, Pool, toArray, by, noop, nothing, matches } from '../../fn/module.js';
-import { Privates } from '../../fn/module.js';
-import { createId } from './utilities/utilities.js';
-import { isRateEvent, isMeterEvent, getDuration, getBeat, isValidEvent, eventValidationHint } from './event.js';
+import { matches, Privates, Stream } from '../../fn/module.js';
+import { isRateEvent, getDuration, getBeat, isValidEvent, eventValidationHint } from './event.js';
 import { automate, getValueAtTime } from './automate.js';
 import Sequence from './sequence.js';
+import PlayNode from '../nodes/play-node.js';
 import { timeAtBeatOfEvents } from './location.js';
 import Meter from './meter.js';
 import { distribute } from './distribute.js';
@@ -340,11 +339,15 @@ function automateRate(privates, event) {
 
 export default function Sequencer(transport, data, rateParam, timer, notify) {
 
-	// The base Clock provides the properties:
+	// PlayNode provides the properties:
 	//
-	// startTime:      number || undefined
-	// stopTime:       number || undefined
-	//
+	// startTime:  number || undefined
+	// stopTime:   number || undefined
+	// playing:    boolean
+
+	PlayNode.call(this);
+
+
 	// Sequence assigns the proerties:
 	//
 	// events:         array
@@ -468,7 +471,7 @@ assign(Sequencer.prototype, Sequence.prototype, Meter.prototype, {
 		// Set rates
 		const rates = this.events ?
 			this.events.filter(isRateEvent).sort(byBeat) :
-			nothing ;
+			[] ;
 
 		seedRateEvent.time = time;
 		seedRateEvent[2]   = getValueAtTime(rateParam, time);
