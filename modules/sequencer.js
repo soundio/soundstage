@@ -375,6 +375,12 @@ export default function Sequencer(transport, data, rateParam, timer, notify) {
 	privates.beat      = 0;
 	privates.notify    = notify;
 	privates.context   = this.context;
+
+	define(this, {
+		rate: {
+			value: rateParam
+		}
+	});
 }
 
 define(Sequencer.prototype, {
@@ -429,7 +435,13 @@ define(Sequencer.prototype, {
 		}
 	},
 
-	playing: getOwnPropertyDescriptor(PlayNode.prototype, 'playing'),
+	bar: {
+		get: function() {
+			return this.barAtBeat(this.beat);
+		}
+	},
+
+	playing: getOwnPropertyDescriptor(PlayNode.prototype, 'playing')
 });
 
 assign(Sequencer.prototype, Sequence.prototype, Meter.prototype, {

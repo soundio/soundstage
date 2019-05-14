@@ -83,6 +83,11 @@ export default class Looper extends GainNode {
             this.sources.map((data) =>  new Sample(this.context, data)) :
             [] ;
 
+        // Set the base duration when we have our first sample
+        if (this.sources[0]) {
+            privates.duration = this.sources[0].loopEnd - this.sources[0].loopStart;
+        }
+
         if (DEBUG) { logGroupEnd(); }
     }
 }
@@ -149,6 +154,7 @@ assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {
 
             // createBuffer(channelsCount, sampleCount, sampleRate)
             // https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/createBuffer
+console.log(recordDuration, privates.duration, duration);
             const audio = recorder.context.createBuffer(
                 buffers.length,
                 duration * this.context.sampleRate * buffers.length,
