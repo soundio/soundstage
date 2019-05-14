@@ -2,6 +2,9 @@
 import { noop, nothing, Privates } from '../../fn/module.js';
 import PlayNode from './play-node.js';
 
+const define = Object.defineProperties;
+const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
+
 function resolve(privates, buffers) {
     privates.resolve(buffers);
     privates.promise = undefined;
@@ -19,10 +22,8 @@ export default class Recorder extends AudioWorkletNode {
 
         this.port.onmessage = (e) => {
             if (e.data.type === 'done') {
-console.log('Data', e.data);
                 this.buffers = e.data.buffers;
                 notify(this, 'buffers');
-
                 if (privates.promise) {
                     resolve(privates, e.data.buffers);
                 }
@@ -68,6 +69,11 @@ console.log('Data', e.data);
         return privates.promise.then(fn);
     }
 }
+
+// Mix in property definitions
+define(Recorder.prototype, {
+    playing: getOwnPropertyDescriptor(PlayNode.prototype, 'playing')
+});
 
 Recorder.preload = function(base, context) {
     return context

@@ -11,6 +11,7 @@ import { floatToFrequency, frequencyToFloat } from '../../midi/module.js';
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
+const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
 const graph = {
     nodes: [
@@ -132,6 +133,11 @@ export default function SampleVoice(context, settings) {
 
     this.reset(context, settings);
 }
+
+// Mix in property definitions
+define(SampleVoice.prototype, {
+    playing: getOwnPropertyDescriptor(PlayNode.prototype, 'playing')
+});
 
 assign(SampleVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 	reset: function(context, settings) {

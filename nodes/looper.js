@@ -12,6 +12,7 @@ const DEBUG  = window.DEBUG;
 
 const assign = Object.assign;
 const define = Object.defineProperties;
+const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
 // Declare the node graph
 const graph = {
@@ -85,6 +86,11 @@ export default class Looper extends GainNode {
         if (DEBUG) { logGroupEnd(); }
     }
 }
+
+// Mix in property definitions
+define(Looper.prototype, {
+    playing: getOwnPropertyDescriptor(PlayNode.prototype, 'playing')
+});
 
 // Mix AudioObject prototype into MyObject prototype
 assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {

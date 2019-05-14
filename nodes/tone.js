@@ -5,6 +5,7 @@ import { assignSettings } from '../modules/assign-settings.js';
 
 const assign = Object.assign;
 const define = Object.defineProperties;
+const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
 const graph = {
 	nodes: [
@@ -67,6 +68,10 @@ export default function Tone(context, options) {
     this.reset(context, options);
 }
 
+// Mix in property definitions
+define(Tone.prototype, {
+    playing: getOwnPropertyDescriptor(PlayNode.prototype, 'playing')
+});
 
 assign(Tone.prototype, NodeGraph.prototype, PlayNode.prototype, {
     reset: function(context, options) {

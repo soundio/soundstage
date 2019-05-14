@@ -5,6 +5,8 @@ import { automate, getAutomation } from '../modules/automate.js';
 
 const assign = Object.assign;
 const create = Object.create;
+const define = Object.defineProperties;
+const getDefinition = Object.getOwnPropertyDescriptor;
 
 // Time multiplier to wait before we accept target value has 'arrived'
 const decayFactor = 12;
@@ -45,9 +47,10 @@ const validateEvent = overload(get(1), {
 });
 
 function cueAutomation(param, events, time, gain, rate) {
+    var event;
     automate(param, time, 'hold');
 
-    for (let event of events) {
+    for (event of events) {
         validateEvent(event);
 
         // param, time, curve, value, decay
@@ -119,3 +122,7 @@ export default class Envelope extends ConstantSourceNode {
         return PlayNode.prototype.stop.apply(this, arguments);
     }
 }
+
+define(Envelope.prototype, {
+    playing: getDefinition(PlayNode.prototype, 'playing')
+});

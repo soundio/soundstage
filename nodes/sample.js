@@ -7,6 +7,7 @@ import { assignSettings } from '../modules/assign-settings.js';
 
 const DEBUG = true;
 const define = Object.defineProperties;
+const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
 const properties = {
     buffer:    { enumerable: false, writable: true },
@@ -182,7 +183,7 @@ export default class Sample extends GainNode {
             this.stopTime = this.startTime + (this.buffer.length / this.context.sampleRate);
         }
 
-        privates.source.stop(this.stopTime);
+        privates.source && privates.source.stop(this.stopTime);
 
         return this;
     }
@@ -203,3 +204,8 @@ export default class Sample extends GainNode {
         return this;
     }
 }
+
+// Mix in property definitions
+define(Sample.prototype, {
+    playing: getOwnPropertyDescriptor(PlayNode.prototype, 'playing')
+});

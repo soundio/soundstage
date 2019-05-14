@@ -7,6 +7,7 @@ import { assignSettings } from '../modules/assign-settings.js';
 
 const assign = Object.assign;
 const define = Object.defineProperties;
+const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
 const bufferDuration = 4;
 
@@ -143,6 +144,11 @@ export default function Noise(context, options) {
     source.start(context.currentTime);
     this.reset(context, options);
 }
+
+// Mix in property definitions
+define(Noise.prototype, {
+    playing: getOwnPropertyDescriptor(PlayNode.prototype, 'playing')
+});
 
 assign(Noise.prototype, NodeGraph.prototype, PlayNode.prototype, {
     reset: function(context, options) {

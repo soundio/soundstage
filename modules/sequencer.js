@@ -42,6 +42,7 @@ const DEBUG = window.DEBUG;
 
 const assign    = Object.assign;
 const define    = Object.defineProperties;
+const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
 const seedRateEvent  = { 0: 0, 1: 'rate' };
 const seedMeterEvent = { 0: 0, 1: 'meter', 2: 4, 3: 1 };
@@ -426,7 +427,9 @@ define(Sequencer.prototype, {
 				throw new Error('Beat cannot be moved while sequencer is running');
 			}
 		}
-	}
+	},
+
+	playing: getOwnPropertyDescriptor(PlayNode.prototype, 'playing'),
 });
 
 assign(Sequencer.prototype, Sequence.prototype, Meter.prototype, {
