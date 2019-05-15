@@ -30,10 +30,13 @@ const graph = {
 };
 
 export const defaults = {
-	sources: [
-		{ type: 'triangle', detune: -1200, mix: 1,   pan: -0.7 },
-	    { type: 'square',   detune: 0,     mix: 0.5, pan: 0.7 }
-	],
+	sources: [{
+		type: 'tone',
+		data: { type: 'triangle', detune: -1200, mix: 1,   pan: -0.7 }
+	}, {
+		type: 'tone',
+		data: { type: 'square',   detune: 0,     mix: 0.5, pan: 0.7 }
+	}],
 
 	type:      'lowpass',
 	frequency: 1,
