@@ -14,7 +14,7 @@ export default {
     // https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode/AudioBufferSourceNode
     'buffer-source': AudioBufferSourceNode,
     // https://developer.mozilla.org/en-US/docs/Web/API/BiquadFilterNode/BiquadFilterNode
-    'biquad-filter': BiquadFilterNode,
+    'filter': BiquadFilterNode,
     // https://developer.mozilla.org/en-US/docs/Web/API/ConstantSourceNode/ConstantSourceNode
     'constant': ConstantSourceNode,
     // https://developer.mozilla.org/en-US/docs/Web/API/ConvolverNode/ConvolverNode
