@@ -43,6 +43,7 @@ export default {
     'waveshaper': WaveShaperNode,
     // https://developer.mozilla.org/en-US/docs/Web/API/StereoPannerNode/StereoPannerNode
     'pan': StereoPannerNode,
+
     // ../nodes/mix.js
     'mix': Mix,
     // ../nodes/envelope.js

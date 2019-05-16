@@ -56,6 +56,10 @@ body {
     margin-left: 15px;
 }
 
+.bar-block > .logo-thumb + .title-block {
+    margin-left: 0;
+}
+
 .bar-block > .logo-thumb + .buttons-block {
     margin-left: 0;
 }
