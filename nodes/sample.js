@@ -80,9 +80,10 @@ export default class Sample extends GainNode {
 
         // Discard the old source node
         privates.source && privates.source.disconnect();
-        this.buffer = options.buffer;
-        privates.gain   = options.gain || defaults.gain;
-        this.release    = undefined;
+
+        this.buffer   = options.buffer;
+        privates.gain = options.gain || defaults.gain;
+        this.release  = undefined;
 
         this.gain.setValueAtTime(0, this.context.currentTime);
 
