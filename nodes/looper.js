@@ -177,9 +177,11 @@ console.log(recordDuration, privates.duration, duration);
                 release:   0.004
             });
 
-            const latencyCompensation =
-                -(this.settings.outputLatencyCompensation ? getOutputLatency(this.context) : 0)
-                - (this.settings.inputLatencyCompensation ? getInputLatency(this.context) : 0);
+            const latencyCompensation = -1 * (
+                this.settings.latencyCompensation ?
+                    getOutputLatency(this.context) + getInputLatency(this.context) :
+                    0
+            );
 
             print('Loop latency compensation', latencyCompensation.toFixed(3));
 
