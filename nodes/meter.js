@@ -1,63 +1,31 @@
-// <script src="vumeternode.js"></script>
-// <script>
-//   importAudioWorkletNode.then(function () {
-//     let context = new AudioContext();
-//     let oscillator = new Oscillator(context);
-//     let vuMeterNode = new VUMeterNode(context, { updatingInterval: 50 });
-// 
-//     oscillator.connect(vuMeterNode);
-// 
-//     function drawMeter () {
-//       vuMeterNode.draw();
-//       requestAnimationFrame(drawMeter);
-//     }
-// 
-//     drawMeter();
-//   });
-// </script>
 
-window.audioWorklet.addModule()
+const decay = 0.9;
 
+export default class Meter extends window.AudioWorkletNode {
+    constructor(context, settings) {
+        super(context, 'meter');
 
-class VUMeterNode extends AudioWorklet {
+        this.peaks = [];
 
-  constructor (context, options) {
-    // Setting default values for the input, the output and the channel count.
-    options.numberOfInputs = 1;
-    options.numberOfOutputs = 0;
-    options.channelCount = 1;
-    options.updatingInterval = options.hasOwnProperty('updatingInterval')
-      ? options.updatingInterval
-      : 100;
+        this.port.onmessage = (e) => {
+//            let p = e.data.peaks.length;
+//
+//            while (p--) {
+//                e.data.peaks[p] = this.peaks[p] * decay > e.data.peaks[p] ?
+//                    this.peaks[p] * decay :
+//                     e.data.peaks[p] ;
+//            }
 
-    super(context, 'VUMeter', options);
+            this.peaks = e.data.peaks;
+        };
 
-    // States in AudioWorkletNode
-    this._updatingInterval = options.updatingInterval;
-    this._volume = 0;
-
-    // Handles updated values from AudioWorkletProcessor
-    this.port.onmessage = event => {
-      if (event.data.volume)
-        this._volume = event.data.volume;
+        // It's ok, this doesn't emit anything
+        this.connect(context.destination);
     }
-    this.port.start();
-  }
-
-  get updatingInterval() {
-    return this._updatingInterval;
-  }
-
-  set updatingInterval (intervalValue) {
-    this._updatingInterval = intervalValue;
-    this.port.postMessage({ updatingInterval: intervalValue });
-  }
-
-  draw () {
-    /* Draw the meter based on the volume value. */
-  }
-
 }
 
-// The application can use the node when this promise resolves.
-let importAudioWorkletNode = window.audioWorklet.addModule('./meter.worklet.js');
+Meter.preload = function(base, context) {
+    return context
+    .audioWorklet
+    .addModule(base + '/nodes/meter.worklet.js');
+};

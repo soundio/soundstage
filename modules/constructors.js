@@ -3,6 +3,7 @@
 // or force node-graph to work with promises... I don't think so. Load em for
 // the moment.
 
+import Meter    from '../nodes/meter.js';
 import Mix      from '../nodes/mix.js';
 import Envelope from '../nodes/envelope.js';
 import Tick     from '../nodes/tick.js';
@@ -44,6 +45,8 @@ export default {
     // https://developer.mozilla.org/en-US/docs/Web/API/StereoPannerNode/StereoPannerNode
     'pan': StereoPannerNode,
 
+    // ../nodes/meter.js
+    'meter': Meter,
     // ../nodes/mix.js
     'mix': Mix,
     // ../nodes/envelope.js

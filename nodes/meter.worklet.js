@@ -1,56 +1,139 @@
-registerProcessor('VUMeter', class extends AudioWorkletProcessor {
+/*
+// Meter decay
+var decay = 0.96;
 
-  static meterSmoothingFactor = 0.9;
-  static meterMinimum = 0.00001;
+// Number of processing windows to hold clip state
+var hold = 20;
 
-  constructor (options) {
-    super(options);
-    this._volume = 0;
-    this._updatingInterval = options.updatingInterval;
-    this._nextUpdateFrames = this.interval;
+var cache = [];
 
-    this.port.onmessage = event => {
-      if (event.data.updatingInterval)
-        this._updatingInterval = event.data.updatingInterval;
+
+
+function initMeter(audio, scope) {
+	var node = audio.createScriptProcessor(512);
+
+	// Script nodes should be kept in memory to avoid Chrome bugs
+	cache.push(node);
+
+	node.onaudioprocess = function(e) {
+		process(node, scope, e.inputBuffer);
+	};
+
+	// Script nodes do nothing unless connected in Chrome due to a bug. This
+	// will have no effect, since we don't pass the input to the output.
+	node.connect(audio.destination);
+
+	node.channelCountMode = "explicit";
+	node.channelInterpretation = "discrete";
+
+	node.destroy = function(){
+		this.disconnect();
+		this.onaudioprocess = null;
+	};
+
+	return node;
+}
+
+function process(node, scope, inputBuffer) {
+	var n = node.channelCount;
+	var clip = scope.clip > 0 ? --scope.clip : 0 ;
+	var buffer, level;
+
+	while (n--) {
+		buffer = inputBuffer.getChannelData(n);
+		level = scope.peak ? updateLevelPeak(buffer, clip) : updateLevelRMS(buffer, clip);
+		scope.levels[n] = Math.max(level, scope.levels[n] * decay);
+		clip = clip || updateClip(buffer, clip);
+	}
+
+	scope.clip = clip;
+}
+
+function updateLevelRMS(buffer, clip) {
+	var length = buffer.length;
+	var sum = 0;
+	var x, i;
+
+	// RMS the samples
+	for (i = 0; i < length; i++) {
+		x = buffer[i];
+		sum += x * x;
+	}
+
+	return Math.sqrt(sum / length);
+}
+
+function updateLevelPeak(buffer, clip) {
+	return Math.max.apply(Math, buffer);
+}
+
+function updateClip(buffer, clip) {
+	var length = buffer.length;
+	var x0, x1, i;
+
+	for (i = 0; i < length; i++) {
+		if (!clip) {
+			x0 = buffer[i];
+			x1 = buffer[i - 1];
+
+			// In a 16 bit system, 1 - 1 / 65536 = 0.9999847, so reasonably
+			// >0.9999 is more or less within 1 step of peak value. It's not
+			// counted as peaking until two such values are detected in row.
+			if (x0 > 0.9999  && x1 > 0.9999 ||
+				x0 < -0.9999 && x1 < -0.9999) {
+				clip = hold;
+			}
+		}
+	}
+
+	return clip;
+}
+
+*/
+
+
+
+
+const messageInterval = 0.04;
+const output = {};
+
+function max(maxes, input, i) {
+	const m = Math.max.apply(Math, input.map(Math.abs));
+
+	if (maxes[i] === undefined || m > maxes[i]) {
+		maxes[i] = m;
+	}
+
+	return maxes;
+}
+
+class Meter extends AudioWorkletProcessor {
+    constructor() {
+        super();
+        this.lastTime = currentTime + messageInterval;
+        this.results  = { connectedChannelCount: 0 };
+		this.maxes = [];
     }
 
-    this.port.start();
-  }
+    process(inputs) {
+		// There is but one input
+		const input = inputs[0];
 
-  get interval () {
-    return this._updatingInterval / 1000 * this.contextInfo.sampleRate;
-  }
+		let chan = input.length;
+		while (chan--) {
+			max(this.maxes, input[chan], chan);
+		}
 
-  process (inputs, outputs, parameters) {
-    // Note that the input will be down-mixed to mono; however, if no inputs are
-    // connected then zero channels will be passed in.
-    if (inputs[0].length > 0) {
-      let buffer = inputs[0][0];
-      let bufferLength = buffer.length;
-      let sum = 0, x = 0, rms = 0;
+		// Throttle messages to wait every messageInterval seconds
+		if (currentTime > this.lastTime) {
+			output.peaks = this.maxes;
+			this.port.postMessage(output);
+			this.maxes.fill(0);
+			this.lastTime += messageInterval;
+		}
 
-      // Calculated the squared-sum.
-      for (let i = 0; i < bufferLength; ++i) {
-        x = buffer[i];
-        sum += x * x;
-      }
-
-      // Calculate the RMS level and update the volume.
-      rms = Math.sqrt(sum / bufferLength);
-      this.volume = Math.max(rms, this._volume * meterSmoothingFactor);
-
-      // Update and sync the volume property with the main thread.
-      this._nextUpdateFrame -= bufferLength;
-      if (this._nextUpdateFrame < 0) {
-        this._nextUpdateFrame += this.interval;
-        this.port.postMessage({ volume: this._volume });
-      }
+        return true;
     }
+}
 
-    // Keep on processing if the volume is above a threshold, so that
-    // disconnecting inputs does not immediately cause the meter to stop
-    // computing its smoothed value.
-    return this._volume >= meterMinimum;
-  }
-
-});
+registerProcessor('meter', Meter);

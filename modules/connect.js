@@ -48,7 +48,7 @@ export function connect(source, target, sourceChan, targetChan) {
 
     if (!isAudioParam(target) && !target.numberOfInputs) {
         if (DEBUG) { throw new Error('Trying to connect target with no inputs.'); }
-        else { print('Trying to connect target with no inputs. Dropping connection.'); }
+        else { print('Cannot connect to target with no inputs'); }
         return;
     }
 
