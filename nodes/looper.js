@@ -188,6 +188,12 @@ console.log(recordDuration, privates.duration, duration);
             loop.start(recorder.startTime + duration + latencyCompensation, 0, 1);
             this.sources.push(loop);
 
+            // If we are not yet rolling, set startTime to startTime of recorder
+            if (this.startTime === undefined || this.context.currentTime >= this.stopTime) {
+                this.startTime = recorder.startTime;
+                this.stopTime  = undefined;
+            }
+
             // Where looper has already been scheduled to stop, we better
             // make sure its loops do also
             if (this.stopTime) {
@@ -196,12 +202,6 @@ console.log(recordDuration, privates.duration, duration);
 
             this.recording = false;
         });
-
-        // If we are not yet rolling, set startTime to startTime of recorder
-        if (this.startTime === undefined || this.context.currentTime >= this.stopTime) {
-            this.startTime = recorder.startTime;
-            this.stopTime  = undefined;
-        }
 
         this.recording = true;
         return this;
