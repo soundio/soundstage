@@ -95,7 +95,7 @@ assign(Graph.prototype, {
 		return this.nodes.find(has('data', data)).id;
 	},
 
-	create: function(type, data) {
+	createNode: function(type, data) {
 		const graph     = this;
 		const privates  = Privates(this);
 		const requests  = privates.requests;
@@ -112,7 +112,7 @@ assign(Graph.prototype, {
 		});
 	},
 
-	Connection: function(source, target, output, input) {
+	createConnection: function(source, target, output, input) {
 		return new Connection(this, source, target, output, input);
 	}
 });

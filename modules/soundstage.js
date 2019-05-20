@@ -307,7 +307,7 @@ seconds relative to window.performance.now().
 */
 
 assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
-    Control: function(source, target, options) {
+    createControl: function(source, target, options) {
         const privates = Privates(this);
 
         // Target must be the graph node
