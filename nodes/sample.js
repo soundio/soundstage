@@ -63,6 +63,7 @@ export default class Sample extends GainNode {
         if (!this.buffer && typeof this.path === 'string') {
             privates.request = requestBuffer(context, this.path)
             .then((buffer) => {
+                console.log('Sample buffer', this.path, buffer)
                 this.buffer = buffer;
                 privates.source && (privates.source.buffer = buffer);
             })

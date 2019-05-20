@@ -88,6 +88,9 @@ export default class Looper extends GainNode {
             privates.duration = this.sources[0].loopEnd - this.sources[0].loopStart;
         }
 
+        // Connect sources to output
+        this.sources.forEach((source) => source.connect(this.get('wet')));
+
         if (DEBUG) { logGroupEnd(); }
     }
 }
@@ -117,7 +120,6 @@ assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {
             // param, time, curve, value, duration
             // Todo: expose a better way of adjusting rate
             // automate(param, time, curve, value, duration, notify, context)
-            console.log(this.startTime, 'step', this.beats, privates.duration);
             automate(Privates(transport).rateParam, this.startTime, 'step', this.beats / privates.duration);
 
             // Start transport where it is not already running
@@ -188,6 +190,7 @@ console.log(recordDuration, privates.duration, duration);
             // start(time, frequency, gain)
             loop.connect(this.get('wet'));
             loop.start(recorder.startTime + duration + latencyCompensation, 0, 1);
+console.log('Source', loop);
             this.sources.push(loop);
 
             // If we are not yet rolling, set startTime to startTime of recorder
