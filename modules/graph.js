@@ -22,7 +22,7 @@ An array of context graph connections.
 */
 
 /*
-.create(type, settings)
+.createNode(type, settings)
 
 Create a new node of `type`.
 */

@@ -94,7 +94,7 @@ function updateClip(buffer, clip) {
 
 
 
-const messageInterval = 0.04;
+const messageInterval = 0.033333333;
 const output = {};
 
 function max(maxes, input, i) {

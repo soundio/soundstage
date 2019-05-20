@@ -282,7 +282,7 @@ define(Soundstage.prototype, {
 
             if (value) {
                 if (!node) {
-                    this.create('metronome').then(function(m) {
+                    this.createNode('metronome').then(function(m) {
                         connect(m, this.get('output'));
                     });
                 }
