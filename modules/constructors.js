@@ -4,6 +4,7 @@
 // the moment.
 
 import Meter    from '../nodes/meter.js';
+import EQ       from '../nodes/eq.js';
 import Mix      from '../nodes/mix.js';
 import Envelope from '../nodes/envelope.js';
 import Tick     from '../nodes/tick.js';
@@ -15,7 +16,7 @@ export default {
     // https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode/AudioBufferSourceNode
     'buffer-source': AudioBufferSourceNode,
     // https://developer.mozilla.org/en-US/docs/Web/API/BiquadFilterNode/BiquadFilterNode
-    'filter': BiquadFilterNode,
+    'biquad-filter': BiquadFilterNode,
     // https://developer.mozilla.org/en-US/docs/Web/API/ConstantSourceNode/ConstantSourceNode
     'constant': ConstantSourceNode,
     // https://developer.mozilla.org/en-US/docs/Web/API/ConvolverNode/ConvolverNode
@@ -47,6 +48,8 @@ export default {
 
     // ../nodes/meter.js
     'meter': Meter,
+    // ../nodes/mix.js
+    'eq': EQ,
     // ../nodes/mix.js
     'mix': Mix,
     // ../nodes/envelope.js
