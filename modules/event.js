@@ -106,23 +106,23 @@ export function isSequenceEvent(event) {
 
 Event.fromMIDI = overload(compose(toType, getData), {
 	pitch: function(e) {
-		return Event(e.timeStamp, 'pitch', pitchToFloat(e.data));
+		return Event.of(e.timeStamp, 'pitch', pitchToFloat(e.data));
 	},
 
 	pc: function(e) {
-		return Event(e.timeStamp, 'program', e.data[1]);
+		return Event.of(e.timeStamp, 'program', e.data[1]);
 	},
 
 	channeltouch: function(e) {
-		return Event(e.timeStamp, 'touch', 'all', e.data[1] / 127);
+		return Event.of(e.timeStamp, 'touch', 'all', e.data[1] / 127);
 	},
 
 	polytouch: function(e) {
-		return Event(e.timeStamp, 'touch', e.data[1], e.data[2] / 127);
+		return Event.of(e.timeStamp, 'touch', e.data[1], e.data[2] / 127);
 	},
 
 	default: function(e) {
-		return Event(e.timeStamp, toType(e.data), e.data[1], e.data[2] / 127) ;
+		return Event.of(e.timeStamp, toType(e.data), e.data[1], e.data[2] / 127) ;
 	}
 });
 

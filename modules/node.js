@@ -64,14 +64,12 @@ assign(Node.prototype, {
         // Remove connections that source or target this
         this.graph.connections && this.graph.connections
         .filter((connection) => connection.source === this.data || connection.target === this.data)
-        .forEach((connection) => { connection.remove(); });
+        .forEach((connection) => connection.remove());
 
         // Remove controls that target this
         this.graph.controls && this.graph.controls
         .filter((control) => control.target === this.data)
         .forEach((control) => control.remove());
-
-        // Todo: remove sequences that target this
 
         // Remove from nodes
         remove(this.graph.nodes, this);
