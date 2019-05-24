@@ -17,7 +17,7 @@ function pitchToFloat(message) {
 // A constructor for pooled event objects, for internal use only. Internal
 // events are for flows of data (rather than storage), and have extra data
 // assigned.
-
+/*
 export default Event = Pool({
 	name: 'Soundstage Event',
 
@@ -48,12 +48,61 @@ export default Event = Pool({
 	recordable: { writable: true },
 	idle:       { writable: true }
 }));
+*/
+export default function Event(time, type, name, value, duration) {
+	assign(this, arguments);
+	this.length = arguments.length;
+}
 
-Event.of = Event;
+assign(Event.prototype, {
+	remove: function() {
+		console.log('TODO');
+	},
 
-Event.from = function toEvent(data) {
-	return Event.apply(null, data);
+	toJSON: function() {
+		// Event has no length by default, we cant loop over it
+		var array = [];
+		var n = -1;
+		while (this[++n] !== undefined) { array[n] = this[n]; }
+		return array;
+	}
+});
+
+Event.of = function() {
+	return arguments[6] !== undefined ? new Event(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4], arguments[5], arguments[6]) :
+		arguments[5] !== undefined ? new Event(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4], arguments[5]) :
+		arguments[4] !== undefined ? new Event(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4]) :
+		arguments[3] !== undefined ? new Event(arguments[0], arguments[1], arguments[2], arguments[3]) :
+		new Event(arguments[0], arguments[1], arguments[2]) ;
 };
+
+Event.from = function(data) {
+	return data[6] !== undefined ? new Event(data[0], data[1], data[2], data[3], data[4], data[5], data[6]) :
+		data[5] !== undefined ? new Event(data[0], data[1], data[2], data[3], data[4], data[5]) :
+		data[4] !== undefined ? new Event(data[0], data[1], data[2], data[3], data[4]) :
+		data[3] !== undefined ? new Event(data[0], data[1], data[2], data[3]) :
+		new Event(data[0], data[1], data[2]) ;
+};
+
+export function isNoteEvent(event) {
+	return event[1] === 'note';
+}
+
+export function isParamEvent(event) {
+	return event[1] === 'param';
+}
+
+export function isSequenceEvent(event) {
+	return event[1] === 'sequence';
+}
+
+
+
+
+
+
+
+
 
 Event.fromMIDI = overload(compose(toType, getData), {
 	pitch: function(e) {
