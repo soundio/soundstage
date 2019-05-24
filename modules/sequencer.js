@@ -29,7 +29,7 @@ Returns the beat at a given `time`.
 Returns the time at a given `beat`.
 */
 
-import { matches, Privates, Stream } from '../../fn/module.js';
+import { get, matches, Privates, Stream } from '../../fn/module.js';
 import { isRateEvent, getDuration, getBeat, isValidEvent, eventValidationHint } from './event.js';
 import { automate, getValueAtTime } from './automate.js';
 import Sequence from './sequence.js';
@@ -37,6 +37,7 @@ import PlayNode from '../nodes/play-node.js';
 import { timeAtBeatOfEvents } from './location.js';
 import Meter from './meter.js';
 import { distribute } from './distribute.js';
+import { generateUnique }  from './utilities/utilities.js';
 
 const DEBUG = window.DEBUG;
 
@@ -46,7 +47,7 @@ const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
 const seedRateEvent  = { 0: 0, 1: 'rate' };
 const seedMeterEvent = { 0: 0, 1: 'meter', 2: 4, 3: 1 };
-
+const getId          = get('id');
 const idQuery        = { id: '' };
 
 function byBeat(a, b) {
@@ -445,6 +446,21 @@ define(Sequencer.prototype, {
 });
 
 assign(Sequencer.prototype, Sequence.prototype, Meter.prototype, {
+	createSequence: function() {
+		// Todo: turn this into a constructor that creates objects with a
+		// .remove() method, ie.
+		// new Sequence(stage, options)
+		const sequence = {
+			id: generateUnique(this.sequences.map(getId)),
+			label: '',
+			events: [],
+			sequences: []
+		};
+
+		this.sequences.push(sequence);
+		return sequence;
+	},
+
 	beatAtTime: function(time) {
 		const transport     = Privates(this).transport;
 		const startLocation = this.startLocation

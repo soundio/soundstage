@@ -12,7 +12,7 @@ export function createId(objects) {
     return id + '';
 }
 
-export const generateUnique = function(key, values) {
+export const generateUnique = function(values) {
     var value  = -1;
     while (values.indexOf(++value + '') !== -1);
     return value + '';

@@ -101,7 +101,7 @@ assign(Graph.prototype, {
 		const requests  = privates.requests;
 		const transport = privates.transport;
 		const notify    = privates.notify;
-		const id = generateUnique('id', this.nodes.map(get('id')));
+		const id = generateUnique(this.nodes.map(get('id')));
 
 		return (requests[type] || requests.default)(type, graph.context, data, transport)
 		.then((module) => {
