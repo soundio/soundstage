@@ -1,5 +1,5 @@
 
-import { Fn, Pool, compose, get, noop, overload } from '../../fn/module.js';
+import { compose, get, overload, remove } from '../../fn/module.js';
 import { bytesToSignedFloat, toType } from '../../midi/module.js';
 
 const assign           = Object.assign;
@@ -56,7 +56,13 @@ export default function Event(time, type, name, value, duration) {
 
 assign(Event.prototype, {
 	remove: function() {
-		console.log('TODO');
+		if (!this.sequence) {
+			console.warn('Trying to remove event. Event has not had a sequence assigned. This should (probably) not be possible.');
+			return this;
+		}
+
+		remove(this.sequence, this);
+		return this;
 	},
 
 	toJSON: function() {
