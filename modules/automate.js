@@ -259,7 +259,7 @@ export function automate(param, time, curve, value, duration, notify, context) {
         const lastEvent   = events[events.length - 1];
 
         // If outputTime is not yet beyond the end of the events list
-        param[config.animationFrameId] = outputTime <= lastEvent.time ?
+        param[config.animationFrameId] = lastEvent && outputTime <= lastEvent.time ?
             requestAnimationFrame(frame) :
             undefined ;
 
