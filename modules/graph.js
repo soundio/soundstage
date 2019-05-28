@@ -67,7 +67,7 @@ export default function Graph(context, requests, data, transport) {
             data.nodes.map(function(settings) {
                 return (requests[settings.type] || requests.default)(settings.type, context, settings.data, transport)
                 .then(function(module) {
-                    nodes.push(new Node(graph, settings.type, settings.id, module));
+                    nodes.push(new Node(graph, settings.type, settings.id, settings.label, module));
                 });
             }) :
             nothing
@@ -105,7 +105,7 @@ assign(Graph.prototype, {
 
 		return (requests[type] || requests.default)(type, graph.context, data, transport)
 		.then((module) => {
-			const node = new Node(graph, type, id, module);
+			const node = new Node(graph, type, id, '', module);
 			graph.nodes.push(node);
 			notify(graph.nodes, '.');
 			return module;

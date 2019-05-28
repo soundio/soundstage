@@ -14,15 +14,16 @@ const properties = {
     recordCount:       { writable: true, value: 0 }
 };
 
-export default function Node(graph, type, id, object) {
+export default function Node(graph, type, id, label, object) {
     define(this, properties);
 
     this.graph = graph;
     this.id    = id;
     this.type  = type;
+    this.label = label || '';
     this.data  = object;
 
-    seal(this);
+    //seal(this);
 }
 
 assign(Node.prototype, {

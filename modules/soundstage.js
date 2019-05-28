@@ -140,7 +140,7 @@ export default function Soundstage(data = nothing, settings = nothing) {
 
     define(this, {
         mediaChannelCount: { value: undefined, writable: true, configurable: true },
-//        roundTripLatency:  { value: Soundstage.roundTripLatency, writable: true, configurable: true },
+        // roundTripLatency:  { value: Soundstage.roundTripLatency, writable: true, configurable: true },
     });
 
 
