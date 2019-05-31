@@ -1,8 +1,12 @@
 
+import { Privates } from '../../fn/module.js';
+import PlayNode from '../nodes/play-node.js';
+
 const DEBUG  = false;//window.DEBUG;
 
 const assign = Object.assign;
 const define = Object.defineProperties;
+const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
 const properties = {
 	context:       { writable: true },
@@ -11,16 +15,17 @@ const properties = {
 	stopTime:      { writable: true, value: undefined }
 };
 
-export default function Clock(context) {
+export default function Clock(context, notify) {
 	// Properties
 	define(this, properties);
+	this.context = context;
 
-	if (!this.context) {
-		this.context = context;
-	}
+	Privates(this).notify = notify;
 }
 
 assign(Clock.prototype, {
+	// Todo: Inherit start/stop from PlayNode
+
 	start: function(time) {
 		// If clock is running, don't start it again
 		if (this.startTime !== undefined && this.stopTime === undefined) {
@@ -36,6 +41,8 @@ assign(Clock.prototype, {
 		this.startTime     = time !== undefined ? time : this.context.currentTime ;
 		this.startLocation = undefined;
 		this.stopTime      = undefined;
+
+		//Privates(this).notify(this, 'playing');
 
 		return this;
 	},
@@ -54,6 +61,13 @@ assign(Clock.prototype, {
 		}
 
 		this.stopTime = time;
+		//Privates(this).notify(this, 'playing');
+
 		return this;
 	}
+});
+
+// Mix in property definitions
+define(Clock.prototype, {
+    playing: getOwnPropertyDescriptor(PlayNode.prototype, 'playing')
 });

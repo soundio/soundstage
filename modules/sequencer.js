@@ -32,6 +32,7 @@ Returns the time at a given `beat`.
 import { get, matches, Privates, Stream } from '../../fn/module.js';
 import { isRateEvent, getDuration, getBeat, isValidEvent, eventValidationHint } from './event.js';
 import { automate, getValueAtTime } from './automate.js';
+import Transport from './transport.js';
 import Sequence from './sequence.js';
 import PlayNode from '../nodes/play-node.js';
 import { timeAtBeatOfEvents } from './location.js';
@@ -413,6 +414,7 @@ define(Sequencer.prototype, {
 	beat: {
 		get: function() {
 			const privates = Privates(this);
+
 			if (this.startTime === undefined || this.startTime >= this.context.currentTime || this.stopTime < this.context.currentTime) {
 				return privates.beat;
 			}
@@ -438,7 +440,7 @@ define(Sequencer.prototype, {
 
 	bar: {
 		get: function() {
-			return this.barAtBeat(this.beat);
+			return this.barAtBeat(this.beat) ;
 		}
 	},
 
@@ -483,6 +485,15 @@ assign(Sequencer.prototype, Sequence.prototype, Meter.prototype, {
 		time = time || this.context.currentTime;
 		beat = beat === undefined ? privates.beat : beat ;
 
+		// Run transport, if it is not already - Todo: .playing uses currentTIme
+		// write some logic that uses time (kind of like what .playing does)
+		if (this.transport.playing) {
+			time = this.transport.timeAtBeat(Math.ceil(this.transport.beatAtTime(time)));
+		}
+		else {
+			this.transport.start(time, beat);
+		}
+
 		const stream    = privates.stream;
 		const transport = privates.transport;
 		const events    = this.events;
@@ -492,9 +503,6 @@ assign(Sequencer.prototype, Sequence.prototype, Meter.prototype, {
 		if (stream) {
 			stream.stop(time);
 		}
-
-		// Run transport, if it is not already
-		privates.transport.start(time, beat);
 
 		// Set this.startTime
 		Sequence.prototype.start.call(this, time, beat);

@@ -4,8 +4,8 @@ import requestInputSplitter   from './request-input-splitter.js';
 import { print, printGroup, printGroupEnd }     from './utilities/print.js';
 import audio, { timeAtDomTime } from './context.js';
 import constructors  from './constructors.js';
-import KeyboardInputSource, { isKeyboardInputSource } from './control-sources/keyboard-input-source.js';
-import MIDIInputSource, { isMIDIInputSource } from './control-sources/midi-input-source.js';
+import { isKeyboardInputSource } from './control-sources/keyboard-input-source.js';
+import { isMIDIInputSource } from './control-sources/midi-input-source.js';
 import { connect, disconnect } from './connect.js';
 import Control       from './control.js';
 import Input         from '../nodes/input.js';
@@ -22,9 +22,6 @@ const DEBUG        = window.DEBUG || false;
 const assign       = Object.assign;
 const define       = Object.defineProperties;
 const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
-
-const idSelect = { id: undefined };
-const matchesId = matches(idSelect);
 
 
 // Nodes
@@ -87,14 +84,6 @@ function requestAudioNode(type, context, settings, transport, baseURL) {
         return new Node(context, settings, transport);
     });
 }
-
-
-// Controls
-
-const sources = {
-    'midi':     MIDIInputSource,
-    'keyboard': KeyboardInputSource
-};
 
 
 // Soundstage
@@ -195,7 +184,7 @@ export default function Soundstage(data = nothing, settings = nothing) {
                     data.controls.reduce(function(controls, options) {
                         // Get target graph node from target id
                         const target  = stage.nodes.find((object) => object.id === options.target);
-                        const control = new Control(controls, options.source, target, options, notify);
+                        new Control(controls, options.source, target, options, notify);
                         return controls;
                     }, []) :
                     []
@@ -242,6 +231,9 @@ export default function Soundstage(data = nothing, settings = nothing) {
     // Create metronome.
     //this.metronome = new Metronome(context, data.metronome, this);
     //this.metronome.start(0);
+    // Todo: is this really necessary? Is there another way of getting
+    // transport inside sound.io?
+    this.transport = transport;
 
 
     if (DEBUG) { printGroupEnd(); }

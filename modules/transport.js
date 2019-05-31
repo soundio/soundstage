@@ -11,12 +11,13 @@ import Clock from './clock.js';
 
 const assign = Object.assign;
 const define = Object.defineProperties;
+const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
 const defaultRateEvent  = Object.freeze({ time: 0, value: 2, curve: 'step', beat: 0 });
 const defaultMeterEvent = Object.freeze({ 0: 0, 1: 'meter', 2: 4, 3: 1 });
 
 export default function Transport(context, rateParam, timer, notify) {
-	Clock.call(this, context);
+	Clock.call(this, context, notify);
 
 	// Private
 	const privates = Privates(this);
@@ -92,31 +93,30 @@ assign(Transport.prototype, Clock.prototype, {
 			frame.b1 = this.beatAtTime(frame.t1);
 			frame.b2 = this.beatAtTime(frame.t2);
 		})
-		.map(toEventsBuffer)
+		.map(toEventsBuffer);
+
+		const output = stream
 		.chain(id)
 		.tap((event) => {
 			event.time = this.timeAtBeat(event[0]);
 		});
 
-		const _start = stream.start;
-		const _stop  = stream.stop;
-
-		stream.start = (time) => {
+		output.start = (time) => {
 			// If clock is running, don't start it again
 			if (this.startTime === undefined || this.stopTime < this.context.currentTime) {
 				this.start(time);
 			}
 
-			_start.call(stream, time || privates.timer.now());
+			stream.start(time || privates.timer.now());
 			return stream;
 		};
 
-		stream.stop = (time) => {
-			_stop.call(stream, time || privates.timer.now());
+		output.stop = (time) => {
+			stream.stop(time || privates.timer.now());
 			return stream;
 		};
 
-		return stream;
+		return output;
 	},
 
 	// Todo: work out how stages are going to .connect(), and
@@ -135,6 +135,25 @@ assign(Transport.prototype, Clock.prototype, {
 });
 
 define(Transport.prototype, {
+	playing: getOwnPropertyDescriptor(Clock.prototype, 'playing'),
+
+	beat: {
+		get: function() {
+			return this.playing ?
+				this.beatAtTime(this.context.currentTime) :
+				0 ;
+		}
+	},
+
+	bar: {
+		get: function() {
+			return this.playing ?
+				this.barAtBeat(this.beat) :
+				0 ;
+		}
+	},
+
+/*
 	beat: {
 		get: function() {
 			var privates = Privates(this);
@@ -143,7 +162,7 @@ define(Transport.prototype, {
 
 			return stream && status !== 'waiting' && status !== 'done' ?
 				stream.beatAtTime(privates.audio.currentTime) :
-				this[$private].beat ;
+				privates.beat ;
 		},
 
 		set: function(beat) {
@@ -168,7 +187,7 @@ define(Transport.prototype, {
 		// Make observable via get/set
 		configurable: true
 	},
-
+*/
 	tempo: {
 		get: function() {
 			return getValueAtTime(this.context.currentTime, this.rate.value) * 60;

@@ -156,7 +156,6 @@ assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {
 
             // createBuffer(channelsCount, sampleCount, sampleRate)
             // https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/createBuffer
-console.log(recordDuration, privates.duration, duration);
             const audio = recorder.context.createBuffer(
                 buffers.length,
                 duration * this.context.sampleRate * buffers.length,
@@ -190,7 +189,7 @@ console.log(recordDuration, privates.duration, duration);
             // start(time, frequency, gain)
             loop.connect(this.get('wet'));
             loop.start(recorder.startTime + duration + latencyCompensation, 0, 1);
-console.log('Source', loop);
+
             this.sources.push(loop);
 
             // If we are not yet rolling, set startTime to startTime of recorder

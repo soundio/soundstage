@@ -1,14 +1,10 @@
 
 //import AudioObject from '../../context-object/modules/context-object.js';
-import { print, printGroup, printGroupEnd, log } from './print.js';
-import { remove, id } from '../../fn/module.js';
+import { printGroup, printGroupEnd, log } from './print.js';
 import { Privates } from '../../fn/module.js';
-import { floatToFrequency } from '../../midi/module.js';
-import Tick from './tick.js';
-import NodeGraph from './node-graph.js';
-import { automate } from '../modules/automate.js';
 import { assignSettings } from '../modules/assign-settings.js';
-import { connect, disconnect } from '../modules/connect.js';
+import PlayNode  from './play-node.js';
+import NodeGraph from './node-graph.js';
 
 if (!NodeGraph.prototype.get) {
 	throw new Error('NodeGraph is not fully formed?')
@@ -17,6 +13,7 @@ if (!NodeGraph.prototype.get) {
 const DEBUG  = false; //window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
+const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
 export const config = {
 	tuning: 440
@@ -59,9 +56,9 @@ const defaults = {
 };
 
 const properties = {
-	"tick":   { enumerable: true, writable: true },
-	"tock":   { enumerable: true, writable: true },
- 	"events": { enumerable: true, writable: true },
+    "tick":   { enumerable: true, writable: true },
+    "tock":   { enumerable: true, writable: true },
+    "events": { enumerable: true, writable: true },
 
     "resonance": {
         get: function() { return this.get('output').resonance; },
@@ -93,20 +90,19 @@ function Event(b1, beat, type) {
 	this[1] = type;
 }
 
-function fillEventsBuffer(stage, events, buffer, frame) {
-	const b1       = frame.b1;
-	const b2       = frame.b2;
-	const bar1     = stage.barAtBeat(b1);
-	const bar2     = stage.barAtBeat(b2);
+function fillEventsBuffer(transport, events, buffer, frame) {
+	const b1   = frame.b1;
+	const b2   = frame.b2;
+	const bar1 = transport.barAtBeat(b1);
+	const bar2 = transport.barAtBeat(b2);
 
-	let bar        = bar1;
-	let bar1Beat   = stage.beatAtBar(bar1);
-	let localB1    = b1 - bar1Beat;
+	let bar      = bar1;
+	let bar1Beat = transport.beatAtBar(bar1);
+	let localB1  = b1 - bar1Beat;
 	let localB2, bar2Beat;
 	let n = -1;
 
 	//console.log('FRAME events', bar, localB1, events.length);
-
 	buffer.length = 0;
 
 	// Ignore events before b1
@@ -115,11 +111,11 @@ function fillEventsBuffer(stage, events, buffer, frame) {
 
 	// Cycle through bars if there are whole bars left
 	while (bar < bar2) {
-		bar2Beat = stage.beatAtBar(bar + 1);
+		bar2Beat = transport.beatAtBar(bar + 1);
 		localB2  = bar2Beat - bar1Beat;
 
 		while (++n < events.length && events[n][0] < localB2) {
-			//events[n].time = stage.timeAtBeat(events[n][0] + bar1Beat);
+			//events[n].time = transport.timeAtBeat(events[n][0] + bar1Beat);
 			buffer.push(new Event(b1, bar1Beat + events[n][0], events[n][1]));
 		}
 
@@ -133,7 +129,7 @@ function fillEventsBuffer(stage, events, buffer, frame) {
 
 	while (++n < events.length && events[n][0] < localB2) {
 		//console.log('timeAtBeat', events[n][0], bar1Beat)
-		//events[n].time = stage.timeAtBeat(bar1Beat + events[n][0]);
+		//events[n].time = transport.timeAtBeat(bar1Beat + events[n][0]);
 		buffer.push(new Event(b1, bar1Beat + events[n][0], events[n][1]));
 	}
 
@@ -142,9 +138,9 @@ function fillEventsBuffer(stage, events, buffer, frame) {
 	return buffer;
 }
 
-export default function Metronome(context, settings, stage) {
+export default function Metronome(context, settings, transport) {
 	if (DEBUG) { printGroup('Metronome'); }
-	if (!stage.sequence) { throw new Error('Metronome requires access to transport.'); }
+	if (!transport.sequence) { throw new Error('Metronome requires access to transport.'); }
 
 	// Graph
 	NodeGraph.call(this, context, graph);
@@ -153,7 +149,7 @@ export default function Metronome(context, settings, stage) {
 	// Private
 	const privates = Privates(this);
 	privates.voice = voice;
-	privates.stage = stage;
+	privates.transport = transport;
 
 	// Properties
 	define(this, properties);
@@ -167,16 +163,18 @@ export default function Metronome(context, settings, stage) {
 	if (DEBUG) { printGroupEnd(); }
 }
 
-assign(Metronome.prototype, NodeGraph.prototype, {
+assign(Metronome.prototype, PlayNode.prototype, NodeGraph.prototype, {
 	start: function(time) {
 		const privates  = Privates(this);
-		const stage     = privates.stage;
+		const transport = privates.transport;
 		const metronome = this;
 		const voice     = this.get('output');
 		const buffer    = [];
 
-		privates.sequence = stage
-		.sequence((data) => fillEventsBuffer(stage, this.events, buffer, data))
+        PlayNode.prototype.start.apply(this, arguments);
+
+		privates.sequence = transport
+		.sequence((data) => fillEventsBuffer(transport, this.events, buffer, data))
 		.each(function distribute(e) {
 			const options = metronome[e[1]];
 			voice.start(e.time, options[0], options[1]);
@@ -188,9 +186,15 @@ assign(Metronome.prototype, NodeGraph.prototype, {
 
 	stop: function(time) {
 		const privates = Privates(this);
+		PlayNode.prototype.stop.apply(this, arguments);
 		privates.sequence.stop(time || this.context.currentTime);
 		return this;
 	}
+});
+
+// Mix in property definitions
+define(Metronome.prototype, {
+    playing: getOwnPropertyDescriptor(PlayNode.prototype, 'playing')
 });
 
 Metronome.defaults  = {
