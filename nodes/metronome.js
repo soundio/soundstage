@@ -24,8 +24,8 @@ const graph = {
         id:   'output',
         type: 'tick',
         data: {
-            //channelInterpretation: 'speakers',
-			//channelCountMode: 'explicit',
+            channelInterpretation: 'speakers',
+			channelCountMode: 'clamped-max',
 			channelCount: 1
         }
     }],
@@ -42,7 +42,6 @@ const defaults = {
 
     tick: [72, 1,   0.03125],
     tock: [64, 0.6, 0.03125],
-
     events: [
         [0,  'tick'],
         [1,  'tock'],
@@ -57,9 +56,7 @@ const defaults = {
 		[10, 'tock'],
 		[11, 'tock'],
 		[12, 'tock']
-    ],
-
-	playWithTransport: true
+    ]
 };
 
 const properties = {
@@ -82,19 +79,17 @@ const events = [];
 
 function Event(b1, beat, type) {
 	// A cheap object pool
-	let event = events.find((event) => event[0] < b1);
+	const event = events.find((event) => event[0] < b1);
 
 	if (event) {
 		event[0] = beat;
 		event[1] = type;
 		return event;
 	}
-	else {
-		events.push(this);
-	}
 
 	this[0] = beat;
 	this[1] = type;
+	events.push(this);
 }
 
 function fillEventsBuffer(transport, events, buffer, frame) {
@@ -186,7 +181,7 @@ assign(Metronome.prototype, PlayNode.prototype, NodeGraph.prototype, {
 			const options = metronome[e[1]];
 			voice.start(e.time, options[0], options[1]);
 		})
-		.start(time || this.context.currentTime);
+		.start(this.startTime);
 
 		return this;
 	},
@@ -194,7 +189,7 @@ assign(Metronome.prototype, PlayNode.prototype, NodeGraph.prototype, {
 	stop: function(time) {
 		const privates = Privates(this);
 		PlayNode.prototype.stop.apply(this, arguments);
-		privates.sequence.stop(time || this.context.currentTime);
+		privates.sequence.stop(this.stopTime);
 		return this;
 	}
 });

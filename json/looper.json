@@ -17,13 +17,6 @@
             "wet": 1
         }
     }, {
-        "id": "metronome",
-        "label": "metronome",
-        "type": "metronome",
-        "data": {
-
-        }
-    }, {
         "id": "output",
         "label": "output",
         "type": "output",
@@ -35,9 +28,6 @@
     "connections": [{
         "source": "input",
         "target": "looper"
-    }, {
-        "source": "metronome",
-        "target": "output"
     }, {
         "source": "looper",
         "target": "output"

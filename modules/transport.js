@@ -96,27 +96,16 @@ assign(Transport.prototype, Clock.prototype, {
 				return;
 			}
 
-			// If this.stopTime is not undefined or old...
-			if (this.stopTime > this.startTime) {
-
-				// Filter out frames after stopTime
-				if (frame.t1 >= this.stopTime) {
-					return;
-				}
-
-				// Trancate t2 to stopTime
-				if (frame.t2 > this.stopTime) {
-					frame.t2 = this.stopTime;
-				}
+			// If this.stopTime is not undefined or old
+			// and frame is after stopTime
+			if (this.stopTime > this.startTime
+				&& frame.t1 >= this.stopTime) {
+				return;
 			}
 
-			// Trancate t2 to startTime
-			if (frame.t1 < this.startTime) {
-				frame.t1 = this.startTime;
-			}
-
-			frame.b1 = this.beatAtTime(frame.t1);
-			frame.b2 = this.beatAtTime(frame.t2);
+			// Trancate b1 to startTime and b2 to stopTime
+			frame.b1 = this.beatAtTime(frame.t1 < this.startTime ? this.startTime : frame.t1);
+			frame.b2 = this.beatAtTime(this.stopTime > this.startTime && frame.t2 > this.stopTime ? this.stopTime : frame.t2);
 
 			return frame;
 		})
@@ -127,24 +116,14 @@ assign(Transport.prototype, Clock.prototype, {
 		.tap((event) => event.time = this.timeAtBeat(event[0]));
 
 		output.start = (time) => {
-			// If clock is running, don't start it again
-			//if (this.startTime === undefined || this.stopTime < this.context.currentTime) {
-			//	this.start(time);
-			//}
-
 			stream.start(time || privates.timer.now());
-			//privates.sequenceCount++;
+			privates.sequenceCount++;
 			return stream;
 		};
 
 		output.stop = (time) => {
 			stream.stop(time || privates.timer.now());
-
-			//privates.sequenceCount--;
-			//if (!privates.sequenceCount) {
-			//	this.stop(time || privates.timer.now());
-			//}
-
+			privates.sequenceCount--;
 			return stream;
 		};
 

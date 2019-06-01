@@ -29,8 +29,7 @@ export default function Tick(audio, options) {
 	var filter     = audio.createBiquadFilter();
 	var gain       = audio.createGain();
 	var output     = audio.createGain();
-	var merger     = audio.createChannelMerger(2);
-
+	//var merger     = audio.createChannelMerger(2);
 
 	//NodeGraph.call(this, {
 	//	nodes: [
@@ -38,7 +37,6 @@ export default function Tick(audio, options) {
 	//		{ id: 'filter',     type: 'biquad-filter', settings: { channelCount: 1 } },
 	//		{ id: 'gain',       type: 'gain',          settings: { channelCount: 1 } },
 	//		{ id: 'output',     type: 'gain',          settings: { channelCount: 1 } },
-	//		{ id: 'merger',     type: 'merger',        settings: { numberOfInputs: 2 } }
 	//	],
 	//
 	//	connections: [
@@ -98,8 +96,8 @@ export default function Tick(audio, options) {
 
 	gain.gain.value = 0;
 	gain.connect(output);
-	output.connect(merger, 0, 0);
-	output.connect(merger, 0, 1);
+	//output.connect(merger, 0, 0);
+	//output.connect(merger, 0, 1);
 
 	this.gain = output.gain;
 

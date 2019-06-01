@@ -142,9 +142,13 @@ assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {
 
         time = time || this.context.currentTime;
 
+        privates.latencyCompensation = this.settings.latencyCompensation ?
+            getOutputLatency(this.context) + getInputLatency(this.context) :
+            0 ;
+
         // Schedule the recorder to start
         recorder
-        .start(time)
+        .start(time + privates.latencyCompensation)
         .then((buffers) => {
             // Take 200ms off duration to allow late release of recordings to
             // snap back to preceding duration end
@@ -178,17 +182,11 @@ assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {
                 release:   0.004
             });
 
-            const latencyCompensation = -1 * (
-                this.settings.latencyCompensation ?
-                    getOutputLatency(this.context) + getInputLatency(this.context) :
-                    0
-            );
-
-            print('Loop latency compensation', latencyCompensation.toFixed(3));
+            print('Loop latency compensation', privates.latencyCompensation.toFixed(3));
 
             // start(time, frequency, gain)
             loop.connect(this.get('wet'));
-            loop.start(recorder.startTime + duration + latencyCompensation, 0, 1);
+            loop.start(time + duration, 0, 1);
 
             this.sources.push(loop);
 
@@ -217,7 +215,7 @@ assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {
         const transport = privates.transport;
 
         time = time || this.context.currentTime;
-        recorder.stop(time);
+        recorder.stop(time + privates.latencyCompensation);
 
         // Is this the first loop?
         if (!this.sources.length) {
@@ -229,15 +227,15 @@ assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {
                 // param, time, curve, value, duration
                 // Todo: expose a better way of adjusting rate
                 // automate(param, time, curve, value, duration, notify, context)
-                automate(Privates(transport).rateParam, recorder.stopTime, 'step', this.beats / privates.duration);
+                automate(Privates(transport).rateParam, time, 'step', this.beats / privates.duration);
 
                 // Start transport where it is not already running
-                transport.start(recorder.stopTime);
+                transport.start(time);
             }
             // Transport is running
             else {
                 // Use the current rate to set loop duration
-                privates.duration = this.beats / transport.rateAtTime(recorder.stopTime);
+                privates.duration = this.beats / transport.rateAtTime(time);
             }
         }
 
