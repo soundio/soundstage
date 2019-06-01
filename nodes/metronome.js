@@ -44,15 +44,22 @@ const defaults = {
     tock: [64, 0.6, 0.03125],
 
     events: [
-        [0, 'tick'],
-        [1, 'tock'],
-        [2, 'tock'],
-        [3, 'tock'],
-		[4, 'tock'],
-		[5, 'tock'],
-		[6, 'tock'],
-		[7, 'tock']
-    ]
+        [0,  'tick'],
+        [1,  'tock'],
+        [2,  'tock'],
+        [3,  'tock'],
+		[4,  'tock'],
+		[5,  'tock'],
+		[6,  'tock'],
+		[7,  'tock'],
+		[8,  'tock'],
+		[9,  'tock'],
+		[10, 'tock'],
+		[11, 'tock'],
+		[12, 'tock']
+    ],
+
+	playWithTransport: true
 };
 
 const properties = {

@@ -25,6 +25,7 @@ export default function Transport(context, rateParam, timer, notify) {
 	privates.meters = [defaultMeterEvent];
 	privates.timer  = timer;
 	privates.notify = notify;
+	privates.sequenceCount = 0;
 }
 
 assign(Transport.prototype, Clock.prototype, {
@@ -89,30 +90,61 @@ assign(Transport.prototype, Clock.prototype, {
 		const privates = Privates(this);
 		const stream = Stream
 		.fromTimer(privates.timer)
-		.tap((frame) => {
+		.map((frame) => {
+			// Filter out frames before startTime
+			if (frame.t2 <= this.startTime) {
+				return;
+			}
+
+			// If this.stopTime is not undefined or old...
+			if (this.stopTime > this.startTime) {
+
+				// Filter out frames after stopTime
+				if (frame.t1 >= this.stopTime) {
+					return;
+				}
+
+				// Trancate t2 to stopTime
+				if (frame.t2 > this.stopTime) {
+					frame.t2 = this.stopTime;
+				}
+			}
+
+			// Trancate t2 to startTime
+			if (frame.t1 < this.startTime) {
+				frame.t1 = this.startTime;
+			}
+
 			frame.b1 = this.beatAtTime(frame.t1);
 			frame.b2 = this.beatAtTime(frame.t2);
+
+			return frame;
 		})
 		.map(toEventsBuffer);
 
 		const output = stream
 		.chain(id)
-		.tap((event) => {
-			event.time = this.timeAtBeat(event[0]);
-		});
+		.tap((event) => event.time = this.timeAtBeat(event[0]));
 
 		output.start = (time) => {
 			// If clock is running, don't start it again
-			if (this.startTime === undefined || this.stopTime < this.context.currentTime) {
-				this.start(time);
-			}
+			//if (this.startTime === undefined || this.stopTime < this.context.currentTime) {
+			//	this.start(time);
+			//}
 
 			stream.start(time || privates.timer.now());
+			//privates.sequenceCount++;
 			return stream;
 		};
 
 		output.stop = (time) => {
 			stream.stop(time || privates.timer.now());
+
+			//privates.sequenceCount--;
+			//if (!privates.sequenceCount) {
+			//	this.stop(time || privates.timer.now());
+			//}
+
 			return stream;
 		};
 
