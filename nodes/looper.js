@@ -199,7 +199,7 @@ console.log('frameDuration', frameDuration, 'frameOffset', frameOffset, 'buffers
                 // If recording has overrun into a new loop duration we need
                 // to copy the end onto the start...
                 if ((frameOffset + buffers[n].length) > frameDuration) {
-                    const firstBuffer = buffers[n].slice(buffers[n].length - frameOffset);
+                    const firstBuffer = buffers[n].slice(frameDuration - frameOffset);
                     audio.copyToChannel(firstBuffer, n, 0);
                 }
             }
