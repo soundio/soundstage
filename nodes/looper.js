@@ -165,15 +165,15 @@ assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {
         .start(time + privates.latencyCompensation)
         .then((buffers) => {
 if (privates.duration !== buffers[0].length * recorder.context.sampleRate) {
-    console.log('Duration', privates.duration, 'and buffer duration', buffers[0].length * recorder.context.sampleRate, 'dont match')
+    console.log('Duration', privates.duration, 'and buffer duration', buffers[0].length / recorder.context.sampleRate, 'dont match')
 }
             // Take 200ms off duration to allow late release of recordings to
             // snap back to preceding duration end
             const recordDuration  = recorder.stopTime - recorder.startTime - 0.2;
-            const repeats         = recordDuration / privates.duration;
-            const duration = repeats < 1 ?
-                privates.duration :
-                Math.ceil(repeats) * privates.duration ;
+            const repeats         = (recordDuration / privates.duration) < 1 ?
+                1 :
+                Math.ceil(recordDuration / privates.duration) ;
+            const duration = repeats * privates.duration ;
 
             // createBuffer(channelsCount, sampleCount, sampleRate)
             // https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/createBuffer
@@ -198,8 +198,8 @@ console.log('frameDuration', frameDuration, 'frameOffset', frameOffset, 'buffers
 
                 // If recording has overrun into a new loop duration we need
                 // to copy the end onto the start...
-                if ((frameOffset + buffers[n].length) > frameDuration) {
-                    const firstBuffer = buffers[n].slice(frameDuration - frameOffset);
+                if ((frameOffset + buffers[n].length) > (frameDuration * repeats)) {
+                    const firstBuffer = buffers[n].slice((frameDuration * repeats) - frameOffset);
                     audio.copyToChannel(firstBuffer, n, 0);
                 }
             }
