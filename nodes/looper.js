@@ -37,7 +37,7 @@ const graph = {
 var defaults = {
     gain: 1,
     beats: 4,
-    settings: {}
+    latencyCompensation: true
 };
 
 const properties = {
@@ -103,7 +103,7 @@ define(Looper.prototype, {
 // Mix AudioObject prototype into MyObject prototype
 assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {
     start: function(time) {
-        if (this.settings.syncToTempo) {
+        if (this.syncToTempo) {
             // Todo: get time of nearest beat
         }
 
@@ -156,7 +156,7 @@ assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {
 
         time = time || this.context.currentTime;
 
-        privates.latencyCompensation = this.settings.latencyCompensation ?
+        privates.latencyCompensation = this.latencyCompensation ?
             getOutputLatency(this.context) + getInputLatency(this.context) :
             0 ;
 

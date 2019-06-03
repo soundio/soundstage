@@ -14,6 +14,16 @@ const properties = {
     recordCount:       { writable: true, value: 0 }
 };
 
+const blacklist = {
+    channelCount: true,
+    channelCountMode: true,
+    channelInterpretation: true,
+    context: true,
+    numberOfInputs: true,
+    numberOfOutputs: true,
+    onended: true
+};
+
 export default function Node(graph, type, id, label, object) {
     define(this, properties);
 
@@ -80,5 +90,31 @@ assign(Node.prototype, {
         privates.notify(this.graph.nodes, '');
 
         return this;
+    },
+
+    toJSON: function toJSON() {
+        const node = this.data;
+        const data = {};
+        var name;
+
+        for (name in node) {
+            //if (!this.hasOwnProperty(name)) { continue; }
+            if (node[name] === null) { continue; }
+            if (node[name] === undefined) { continue; }
+            if (blacklist[name]) { continue; }
+
+            data[name] = node[name].setValueAtTime ?
+                    node[name].value :
+                node[name].connect ?
+                    toJSON.apply(node[name]) :
+                node[name] ;
+        }
+
+        return {
+            id:    this.id,
+            type:  this.type,
+            label: this.label,
+            data:  data
+        };
     }
 });

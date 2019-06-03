@@ -50,16 +50,6 @@ const assign = Object.assign;
 const define = Object.defineProperties;
 const seal   = Object.seal;
 
-const blacklist = {
-    channelCount: true,
-    channelCountMode: true,
-    channelInterpretation: true,
-    context: true,
-    numberOfInputs: true,
-    numberOfOutputs: true,
-    onended: true
-};
-
 export function createNode(context, type, settings) {
     const node = new constructors[type](context, settings);
     return node;
@@ -96,7 +86,7 @@ function createConnection(nodes, data) {
 }
 
 export default function NodeGraph(context, data) {
-    if (DEBUG) { logGroup('mixin ', 'GraphNode', data.nodes && data.nodes.map(n => n.type).join(', ')); }
+    if (DEBUG) { logGroup('mixin ', 'GraphNode', data.nodes && data.nodes.map((n) => n.type).join(', ')); }
 
     const privates = Privates(this);
     privates.outputId = data.output || 'output' ;
@@ -143,25 +133,5 @@ assign(NodeGraph.prototype, {
         const privates = Privates(this);
         const output = this.get(privates.outputId);
         return output.disconnect.apply(output, arguments);
-    },
-
-    toJSON: function toJSON() {
-        const json = {};
-        var name;
-
-        for (name in this) {
-            //if (!this.hasOwnProperty(name)) { continue; }
-            if (this[name] === null) { continue; }
-            if (this[name] === undefined) { continue; }
-            if (blacklist[name]) { continue; }
-
-            json[name] = this[name].setValueAtTime ?
-                    this[name].value :
-                this[name].connect ?
-                    toJSON.apply(this[name]) :
-                this[name] ;
-        }
-
-        return json;
     }
 });

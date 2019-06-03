@@ -1,20 +1,12 @@
 {
-    "label": "Looper",
+    "label": "Gain",
 
     "nodes": [{
-        "id": "input",
-        "label": "input",
-        "type": "input",
+        "id": "gain",
+        "label": "Gain",
+        "type": "gain",
         "data": {
-
-        }
-    }, {
-        "id": "looper",
-        "label": "looper",
-        "type": "nodes/looper.js",
-        "data": {
-            "dry": 0,
-            "wet": 1
+            "gain": 1
         }
     }, {
         "id": "output",
@@ -26,10 +18,7 @@
     }],
 
     "connections": [{
-        "source": "input",
-        "target": "looper"
-    }, {
-        "source": "looper",
+        "source": "gain",
         "target": "output"
     }]
 }
