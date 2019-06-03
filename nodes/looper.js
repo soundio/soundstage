@@ -107,15 +107,23 @@ assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {
             // Todo: get time of nearest beat
         }
 
+        // If looper is already started, do nothing...
+        // Or stop() so that start() can begin anew?
+        if (this.startTime !== undefined && (this.stopTime === undefined || this.startTime > this.stopTime)) {
+            return this;
+        }
+
         const privates  = Privates(this);
         const transport = privates.transport;
 
         PlayNode.prototype.start.apply(this, arguments);
 
-        // Is transport running?
+        // Is transport not running? Then run it
         if (transport.startTime === undefined || time < transport.startTime || time >= transport.stopTime) {
-            // Get record time difference accurate to the nearest sample
-            privates.duration = this.sources[0].loopEnd - this.sources[0].loopStart;
+            if (!privates.duration) {
+                // Get record time difference accurate to the nearest sample
+                privates.duration = this.sources[0].loopEnd - this.sources[0].loopStart;
+            }
 
             // param, time, curve, value, duration
             // Todo: expose a better way of adjusting rate
@@ -124,6 +132,12 @@ assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {
 
             // Start transport where it is not already running
             transport.start(this.startTime);
+        }
+        else {
+            if (!privates.duration) {
+                // Get base duration from transport
+                privates.duration = this.beats / transport.rateAtTime(time);
+            }
         }
 
         this.sources.forEach((source) => source.start(this.startTime));
@@ -150,6 +164,9 @@ assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {
         recorder
         .start(time + privates.latencyCompensation)
         .then((buffers) => {
+if (privates.duration !== buffers[0].length * recorder.context.sampleRate) {
+    console.log('Duration', privates.duration, 'and buffer duration', buffers[0].length * recorder.context.sampleRate, 'dont match')
+}
             // Take 200ms off duration to allow late release of recordings to
             // snap back to preceding duration end
             const recordDuration  = recorder.stopTime - recorder.startTime - 0.2;
@@ -166,13 +183,27 @@ assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {
                 recorder.context.sampleRate
             );
 
+            const startTime = this.startTime + Math.floor((time + duration - this.startTime) / privates.duration) * privates.duration;
+            const timeOffset = (time + duration - this.startTime) % privates.duration;
+            const frameOffset = Math.round(timeOffset * recorder.context.sampleRate);
+            const frameDuration = Math.round(privates.duration * recorder.context.sampleRate);
+
+console.log('startTime', this.startTime, 'baseDuration', privates.duration, 'duration', duration, 'time', time, 'timeOffset', timeOffset);
+console.log('frameDuration', frameDuration, 'frameOffset', frameOffset, 'buffers', buffers, 'audio', audio);
+
             // Copy buffers to buffers
             let n = buffers.length;
             while (n--) {
-                audio.copyToChannel(buffers[n], n, 0);
+                audio.copyToChannel(buffers[n], n, frameOffset);
+
+                // If recording has overrun into a new loop duration we need
+                // to copy the end onto the start...
+                if ((frameOffset + buffers[n].length) > frameDuration) {
+                    const firstBuffer = buffers[n].slice(buffers[n].length - frameOffset);
+                    audio.copyToChannel(firstBuffer, n, 0);
+                }
             }
 
-            // Do something with buffers to make them all the same length?
             const loop = new Sample(this.context, {
                 buffer:    audio,
                 loop:      true,
@@ -186,15 +217,9 @@ assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {
 
             // start(time, frequency, gain)
             loop.connect(this.get('wet'));
-            loop.start(time + duration, 0, 1);
+            loop.start(startTime, 0, 1);
 
             this.sources.push(loop);
-
-            // If we are not yet rolling, set startTime to startTime of recorder
-            if (this.startTime === undefined || this.context.currentTime >= this.stopTime) {
-                this.startTime = recorder.startTime;
-                this.stopTime  = undefined;
-            }
 
             // Where looper has already been scheduled to stop, we better
             // make sure its loops do also
@@ -217,27 +242,15 @@ assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {
         time = time || this.context.currentTime;
         recorder.stop(time + privates.latencyCompensation);
 
-        // Is this the first loop?
-        if (!this.sources.length) {
-            // Is transport running?
-            if (transport.startTime === undefined || time < transport.startTime || time >= transport.stopTime) {
-                // Get record time difference accurate to the nearest sample
+        // If transport is not running set the base duration from record time
+        if (transport.startTime === undefined || time < transport.startTime || time >= transport.stopTime) {
+            if (!privates.duration) {
                 privates.duration = recorder.stopTime - recorder.startTime;
-
-                // param, time, curve, value, duration
-                // Todo: expose a better way of adjusting rate
-                // automate(param, time, curve, value, duration, notify, context)
-                automate(Privates(transport).rateParam, time, 'step', this.beats / privates.duration);
-
-                // Start transport where it is not already running
-                transport.start(time);
-            }
-            // Transport is running
-            else {
-                // Use the current rate to set loop duration
-                privates.duration = this.beats / transport.rateAtTime(time);
             }
         }
+
+        // Start playing
+        this.start(time);
 
         return this;
     },
