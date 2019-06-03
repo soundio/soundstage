@@ -46,6 +46,12 @@ export default class Recorder extends AudioWorkletNode {
     }
 
     stop(time) {
+        time = time || this.context.currentTime;
+
+        // Adjust stopTime such that the difference between startTime and
+        // stopTime is equivalent to an integer number of sample frames
+        time = this.startTime + Math.round((time - this.startTime) * this.context.sampleRate) / this.context.sampleRate;
+
         PlayNode.prototype.stop.call(this, time);
 
         // Tell the worklet to stop recording

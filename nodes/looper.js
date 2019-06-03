@@ -164,9 +164,6 @@ assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {
         recorder
         .start(time + privates.latencyCompensation)
         .then((buffers) => {
-if (privates.duration !== buffers[0].length * recorder.context.sampleRate) {
-    console.log('Duration', privates.duration, 'and buffer duration', buffers[0].length / recorder.context.sampleRate, 'dont match')
-}
             // Take 200ms off duration to allow late release of recordings to
             // snap back to preceding duration end
             const recordDuration  = recorder.stopTime - recorder.startTime - 0.2;
@@ -187,9 +184,6 @@ if (privates.duration !== buffers[0].length * recorder.context.sampleRate) {
             const timeOffset = (time + duration - this.startTime) % privates.duration;
             const frameOffset = Math.round(timeOffset * recorder.context.sampleRate);
             const frameDuration = Math.round(privates.duration * recorder.context.sampleRate);
-
-console.log('startTime', this.startTime, 'baseDuration', privates.duration, 'duration', duration, 'time', time, 'timeOffset', timeOffset);
-console.log('frameDuration', frameDuration, 'frameOffset', frameOffset, 'buffers', buffers, 'audio', audio);
 
             // Copy buffers to buffers
             let n = buffers.length;
