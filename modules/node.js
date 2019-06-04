@@ -1,6 +1,6 @@
 
 import { Privates, remove } from '../../fn/module.js';
-import { automate, isAudioParam } from './automate.js';
+import { automato__, isAudioParam } from './automate.js';
 //import Sequence from './sequence.js';
 
 const assign = Object.assign;
@@ -59,7 +59,7 @@ assign(Node.prototype, {
             this.data[type](time, name, value) :
         isAudioParam(this.data[type]) ?
             // param, time, curve, value, duration, notify, context
-            automate(this.data[type], time, name, value, duration, privates.notify, this.data.context) :
+            automato__(this.data, type, time, name, value, duration, privates.notify, this.data.context) :
         undefined ;
     },
 

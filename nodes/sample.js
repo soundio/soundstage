@@ -3,9 +3,10 @@ import PlayNode from './play-node.js';
 import { requestBuffer } from '../modules/request-buffer.js';
 import { Privates } from '../../fn/module.js';
 import { frequencyToFloat } from '../../midi/module.js';
-import { assignSettings } from '../modules/assign-settings.js';
+import { assignSettingz__ } from '../modules/assign-settings.js';
 
 const DEBUG = true;
+const assign = Object.assign;
 const define = Object.defineProperties;
 const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
@@ -28,6 +29,7 @@ const properties = {
 
 const defaults = {
     nominalFrequency: 440,
+    nominalRate: 1,
     //beginTime: undefined,
     //loopTime:  undefined,
     //endTime:   undefined
@@ -50,11 +52,14 @@ export default class Sample extends GainNode {
         // Initialise as gain node
         super(context, gainOptions);
 
-        // Define .startTime and .stopTime
+        // Define .startTime, .stopTime, .playing
         PlayNode.call(this);
 
         // Define sample properties
         define(this, properties);
+
+        // Control rate via tempo?
+        this.rate = context.createConstantSource();
 
         const privates = Privates(this);
 
@@ -76,7 +81,7 @@ export default class Sample extends GainNode {
     reset(context, options) {
         const privates = Privates(this);
 
-        // Initialise .startTime and .stopTime
+        // Initialise .startTime, .stopTime and .playing
         PlayNode.prototype.reset.apply(this, arguments);
 
         // Discard the old source node
@@ -88,7 +93,9 @@ export default class Sample extends GainNode {
 
         this.gain.setValueAtTime(0, this.context.currentTime);
 
-        assignSettings(this, defaults, options);
+        assignSettingz__(this, assign({}, defaults, options));
+
+        console.log('Sample', this);
     }
 
     start(time, frequency = defaults.nominalFrequency, gain = 1) {
@@ -107,7 +114,7 @@ export default class Sample extends GainNode {
         if (!frequency || frequency === 440) {
             sourceOptions.detune = 0;
         }
-        else {
+        else if (this.nominalFrequency) {
             // Work out the detune factor
             const nominalNote = frequencyToFloat(440, this.nominalFrequency);
             const note        = frequencyToFloat(440, frequency);
@@ -117,6 +124,10 @@ export default class Sample extends GainNode {
             // a-rate on other nodes, according to MDN, so you can be excused
             // some confusion.
             sourceOptions.detune = pitch * 100;
+        }
+        else {
+            const nominalRate = this.nominalRate;
+
         }
 
         // This is a-rate. Just sayin'. Todo.
@@ -131,6 +142,7 @@ export default class Sample extends GainNode {
             = new AudioBufferSourceNode(this.context, sourceOptions) ;
 
         source.connect(this);
+        this.rate.connect(source.playbackRate);
 
         const startTime = this.startTime;
 

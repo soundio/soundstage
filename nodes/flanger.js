@@ -1,6 +1,5 @@
 
 import NodeGraph from './node-graph.js';
-import { assignSettings } from '../modules/assign-settings.js';
 import { validateOscillatorType } from '../modules/validate.js';
 
 const assign = Object.assign;
@@ -11,8 +10,8 @@ const graph = {
         { id: 'splitter',   type: 'splitter',   data: { numberOfOutputs: 2 } },
         { id: 'fbMerger',   type: 'merger',     data: { numberOfInputs: 2 } },
         { id: 'fbSplitter', type: 'splitter',   data: { numberOfOutputs: 2 } },
-        { id: 'fb',         type: 'gain',       data: { channelCount: 2, gain: 0 } },
-        { id: 'osc',        type: 'oscillator', data: { type: 'triangle' } },
+        { id: 'fb',         type: 'gain',       data: { channelCount: 2, gain: 0.0625 } },
+        { id: 'osc',        type: 'oscillator', data: { type: 'triangle', frequency: 0.333333333 } },
         { id: 'ldepth',     type: 'gain',       data: { channelCount: 1, channelCountMode: 'explicit', gain: 0 } },
         { id: 'rdepth',     type: 'gain',       data: { channelCount: 1, channelCountMode: 'explicit', gain: 0 } },
         { id: 'ldelay',     type: 'delay',      data: { channelCount: 1, maxDelayTime: 4 } },
@@ -21,8 +20,8 @@ const graph = {
         { id: 'dry',        type: 'gain',       data: { channelCount: 2, gain: 0.707106781 } },
         { id: 'merger',     type: 'merger',     data: { numberOfInputs: 2 } },
         { id: 'output',     type: 'gain',       data: { channelCount: 2, gain: 1 } },
-        { id: 'depth',      type: 'constant',   data: { offset: 0.001 } },
-        { id: 'delay',      type: 'constant',   data: { offset: 0.01 } },
+        { id: 'depth',      type: 'constant',   data: { offset: 0.0015609922621756954 } },
+        { id: 'delay',      type: 'constant',   data: { offset: 0.012 } },
         { id: 'inverter',   type: 'gain',       data: { channelCount: 1, channelCountMode: 'explicit', gain: -1 } }
     ],
 
@@ -54,14 +53,6 @@ const graph = {
     output: 'output'
 };
 
-const defaults = {
-	delay:     0.012,
-	frequency: 0.333333333,
-	depth:     0.0015609922621756954,
-	feedback:  0.0625
-};
-
-
 export default class Flanger extends GainNode {
     constructor(context, options) {
         super(context, options);
@@ -83,8 +74,6 @@ export default class Flanger extends GainNode {
         this.get('osc').start(context.currentTime);
         this.get('depth').start(context.currentTime);
         this.get('delay').start(context.currentTime);
-
-        assignSettings(this, defaults, options);
     }
 }
 

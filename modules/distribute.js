@@ -2,7 +2,7 @@ import { matches } from '../../fn/module.js';
 import { print } from './utilities/print.js';
 import { overload } from '../../fn/module.js';
 import { toNoteNumber } from '../../midi/module.js';
-import { automate } from './automate.js';
+import { automato__ } from './automate.js';
 
 const DEBUG = true;
 
@@ -77,7 +77,7 @@ export const distributors = {
         }
 
         // param, time, curve, value, duration, notify, context
-        automate(param, time, 'step', value, null, notify, target.context);
+        automato__(target, name, time, 'step', value, null, notify, target.context);
         return target;
     },
 

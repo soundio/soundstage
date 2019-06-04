@@ -1,4 +1,6 @@
 
+// Soundstage color theme
+//
 // Red          #d60a3f
 // Muted red    #b5002f
 // Orange       #d8841d
@@ -14,7 +16,7 @@ import Soundstage from './modules/soundstage.js';
 export default Soundstage;
 export { timeAtDomTime, domTimeAtTime, getOutputTime, getContextTime } from './modules/context.js';
 export { transforms, parseValue } from './modules/transforms.js';
-export { automate, isAudioParam, getValueAtTime } from './modules/automate.js';
+export { automate, automato__, isAudioParam, getValueAtTime } from './modules/automate.js';
 export * from './modules/encode.js';
 export { requestBuffer } from './modules/request-buffer.js';
 export { getEventsDuration, getEventDuration } from './modules/events.js';

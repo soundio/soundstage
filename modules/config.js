@@ -1,11 +1,3 @@
-// Soundstage color theme
-//
-// Red          #d60a3f
-// Muted red    #b5002f
-// Orange       #d8841d
-// Palegreen fg #acb9b8
-// Darkgreen bg #1c2726
-
 export default {
     // The maximum number of channels for the output node, a merger, of a
     // soundstage instance. If audioContext.destination's maxChannelCount
@@ -16,16 +8,16 @@ export default {
     // web workers require paths relative to the base document
     basePath: window.soundstageBasePath || '/soundstage/',
 
-    // Status constants
-    // Start has not yet been called
-    WAITING: undefined,
+    // Expando names added to AudioParams in order to help observe
+    // value changes
+    automationEventsKey: 'automationEvents',
+    animationFrameKey: 'animationFrame',
 
-    // Start has been called, currentTime is less than startTime
-    CUEING:  'cued',
+    // Value considered to be 0 for the purposes of scheduling
+    // exponential curves.
+    minExponentialValue: 1.40130e-45,
 
-    // Start has been called, currentTime is greater than startTime
-    PLAYING: 'active',
-
-    // currentTime is greater than or equal to stopTime
-    STOPPED: 'done'
+    // Multiplier for duration of target events indicating roughly when
+    // they can be considered 'finished'
+    targetDurationFactor: 9
 };

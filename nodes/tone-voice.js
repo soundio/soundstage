@@ -4,7 +4,7 @@ import Noise from './noise.js';
 import NodeGraph   from './node-graph.js';
 import PlayNode from './play-node.js';
 import { automate, getAutomation, getAutomationEndTime } from '../modules/automate.js';
-import { assignSettings } from '../modules/assign-settings.js';
+import { assignSettingz__ } from '../modules/assign-settings.js';
 import { floatToFrequency, frequencyToFloat } from '../../midi/module.js';
 
 const DEBUG  = window.DEBUG;
@@ -225,7 +225,7 @@ define(ToneVoice.prototype, {
 assign(ToneVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 	reset: function(context, settings) {
         PlayNode.prototype.reset.apply(this, arguments);
-        assignSettings(this, defaults, settings, ['context']);
+        assignSettingz__(this, assign({}, defaults, settings), ['context']);
         return this;
     },
 

@@ -2,7 +2,7 @@
 //import AudioObject from '../../context-object/modules/context-object.js';
 import { printGroup, printGroupEnd, log } from './print.js';
 import { Privates } from '../../fn/module.js';
-import { assignSettings } from '../modules/assign-settings.js';
+import { assignSettingz__ } from '../modules/assign-settings.js';
 import PlayNode  from './play-node.js';
 import NodeGraph from './node-graph.js';
 
@@ -160,7 +160,7 @@ export default function Metronome(context, settings, transport) {
     this.gain = voice.gain;
 
 	// Update settings
-	assignSettings(this, defaults, settings);
+	assignSettingz__(this, assign({}, defaults, settings));
 
 	if (DEBUG) { printGroupEnd(); }
 }

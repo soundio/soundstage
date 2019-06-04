@@ -2,7 +2,7 @@ import { log, logGroup, logGroupEnd } from './print.js';
 import ToneVoice, { defaults as voiceDefaults } from './tone-voice.js';
 import NotesNode from './notes-node.js';
 import NodeGraph from './node-graph.js';
-import { assignSettings } from '../modules/assign-settings.js';
+import { assignSettingz__ } from '../modules/assign-settings.js';
 import { connect, disconnect } from '../modules/connect.js';
 
 const DEBUG  = window.DEBUG;
@@ -100,7 +100,7 @@ export default class ToneSynth extends GainNode {
 		define(this, properties);
 
 		// Update settings
-		assignSettings(this, defaults, settings);
+		assignSettingz__(this, defaults);
 
 		if (DEBUG) { logGroupEnd(); }
 	}

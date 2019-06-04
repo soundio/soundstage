@@ -3,7 +3,6 @@ import { Privates } from '../../fn/module.js';
 import NodeGraph from './node-graph.js';
 import Recorder from './recorder.js';
 import Sample from './sample.js';
-import { assignSettings } from '../modules/assign-settings.js';
 import { automate } from '../modules/automate.js';
 
 const DEBUG  = window.DEBUG;
@@ -67,9 +66,6 @@ export default class Track extends GainNode {
         this.dry = this.get('dry').gain;
         this.wet = this.get('wet').gain;
         this.sources = [];
-
-        // Update settings
-        assignSettings(this, defaults, settings);
 
         if (DEBUG) { logGroupEnd(); }
     }

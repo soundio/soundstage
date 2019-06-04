@@ -3,7 +3,6 @@
 import { logGroup, logGroupEnd } from './print.js';
 import { Privates } from '../../fn/module.js';
 import NodeGraph from './node-graph.js';
-import { assignSettings } from '../modules/assign-settings.js';
 import Pool from '../modules/pool.js';
 import { getSink } from '../modules/context.js';
 
@@ -20,8 +19,8 @@ const graph = {
 		{ id: 'expression', type: 'constant', data: { offset: 0 } },
 		{ id: 'pitch',      type: 'constant', data: { offset: 0 } },
 		{ id: 'detune',     type: 'gain',     data: { gain: 100 } },
-		{ id: 'frequency',  type: 'constant', data: { offset: 0 } },
-		{ id: 'Q',          type: 'constant', data: { offset: 0 } },
+		{ id: 'frequency',  type: 'constant', data: { offset: 120 } },
+		{ id: 'Q',          type: 'constant', data: { offset: 0.707 } },
 		{ id: 'output',     type: 'gain',     data: {
 			channelInterpretation: 'speakers',
 			channelCountMode: 'explicit',
@@ -37,14 +36,6 @@ const graph = {
 
 const properties = {
 	"detune": { enumerable: true, writable: true }
-};
-
-// Declare some useful defaults
-var defaults = {
-	pitch:     0,
-	frequency: 120,
-	Q:         1,
-	volume:    1
 };
 
 function isDefined(val) {
@@ -124,9 +115,6 @@ export default function NotesNode(context, settings, Voice, setup) {
 
 	// Note pool
 	privates.voices = new Pool(Voice, isIdle, setup);
-
-	// Update settings
-	assignSettings(this, defaults, settings);
 
 	if (DEBUG) { logGroupEnd(); }
 }

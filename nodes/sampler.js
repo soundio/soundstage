@@ -4,7 +4,6 @@ import { get } from '../../fn/module.js';
 import { fetchBuffer } from '../modules/utilities/utilities.js';
 import { Privates } from '../../fn/module.js';
 import NotesNode from './notes-node.js';
-import { assignSettings } from '../modules/assign-settings.js';
 import { connect, disconnect } from '../modules/connect.js';
 import SampleVoice from './sample-voice.js';
 
@@ -15,12 +14,6 @@ const define = Object.defineProperties;
 
 export const config = {
 	tuning: 440
-};
-
-// Declare some useful defaults
-var defaults = {
-	"expression": 1,
-	"pitch":      0
 };
 
 const properties = {
@@ -96,9 +89,6 @@ export default function Sampler(context, settings) {
 
 	// Properties
 	define(this, properties);
-
-	// Update settings
-	assignSettings(this, defaults, settings);
 
 	if (DEBUG) { logGroupEnd(); }
 }

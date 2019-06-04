@@ -1,27 +1,12 @@
 
 import { choose, id, last, overload } from '../../fn/module.js';
 import { timeAtDomTime } from './context.js';
+import config from './config.js';
 
 const DEBUG = false;
 
 // 60 frames/sec frame rate
 const frameDuration = 1000 / 60;
-
-// Config
-
-export const config = {
-    automationEventsKey: 'automationEvents',
-
-    animationFrameKey: 'animationFrame',
-
-    // Value considered to be 0 for the purposes of scheduling
-    // exponential curves.
-    minExponentialValue: 1.40130e-45,
-
-    // Multiplier for duration of target events indicating roughly when
-    // they can be considered 'finished'
-    targetDurationFactor: 9
-};
 
 export function isAudioContext(object) {
     return window.AudioContext && window.AudioContext.prototype.isPrototypeOf(object);
@@ -268,6 +253,65 @@ export function automate(param, time, curve, value, duration, notify, context) {
 
     param[config.animationFrameId] = requestAnimationFrame(frame);
 }
+
+
+/*
+automato__(node, name, time, curve, value, duration, notify)
+
+param    - AudioParam object
+time     -
+value    -
+curve    - one of 'step', 'hold', 'linear', 'exponential' or 'target'
+duration - where curve is 'target', decay is a time constant for the decay
+notify   - a callback function
+*/
+
+export function automato__(node, name, time, curve, value, duration, notify) {
+    if (curve === 'target' && duration === undefined) {
+        throw new Error('Automation curve "target" must have a duration');
+    }
+
+    const param  = node[name];
+    const events = getAutomation(param);
+    automateParamEvents(param, events, time, curve, value, duration);
+
+    if (!notify) {
+        if (DEBUG) { console.warn('No notify for param change', value, curve, param); }
+        return;
+    }
+
+    // If param is flagged as already notifying, do nothing
+    if (param[config.animationFrameId]) {
+        return;
+    }
+
+    var n = -1;
+
+    function frame(time) {
+        // Notify at 1/3 frame rate
+        n = (n + 1) % 3;
+        if (n === 0) {
+            param[config.animationFrameId] = requestAnimationFrame(frame);
+            return;
+        }
+
+        const renderTime  = time + frameDuration;
+        const outputTime  = timeAtDomTime(node.context, renderTime);
+        const outputValue = getValueAtTime(param, outputTime);
+        const lastEvent   = events[events.length - 1];
+
+        // If outputTime is not yet beyond the end of the events list
+        param[config.animationFrameId] = lastEvent && outputTime <= lastEvent.time ?
+            requestAnimationFrame(frame) :
+            undefined ;
+
+        notify(node, name, outputValue);
+    }
+
+    param[config.animationFrameId] = requestAnimationFrame(frame);
+}
+
+
 
 export function getAutomationEndTime(events) {
     const event = last(events);

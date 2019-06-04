@@ -38,6 +38,7 @@ import { print }  from './utilities/print.js';
 import { generateUnique }  from './utilities/utilities.js';
 import Node       from './node.js';
 import Connection from './connection.js';
+import { assignSettingz__ } from '../modules/assign-settings.js';
 
 const assign    = Object.assign;
 const define    = Object.defineProperties;
@@ -67,7 +68,9 @@ export default function Graph(context, requests, data, transport) {
             data.nodes.map(function(settings) {
                 return (requests[settings.type] || requests.default)(settings.type, context, settings.data, transport)
                 .then(function(module) {
-                    nodes.push(new Node(graph, settings.type, settings.id, settings.label, module));
+					const node = new Node(graph, settings.type, settings.id, settings.label, module);
+					assignSettingz__(module, settings.data);
+                    nodes.push(node);
                 });
             }) :
             nothing

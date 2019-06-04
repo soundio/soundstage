@@ -5,7 +5,7 @@ import { Privates } from '../../fn/module.js';
 import NodeGraph   from './node-graph.js';
 import PlayNode from './play-node.js';
 import { automate, getAutomation, getAutomationEndTime } from '../modules/automate.js';
-import { assignSettings } from '../modules/assign-settings.js';
+import { assignSettingz__ } from '../modules/assign-settings.js';
 import { floatToFrequency, frequencyToFloat } from '../../midi/module.js';
 
 const DEBUG  = window.DEBUG;
@@ -142,7 +142,7 @@ define(SampleVoice.prototype, {
 assign(SampleVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 	reset: function(context, settings) {
         PlayNode.prototype.reset.apply(this);
-        assignSettings(this, defaults, settings);
+        assignSettingz__(this, assign({}, defaults, settings));
         return this;
 	},
 

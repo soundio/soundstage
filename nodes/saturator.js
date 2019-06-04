@@ -2,7 +2,6 @@
 import { log, logGroup, logGroupEnd } from './print.js';
 import { Privates } from '../../fn/module.js';
 import NodeGraph from './node-graph.js';
-import { assignSettings } from '../modules/assign-settings.js';
 import { connect, disconnect } from '../modules/connect.js';
 import { automate, getValueAtTime } from '../modules/automate.js';
 
@@ -130,8 +129,8 @@ const shapes = {
 
 const graph = {
     nodes: [
-        { id: 'frequency', type: 'constant', data: { offset: 440 } },
-        { id: 'drive', type: 'gain', data: { gain: 0 } },
+        { id: 'frequency', type: 'constant', data: { offset: 1000 } },
+        { id: 'drive', type: 'gain', data: { gain: 1 } },
         { id: 'waveshaper', type: 'wavershaper', data: {} },
         { id: 'filter1', type: 'biquad-filter', data: { type: 'highpass' } },
         { id: 'filter2', type: 'biquad-filter', data: { type: 'highpass' } },
@@ -245,10 +244,6 @@ export default class Saturator extends GainNode {
     			});
     		})(l);
     	}
-
-        // Settings
-
-        assignSettings(options, defaults);
     }
 }
 

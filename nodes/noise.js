@@ -3,7 +3,7 @@ import { Privates } from '../../fn/module.js';
 import NodeGraph from './node-graph.js';
 import PlayNode from './play-node.js';
 
-import { assignSettings } from '../modules/assign-settings.js';
+import { assignSettingz__ } from '../modules/assign-settings.js';
 
 const assign = Object.assign;
 const define = Object.defineProperties;
@@ -154,7 +154,7 @@ assign(Noise.prototype, NodeGraph.prototype, PlayNode.prototype, {
     reset: function(context, options) {
         PlayNode.prototype.reset.apply(this, arguments);
 		// Here type is assigned and the buffer is filled with noise
-        assignSettings(this, defaults, options);
+        assignSettingz__(this, assign({}, defaults, options));
     },
 
     start: function(time, frequency, gain = 0.25) {

@@ -1,7 +1,7 @@
 
 import NodeGraph from './node-graph.js';
 import PlayNode from './play-node.js';
-import { assignSettings } from '../modules/assign-settings.js';
+import { assignSettingz__ } from '../modules/assign-settings.js';
 
 const assign = Object.assign;
 const define = Object.defineProperties;
@@ -9,7 +9,7 @@ const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
 const graph = {
 	nodes: [
-        { id: 'osc',  type: 'oscillator', data: { type: 'sine', detune: 0 }},
+        { id: 'osc',  type: 'oscillator', data: { type: 'sine', frequency: 440, detune: 0 }},
 		{ id: 'gain', type: 'gain',       data: { gain: 0 }},
 		{ id: 'mix',  type: 'mix',        data: { gain: 1, pan: 0 }}
 	],
@@ -64,6 +64,7 @@ export default function Tone(context, options) {
     this.mix       = this.get('mix').gain;
     this.pan       = this.get('mix').pan;
 
+	// Set up
     this.get('osc').start(context.currentTime);
     this.reset(context, options);
 }
@@ -76,7 +77,7 @@ define(Tone.prototype, {
 assign(Tone.prototype, NodeGraph.prototype, PlayNode.prototype, {
     reset: function(context, options) {
         PlayNode.prototype.reset.apply(this, arguments);
-        assignSettings(this, defaults, options);
+        assignSettingz__(this, assign({}, defaults, options));
     },
 
     start: function(time, frequency = 440, gain = 1) {
