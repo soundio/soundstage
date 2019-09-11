@@ -23,6 +23,9 @@ const assign       = Object.assign;
 const define       = Object.defineProperties;
 const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
+const defaultData = {
+    nodes: [{ id: '0', type: 'output' }]
+};
 
 // Nodes
 
@@ -56,24 +59,24 @@ function createOutputMerger(context, target) {
     return merger;
 }
 
-function rewriteURL(baseURL, url) {
-    // Rewrite relative URLs to be absolute
-    return /^https?:\/\/|^\//.test(url) ? url : baseURL + '/' + url ;
+function rewriteURL(basePath, url) {
+    // Append relative URLs, including node types, to basePath
+    return /^https?:\/\/|^\//.test(url) ? url : basePath + url;
 }
 
-function requestAudioNode(type, context, settings, transport, baseURL) {
+function requestAudioNode(type, context, settings, transport, basePath) {
     return (
         constructors[type] ?
             Promise.resolve(constructors[type]) :
             // settings.type is a URL
-            requestPlugin(rewriteURL(baseURL, type))
+            requestPlugin(rewriteURL(basePath, type))
     )
     .then(function(Node) {
         // If the constructor has a preload fn, it has special things
         // to prepare (such as loading AudioWorklets) before it can
         // be used.
         return Node.preload ?
-            Node.preload(baseURL, context).then(() => {
+            Node.preload(basePath, context).then(() => {
                 print('Node', Node.name, 'preloaded');
                 return Node;
             }) :
@@ -88,7 +91,7 @@ function requestAudioNode(type, context, settings, transport, baseURL) {
 
 // Soundstage
 
-export default function Soundstage(data = nothing, settings = nothing) {
+export default function Soundstage(data = defaultData, settings = nothing) {
     if (!Soundstage.prototype.isPrototypeOf(this)) {
         // Soundstage has been called without the new keyword
         return new Soundstage(data, settings);
@@ -100,7 +103,6 @@ export default function Soundstage(data = nothing, settings = nothing) {
 
     if (DEBUG) { printGroup('Soundstage()'); }
 
-    const baseURL     = settings.baseURL || '/soundstage';
     const context     = settings.context || audio;
     const destination = settings.destination || context.destination;
     const notify      = settings.notify || noop;
@@ -165,7 +167,7 @@ export default function Soundstage(data = nothing, settings = nothing) {
         },
 
         default: function(type, context, data, transport) {
-            return requestAudioNode(type, context, data, transport, baseURL);
+            return requestAudioNode(type, context, data, transport, config.basePath + 'nodes/');
         }
     };
 
@@ -274,7 +276,7 @@ define(Soundstage.prototype, {
 
             if (value) {
                 if (!node) {
-                    this.createNode('metronome').then(function(m) {
+                    this.create('metronome').then(function(m) {
                         connect(m, this.get('output'));
                     });
                 }

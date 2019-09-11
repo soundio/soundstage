@@ -1,6 +1,7 @@
 
 import { Privates, remove } from '../../fn/module.js';
 import { automato__, isAudioParam } from './automate.js';
+import { assignSettingz__ } from '../modules/assign-settings.js';
 //import Sequence from './sequence.js';
 
 const assign = Object.assign;
@@ -24,16 +25,23 @@ const blacklist = {
     onended: true
 };
 
-export default function Node(graph, type, id, label, object) {
+export default function Node(graph, type, id, label, data, context, requests, transport) {
     define(this, properties);
 
     this.graph = graph;
     this.id    = id;
     this.type  = type;
     this.label = label || '';
-    this.data  = object;
+    this.request = (requests[type] || requests.default)(type, context, data, transport)
+    .then((node) => {
+        assignSettingz__(node, data);
+        this.node = node;
+        // Legacy name??
+        this.data = node;
+        return node;
+    });
 
-    //seal(this);
+    graph.nodes.push(this);
 }
 
 assign(Node.prototype, {
