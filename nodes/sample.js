@@ -3,7 +3,7 @@ import PlayNode from './play-node.js';
 import { requestBuffer } from '../modules/request-buffer.js';
 import { Privates } from '../../fn/module.js';
 import { frequencyToFloat } from '../../midi/module.js';
-import { assignSettingz__ } from '../modules/assign-settings.js';
+import { assignSettings } from '../modules/assign-settings.js';
 
 const DEBUG = true;
 const assign = Object.assign;
@@ -30,6 +30,7 @@ const properties = {
 const defaults = {
     nominalFrequency: 440,
     nominalRate: 1,
+    rate: 1,
     //beginTime: undefined,
     //loopTime:  undefined,
     //endTime:   undefined
@@ -58,11 +59,12 @@ export default class Sample extends GainNode {
         // Define sample properties
         define(this, properties);
 
-        // Control rate via tempo?
-        this.rate = context.createConstantSource();
-
         const privates = Privates(this);
 
+        // Expose a rate param
+        privates.rate = context.createConstantSource();
+        this.rate = privates.rate.offset;
+console.log('OPTIONS', options);
         this.reset(context, options);
 
         if (!this.buffer && typeof this.path === 'string') {
@@ -92,8 +94,9 @@ export default class Sample extends GainNode {
         this.release  = undefined;
 
         this.gain.setValueAtTime(0, this.context.currentTime);
+        this.rate.setValueAtTime(1, this.context.currentTime);
 
-        assignSettingz__(this, assign({}, defaults, options));
+        assignSettings(this, defaults, options);
 
         console.log('Sample', this);
     }
@@ -125,10 +128,6 @@ export default class Sample extends GainNode {
             // some confusion.
             sourceOptions.detune = pitch * 100;
         }
-        else {
-            const nominalRate = this.nominalRate;
-
-        }
 
         // This is a-rate. Just sayin'. Todo.
         sourceOptions.playbackRate = 1;
@@ -142,7 +141,7 @@ export default class Sample extends GainNode {
             = new AudioBufferSourceNode(this.context, sourceOptions) ;
 
         source.connect(this);
-        this.rate.connect(source.playbackRate);
+        privates.rate.connect(source.playbackRate);
 
         const startTime = this.startTime;
 

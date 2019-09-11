@@ -37,6 +37,7 @@ const graph = {
 var defaults = {
     gain: 1,
     beats: 4,
+    rate: 1,
     latencyCompensation: true
 };
 
@@ -75,13 +76,13 @@ export default class Looper extends GainNode {
         this.dry = this.get('dry').gain;
         this.wet = this.get('wet').gain;
 
-        // Update settings
-        assignSettings(this, defaults, settings);
-
         // Turn sources into sample nodes
-        this.sources = this.sources ?
-            this.sources.map((data) =>  new Sample(this.context, data)) :
+        this.sources = settings && settings.sources ?
+            settings.sources.map((data) =>  new Sample(this.context, data)) :
             [] ;
+
+        // Update other settings
+        assignSettings(this, defaults, settings, ['sources']);
 
         // Set the base duration when we have our first sample
         if (this.sources[0]) {
