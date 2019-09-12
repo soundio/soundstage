@@ -1,6 +1,16 @@
 
 import { print } from './utilities/print.js';
 
+// Crude polyfill for systems without getOutputTimeStamp()
+if (!AudioContext.prototype.getOutputTimestamp) {
+    AudioContext.prototype.getOutputTimestamp = function() {
+        return {
+            contextTime:     this.currentTime + this.outputLatency,
+            performanceTime: window.performance.now()
+        };
+    };
+}
+
 const context = new window.AudioContext();
 context.destination.channelInterpretation = "discrete";
 context.destination.channelCount = context.destination.maxChannelCount;
@@ -98,11 +108,6 @@ export function getInputLatency(context) {
 export function getOutputLatency(context) {
     const stamp = context.getOutputTimestamp();
     return _getOutputLatency(stamp, context);
-}
-
-export function getOutputTime(context, domTime) {
-    const stamp = context.getOutputTimestamp();
-    return stampTimeAtDomTime(stamp, domTime);
 }
 
 export function getContextTime(context, domTime) {

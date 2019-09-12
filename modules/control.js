@@ -31,7 +31,7 @@ through a selectable transform function to a target stream.
 */
 
 import { print } from './utilities/print.js';
-import { getContextTime, getOutputTime } from './context.js';
+import { getContextTime, timeAtDomTime } from './context.js';
 import { noop, Privates, remove }     from '../../fn/module.js';
 import { floatToFrequency }     from '../../midi/module.js';
 import KeyboardInputSource from './control-sources/keyboard-input-source.js';
@@ -138,7 +138,7 @@ export default function Control(controls, source, target, settings, notify) {
     // Bind source output to route input
     this.source.each(function(timeStamp, type, name, n) {
         const time = control.latencyCompensation ?
-            getOutputTime(target.data.context, timeStamp) :
+            timeAtDomTime(target.data.context, timeStamp) :
             getContextTime(target.data.context, timeStamp) ;
 
         // Set type

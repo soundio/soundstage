@@ -15,7 +15,7 @@ import Soundstage from './modules/soundstage.js';
 
 export default Soundstage;
 export { default as config } from './modules/config.js';
-export { timeAtDomTime, domTimeAtTime, getOutputTime, getContextTime } from './modules/context.js';
+export { timeAtDomTime, domTimeAtTime, getContextTime } from './modules/context.js';
 export { transforms, parseValue } from './modules/transforms.js';
 export { automate, automato__, isAudioParam, getValueAtTime } from './modules/automate.js';
 export * from './modules/encode.js';
