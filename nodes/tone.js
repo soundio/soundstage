@@ -10,6 +10,7 @@ const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 const graph = {
 	nodes: [
         { id: 'osc',  type: 'oscillator', data: { type: 'sine', frequency: 440, detune: 0 }},
+        // Gain can disappear when used in the new Voice
 		{ id: 'gain', type: 'gain',       data: { gain: 0 }},
 		{ id: 'mix',  type: 'mix',        data: { gain: 1, pan: 0 }}
 	],
@@ -76,7 +77,7 @@ define(Tone.prototype, {
 
 assign(Tone.prototype, NodeGraph.prototype, PlayNode.prototype, {
     reset: function(context, options) {
-        PlayNode.prototype.reset.apply(this, arguments);
+        PlayNode.reset(this, arguments);
         assignSettingz__(this, assign({}, defaults, options));
     },
 

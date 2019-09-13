@@ -1,6 +1,9 @@
 
 import { print } from './utilities/print.js';
 
+// Safari still requires a prefixed AudioContext
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
 // Crude polyfill for systems without getOutputTimeStamp()
 if (!AudioContext.prototype.getOutputTimestamp) {
     AudioContext.prototype.getOutputTimestamp = function() {
@@ -124,18 +127,4 @@ export function getInputTime(context, domTime) {
     const inputLatency  = _getOutputLatency(stamp, context);
     const outputLatency = _getOutputLatency(stamp, context);
     return time + inputLatency + outputLatency;
-}
-
-
-const $sink = Symbol('sink');
-
-export function getSink(context) {
-    if (!context[$sink]) {
-        context[$sink] = context.createGain();
-        context[$sink].gain.value = 0;
-        context[$sink].gain.setValueAtTime(0, 0);
-        context[$sink].connect(context.destination);
-    }
-
-    return context[$sink]
 }

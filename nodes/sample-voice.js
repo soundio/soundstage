@@ -141,7 +141,7 @@ define(SampleVoice.prototype, {
 
 assign(SampleVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 	reset: function(context, settings) {
-        PlayNode.prototype.reset.apply(this);
+        PlayNode.reset(this);
         assignSettingz__(this, assign({}, defaults, settings));
         return this;
 	},

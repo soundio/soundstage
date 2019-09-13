@@ -84,7 +84,7 @@ console.log('OPTIONS', options);
         const privates = Privates(this);
 
         // Initialise .startTime, .stopTime and .playing
-        PlayNode.prototype.reset.apply(this, arguments);
+        PlayNode.reset(this, arguments);
 
         // Discard the old source node
         privates.source && privates.source.disconnect();

@@ -224,7 +224,7 @@ define(ToneVoice.prototype, {
 
 assign(ToneVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 	reset: function(context, settings) {
-        PlayNode.prototype.reset.apply(this, arguments);
+        PlayNode.reset(this, arguments);
         assignSettingz__(this, assign({}, defaults, settings), ['context']);
         return this;
     },

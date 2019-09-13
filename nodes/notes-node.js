@@ -16,6 +16,7 @@ export const config = {
 
 const graph = {
 	nodes: [
+        { id: 'sink',       type: 'sink' },
 		{ id: 'expression', type: 'constant', data: { offset: 0 } },
 		{ id: 'pitch',      type: 'constant', data: { offset: 0 } },
 		{ id: 'detune',     type: 'gain',     data: { gain: 100 } },
@@ -30,7 +31,11 @@ const graph = {
 	],
 
 	connections: [
-		{ source: 'pitch', target: 'detune' }
+		{ source: 'pitch',      target: 'detune' },
+        { source: 'expression', target: 'sink' },
+        { source: 'pitch',      target: 'sink' },
+        { source: 'frequency',  target: 'sink' },
+        { source: 'Q',          target: 'sink' }
 	]
 };
 
@@ -83,23 +88,11 @@ export default function NotesNode(context, settings, Voice, setup) {
 		}
 	});
 
-	// Get sink fromn context. The sink is a gain with a value of 0. We use
-	// it to conect things to just to make them automatable.
-	const sink       = getSink(context);
 	const expression = this.get('expression');
 	const pitch      = this.get('pitch');
 	const frequency  = this.get('frequency');
 	const q          = this.get('Q');
 	const output     = this.get('output');
-
-	// Params are not attached to anything by default - they wait
-	// to be attached to voices. You can't automate them until they have
-	// a route to context.destination. That's just the way things work.
-	// Attach them to sink to get them nice and active.
-	expression.connect(sink);
-	pitch.connect(sink);
-	frequency.connect(sink);
-	q.connect(sink);
 
 	// Start them
 	expression.start();

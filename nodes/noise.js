@@ -152,7 +152,7 @@ define(Noise.prototype, {
 
 assign(Noise.prototype, NodeGraph.prototype, PlayNode.prototype, {
     reset: function(context, options) {
-        PlayNode.prototype.reset.apply(this, arguments);
+        PlayNode.reset(this, arguments);
 		// Here type is assigned and the buffer is filled with noise
         assignSettingz__(this, assign({}, defaults, options));
     },

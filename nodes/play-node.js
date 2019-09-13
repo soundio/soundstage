@@ -52,12 +52,13 @@ export default function PlayNode() {
     if (DEBUG) { logGroupEnd(); }
 }
 
-assign(PlayNode.prototype, {
-    reset: function() {
-        this.startTime = undefined;
-        this.stopTime  = undefined;
-    },
+PlayNode.reset = function(node) {
+    node.startTime = undefined;
+    node.stopTime  = undefined;
+    return node;
+};
 
+assign(PlayNode.prototype, {
     start: function(time) {
         if (DEBUG && this.startTime !== undefined) {
             throw new Error('Attempt to start a node that is already started');
