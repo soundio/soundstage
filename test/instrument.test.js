@@ -3,7 +3,11 @@ import Soundstage from '../module.js';
 
 test('Instrument', function(run, print, fixture) {
     run('Instrument', function(equals, done) {
-        const stage = new Soundstage();
+        const stage = new Soundstage({
+            nodes: [
+                { id: 'output', type: 'output' }
+            ]
+        });
 
         stage
         .create('instrument', {
@@ -57,9 +61,13 @@ test('Instrument', function(run, print, fixture) {
             output: 'gain'
         })
         .then(function(node) {
+            stage.createConnection(node, 'output');
+
             node
             .start(stage.time + 0.1, 'C3', 0.5)
             .stop(stage.time + 0.2);
         });
+
+        window.stage = stage;
     }, 0);
 });

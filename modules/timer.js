@@ -1,18 +1,14 @@
 
-import { logGroup, logGroupEnd } from './utilities/print.js';
 import { remove } from '../../fn/module.js';
-import globalConfig from './config.js';
+import config from './config.js';
 
-const DEBUG          = true;
-const assign         = Object.assign;
-const defineProperty = Object.defineProperty;
+const worker = new Worker(config.basePath + 'modules/timer.worker.js');
+const assign = Object.assign;
 
-export const config = {
+export const defaults = {
 	lookahead: 0.12,
     duration:  0.24
 };
-
-const worker = new Worker('/static/soundstage/modules/timer.worker.js');
 
 const startMessage = {
     command: 'start'
@@ -22,8 +18,9 @@ const stopMessage = {
     command: 'stop'
 };
 
+const timers = [];
+
 let active = false;
-let timers = [];
 
 function stop() {
     worker.postMessage(stopMessage);
@@ -42,7 +39,7 @@ worker.onmessage = function frame(e) {
     }
 };
 
-export default function Timer(now, duration = config.duration, lookahead = config.lookahead) {
+export default function Timer(now, duration = defaults.duration, lookahead = defaults.lookahead) {
 	this.now         = now;
     this.requests    = [];
     this.buffer      = [];
@@ -61,7 +58,7 @@ assign(Timer.prototype, {
 
         let request;
 
-        while (request = currentRequests.shift()) {
+        while ((request = currentRequests.shift())) {
             request(this.currentTime);
         }
 

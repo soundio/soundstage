@@ -69,16 +69,6 @@
 
 <span class="token comment">// Listen to incoming 'noteon' and 'noteoff' messages on channel 1</span>
 <span class="token constant">MIDI</span><span class="token punctuation">.</span><span class="token function">on</span><span class="token punctuation">(</span><span class="token punctuation">{</span>channel<span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span> type<span class="token punctuation">:</span> <span class="token string">'note'</span><span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">(</span>e<span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
-    <span class="token comment">// Time, port and message are properties of the DOM event</span>
-    <span class="token keyword">const</span> time    <span class="token operator">=</span> e<span class="token punctuation">.</span>timeStamp<span class="token punctuation">;</span>
-    <span class="token keyword">const</span> port    <span class="token operator">=</span> e<span class="token punctuation">.</span>target<span class="token punctuation">;</span>
-    <span class="token keyword">const</span> message <span class="token operator">=</span> e<span class="token punctuation">.</span>data<span class="token punctuation">;</span>
-
-    <span class="token comment">// Get the note name</span>
-    <span class="token keyword">const</span> name <span class="token operator">=</span> <span class="token constant">MIDI</span><span class="token punctuation">.</span><span class="token function">toNoteName</span><span class="token punctuation">(</span>message<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-
-    <span class="token comment">// Normalise velocity to the range 0-1</span>
-    <span class="token keyword">const</span> velocity <span class="token operator">=</span> <span class="token constant">MIDI</span><span class="token punctuation">.</span><span class="token function">int7ToFloat</span><span class="token punctuation">(</span>message<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 

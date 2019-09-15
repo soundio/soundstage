@@ -116,17 +116,17 @@ export default class Instrument extends GainNode {
 assign(Instrument.prototype, NodeGraph.prototype, {
     start: function(time, note, velocity = 1) {
         if (!note) {
-			throw new Error('Attempt to .start() a note without passing a note value.')
-		}
+            throw new Error('Attempt to .start() a note without passing a note value.')
+        }
 
-		const privates = Privates(this);
+        const privates = Privates(this);
 
-		// Use this as the settings object
-		// Todo: is this wise? Dont we want the settings object?
-		return privates.voices
+        // Use this as the settings object
+        // Todo: is this wise? Dont we want the settings object?
+        return privates.voices
         .create(this.context, this.voice)
         .start(time, note, velocity);
-	},
+    },
 
 	stop: function(time, note, velocity = 1) {
 		const privates = Privates(this);

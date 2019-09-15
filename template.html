@@ -25,7 +25,6 @@
     <link rel="stylesheet" href="../fn/css/docs.css" />
     <link rel="stylesheet" href="../fn/css/tests.css" />
     <link rel="stylesheet" href="css/theme.css" />
-	<link rel="stylesheet" href="components/midi-graph/midi-graph.css" />
 
     <template id="functions">
         <article build-fn="each append:body" class="toggle-block block" toggleable id="{[id]}">
@@ -106,7 +105,7 @@ import Soundstage from 'http://stephen.band/soundstage/soundstage.js';</code></p
 
         <h2 class="text-3 grid-1">Soundstage()</h2>
 
-        <!--section class="grid-2">
+        <section class="grid-2">
             <h3 class="text-4">Properties</h3>
             <article template-fn="docs:'./modules/sequence.js?name','./modules/soundstage.js','./modules/graph.js?plugins,connections','./modules/sequence.js?events,sequences' each append:body" class="toggle-block block" toggleable id="{[id]}">
                 <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
@@ -115,7 +114,7 @@ import Soundstage from 'http://stephen.band/soundstage/soundstage.js';</code></p
                     </a>
                 </h3>
             </article>
-        </section-->
+        </section>
 
         <section class="grid-3">
             <h3 class="text-4">Methods</h3>
@@ -147,8 +146,6 @@ export default class Sample extends GainNode {
 
         const privates = Privates(this);
 
-        this.reset(context, options);
-
         if (!this.buffer && typeof this.path === 'string') {
             privates.request = requestBuffer(context, this.path)
             .then((buffer) => {
@@ -169,42 +166,13 @@ export default class Sample extends GainNode {
     <script build-remove type="module" src="../fn/docs-build.js"></script>
 
     <!-- Document interactivity -->
-    <script type="module" src="./components/midi-graph/midi-graph.js"></script>
-    <script type="module" src="./components/midi-monitor/midi-monitor.js"></script>
     <script type="module">
     import '../dom/js/dom.root.js';
     import '../dom/js/dom.toggleable.js';
-    import * as MIDI from './module.js';
-    window.MIDI = MIDI;
-
-    import { classes, get } from '../dom/module.js';
-
-    MIDI
-    .request()
-    .catch(function() {
-        get('support-hint').innerHTML = 'This browser does not support MIDI.';
-    });
-
-    setTimeout(function() {
-        var cls = classes(get('instrument-hint'));
-        cls.add('active');
-
-        MIDI.on([], function removeHint(e) {
-            // Test events have no port, and we want to ignore them
-            if (!e.target || !e.target.onmidimessage) { return; }
-
-            MIDI.off([], removeHint);
-            cls.remove('active');
-        });
-    }, 2000);
     </script>
 
     <!-- Tests -->
     <script type="module">
-    import './test/maths.js';
-    import './test/data.js';
-    import './test/messages.js';
-    import './test/events.js';
-    import './test/midi.js';
+    import './test/instrument.test.js';
     </script>
 </body>

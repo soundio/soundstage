@@ -156,7 +156,7 @@ const properties = {
 function Voice(context, data) {
     const settings = data || defaults;
     const privates = Privates(this);
-console.trace('SET', settings);
+
     // Set up the node graph
 	NodeGraph.call(this, context, settings);
 

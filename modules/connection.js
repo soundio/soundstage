@@ -1,33 +1,36 @@
 
 import { Privates, remove }              from '../../fn/module.js';
 import { connect, disconnect } from './connect.js';
-import { print }               from './utilities/print.js';
 
 const assign = Object.assign;
+const define = Object.defineProperties;
 const seal   = Object.seal;
 
 export default function Connection(graph, sourceId, targetId, sourceChan, targetChan) {
 
     // Get source node
     //const sourceParts = sourceId.split('.');
-    const sourceObject = graph.get(sourceId);
-    const sourceNode   = sourceObject ;
+    const sourceNode = typeof sourceId === 'object' ?
+        graph.nodes.find((entry) => entry === sourceId || entry.data === sourceId).data :
+        graph.get(sourceId) ;
 
     // Get target node or param
     //const targetParts = targetId.split('.');
-    const targetObject = graph.get(targetId);
-    const targetNode   = targetObject ;
+    const targetNode = typeof targetId === 'object' ?
+        graph.nodes.find((entry) => entry === targetId || entry.data === targetId).data :
+        graph.get(targetId) ;
 
     const targetParam  = targetChan
         && !/^\d/.test(targetChan)
         && targetNode[targetChan] ;
 
     // Define properties
-    this.graph    = graph;
-    this.source   = sourceObject ;
-    this.target   = targetObject ;
-    this.sourceId = sourceId;
-    this.targetId = targetId;
+    define(this, {
+        graph: { value: graph }
+    });
+
+    this.source   = sourceNode ;
+    this.target   = targetNode ;
     this.targetParam = targetParam;
 
     if (sourceChan || targetChan) {
@@ -62,8 +65,8 @@ assign(Connection.prototype, {
 
     toJSON: function() {
         return {
-            source: this.sourceId,
-            target: this.targetId,
+            source: this.graph.nodes.find((entry) => entry.data === this.source).id,
+            target: this.graph.nodes.find((entry) => entry.data === this.target).id,
             data:   this.data
         }
     }
