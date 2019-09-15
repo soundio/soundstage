@@ -23,7 +23,6 @@
     <link rel="stylesheet" href="../fn/css/docs.css">
     <link rel="stylesheet" href="../fn/css/tests.css">
     <link rel="stylesheet" href="css/theme.css">
-	<link rel="stylesheet" href="components/midi-graph/midi-graph.css">
 
     <template id="functions">
         <article build-fn="each append:body" class="toggle-block block" toggleable="" id="{[id]}">
@@ -217,43 +216,14 @@ seconds relative to window.performance.now().</p>
 
 
     <!-- Document interactivity -->
-    <script type="module" src="./components/midi-graph/midi-graph.js"></script>
-    <script type="module" src="./components/midi-monitor/midi-monitor.js"></script>
     <script type="module">
     import '../dom/js/dom.root.js';
     import '../dom/js/dom.toggleable.js';
-    import * as MIDI from './module.js';
-    window.MIDI = MIDI;
-
-    import { classes, get } from '../dom/module.js';
-
-    MIDI
-    .request()
-    .catch(function() {
-        get('support-hint').innerHTML = 'This browser does not support MIDI.';
-    });
-
-    setTimeout(function() {
-        var cls = classes(get('instrument-hint'));
-        cls.add('active');
-
-        MIDI.on([], function removeHint(e) {
-            // Test events have no port, and we want to ignore them
-            if (!e.target || !e.target.onmidimessage) { return; }
-
-            MIDI.off([], removeHint);
-            cls.remove('active');
-        });
-    }, 2000);
     </script>
 
     <!-- Tests -->
     <script type="module">
-    import './test/maths.js';
-    import './test/data.js';
-    import './test/messages.js';
-    import './test/events.js';
-    import './test/midi.js';
+    import './test/instrument.test.js';
     </script>
 
 </body></html>

@@ -3,13 +3,16 @@
 // or force node-graph to work with promises... I don't think so. Load em for
 // the moment.
 
-import Meter    from '../nodes/meter.js';
-import EQ       from '../nodes/eq.js';
-import Mix      from '../nodes/mix.js';
-import Envelope from '../nodes/envelope.js';
-import Tick     from '../nodes/tick.js';
-import Recorder from '../nodes/recorder.js';
-import Sink     from '../nodes/sink.js';
+import Meter      from '../nodes/meter.js';
+import EQ         from '../nodes/eq.js';
+import Mix        from '../nodes/mix.js';
+import Envelope   from '../nodes/envelope.js';
+import Tick       from '../nodes/tick.js';
+import Recorder   from '../nodes/recorder.js';
+import Sink       from '../nodes/sink.js';
+import Tone       from '../nodes/tone.js';
+import Noise      from '../nodes/noise.js';
+import Instrument from '../nodes/instrument.js';
 
 export default {
     // https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/AnalyserNode
@@ -60,5 +63,11 @@ export default {
     // ../nodes/recorder.js
     'recorder': Recorder,
     // ../nodes/sink.js
-    'sink': Sink
+    'sink': Sink,
+    // ../nodes/instrument.js
+    'instrument': Instrument,
+    // ../nodes/tone.js
+    'tone': Tone,
+    // ../nodes/noise.js
+    'noise': Noise
 };

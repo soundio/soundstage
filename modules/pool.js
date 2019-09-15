@@ -12,7 +12,7 @@ export default function Pool(constructor, isIdle, setup) {
         if (object) {
             // Support reset() in the instance
             return object.reset ?
-                object.reset.apply(object, arguments) :
+                (console.warn('Pool reset fn should be stored on the constructor', constructor, object), object.reset.apply(object, arguments)) :
             // Support reset() on the constructor
             constructor.reset ?
                 constructor.reset(object, arguments) :

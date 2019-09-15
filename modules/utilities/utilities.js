@@ -13,7 +13,6 @@ export function createId(objects) {
 }
 
 export const generateUnique = function(values) {
-console.log('VALUES', values);
     var value  = -1;
     while (values.indexOf(++value + '') !== -1);
     return value + '';

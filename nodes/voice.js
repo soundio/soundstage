@@ -1,7 +1,5 @@
-import { nothing, Privates, denormalise } from '../../fn/module.js';
-import Tone from './tone.js';
-import Noise from './noise.js';
-import NodeGraph   from './node-graph.js';
+import { Privates, denormalise } from '../../fn/module.js';
+import NodeGraph from './node-graph.js';
 import PlayNode from './play-node.js';
 import { automate, getAutomation, getAutomationEndTime } from '../modules/automate.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
@@ -13,12 +11,6 @@ const assign = Object.assign;
 const define = Object.defineProperties;
 const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 const frequencyC4 = floatToFrequency(440, 60);
-
-// Make sure Tone and Noise are in constructors
-assign(constructors, {
-    'tone':  Tone,
-    'noise': Noise
-});
 
 export const defaults = {
 	nodes: [{
@@ -101,8 +93,8 @@ export const defaults = {
             }
         }
     }, {
-        id:   'output',
-        type: 'filter',
+        id:   'filter',
+        type: 'biquad-filter',
         node: {
             type:      'lowpass',
             frequency: 256,
@@ -110,7 +102,7 @@ export const defaults = {
         },
         filter: {
             velocity: {
-                frequency: {}
+                frequency: {},
                 Q: {}
             },
 
@@ -161,16 +153,20 @@ const properties = {
 };
 
 
-function Voice(context, settings) {
-
+function Voice(context, data) {
+    const settings = data || defaults;
+    const privates = Privates(this);
+console.trace('SET', settings);
     // Set up the node graph
-	NodeGraph.call(this, context, settings || defaults);
+	NodeGraph.call(this, context, settings);
 
 	// Define .startTime and .stopTime
 	PlayNode.call(this, context);
 
 	// Properties
 	define(this, properties);
+
+    privates.__start = settings.__start;
 
     // Create detune
     const detune = createNode(context, 'constant', {
@@ -180,17 +176,17 @@ function Voice(context, settings) {
     this.detune = detune.offset;
 
     // Connect detune to all detuneable nodes
-    this.nodes.reduce((detune, node) => {
-        if (node.detune) {
-            detune.connect(node.detune);
-        }
-        return detune;
-    }, detune);
+    //this.nodes.reduce((detune, node) => {
+    //    if (node.detune) {
+    //        detune.connect(node.detune);
+    //    }
+    //    return detune;
+    //}, detune);
 
 	// Start constant
 	detune.start(context.currentTime);
 
-    this.reset(context, settings || defaults);
+    Voice.reset(this, arguments);
 }
 
 // Support pooling via reset function on the constructor
@@ -200,10 +196,10 @@ Voice.reset = function(voice, params) {
     const context = params[0];
     const graph   = params[1];
 
-    voice.nodes.reduce((entry) => {
-        const data = graph.nodes.find((data) => data.id === entry.id);
-        assignSettingz__(entry.node, data, ['context']);
-    });
+    //voice.nodes.reduce((entry) => {
+    //    const data = graph.nodes.find((data) => data.id === entry.id);
+    //    assignSettingz__(entry.node, data, ['context']);
+    //});
 
     return voice;
 };
@@ -214,90 +210,76 @@ define(Voice.prototype, {
 });
 
 assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
-	start: function(time, note = 49, velocity = 1) {
-		PlayNode.prototype.start.apply(this, arguments);
+    start: function(time, note = 49, velocity = 1) {
+        PlayNode.prototype.start.apply(this, arguments);
+
+        const privates = Privates(this);
 
         // Frequency of note
-		const frequency = floatToFrequency(440, note);
+        const frequency = floatToFrequency(440, note);
 
-		// Frequency relative to C4, middle C
-		const frequencyRatio = frequency / frequencyC4;
+        // Frequency relative to C4, middle C
+        const frequencyRatio = frequency / frequencyC4;
 
-		let n = this.nodes.length;
-        let entry, gain;
+        // Cycle through start routes
+        let n = privates.__start.length;
+        while (n--) {
+            const entry  = privates.__start[n];
+            const target = this.get(entry.target);
+            const data   = [];
 
-		while (n--) {
-            const entry = this.nodes[n];
+            // Cycle through frequency/gain transforms
+            let m = entry.__params.length;
+            while (m--) {
+                const transform = entry.__params[m];
+                data[m]
+                    = Math.pow(frequencyRatio, transform[0].scale)
+                    + denormalise('logarithmic', transform[1].min, transform[1].max, velocity);
+            }
 
-            if (!entry.node.start) { continue; }
+            // Todo: should we move frequency and gain OUT of the start method?
+            // Its not clear to me they deserve to be there.
+            // time, frequency, gain
+            target.start(this.startTime, data[0], data[1]);
+        }
 
-            const gain = entry.data ?
-                (entry.data.note ?
-                    Math.pow(frequencyRatio, entry.data.note.gain.scale) :
-                    0) +
-                (entry.data.velocity ?
-                    denormalise('logarithmic', entry.data.velocity.gain.min, entry.data.velocity.gain.max, velocity) :
-                    1) :
-            1 ;
+        return this;
+    },
 
-            const rate = entry.data ?
-                (entry.data.note ?
-                    Math.pow(frequencyRatio, entry.data.note.rate.scale) :
-                    0) +
-                (entry.data.velocity ?
-                    denormalise('logarithmic', entry.data.velocity.rate.min, entry.data.velocity.rate.max, velocity) :
-                    1) :
-            1 ;
+    stop: function(time, note = 49, velocity = 1) {
+        PlayNode.prototype.stop.apply(this, arguments);
 
-			entry.node.start(this.startTime, frequency, gain, rate);
-		}
-
-		return this;
-	},
-
-	stop: function(time, note = 49, velocity = 1) {
-		PlayNode.prototype.stop.apply(this, arguments);
-
+        const privates = Privates(this);
         const stopTime = this.stopTime;
 
-        let n = this.nodes.length;
+        // Cycle through start routes
+        let n = privates.__start.length;
+        while (n--) {
+            const entry  = privates.__start[n];
+            const target = this.get(entry.target);
 
-		while (n--) {
-            const entry = this.nodes[n];
-
-            if (!entry.node.start) { continue; }
-
-            const gain = entry.data ?
-                (entry.data.velocity ?
-                    denormalise('logarithmic', entry.data.velocity.gain.min, entry.data.velocity.gain.max, velocity) :
-                    1) :
-            1 ;
-
-            const rate = entry.data ?
-                (entry.data.velocity ?
-                    denormalise('logarithmic', entry.data.velocity.rate.min, entry.data.velocity.rate.max, velocity) :
-                    1) :
-            1 ;
-
-			entry.node.stop(stopTime, null, gain, rate);
+            // Todo: should we move frequency and gain OUT of the start method?
+            // Its not clear to me they deserve to be there.
+            // time, frequency, gain
+            target.stop(stopTime);
 
             // Prevent filter feedback from ringing past note end
-    		//this.Q.setValueAtTime(this.stopTime, 0);
+            //this.Q.setValueAtTime(this.stopTime, 0);
 
             // Advance .stopTime to include release tail... TODO inside envelope?
             //
-    		//this.stopTime += Math.max(
-    		//	getAutomationEndTime(this.gainEnvelope.release),
-    		//	getAutomationEndTime(this.frequencyEnvelope.release)
-    		//);
+            //this.stopTime += Math.max(
+            //	getAutomationEndTime(this.gainEnvelope.release),
+            //	getAutomationEndTime(this.frequencyEnvelope.release)
+            //);
 
-            this.stopTime = entry.node.stopTime > this.stopTime ?
-                entry.node.stopTime :
+            this.stopTime = target.stopTime > this.stopTime ?
+                target.stopTime :
                 this.stopTime ;
-		}
+        }
 
-		return this;
-	}
+        return this;
+    }
 });
 
 export default Voice;

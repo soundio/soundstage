@@ -58,20 +58,20 @@ var defaults = assign({
 const properties = {};
 
 function isIdle(node) {
-	return node.startTime !== undefined && node.context.currentTime > node.stopTime;
+    return node.startTime !== undefined && node.context.currentTime > node.stopTime;
 }
 
 export default class Instrument extends GainNode {
-	constructor(context, settings, stage) {
-		if (DEBUG) { logGroup(new.target === Instrument ? 'Node' : 'mixin ', 'Instrument'); }
+    constructor(context, settings, stage) {
+        if (DEBUG) { logGroup(new.target === Instrument ? 'Node' : 'mixin ', 'Instrument'); }
 
-		// Init gain node
+        // Init gain node
         super(context, settings);
 
         // NodeGraph provides the properties and methods:
         //
-        // .context
         // .connections
+        // .context
         // .nodes
         // .connect(node, outputChannel, inputChannel)
         // .disconnect(node, outputChannel, inputChannel)
@@ -84,6 +84,7 @@ export default class Instrument extends GainNode {
 
         // Properties
         define(this, properties);
+        this.voice = settings.voice;
 
         // Start constants
         this.get('pitch').start();
@@ -91,16 +92,24 @@ export default class Instrument extends GainNode {
 
         // Voice pool
         privates.voices = new Pool(Voice, isIdle, (voice) => {
-            // Detune comes from pitch
-			connect(this.get('detune'), voice.get('detune').offset);
-			connect(voice, this.get('output'));
-		});
+            // If voice has a detune property connect to it pronto
+            if (voice.detune && voice.detune.setValueAtTime) {
+                connect(this.get('detune'), voice.detune);
+            }
 
-		// Update settings
-		assignSettingz__(this, defaults);
+            // If voice has a modulation property connect to it pronto
+            if (voice.modulation && voice.modulation.setValueAtTime) {
+                connect(this.get('modulation'), voice.modulation);
+            }
 
-		if (DEBUG) { logGroupEnd(); }
-	}
+            connect(voice, this.get('output'));
+        });
+
+        // Update settings
+        assignSettingz__(this, defaults);
+
+        if (DEBUG) { logGroupEnd(); }
+    }
 }
 
 // Mix AudioObject prototype into MyObject prototype
