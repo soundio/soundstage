@@ -61,7 +61,7 @@ function createConnection(nodes, data) {
     const srcLast = srcPath[srcPath.length - 1];
     let srcChan;
 
-    if (/^\d+$/.test(srcLast)) {
+    if (srcPath.length > 1 && /^\d+$/.test(srcLast)) {
         srcChan = parseInt(srcLast, 10);
         srcPath.length--;
     }

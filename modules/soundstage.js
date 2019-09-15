@@ -114,6 +114,7 @@ export default function Soundstage(data = defaultData, settings = nothing) {
 
     rateNode.start(0);
 
+
     // Privates
 
     const privates = Privates(this);
@@ -178,7 +179,7 @@ export default function Soundstage(data = defaultData, settings = nothing) {
     //
     // controls:   array-like
 
-    this.ready(function graphReady(stage) {
+    this.__promise = this.ready(function graphReady(stage) {
         define(stage, {
             controls: {
                 enumerable: true,
@@ -205,6 +206,9 @@ export default function Soundstage(data = defaultData, settings = nothing) {
         notify(stage.nodes, '.');
         notify(stage.connections, '.');
         notify(stage, 'controls');
+    })
+    .then(function() {
+        return context.resume();
     });
 
 
@@ -243,6 +247,13 @@ export default function Soundstage(data = defaultData, settings = nothing) {
 
 define(Soundstage.prototype, {
     version: { value: 1 },
+
+    time: {
+        get: function() {
+            return this.context.getOutputTimestamp().contextTime;
+        }
+    },
+
     tempo:           getOwnPropertyDescriptor(Sequencer.prototype, 'tempo'),
     meter:           getOwnPropertyDescriptor(Sequencer.prototype, 'meter'),
     beat:            getOwnPropertyDescriptor(Sequencer.prototype, 'beat'),
@@ -314,7 +325,7 @@ assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
 
     connect: function(input, port, channel) {
         const outputs = Privates(this).outputs;
-        let output = typeof port === 'string' ? outputs[port] : outputs.default ;
+        const output = typeof port === 'string' ? outputs[port] : outputs.default ;
 
         if (!output) { throw new Error('Output "' + port + '" not found'); }
         connect(output, input, typeof port === 'string' ? 0 : port, channel);
@@ -324,7 +335,7 @@ assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
 
     disconnect: function(input, port) {
         const outputs = Privates(this).outputs;
-        let output = typeof port === 'string' ? outputs[port] : outputs.default ;
+        const output = typeof port === 'string' ? outputs[port] : outputs.default ;
 
         if (!port) { throw new Error('Output "' + port + '" not found'); }
         disconnect(output, input, typeof port === 'string' ? 0 : port, channel);

@@ -164,41 +164,6 @@ define(Transport.prototype, {
 		}
 	},
 
-/*
-	beat: {
-		get: function() {
-			var privates = Privates(this);
-			var stream   = privates.stream;
-			var status   = stream.status;
-
-			return stream && status !== 'waiting' && status !== 'done' ?
-				stream.beatAtTime(privates.audio.currentTime) :
-				privates.beat ;
-		},
-
-		set: function(beat) {
-			var sequencer = this;
-			var privates  = Privates(this);
-			var stream    = privates.stream;
-
-			if (stream && stream.status !== 'waiting') {
-				stream.on({
-					stop: function(stopTime) {
-						sequencer.start(stopTime, beat);
-					}
-				});
-
-				this.stop();
-				return;
-			}
-
-			privates.beat = beat;
-		},
-
-		// Make observable via get/set
-		configurable: true
-	},
-*/
 	tempo: {
 		get: function() {
 			return getValueAtTime(this.context.currentTime, this.rate.value) * 60;

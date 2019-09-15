@@ -3,7 +3,7 @@ import NodeGraph from './node-graph.js';
 import PlayNode from './play-node.js';
 import { automate, getAutomation, getAutomationEndTime } from '../modules/automate.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
-import { floatToFrequency, frequencyToFloat } from '../../midi/module.js';
+import { floatToFrequency, frequencyToFloat, toNoteNumber, toNoteName } from '../../midi/module.js';
 import constructors from '../modules/constructors.js';
 
 const DEBUG  = window.DEBUG;
@@ -215,8 +215,13 @@ assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 
         const privates = Privates(this);
 
+        // Note number
+        note = typeof note === 'string' ?
+            toNoteNumber(note) :
+            note ;
+
         // Frequency of note
-        const frequency = floatToFrequency(440, note);
+        const frequency = floatToFrequency(440, note) ;
 
         // Frequency relative to C4, middle C
         const frequencyRatio = frequency / frequencyC4;
@@ -229,16 +234,27 @@ assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
             const data   = [];
 
             // Cycle through frequency/gain transforms
-            let m = entry.__params.length;
-            while (m--) {
-                const transform = entry.__params[m];
+            let m = -1;
+            let transform;
+            while ((transform = entry.__params[++m])) {
+                // Todo: This is all a bit dodgy. Review.
                 data[m]
-                    = Math.pow(frequencyRatio, transform[0].scale)
-                    + denormalise('logarithmic', transform[1].min, transform[1].max, velocity);
+                    = (
+                        transform[0] ?
+                            Math.pow(frequencyRatio, transform[0].scale) :
+                            frequency
+                    )
+                    * (
+                        transform[1] ?
+                            denormalise('logarithmic', transform[1].min, transform[1].max, velocity) :
+                            1
+                    );
             }
 
             // Todo: should we move frequency and gain OUT of the start method?
-            // Its not clear to me they deserve to be there.
+            // Its not clear to me they deserve to be there. Why did I put them
+            // there? Because I was obsessed with receiving MIDI notes easily?
+            //
             // time, frequency, gain
             target.start(this.startTime, data[0], data[1]);
         }

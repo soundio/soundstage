@@ -6,17 +6,20 @@ test('Instrument', function(run, print, fixture) {
         const stage = new Soundstage({
             nodes: [
                 { id: 'output', type: 'output' }
-            ]
+            ],
+
+            connections: []
         });
 
-        stage
-        .create('instrument', {
+        stage.create('instrument', {
             voice: {
                 nodes: [{
                     id:   '0',
                     type: 'tone',
                     data: {
-                        type: 'square'
+                        type: 'square',
+                        pan: 0,
+                        mix: 1
                     }
                 }, {
                     id:   'gain',
@@ -40,6 +43,19 @@ test('Instrument', function(run, print, fixture) {
                     // Param transform matrix
                     __params: {
                         0: [
+                            null,
+                            null
+                        ],
+                        1: [
+                            { scale: 0 },
+                            { transform: 'logarithmic', min: 0.00390625, max: 0.5 }
+                        ]
+                    }
+                }/*, {
+                    target: '1',
+                    // Param transform matrix
+                    __params: {
+                        0: [
                             { scale: 0.2 },
                             { transform: 'logarithmic', min: 0.5, max: 2 }
                         ],
@@ -48,7 +64,7 @@ test('Instrument', function(run, print, fixture) {
                             { transform: 'logarithmic', min: 0.125, max: 1 }
                         ]
                     }
-                }],
+                }*/],
 
                 outputs: {
                     default: '0'
@@ -59,13 +75,42 @@ test('Instrument', function(run, print, fixture) {
             },
 
             output: 'gain'
-        })
-        .then(function(node) {
+        }).then(function(node) {
             stage.createConnection(node, 'output');
 
-            node
-            .start(stage.time + 0.1, 'C3', 0.5)
-            .stop(stage.time + 0.2);
+            stage.__promise.then(function() {
+                node
+                .start(stage.time + 0.6, 'C4', 0.01)
+                .stop(stage.time + 0.8);
+
+                node
+                .start(stage.time + 0.6, 'F4', 0.01)
+                .stop(stage.time + 0.8);
+
+                node
+                .start(stage.time + 1, 'C3', 0.5)
+                .stop(stage.time + 1.5);
+
+                node
+                .start(stage.time + 1.6, 'C3', 0.5)
+                .stop(stage.time + 1.9);
+
+                node
+                .start(stage.time + 1.9, 'D3', 0.5)
+                .stop(stage.time + 2.8);
+
+                node
+                .start(stage.time + 2.8, 'C3', 0.5)
+                .stop(stage.time + 3.7);
+
+                node
+                .start(stage.time + 3.7, 'F3', 0.5)
+                .stop(stage.time + 4.5);
+
+                node
+                .start(stage.time + 4.5, 'E3', 0.5)
+                .stop(stage.time + 5.4);
+            });
         });
 
         window.stage = stage;
