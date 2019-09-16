@@ -1,15 +1,14 @@
 
 import { get, overload } from '../../fn/module.js';
 import PlayNode from './play-node.js';
-import { automate, getAutomation } from '../modules/automate.js';
+import { automate, getValueAtTime } from '../modules/automate.js';
+import config from '../modules/config.js';
 
-const assign = Object.assign;
-const create = Object.create;
 const define = Object.defineProperties;
 const getDefinition = Object.getOwnPropertyDescriptor;
 
 // Time multiplier to wait before we accept target value has 'arrived'
-const decayFactor = 12;
+const targetDurationFactor = config.targetDurationFactor;
 
 const defaults = {
     attack: [
@@ -58,68 +57,46 @@ function cueAutomation(param, events, time, gain, rate) {
     }
 }
 
-
-function mock(param) {
-    param._setValueAtTime = param.setValueAtTime;
-    param._exponentialRampToValueAtTime = param.exponentialRampToValueAtTime;
-    param._linearRampToValueAtTime = param.linearRampToValueAtTime;
-    param._setTargetAtTime = param.setTargetAtTime;
-    param._cancelAndHoldAtTime = param.cancelAndHoldAtTime;
-
-    param.setValueAtTime = function(value, time) {
-        console.log(time.toFixed(3), 'step', value)
-        return param._setValueAtTime.apply(this, arguments);
-    };
-
-    param.exponentialRampToValueAtTime = function(value, time) {
-        console.log(time.toFixed(3), 'exponential', value)
-        return param._exponentialRampToValueAtTime.apply(this, arguments);
-    };
-
-    param.linearRampToValueAtTime = function(value, time) {
-        console.log(time.toFixed(3), 'linear', value)
-        return param._linearRampToValueAtTime.apply(this, arguments);
-    };
-
-    param.setTargetAtTime = function(value, time) {
-        console.log(time.toFixed(3), 'target', value)
-        return param._setTargetAtTime.apply(this, arguments);
-    };
-
-    param.cancelAndHoldAtTime = function(time) {
-        console.log(time.toFixed(3), 'hold')
-        return param._cancelAndHoldAtTime.apply(this, arguments);
-    };
-}
-
-
 export default class Envelope extends ConstantSourceNode {
     constructor(context, options) {
         super(context, constantOptions);
 
         super.start.call(this, context.currentTime);
-
         PlayNode.call(this, context);
 
         this.attack  = (options && options.attack)  || defaults.attack;
         this.release = (options && options.release) || defaults.release;
     }
 
-    start(time, name, gain = 1, rate = 1) {
-        // Envelopes may be 'start'ed multiple times with new named envelopes -
-        // We don't want PlayNode to error in this case.
-        this.startTime = undefined;
+    start(time, rate = 1, gain = 1) {
+        if (!this.attack) { return this; }
         PlayNode.prototype.start.apply(this, arguments);
-
-        if (this[name]) {
-            cueAutomation(this.offset, this[name], this.startTime, gain, rate, 'ConstantSource.offset');
-        }
-
+        cueAutomation(this.offset, this.attack, this.startTime, gain, rate, 'ConstantSource.offset');
         return this;
     }
 
     stop(time) {
-        return PlayNode.prototype.stop.apply(this, arguments);
+        if (!this.release) { return this; }
+
+        PlayNode.prototype.stop.apply(this, arguments);
+
+        // Use the current signal value as the start gain of the release
+        const gain = getValueAtTime(this.offset, this.stopTime);
+        cueAutomation(this.offset, this.release, this.stopTime, gain, 1, 'ConstantSource.offset');
+
+        // Update stopTime to include release tail
+        const last = this.release[this.release.length - 1];
+        if (last[2] !== 0) {
+            console.warn('Envelope.release does not end with value 0. Envelope will never stop.', this);
+            this.stopTime = Infinity;
+        }
+        else {
+            this.stopTime += last[1] === 'target' ?
+                last[0] + last[3] * targetDurationFactor :
+                last[0] ;
+        }
+
+        return this;
     }
 }
 

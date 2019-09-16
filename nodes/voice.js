@@ -226,10 +226,10 @@ assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
         // Frequency relative to C4, middle C
         const frequencyRatio = frequency / frequencyC4;
 
-        // Cycle through start routes
-        let n = privates.__start.length;
-        while (n--) {
-            const entry  = privates.__start[n];
+        // Cycle through data routes
+        let n = -1;
+        let entry;
+        while ((entry = privates.__start[++n])) {
             const target = this.get(entry.target);
             const data   = [];
 
@@ -265,33 +265,40 @@ assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
     stop: function(time, note = 49, velocity = 1) {
         PlayNode.prototype.stop.apply(this, arguments);
 
-        const privates = Privates(this);
         const stopTime = this.stopTime;
+        const privates = Privates(this);
 
-        // Cycle through start routes
-        let n = privates.__start.length;
-        while (n--) {
-            const entry  = privates.__start[n];
+        // Process stopTime in a node type order. Tone generators need to wait
+        // until envelopes have ended, so process Envelopes first to grab their
+        // stopTimes. It's a bit pants, this mechanism, but it'll do for now.
+        const second = [];
+        let n = -1;
+        let entry;
+        while ((entry = privates.__start[++n])) {
             const target = this.get(entry.target);
 
-            // Todo: should we move frequency and gain OUT of the start method?
-            // Its not clear to me they deserve to be there.
-            // time, frequency, gain
-            target.stop(stopTime);
+            // Process envelopes first
+            if (target.constructor.name !== 'Envelope') {
+                second.push(entry);
+                continue;
+            }
 
-            // Prevent filter feedback from ringing past note end
-            //this.Q.setValueAtTime(this.stopTime, 0);
+            target.stop(this.stopTime);
 
-            // Advance .stopTime to include release tail... TODO inside envelope?
-            //
-            //this.stopTime += Math.max(
-            //	getAutomationEndTime(this.gainEnvelope.release),
-            //	getAutomationEndTime(this.frequencyEnvelope.release)
-            //);
-
+            // Advance .stopTime if this node is going to stop later
             this.stopTime = target.stopTime > this.stopTime ?
                 target.stopTime :
                 this.stopTime ;
+        }
+
+        // Cycle through second priority, nodes that should continue until
+        // others have stopped
+        n = -1;
+        while ((entry = second[++n])) {
+            const target = this.get(entry.target);
+            target.stop(this.stopTime);
+            // Prevent filter feedback from ringing past note end
+            //this.Q.setValueAtTime(this.stopTime, 0);
         }
 
         return this;
