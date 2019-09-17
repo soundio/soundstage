@@ -1,7 +1,7 @@
 import { logGroup, logGroupEnd } from './print.js';
-import { Privates } from '../../fn/module.js';
+import { isDefined, Privates } from '../../fn/module.js';
 import Voice, { defaults as voiceDefaults } from './voice.js';
-import NodeGraph from './node-graph.js';
+import NodeGraph from './graph.js';
 import Pool from '../modules/pool.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
 import { connect, disconnect } from '../modules/connect.js';
@@ -15,31 +15,30 @@ export const config = {
 };
 
 const graph = {
-	nodes: [
+    nodes: [
         { id: 'sink',       type: 'sink' },
-		{ id: 'pitch',      type: 'constant', data: { offset: 0 } },
-		{ id: 'detune',     type: 'gain',     data: { gain: 100 } },
-		{ id: 'modulation', type: 'constant', data: { offset: 120 } },
-		{ id: 'output',     type: 'gain',     data: {
-			channelInterpretation: 'speakers',
-			channelCountMode: 'explicit',
-			channelCount: 2,
-			gain: 1
-		}}
-	],
+        { id: 'pitch',      type: 'constant', data: { offset: 0 } },
+        { id: 'detune',     type: 'gain',     data: { gain: 100 } },
+        { id: 'modulation', type: 'constant', data: { offset: 120 } },
+        { id: 'output',     type: 'gain',     data: {
+            channelInterpretation: 'speakers',
+            channelCountMode: 'explicit',
+            channelCount: 2,
+            gain: 1
+        }}
+    ],
 
-	connections: [
-        { source: 'pitch', target: 'detune' },
-
+    connections: [
         // Params are not attached to anything by default - they wait
         // to be attached to voices. You can't automate them until they have
         // a route to context.destination. That's just the way things work.
         // Attach them to sink to get them nice and active.
         { source: 'pitch',      target: 'sink' },
-        { source: 'modulation', target: 'sink' }
-	],
+        { source: 'modulation', target: 'sink' },
+        { source: 'pitch',      target: 'detune' }
+    ],
 
-    params: {
+    properties: {
         pitch:      'pitch.offset',
         modulation: 'modulation.offset',
         output:     'output.gain'
@@ -48,11 +47,11 @@ const graph = {
 
 // Declare some useful defaults
 var defaults = assign({
-	gain:       1,
-	pitch:      0,
-	modulation: 1,
-	output:     0.5,
-	voice:      voiceDefaults
+    gain:       1,
+    pitch:      0,
+    modulation: 1,
+    output:     0.5,
+    voice:      voiceDefaults
 });
 
 const properties = {};
@@ -128,41 +127,43 @@ assign(Instrument.prototype, NodeGraph.prototype, {
         .start(time, note, velocity);
     },
 
-	stop: function(time, note, velocity = 1) {
-		const privates = Privates(this);
+    stop: function(time, note, velocity = 1) {
+        const privates = Privates(this);
 
-		time = time || this.context.currentTime;
+        time = time || this.context.currentTime;
 
-		// Stop all notes
+        // Stop all notes
         if (!isDefined(note)) {
-			privates.voices.forEach((voice) => {
-				voice.stop(time, velocity);
-			});
+            privates.voices.forEach((voice) => {
+                voice.stop(time, velocity);
+            });
 
-			return this;
-		}
+            return this;
+        }
 
-        const voice = privates.voices.find((voice) => {
-			return voice.name === note && note.startTime !== undefined && note.stopTime === undefined;
-		});
+        const voice = privates.voices.find((voice) =>
+            voice.name === note
+            && note.startTime !== undefined
+            && (note.stopTime === undefined || note.stopTime > time)
+        );
 
-		if (voice) {
-			voice.stop(time, note, velocity);
-		}
+        if (voice) {
+            voice.stop(time, note, velocity);
+        }
 
-		return this;
-	},
+        return this;
+    },
 
     destroy: function() {
         // Privates
         const privates = Privates(this);
 
-		this.get('pitch').disconnect();
-		this.get('modulation').disconnect();
-		this.get('output').disconnect();
+        this.get('pitch').disconnect();
+        this.get('modulation').disconnect();
+        this.get('output').disconnect();
 
         privates.voices.forEach((node) => disconnect(node));
-	}
+    }
 });
 
 // Assign defaults

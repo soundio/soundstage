@@ -1,7 +1,7 @@
 import { nothing, Privates, denormalise } from '../../fn/module.js';
 import Tone from './tone.js';
 import Noise from './noise.js';
-import NodeGraph   from './node-graph.js';
+import NodeGraph   from './graph.js';
 import PlayNode from './play-node.js';
 import { automate, getAutomation, getAutomationEndTime } from '../modules/automate.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';

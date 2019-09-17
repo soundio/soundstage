@@ -1,5 +1,5 @@
 import { test } from '../../fn/module.js';
-import NodeGraph from './node-graph.js';
+import NodeGraph from './graph.js';
 import context from '../modules/context.js';
 
 test('NodeGraph', function(run, print, fixture) {

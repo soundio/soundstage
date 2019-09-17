@@ -26,7 +26,17 @@
     <link rel="stylesheet" href="../fn/css/tests.css" />
     <link rel="stylesheet" href="css/theme.css" />
 
-    <template id="functions">
+    <template id="function-template">
+        <article build-fn="each append:body" class="toggle-block block" toggleable id="{[id]}">
+            <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
+                <a href="#{[id]}">
+                    <code build-fn="append:title" class="language-js"></code>
+                </a>
+            </h3>
+        </article>
+    </template>
+
+    <template id="property-template">
         <article build-fn="each append:body" class="toggle-block block" toggleable id="{[id]}">
             <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
                 <a href="#{[id]}">
@@ -44,9 +54,6 @@
         <div class="grid-1">
             <p class="text-8">
                 {[description]}
-                <span id="support-hint" style="color: #bf004c;"></span>
-                Currently <a href="https://brave.com/">Brave</a> and Chrome support the <a href="https://caniuse.com/#feat=midi">WebMIDI API</a>.
-                Firefox have had it <a href="https://github.com/mozilla/standards-positions/issues/58">under consideration</a> for some time.
             </p>
 
             <ul class="link-index index">
@@ -107,7 +114,7 @@ import Soundstage from 'http://stephen.band/soundstage/soundstage.js';</code></p
 
         <section class="grid-2">
             <h3 class="text-4">Properties</h3>
-            <article template-fn="docs:'./modules/sequence.js?name','./modules/soundstage.js','./modules/graph.js?plugins,connections','./modules/sequence.js?events,sequences' each append:body" class="toggle-block block" toggleable id="{[id]}">
+            <article build-fn="docs:'./modules/sequence.js?name','./modules/soundstage.js','./modules/graph.js?plugins,connections','./modules/sequence.js?events,sequences' each append:body" class="toggle-block block" toggleable id="{[id]}">
                 <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
                     <a href="#{[id]}">
                         <code template-fn="html:title" class="language-js"></code>
@@ -118,9 +125,31 @@ import Soundstage from 'http://stephen.band/soundstage/soundstage.js';</code></p
 
         <section class="grid-3">
             <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./modules/graph.js?create,get','./modules/sequencer.js','./modules/location.js','./modules/meter.js','./modules/soundstage.js?timeAtDomTime'" build-include="#functions"></template>
+            <template build-fn="docs:'./modules/graph.js?create,get','./modules/sequencer.js','./modules/location.js','./modules/meter.js','./modules/soundstage.js?timeAtDomTime'" build-include="#function-template"></template>
         </section>
     </section>
+
+
+    <!-- Nodes -->
+
+    <section class="1-2-3-grid grid">
+        <header class="grid-0" build-fn="docs:'./nodes/graph.js?NodeGraph' each append:body">
+            <h2 class="text-2" style="font-size: 1.875rem;" build-fn="append:title"></h2>
+        </header>
+
+        <section class="grid-2">
+            <h3 class="text-4">Properties</h3>
+            <template build-fn="docs:'./nodes/graph.js?context,numberOfOutputs'" build-include="#property-template"></template>
+        </section>
+
+        <section class="grid-3">
+            <h3 class="text-4">Methods</h3>
+            <template build-fn="docs:'./nodes/graph.js?connect,disconnect,get'" build-include="#function-template"></template>
+        </section>
+    </section>
+
+
+    <!-- Custom nodes -->
 
     <section class="1-grid grid">
         <header class="grid-0">

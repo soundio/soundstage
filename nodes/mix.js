@@ -1,10 +1,22 @@
 
-import NodeGraph from './node-graph.js';
+import NodeGraph from './graph.js';
 
 const graph = {
-    nodes: [
-		{ id: 'pan', type: 'pan', data: { pan: 0 }},
-	],
+    nodes: [{
+        id: 'pan',
+        type: 'pan',
+        data: {
+            pan: 0
+        }
+    }],
+
+    connections: [
+        { source: 'this', target: 'pan' }
+    ],
+
+    properties: {
+        pan: 'pan.pan'
+    },
 
 	output: 'pan'
 };
@@ -16,15 +28,11 @@ export default class Mix extends GainNode {
 
         // Set up the node graph
         NodeGraph.call(this, context, graph);
-        this.pan = this.get('pan').pan;
-
-        // Connect gain (this) to pan
-        GainNode.prototype.connect.call(this, this.get('pan'));
     }
 
     // Inherit from NodeGraph. We don't seem able to do this with Object.assign
-    // to prototype. Another stupid limitation if class syntax. Who the hell
-    // thought this was a good idea?
+    // to prototype. Another stupid limitation of class syntax. Who the hell
+    // thought forcing class syntax on AudioNodes was a good idea?
 
     get() {
         return NodeGraph.prototype.get.apply(this, arguments);

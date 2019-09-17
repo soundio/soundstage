@@ -4,7 +4,7 @@ import { printGroup, printGroupEnd, log } from './print.js';
 import { Privates } from '../../fn/module.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
 import PlayNode  from './play-node.js';
-import NodeGraph from './node-graph.js';
+import NodeGraph from './graph.js';
 
 if (!NodeGraph.prototype.get) {
 	throw new Error('NodeGraph is not fully formed?')

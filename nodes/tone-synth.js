@@ -1,7 +1,7 @@
 import { log, logGroup, logGroupEnd } from './print.js';
 import ToneVoice, { defaults as voiceDefaults } from './tone-voice.js';
 import NotesNode from './notes-node.js';
-import NodeGraph from './node-graph.js';
+import NodeGraph from './graph.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
 import { connect, disconnect } from '../modules/connect.js';
 

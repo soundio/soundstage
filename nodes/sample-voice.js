@@ -2,7 +2,7 @@ import Sample from './sample.js';
 
 import { nothing } from '../../fn/module.js';
 import { Privates } from '../../fn/module.js';
-import NodeGraph   from './node-graph.js';
+import NodeGraph   from './graph.js';
 import PlayNode from './play-node.js';
 import { automate, getAutomation, getAutomationEndTime } from '../modules/automate.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';

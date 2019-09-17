@@ -14,15 +14,49 @@ test('Instrument', function(run, print, fixture) {
         stage.create('instrument', {
             voice: {
                 nodes: [{
-                    id:   '0',
+                    id:   'osc-1',
                     type: 'tone',
                     data: {
                         type: 'square',
-                        pan: 0,
-                        mix: 1
+                        detune: -1200
+                    }
+                }, {
+                    id:   'osc-2',
+                    type: 'tone',
+                    data: {
+                        type: 'sawtooth',
+                        detune: 1200
+                    }
+                }, {
+                    id:   'mix-1',
+                    type: 'mix',
+                    data: {
+                        gain: 0.7,
+                        pan: 0
+                    }
+                }, {
+                    id:   'mix-2',
+                    type: 'mix',
+                    data: {
+                        gain: 1,
+                        pan: 0
                     }
                 }, {
                     id:   'gain-envelope',
+                    type: 'envelope',
+                    data: {
+                        attack: [
+                            [0,     "step",   0],
+                            [0.012, "linear", 1],
+                            [0.3,   "exponential", 0.125]
+                        ],
+
+                        release: [
+                            [0, "target", 0, 0.1]
+                        ]
+                    }
+                }, {
+                    id:   'filter-envelope',
                     type: 'envelope',
                     data: {
                         attack: [
@@ -41,61 +75,71 @@ test('Instrument', function(run, print, fixture) {
                     data: {
                         gain: 0
                     }
+                }, {
+                    id:   'filter',
+                    type: 'biquad-filter',
+                    data: {
+                        type: 'lowpass',
+                        frequency: 120,
+                        Q: 9
+                    }
                 }],
 
                 connections: [
-                    { source: '0', target: 'gain' },
                     { source: 'gain-envelope', target: 'gain.gain' },
+                    { source: 'filter-envelope', target: 'filter.frequency' },
+                    { source: 'osc-1', target: 'mix-1' },
+                    { source: 'osc-2', target: 'mix-2' },
+                    { source: 'mix-1', target: 'gain' },
+                    { source: 'mix-2', target: 'gain' },
+                    { source: 'gain', target: 'filter' }
                 ],
 
                 properties: {
-                    frequency: 'filter.frequency'
+                    frequency: 'filter.frequency',
+                    Q: 'filter.Q',
+                    type: 'filter.type'
                 },
 
-                __start: [{
-                    target: 'gain-envelope',
-                    // Param transform matrix
-                    __params: {
-                        0: [
-                            { scale: 0 },
-                            null
-                        ],
-                        1: [
-                            { scale: 0 },
-                            { transform: 'logarithmic', min: 0.00390625, max: 1 }
-                        ]
-                    }
-                }, {
-                    target: '0',
-                    // Param transform matrix
-                    __params: {
-                        0: [
-                            null,
-                            null
-                        ],
-                        1: [
-                            { scale: 0 },
-                            { transform: 'logarithmic', min: 0.00390625, max: 1 }
-                        ]
-                    }
-                }],
+                __start: {
+                    'gain-envelope': {
+                        gain: {
+                            2: { type: 'logarithmic', min: 0.00390625, max: 1 }
+                        }
+                    },
 
-                outputs: {
-                    default: '0'
+                    'filter-envelope': {
+                        gain: {
+                            1: { type: 'scale', scale: 1 },
+                            2: { type: 'logarithmic', min: 200, max: 20000 }
+                        }
+                    },
+
+                    'osc-1': {
+                        frequency: {
+                            1: { type: 'none' }
+                        }
+                    },
+
+                    'osc-2': {
+                        frequency: {
+                            1: { type: 'none' }
+                        }
+                    }
                 },
 
                 // Can only be 'self' if voice is a node. It isn't.
-                output: 'gain'
+                output: 'filter'
             },
 
-            output: 'gain'
+            output: 1
         })
         .then(function(node) {
             stage.createConnection(node, 'output');
 
             stage.__promise.then(function() {
-                node
-                .start(stage.time + 1, 'C3', 0.666667)
+                window.voice = node
+                .start(stage.time + 1, 'C3', 0.333333)
                 .stop(stage.time + 1.5);
 
                 node
@@ -103,30 +147,30 @@ test('Instrument', function(run, print, fixture) {
                 .stop(stage.time + 1.9);
 
                 node
-                .start(stage.time + 1.9, 'D3', 0.666667)
+                .start(stage.time + 1.9, 'D3', 0.333333)
                 .stop(stage.time + 2.8);
 
                 node
-                .start(stage.time + 2.8, 'C3', 0.666667)
+                .start(stage.time + 2.8, 'C3', 0.1)
                 .stop(stage.time + 3.2);
 
                 node
-                .start(stage.time + 3.7, 'F3', 0.666667)
+                .start(stage.time + 3.7, 'F3', 1)
                 .stop(stage.time + 4.5);
 
                 node
-                .start(stage.time + 4.6, 'E3', 0.666667)
+                .start(stage.time + 4.6, 'E3', 0.5)
                 .stop(stage.time + 5.5);
 
                 setTimeout(function() {
                     node
-                    .start(stage.time + 1, 'C3', 0.666667)
+                    .start(stage.time + 1, 'C3', 0.0009765625)
                     .stop(stage.time + 1.5);
 
                     node
-                    .start(stage.time + 1.6, 'C3', 0.666667)
+                    .start(stage.time + 1.6, 'C3', 1)
                     .stop(stage.time + 1.9);
-                }, 4000);
+                }, 6000);
             });
         });
 

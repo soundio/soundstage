@@ -1,5 +1,5 @@
 
-import NodeGraph from './node-graph.js';
+import NodeGraph from './graph.js';
 import Chain from './chain.js';
 import { assignSettings } from '../modules/assign-settings.js';
 

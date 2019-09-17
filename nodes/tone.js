@@ -1,5 +1,5 @@
 
-import NodeGraph from './node-graph.js';
+import NodeGraph from './graph.js';
 import PlayNode from './play-node.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
 
@@ -8,27 +8,34 @@ const define = Object.defineProperties;
 const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
 const graph = {
-	nodes: [
+    nodes: [
         { id: 'osc',  type: 'oscillator', data: { type: 'sine', frequency: 440, detune: 0 }},
-        // Gain can disappear when used in the new Voice
-		{ id: 'gain', type: 'gain',       data: { gain: 0 }},
-		{ id: 'mix',  type: 'mix',        data: { gain: 1, pan: 0 }}
-	],
-
-	connections: [
-        { source: 'osc',  target: 'gain' },
-        { source: 'gain', target: 'mix' }
+        // Gain can disappear when used in the new Voice? No we need for start and stop.
+        { id: 'gain', type: 'gain',       data: { gain: 0 }},
+//        { id: 'mix',  type: 'mix',        data: { gain: 1, pan: 0 }}
     ],
 
-	output: 'mix'
+    connections: [
+        { source: 'osc',  target: 'gain' },
+//        { source: 'gain', target: 'mix' }
+    ],
+
+    properties: {
+        detune:    'osc.detune',
+        frequency: 'osc.frequency',
+//        mix:       'mix.gain',
+//        pan:       'mix.pan'
+    },
+
+    output: 'gain'
 };
 
 const defaults = {
     type:      'sine',
     frequency: 440,
     detune:    0,
-    mix:       1,
-    pan:       0
+//    mix:       1,
+//    pan:       0
 };
 
 const properties = {
@@ -46,7 +53,11 @@ const properties = {
 
 			return this.get('osc').type = value;
 		}
-	}
+	},
+
+    gain: {
+        value: 1
+    }
 };
 
 export default function Tone(context, options) {
@@ -59,33 +70,21 @@ export default function Tone(context, options) {
     // Define type
     define(this, properties);
 
-    // Define params
-    this.detune    = this.get('osc').detune;
-    this.frequency = this.get('osc').frequency;
-    this.mix       = this.get('mix').gain;
-    this.pan       = this.get('mix').pan;
-
 	// Set up
     this.get('osc').start(context.currentTime);
-    this.reset(context, options);
+    Tone.reset(this, arguments);
 }
 
-// Mix in property definitions
-define(Tone.prototype, {
-    playing: getOwnPropertyDescriptor(PlayNode.prototype, 'playing')
-});
+Tone.reset = function(node, args) {
+    const settings = args[1];
+    PlayNode.reset(node, args);
+    assignSettingz__(node, assign({}, defaults, settings));
+};
 
 assign(Tone.prototype, NodeGraph.prototype, PlayNode.prototype, {
-    reset: function(context, options) {
-        PlayNode.reset(this, arguments);
-        assignSettingz__(this, assign({}, defaults, options));
-    },
-
-    start: function(time, frequency = 440, gain = 1) {
+    start: function(time) {
         PlayNode.prototype.start.apply(this, arguments);
-		// If frequency is set in the past, it doesn't take
-        this.frequency.setValueAtTime(frequency, this.startTime < this.context.currentTime ? this.context.currentTime : this.startTime);
-        this.get('gain').gain.setValueAtTime(gain, this.startTime);
+        this.get('gain').gain.setValueAtTime(this.gain, this.startTime);
         return this;
     },
 
@@ -94,4 +93,9 @@ assign(Tone.prototype, NodeGraph.prototype, PlayNode.prototype, {
         this.get('gain').gain.setValueAtTime(0, this.stopTime);
         return this;
     }
+});
+
+// Mixin property definitions
+define(Tone.prototype, {
+    playing: getOwnPropertyDescriptor(PlayNode.prototype, 'playing')
 });

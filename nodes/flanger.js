@@ -1,5 +1,5 @@
 
-import NodeGraph from './node-graph.js';
+import NodeGraph from './graph.js';
 import { validateOscillatorType } from '../modules/validate.js';
 
 const assign = Object.assign;

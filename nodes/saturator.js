@@ -1,7 +1,7 @@
 
 import { log, logGroup, logGroupEnd } from './print.js';
 import { Privates } from '../../fn/module.js';
-import NodeGraph from './node-graph.js';
+import NodeGraph from './graph.js';
 import { connect, disconnect } from '../modules/connect.js';
 import { automate, getValueAtTime } from '../modules/automate.js';
 

@@ -1,5 +1,5 @@
 
-import { choose, id, last, overload } from '../../fn/module.js';
+import { choose, get, id, last, overload } from '../../fn/module.js';
 import { timeAtDomTime } from './context.js';
 import config from './config.js';
 
@@ -33,6 +33,27 @@ export function getAutomation(param) {
 
 
 // Automate audio param
+
+export const validateParamEvent = overload(get(1), {
+    "target": function(event) {
+        if (event[3] === undefined) {
+            throw new Error('Event "target" must have 2 parameters: [time, "target", value, duration]');
+        }
+    },
+
+    "hold": function(event) {
+        // ????
+        if (event[2] !== undefined) {
+            throw new Error('Event "hold" takes 0 parameters: [time, "hold"]');
+        }
+    },
+
+    default: function(event) {
+        if (event[2] === undefined) {
+            throw new Error('Event "' + event[1] + '" must have 1 parameter: [time, "' + event[1] + '", value]');
+        }
+    }
+});
 
 function holdFn(param, event) {
     // Cancel values
