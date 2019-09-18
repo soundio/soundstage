@@ -4,7 +4,6 @@ import { logGroup, logGroupEnd } from './print.js';
 import { Privates } from '../../fn/module.js';
 import NodeGraph from './graph.js';
 import Pool from '../modules/pool.js';
-import { getSink } from '../modules/context.js';
 
 const DEBUG = window.DEBUG;
 const assign = Object.assign;
