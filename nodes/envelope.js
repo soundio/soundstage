@@ -1,8 +1,7 @@
 
-import { get, overload } from '../../fn/module.js';
 import PlayNode from './play-node.js';
 import { automate, getValueAtTime, validateParamEvent } from '../modules/automate.js';
-import config from '../modules/config.js';
+import config from '../config.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
 
 const assign = Object.assign;

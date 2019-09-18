@@ -1,7 +1,7 @@
 
 import { choose, get, id, last, overload } from '../../fn/module.js';
 import { timeAtDomTime } from './context.js';
-import config from './config.js';
+import config from '../config.js';
 
 const DEBUG = false;
 

@@ -1,6 +1,6 @@
 
 import { remove } from '../../fn/module.js';
-import config from './config.js';
+import config from '../config.js';
 
 const worker = new Worker(config.basePath + 'modules/timer.worker.js');
 const assign = Object.assign;

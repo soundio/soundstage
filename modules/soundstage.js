@@ -16,7 +16,7 @@ import requestPlugin from './request-plugin.js';
 import Timer         from './timer.js';
 import Transport     from './transport.js';
 import Sequencer     from './sequencer.js';
-import config        from './config.js';
+import config        from '../config.js';
 
 const DEBUG        = window.DEBUG || false;
 const assign       = Object.assign;

@@ -56,7 +56,8 @@ const properties = {
 	},
 
     gain: {
-        value: 1
+        value:    1,
+        writable: true
     }
 };
 

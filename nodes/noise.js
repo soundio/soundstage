@@ -9,27 +9,75 @@ const assign = Object.assign;
 const define = Object.defineProperties;
 const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
+// Duration of noise to generate
 const bufferDuration = 4;
 
 const defaults = {
     type:      'white',
-    mix:       1,
-    pan:       0
+//    mix:       1,
+//    pan:       0
 };
 
 const graph = {
 	nodes: [
         { id: 'source', type: 'buffer-source', data: { detune: 0, loopStart: 0, loopEnd: bufferDuration, loop: true }},
-		{ id: 'gain',   type: 'gain',   data: { gain: 0 }},
-		{ id: 'mix',    type: 'mix',    data: { gain: 1, pan: 0 }}
+		{ id: 'gain',   type: 'gain',   data: { gain: 0 }}
+//		{ id: 'mix',    type: 'mix',    data: { gain: 1, pan: 0 }}
 	],
 
 	connections: [
         { source: 'source', target: 'gain' },
-        { source: 'gain',   target: 'mix' }
+//        { source: 'gain',   target: 'mix' }
     ],
 
-	output: 'mix'
+    properties: {
+//        mix:       'mix.gain',
+//        pan:       'mix.pan'
+    },
+
+	output: 'gain'
+};
+
+const properties = {
+    type: {
+		enumerable: true,
+
+		get: function() {
+			return Privates(this).type;
+		},
+
+		set: function(value) {
+			// If type is unrecognised, or has not changed, do nothing
+			if (!/white|pink|brown/.test(value) || this.type === value) {
+				return;
+			}
+
+			// Fill buffer with noise
+			// Todo: pink noise, brown noise, some clues about noise here:
+			// https://noisehack.com/generate-noise-web-audio-api/
+			const buffer = this.get('source').buffer;
+			let n = buffer.numberOfChannels;
+			while (n--) {
+				const channel = buffer.getChannelData(n);
+				generators[value](channel);
+			}
+
+			Privates(this).type = value;
+		}
+	},
+
+    gain: {
+        value:    1,
+        writable: true
+    },
+
+	channelCount: {
+		enumerable: true,
+
+		get: function() {
+			return this.get('source').buffer.numberOfChannels;
+		}
+	}
 };
 
 const generators = {
@@ -79,43 +127,6 @@ const generators = {
 	}
 };
 
-const properties = {
-    type: {
-		enumerable: true,
-
-		get: function() {
-			return Privates(this).type;
-		},
-
-		set: function(value) {
-			// If type is unrecognised, or has not changed, do nothing
-			if (!/white|pink|brown/.test(value) || this.type === value) {
-				return;
-			}
-
-			// Fill buffer with noise
-			// Todo: pink noise, brown noise, some clues about noise here:
-			// https://noisehack.com/generate-noise-web-audio-api/
-			const buffer = this.get('source').buffer;
-			let n = buffer.numberOfChannels;
-			while (n--) {
-				const channel = buffer.getChannelData(n);
-				generators[value](channel);
-			}
-
-			Privates(this).type = value;
-		}
-	},
-
-	channelCount: {
-		enumerable: true,
-
-		get: function() {
-			return this.get('source').buffer.numberOfChannels;
-		}
-	}
-};
-
 export default function Noise(context, options) {
     // Set up the node graph
     NodeGraph.call(this, context, graph);
@@ -137,8 +148,8 @@ export default function Noise(context, options) {
 	});
 
 	// Expose params
-    this.mix = this.get('mix').gain;
-    this.pan = this.get('mix').pan;
+//    this.mix = this.get('mix').gain;
+//    this.pan = this.get('mix').pan;
 
 	// Start playing
     source.start(context.currentTime);
@@ -157,10 +168,10 @@ assign(Noise.prototype, NodeGraph.prototype, PlayNode.prototype, {
         assignSettingz__(this, assign({}, defaults, options));
     },
 
-    start: function(time, frequency, gain = 0.25) {
+    start: function(time) {
 		// Frequency is unused
         PlayNode.prototype.start.apply(this, arguments);
-        this.get('gain').gain.setValueAtTime(gain, this.startTime);
+        this.get('gain').gain.setValueAtTime(this.gain, this.startTime);
         return this;
     },
 
