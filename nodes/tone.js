@@ -29,20 +29,17 @@ const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 const graph = {
     nodes: [
         { id: 'osc',  type: 'oscillator', data: { type: 'sine', frequency: 440, detune: 0 }},
-        // Gain can disappear when used in the new Voice? No we need for start and stop.
-        { id: 'gain', type: 'gain',       data: { gain: 0 }},
-//        { id: 'mix',  type: 'mix',        data: { gain: 1, pan: 0 }}
+        { id: 'gain', type: 'gain',       data: { gain: 0 }}
     ],
 
     connections: [
         { source: 'osc',  target: 'gain' },
-//        { source: 'gain', target: 'mix' }
     ],
 
     properties: {
         /*
         .type
-        A string. One of 'sine', 'square', 'sawtooth' or 'triangle'.
+        A string. One of `'sine'`, `'square'`, `'sawtooth'` or `'triangle'`.
         */
         type:      'osc.type',
 
