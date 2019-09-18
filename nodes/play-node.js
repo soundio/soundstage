@@ -12,10 +12,6 @@ And the methods:
 - `.start(time)`
 - `.stop(time)`
 
-And also, for internal use:
-
-- `.reset()`
-
 To mix PlayNode into your own object you must:
 
 1) call the PlayNode constructor inside your constructor with your object as context

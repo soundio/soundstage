@@ -1,4 +1,23 @@
 
+/*
+Tone(context, settings)
+
+```
+const tone = stage.create('tone', {
+    type: 'sine',      // String 'sine', 'square', 'sawtooth', 'triangle'
+    frequency: 440,    // Frequency in Hz
+    detune: 0,         // Deviation from frequency in cents
+    gain: 1            // A float nominally in the range 0-1
+});
+```
+
+A tone object is a simple wrapper for a standard oscillator node, but where an
+oscillator may only be started once, a tone can be started and stopped at will.
+
+It is unusual to create tones directly, but they are an essential component for
+defining voices for instruments.
+*/
+
 import NodeGraph from './graph.js';
 import PlayNode from './play-node.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
@@ -21,10 +40,23 @@ const graph = {
     ],
 
     properties: {
-        detune:    'osc.detune',
+        /*
+        .type
+        A string. One of 'sine', 'square', 'sawtooth' or 'triangle'.
+        */
+        type:      'osc.type',
+
+        /*
+        .frequency
+        An AudioParam representing frequency in Hz.
+        */
         frequency: 'osc.frequency',
-//        mix:       'mix.gain',
-//        pan:       'mix.pan'
+
+        /*
+        .detune
+        An AudioParam representing a deviation from frequency in cents.
+        */
+        detune:    'osc.detune'
     },
 
     output: 'gain'
@@ -33,27 +65,16 @@ const graph = {
 const defaults = {
     type:      'sine',
     frequency: 440,
-    detune:    0,
-//    mix:       1,
-//    pan:       0
+    detune:    0
 };
 
 const properties = {
-    type: {
-		enumerable: true,
-
-		get: function() {
-			return this.get('osc').type;
-		},
-
-		set: function(value) {
-			if (!/sine|square|sawtooth|triangle/.test(value)) {
-				return;
-			}
-
-			return this.get('osc').type = value;
-		}
-	},
+    /*
+    .gain
+    A float, nominally in the range `0–1`, that is read on calling `.start()`
+    to set the gain of the tone. Changes to `.gain` during playback have no
+    effect.
+    */
 
     gain: {
         value:    1,
@@ -83,11 +104,22 @@ Tone.reset = function(node, args) {
 };
 
 assign(Tone.prototype, NodeGraph.prototype, PlayNode.prototype, {
+
+    /*
+    .start(time)
+    Start the tone at `time`.
+    */
+
     start: function(time) {
         PlayNode.prototype.start.apply(this, arguments);
         this.get('gain').gain.setValueAtTime(this.gain, this.startTime);
         return this;
     },
+
+    /*
+    .stop(time)
+    Stop the tone at `time`.
+    */
 
     stop: function(time, frequency, gain) {
         PlayNode.prototype.stop.apply(this, arguments);
