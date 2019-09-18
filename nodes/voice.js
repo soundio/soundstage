@@ -1,12 +1,35 @@
+
+/*
+Voice(context, settings)
+
+```
+const voice = new Voice(context, {
+    nodes: [...],
+    connections: [...],
+    properties: {...},
+    output: 'id',
+    __start: {
+        filter: {
+            frequency: {
+                1: { type: 'scale', scale: 1 }
+            }
+        }
+    }
+});
+```
+
+A voice is an arbitrary graph of nodes intended to be used as a sound generator.
+Voices are normally created and started on the fly by a polyphonic Instrument,
+but may also be useful for game sound or interface hits where monophony is
+enough.
+*/
+
 import { Privates, denormalise } from '../../fn/module.js';
 import NodeGraph from './graph.js';
 import PlayNode from './play-node.js';
-import { automate, getAutomation, getAutomationEndTime } from '../modules/automate.js';
-import { assignSettingz__ } from '../modules/assign-settings.js';
-import { floatToFrequency, frequencyToFloat, toNoteNumber, toNoteName } from '../../midi/module.js';
+import { floatToFrequency, toNoteNumber } from '../../midi/module.js';
 import constructors from '../modules/constructors.js';
 
-const DEBUG  = window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
 const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
@@ -35,11 +58,18 @@ function Voice(context, data) {
 	PlayNode.call(this, context);
 
 	// Properties
-	define(this, properties);
+    define(this, properties);
 
     privates.__start = settings.__start;
 
     // Create detune
+
+    /*
+    .detune
+
+    AudioParam Todo: description
+    */
+
     const detune = createNode(context, 'constant', {
         offset: 0
     });
@@ -61,11 +91,11 @@ function Voice(context, data) {
 }
 
 // Support pooling via reset function on the constructor
-Voice.reset = function(voice, params) {
+Voice.reset = function(voice, args) {
     PlayNode.reset(voice);
 
-    //const context = params[0];
-    //const graph   = params[1];
+    //const context = args[0];
+    //const graph   = args[1];
 
     //voice.nodes.reduce((entry) => {
     //    const data = graph.nodes.find((data) => data.id === entry.id);
@@ -94,6 +124,23 @@ function setPropertyOrParam(target, key, value) {
 }
 
 assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
+
+    /*
+    .start(time, note, velocity)
+
+    Starts nodes in the graph that have `__start` settings.
+
+    Where `note` is a number it is assumed to be a frequency, otherwise note
+    names in the form 'C3' or 'Ab8' are converted to frequencies before being
+    transformed and set on properties of nodes in the graph (according to
+    transforms in their `__start` settings).
+
+    Similarly, velocity is transformed and set on properties of nodes (according
+    to transforms in their `__start` settings).
+
+    Returns this.
+    */
+
     start: function(time, note = 49, velocity = 1) {
         PlayNode.prototype.start.apply(this, arguments);
 
@@ -140,30 +187,37 @@ assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
                 setPropertyOrParam(target, key, value);
             }
 
-            // Todo: should we move frequency and gain OUT of the start method?
-            // Its not clear to me they deserve to be there. Why did I put them
-            // there? Because I was obsessed with receiving MIDI notes easily?
-            //
-            // time, frequency, gain
             target.start(this.startTime);
         }
 
         return this;
     },
 
+    /*
+    .stop(time)
+
+    Stops nodes in the graph that have `__start` settings.
+
+    Note that where there are nodes such as envelopes in the graph,
+    `voice.stopTime` may not be equal `time` after calling `.stop()`.
+    Envelopes may have a tail – they can stop some time <i>after</i> they are
+    told to, and this is reflected in the `.stopTime` of the voice.
+
+    Returns this.
+    */
+
     stop: function(time, note = 49, velocity = 1) {
         PlayNode.prototype.stop.apply(this, arguments);
 
         const privates = Privates(this);
 
+        // Dodgy.
         // Process stopTime in a node type order. Tone generators need to wait
         // until envelopes have ended, so process Envelopes first to grab their
         // stopTimes. It's a bit pants, this mechanism, but it'll do for now.
         const second = [];
-        let id, entry;
+        let id;
         for (id in privates.__start) {
-            entry = privates.__start[id];
-
             const target = this.get(id);
 
             // Process envelopes first
@@ -186,8 +240,9 @@ assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
         var target;
         while ((target = second[++n])) {
             target.stop(this.stopTime);
-            // Prevent filter feedback from ringing past note end
-            //this.Q.setValueAtTime(this.stopTime, 0);
+
+            // Todo: Prevent filter feedbacks from ringing past note end?
+            // Nah...
         }
 
         return this;

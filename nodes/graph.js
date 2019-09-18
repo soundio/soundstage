@@ -3,8 +3,8 @@
 NodeGraph(context, settings)
 
 `NodeGraph` constructs an AudioNode-like object from a graph of child nodes.
-It may be used as a mixin or as a constructor. Takes a settings object of
-the form:
+It may be used as a mixin or as a constructor. In Soundstage it is used to
+help compose nodes.
 
 ```
 const graph = new NodeGraph(context, {
@@ -15,12 +15,12 @@ const graph = new NodeGraph(context, {
     }],
 
     connections: [{
-        source: 'path.to.source',
-        target: 'path.to.target'
+        source: 'id.name',
+        target: 'id.name'
     }],
 
     properties: {
-        name: 'path.to.param'
+        name: 'id.name'
     },
 
     output: 'id',
@@ -31,16 +31,25 @@ The `nodes` array is a collection of objects defining child nodes, where `id` is
 an arbitrary string, `type` may be any Soundstage built-in node type, and `data`
 is a child node settings object. See [[[Todo: nodes]]] for details.
 
+<aside class="note">The special id <code>'this'</code> refers to the graph
+object itself and cannot be used as a child node id. This is useful
+where NodeGraph is used as a mixin for a subclassed AudioNode and that node
+is connected into the graph.</aside>
+
 A connection has `source` and `target` paths that point to child nodes and
 params. Paths must start with the id of a node, and may optionally specify a
-channel or a property name, eg. `'filter.frequency'`, or `'merger.3'`. The
-special path `'this'` refers to the graph object and cannot be used as a child
-node id.
+channel or a property name, eg. `'filter'`, or `'filter.frequency'`.
 
 `properties` is a key:path store for properties to be defined on the object.
 Where the path points to an AudioParam, it is set on the object directly. Any
-other type is defined as an enumerable getter/setter that gets and sets the
-value found at the end of the path.
+other type is defined as an enumerable getter/setter that proxies the original
+property.
+
+Obviously, properties should not be named `'context'`, `'connect'`,
+`'disconnect'`, `'get'` or `'numberOfOutputs'` as these are already defined on
+the prototype – and common names from other node prototypes (`'start'`,
+`'stop'`, `'startTime'`, `'stopTime'` and so on) should be avoided. You have
+been warned.
 
 Finally, the `output` property is the id of a child node that is used as an
 output by the `.connect()` and `.disconnect()` methods.
@@ -125,17 +134,17 @@ export default function NodeGraph(context, data) {
     else {
         const output = nodes[privates.outputId];
         define(this, {
+
             /*
             .context
-
-            Audio Node context
+            The AudioContext object.
             */
 
             context: { value: context },
 
             /*
             .numberOfOutputs
-            Audio Node context
+            The number of outputs.
             */
 
             numberOfOutputs: { value: output ? output.numberOfOutputs : 0 }
@@ -182,7 +191,6 @@ assign(NodeGraph.prototype, {
 
     /*
     .connect(target, srcChan, tgtChan)
-
     Mirrors the standard AudioNode `.connect()` method. This is provided as a
     convenience: connections to other Soundstage nodes should be made via
     [[[Todo:link]]]`stage.createConnection()` so that Soundstage may track changes to its

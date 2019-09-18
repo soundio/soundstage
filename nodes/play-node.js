@@ -85,6 +85,13 @@ assign(PlayNode.prototype, {
 });
 
 define(PlayNode.prototype, {
+
+    /*
+    .playing
+
+    A boolean indicating whether the node is currently generating a signal.
+    */
+
     playing: {
         get: function() {
             return this.startTime !== undefined

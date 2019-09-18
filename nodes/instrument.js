@@ -1,3 +1,45 @@
+
+/*
+Instrument(context, settings)
+
+```
+const instrument = stage.create('instrument', {
+    voice: {
+        // Inherited from NodeGraph
+        nodes: [...],
+        connections: [...],
+        properties: {...},
+        output: 'id',
+
+        // Start parameters
+        __start: {
+            filter: {
+                frequency: {
+                    1: { type: 'scale', scale: 1 }
+                }
+            }
+        },
+    }
+});
+```
+
+An instrument is a polyphonic controller for multiple voice nodes. The `voice`
+property of an instrument describes an arbitrary node graph that is used to
+build and play a voice node each time `instrument.start()` is called.
+
+<aside class="note">I'm lying to you. In reality new voices are not created on
+<i>every</i> call to start. For efficiency, they are pooled then reused when
+they are idle behind the scenes.</aside>
+
+The voice settings `nodes`, `connections`, `properties` and `output` are
+inherited from NodeGraph (see below).
+
+The `__start` object defines transforms that determine how `.start()` parameters
+map to property and param values of the voice. In the example above start
+parameter 1 (note frequency) is scaled then used to set the `frequency`
+AudioParam of the child node `'filter'`.
+*/
+
 import { logGroup, logGroupEnd } from './print.js';
 import { isDefined, Privates } from '../../fn/module.js';
 import Voice, { defaults as voiceDefaults } from './voice.js';
@@ -61,21 +103,17 @@ function isIdle(node) {
 }
 
 export default class Instrument extends GainNode {
-    constructor(context, settings, stage) {
+    constructor(context, settings) {
         if (DEBUG) { logGroup(new.target === Instrument ? 'Node' : 'mixin ', 'Instrument'); }
 
         // Init gain node
         super(context, settings);
 
         // NodeGraph provides the properties and methods:
-        //
-        // .connections
         // .context
-        // .nodes
-        // .connect(node, outputChannel, inputChannel)
-        // .disconnect(node, outputChannel, inputChannel)
-        // .get(id)
-        // .toJSON()
+        // .connect()
+        // .disconnect()
+        // .get()
         NodeGraph.call(this, context, graph);
 
         // Privates
@@ -111,8 +149,23 @@ export default class Instrument extends GainNode {
     }
 }
 
-// Mix AudioObject prototype into MyObject prototype
 assign(Instrument.prototype, NodeGraph.prototype, {
+
+    /*
+    .start(time, note, velocity)
+
+    Creates a voice node from the data in `.voice`, then calls its `.start()`
+    method with the same parameters.
+
+    Returns the voice node, enabling the pattern:
+
+    ```
+    instrument
+    .start(startTime, note, velocity)
+    .stop(stopTime);
+    ```
+    */
+
     start: function(time, note, velocity = 1) {
         if (!note) {
             throw new Error('Attempt to .start() a note without passing a note value.')
@@ -127,6 +180,16 @@ assign(Instrument.prototype, NodeGraph.prototype, {
         .start(time, note, velocity);
     },
 
+    /*
+    .stop(time, note)
+
+    Stops the first playing voice node found to match `note`. Provided as a
+    convenience: normally voice nodes are stopped using their own `.stop()`
+    method.
+
+    Returns this.
+    */
+
     stop: function(time, note, velocity = 1) {
         const privates = Privates(this);
 
@@ -135,7 +198,7 @@ assign(Instrument.prototype, NodeGraph.prototype, {
         // Stop all notes
         if (!isDefined(note)) {
             privates.voices.forEach((voice) => {
-                voice.stop(time, velocity);
+                voice.stop(time);
             });
 
             return this;
@@ -148,7 +211,7 @@ assign(Instrument.prototype, NodeGraph.prototype, {
         );
 
         if (voice) {
-            voice.stop(time, note, velocity);
+            voice.stop(time, note);
         }
 
         return this;
