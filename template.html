@@ -132,6 +132,21 @@ import Soundstage from 'http://stephen.band/soundstage/soundstage.js';</code></p
 
     <!-- Nodes -->
 
+    <section class="1-2-3-grid grid">
+        <header class="grid-0" build-fn="docs:'./nodes/sample.js?Sample' each append:body">
+            <h2 class="text-2" style="font-size: 1.875rem;" build-fn="append:title"></h2>
+        </header>
+
+        <section class="grid-2">
+            <h3 class="text-4">Methods</h3>
+            <template build-fn="docs:'./nodes/sample.js?url','./nodes/graph.js?connect,disconnect'" build-include="#function-template"></template>
+        </section>
+
+        <section class="grid-3">
+            <h3 class="text-4">Properties</h3>
+            <template build-fn="docs:'./nodes/sample.js?frequency,gain','./nodes/graph.js?context','./nodes/play-node.js?playing,startTime,stopTime'" build-include="#property-template"></template>
+        </section>
+    </section>
 
     <section class="1-2-3-grid grid">
         <header class="grid-0" build-fn="docs:'./nodes/tone.js?Tone' each append:body">
@@ -146,6 +161,22 @@ import Soundstage from 'http://stephen.band/soundstage/soundstage.js';</code></p
         <section class="grid-3">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/tone.js?type,frequency,detune,gain','./nodes/graph.js?context','./nodes/play-node.js?startTime,stopTime,playing'" build-include="#property-template"></template>
+        </section>
+    </section>
+
+    <section class="1-2-3-grid grid">
+        <header class="grid-0" build-fn="docs:'./nodes/tick.js?Tick' each append:body">
+            <h2 class="text-2" style="font-size: 1.875rem;" build-fn="append:title"></h2>
+        </header>
+
+        <section class="grid-2">
+            <h3 class="text-4">Methods</h3>
+            <template build-fn="docs:'./nodes/tick.js?start,stop','./nodes/graph.js?connect,disconnect'" build-include="#function-template"></template>
+        </section>
+
+        <section class="grid-3">
+            <h3 class="text-4">Properties</h3>
+            <template build-fn="docs:'./nodes/tick.js?resonance,decay,gain','./nodes/graph.js?context','./nodes/play-node.js?startTime,stopTime,playing'" build-include="#property-template"></template>
         </section>
     </section>
 

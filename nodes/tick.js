@@ -1,5 +1,37 @@
-import { noop, todB, toLevel } from '../../fn/module.js';
+
+/*
+Tick(context, settings)
+
+```
+const tick = stage.create('tick', {
+    resonance:         // Todo
+    decay:             // Todo
+    gain: 1            // Output gain nominally in the range `0–1`
+});
+```
+
+A tick object is a signal generator that emits a 'tick' sound on `.start()`.
+Used inside the metronome.
+*/
+
+/*
+.resonance
+A float?? Todo.
+*/
+
+/*
+.decay
+A float?? Todo.
+*/
+
+/*
+.gain
+An AudioParam representing output gain.
+*/
+
+import { noop } from '../../fn/module.js';
 import { floatToFrequency, toNoteNumber } from '../../midi/module.js';
+import { dB48 } from '../modules/constants.js';
 
 var assign      = Object.assign;
 
@@ -11,9 +43,6 @@ export const defaults = {
 	decay:     0.06,
 	resonance: 22
 };
-
-var dB48  = toLevel(-48);
-var dummy = { stop: noop };
 
 
 // Tick
@@ -105,6 +134,10 @@ export default function Tick(audio, options) {
 	this.decay     = settings.decay;
 	//this.gain      = settings.gain;
 
+    /*
+    .start(time, note, velocity)
+    Todo: move parameters to be properties of tick object, echoing other signal generators
+    */
 	this.start = function(time, number, level) {
 		var frequency = typeof number === 'string' ?
 			floatToFrequency(440, toNoteNumber(number)) :
@@ -121,10 +154,6 @@ export default function Tick(audio, options) {
 	//	//unschedule(time, this.decay);
 	//	return this;
 	//};
-
-	this.stop = function(time) {
-		stop(time || audio.currentTime, this.decay);
-	};
 
 	this.destroy = function() {
 		oscillator.disconnect();
@@ -143,6 +172,9 @@ export default function Tick(audio, options) {
 }
 
 
-// Export
+/*
+.stop()
+A noop method, provided to echo the interface of other generators.
+*/
 
 Tick.prototype.stop = noop;

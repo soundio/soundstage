@@ -1,224 +1,234 @@
 
-import PlayNode from './play-node.js';
-import { requestBuffer } from '../modules/request-buffer.js';
-import { Privates } from '../../fn/module.js';
-import { frequencyToFloat } from '../../midi/module.js';
-import { assignSettings } from '../modules/assign-settings.js';
+/*
+Sample(context, settings)
 
-const DEBUG = true;
+```
+const sample = stage.create('sample', {
+    url: 'path/to/data',  // A path where the data for the sample set is kept
+});
+```
+
+A sample object represents a set of audio buffers that are mapped to the
+playback of via pitches via a sample-set data object that is fetched from
+a URL.
+*/
+
+/*
+.url
+Path to a JSON file for sample set data. See [Todo:link] Sample Set Data.
+*/
+
+/*
+.gain
+An AudioParam
+*/
+
+/*
+.frequency
+A float that is read on `.start()`.
+*/
+
+/*
+.detune
+An AudioParam that modifies the frequency in cents.
+*/
+
+import Sample from './sample.js';
+
+import { nothing, Privates } from '../../fn/module.js';
+import NodeGraph   from './graph.js';
+import PlayNode from './play-node.js';
+import { automate, getAutomation, getAutomationEndTime } from '../modules/automate.js';
+import { assignSettingz__ } from '../modules/assign-settings.js';
+import { floatToFrequency, frequencyToFloat } from '../../midi/module.js';
+
+const DEBUG  = window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
 const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
+const graph = {
+    nodes: [
+        { id: 'detune', type: 'constant', data: { offset: 0 }},
+        { id: 'gain',   type: 'gain',     data: { gain: 0 }}
+    ],
+
+	connections: [
+
+    ],
+
+    properties: {
+        gain: 'gain.gain'
+    },
+
+    output: 'gain'
+};
+
 const properties = {
-    buffer:    { enumerable: false, writable: true },
-    path:      { enumerable: true, writable: true },
-    attack:    { enumerable: true, writable: true },
-    release:   { enumerable: true, writable: true },
-    mute:      { enumerable: true, writable: true },
-    beginTime: { enumerable: true, writable: true },
-    loop:      { enumerable: true, writable: true },
-    loopTime:  { enumerable: true, writable: true },
-    loopStart: { enumerable: true, writable: true },
-    loopEnd:   { enumerable: true, writable: true },
-    endTime:   { enumerable: true, writable: true },
-    nominalFrequency: { enumerable: true, writable: true },
-    velocityRange:    { enumerable: true, writable: true },
-    gainFromVelocity: { enumerable: true, writable: true }
+	url: {
+        get: function() {
+
+        },
+
+        set: function() {
+
+        },
+
+        enumerable: true
+    }
 };
 
 const defaults = {
-    nominalFrequency: 440,
-    nominalRate: 1,
-    rate: 1,
-    //beginTime: undefined,
-    //loopTime:  undefined,
-    //endTime:   undefined
-    //gain:    1,
-    attack:  0.000,
-    release: undefined,
-    mute:    0.012,
-    velocityRange: [0, 1],
-    gain:    1,
-    gainFromVelocity: 0
+    gain:      0,
+    frequency: 8000
 };
 
-const gainOptions = { gain: 0 };
 
-const sourceOptions = {};
+function updateSources(sources, destination, map, time, note = 69, velocity = 1) {
+    sources.length = 0;
 
-
-export default class Sample extends GainNode {
-    constructor(context, options) {
-        // Initialise as gain node
-        super(context, gainOptions);
-
-        // Define .startTime, .stopTime, .playing
-        PlayNode.call(this);
-
-        // Define sample properties
-        define(this, properties);
-
-        const privates = Privates(this);
-
-        // Expose a rate param
-        privates.rate = context.createConstantSource();
-        this.rate = privates.rate.offset;
-console.log('OPTIONS', options);
-        this.reset(context, options);
-
-        if (!this.buffer && typeof this.path === 'string') {
-            privates.request = requestBuffer(context, this.path)
-            .then((buffer) => {
-                console.log('Sample buffer', this.path, buffer)
-                this.buffer = buffer;
-                privates.source && (privates.source.buffer = buffer);
-            })
-            .catch((e) => { console.warn(e); });
-        }
-        // Todo: implement buffer playing
-        //else {}
-    }
-
-    reset(context, options) {
-        const privates = Privates(this);
-
-        // Initialise .startTime, .stopTime and .playing
-        PlayNode.reset(this, arguments);
-
-        // Discard the old source node
-        privates.source && privates.source.disconnect();
-
-        this.buffer   = options.buffer;
-        privates.gain = options.gain || defaults.gain;
-        this.release  = undefined;
-
-        this.gain.setValueAtTime(0, this.context.currentTime);
-        this.rate.setValueAtTime(1, this.context.currentTime);
-
-        assignSettings(this, defaults, options);
-
-        console.log('Sample', this);
-    }
-
-    start(time, frequency = defaults.nominalFrequency, gain = 1) {
-        const privates = Privates(this);
-
-        if (!this.buffer) {
-            // Delay start if no buffer yet
-            requestBuffer(this.context, this.path)
-            .then((buffer) => this.start(time, frequency, gain));
-            return this;
-        }
-
-        // Update .startTime
-        PlayNode.prototype.start.apply(this, arguments);
-
-        if (!frequency || frequency === 440) {
-            sourceOptions.detune = 0;
-        }
-        else if (this.nominalFrequency) {
-            // Work out the detune factor
-            const nominalNote = frequencyToFloat(440, this.nominalFrequency);
-            const note        = frequencyToFloat(440, frequency);
-            const pitch       = note - nominalNote;
-
-            // This is k-rate. Detune is k-rate on bufferSourceNodes. It is
-            // a-rate on other nodes, according to MDN, so you can be excused
-            // some confusion.
-            sourceOptions.detune = pitch * 100;
-        }
-
-        // This is a-rate. Just sayin'. Todo.
-        sourceOptions.playbackRate = 1;
-        sourceOptions.loop         = this.loop && this.loopStart >= 0;
-        sourceOptions.loopStart    = this.loopStart || 0;
-        sourceOptions.loopEnd      = this.loopEnd;
-        sourceOptions.buffer       = this.buffer;
-
-        const source
-            = privates.source
-            = new AudioBufferSourceNode(this.context, sourceOptions) ;
-
-        source.connect(this);
-        privates.rate.connect(source.playbackRate);
-
-        const startTime = this.startTime;
-
-        // Why? Why?
-        // if (this.loopStart < 0) {
-        //     // Delay actual start by loopStart offset
-        //     startTime = this.startTime - this.loopStart;
-        //     source.start(startTime);
-        // }
-
-        // If startTime is already in the past, offset playback
-        source.start(
-            this.startTime,
-            this.context.currentTime > this.startTime ?
-                this.context.currentTime - this.startTime :
-                0
-        );
-
-        //if (DEBUG && this.context.currentTime > this.startTime) {
-        //    console.log('Sample start offset by', this.context.currentTime - this.startTime);
-        //}
-
-        this.detune = source.detune;
-        this.rate   = source.playbackRate;
-
-        // Schedule the attack envelope
-        this.gain.cancelScheduledValues(this.startTime);
-
-        if (this.attack) {
-            this.gain.setValueAtTime(0, startTime);
-            this.gain.linearRampToValueAtTime(privates.gain + (this.gainFromVelocity * gain), startTime + this.attack);
+    // Neuter velocity 0s - they dont seem to get filtered below
+    return velocity === 0 ? sources :
+    map
+    .filter((region) => {
+        return region.noteRange[0] <= note
+        && region.noteRange[region.noteRange.length - 1] >= note
+        && region.velocityRange[0] <= velocity
+        && region.velocityRange[region.velocityRange.length - 1] >= velocity ;
+    })
+    .reduce((sources, region, i) => {
+        // Samples are pooled here, so each SampleVoice has it's own pool.
+        // Add a new source to the pool if there is not yet one available
+        // at this index.
+        if (!sources[i]) {
+            sources[i] = new Sample(destination.context, region);
+            sources[i].connect(destination);
         }
         else {
-            this.gain.setValueAtTime(privates.gain + (this.gainFromVelocity * gain), startTime);
+            sources[i].reset(destination.context, region);
         }
 
-        return this;
-    }
+        sources.length = i + 1;
+        return sources;
+    }, sources);
+}
 
-    stop(time) {
-        const privates = Privates(this);
+export default function SampleVoice(context, settings) {
+    const privates = Privates(this);
 
-        // Update .stopTime
-        PlayNode.prototype.stop.apply(this, arguments);
+    // Setup the node graph. Assigns:
+    // get: fn
+    NodeGraph.call(this, context, graph);
 
-        // Schedule the release
-        if (this.release) {
-            this.stopTime += this.release;
-            this.gain.setTargetAtTime(0, this.stopTime, this.release / 9);
-        }
-        else {
-            this.stopTime = this.startTime + (this.buffer.length / this.context.sampleRate);
-        }
+    // Setup as playable node. Assigns:
+    // .start(time)
+    // .stop(time)
+    // .startTime
+    // .stopTime
+    PlayNode.call(this, context);
 
-        privates.source && privates.source.stop(this.stopTime);
+    // Privates
+    privates.sources = { length: 0 };
 
-        return this;
-    }
+    // Properties
+    define(this, properties);
 
-    save() {
-        // If sample already has a path it is already saved
-        if (this.path) { return; }
-        return [{
-            type: 'buffer',
-            data: this.buffer,
-            callback: (url) => {
-                this.path = url;
-            }
-        }];
-    }
+    // Assign audio nodes and params
+    this.gain              = this.get('gain').gain;
+    this.detune            = this.get('detune').offset;
 
-    toJSON() {
-        return this;
-    }
+    this.reset(context, settings);
 }
 
 // Mix in property definitions
-define(Sample.prototype, {
+define(SampleVoice.prototype, {
     playing: getOwnPropertyDescriptor(PlayNode.prototype, 'playing')
+});
+
+assign(SampleVoice.prototype, PlayNode.prototype, NodeGraph.prototype, {
+	reset: function(context, settings) {
+        PlayNode.reset(this);
+        assignSettingz__(this, assign({}, defaults, settings));
+        return this;
+	},
+
+	start: function(time, note, gain = 1) {
+        if (!this.map) {
+            throw new Error('Sampler .map not defined, start() called')
+        }
+
+        // Get regions from map
+        const privates = Privates(this);
+        const sources  = privates.sources;
+
+        updateSources(sources, this.get('gain'), this.map.data, time, note, gain) ;
+
+        let n = sources.length;
+        while (n--) {
+            const region = this.map.data[n];
+
+            // Set gain based on note range - linear interpolate (assume waveforms
+            // are coherent) the crossfade at the 'ends' of the note range
+            const noteRange = region.noteRange;
+            const noteGain = noteRange.length < 3 ? 1 :
+                note < noteRange[1] ? (note - noteRange[2]) / (noteRange[1] - noteRange[2]) :
+                note > noteRange[noteRange.length - 2] ? 1 - (note - noteRange[2]) / (noteRange[1] - noteRange[2]) :
+                1 ;
+
+            // Set gain based on velocity range - linear interpolate (assume waveforms
+            // are coherent) the crossfade at the 'ends' of the velocity range
+            const veloRange = region.velocityRange;
+            const veloGain = veloRange.length < 3 ? 1 :
+                velocity < veloRange[1] ? (velocity - veloRange[2]) / (veloRange[1] - veloRange[2]) :
+                velocity > veloRange[veloRange.length - 2] ? 1 - (velocity - veloRange[2]) / (veloRange[1] - veloRange[2]) :
+                1 ;
+
+            const frequency = floatToFrequency(440, note);
+
+            sources[n].start(time, frequency, gain * noteGain * veloGain);
+
+            // Note this must be done after, as source.detune is replaced
+            // when the new buffer source is created internally
+            this.get('detune').connect(sources[n].detune);
+        }
+
+		this.gainEnvelope.start(time, 'attack', (1 - this.gainFromVelocity) + (velocity * this.gainFromVelocity), 1);
+		this.frequencyEnvelope.start(time, 'attack', (1 - this.frequencyFromVelocity) + (velocity * this.frequencyFromVelocity), 1);
+		PlayNode.prototype.start.call(this, time);
+
+		return this;
+	},
+
+	stop: function(time, note, velocity = 1) {
+        const privates = Privates(this);
+
+        // Clamp stopTime to startTime
+        time = time > this.startTime ? time : this.startTime;
+
+		//this.get('osc-1').stop(time + duration);
+		//this.get('osc-2').stop(time + duration);
+		this.gainEnvelope.start(time, 'release', (1 - this.gainFromVelocity) + (velocity * this.gainFromVelocity), 1);
+		this.frequencyEnvelope.start(time, 'release', (1 - this.frequencyFromVelocity) + (velocity * this.frequencyFromVelocity), 1);
+
+        // Stop sources
+        const sources = privates.sources;
+        let n = sources.length;
+        let stopTime;
+
+        while (n--) {
+            sources[n].stop(time);
+            stopTime = sources[n].stopTime > stopTime ?
+                sources[n].stopTime :
+                stopTime ;
+        }
+
+        this.gainEnvelope.stop(stopTime);
+        this.frequencyEnvelope.stop(stopTime);
+        PlayNode.prototype.stop.call(this, stopTime);
+
+		// Prevent filter feedback from ringing past note end
+		//this.Q.setValueAtTime(stopTime, 0);
+
+		return this;
+	}
 });
