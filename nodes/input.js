@@ -1,4 +1,14 @@
 
+/*
+Input()
+
+```
+const input = stage.create('input', {
+    channels: [1, 2]    // Device channels to use as input
+});
+```
+*/
+
 var assign   = Object.assign;
 var defaults = {
 	channels: [0, 1]
@@ -27,6 +37,13 @@ export default class Input extends ChannelMergerNode {
 				source.connect(target, channels[count], count);
 			}
 		}
+
+		/*
+		.channels
+
+		An array of channel numbers. For stereo input this would typically be
+		`[1, 2]`.
+		*/
 
 		Object.defineProperties(this, {
 			channels: {

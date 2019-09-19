@@ -71,8 +71,8 @@ assign(Node.prototype, {
         undefined ;
     },
 
-    save: function() {
-        return this.data.save && this.data.save()
+    records: function() {
+        return this.data.records && this.data.records()
         .map((record) => {
             record.nodeId = this.id;
             return record;

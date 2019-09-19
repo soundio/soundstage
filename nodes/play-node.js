@@ -1,34 +1,22 @@
 /*
 PlayNode()
 
-A mixin that sets up an object to be playable. Provides the properties:
+A mixin that sets up an object to be playable.
 
-- `.startTime`, the context time the object started
-- `.stopTime`, the context time the object stopped
-- `.playing`, a read-only boolean
+```
+// Call the mixin constructor inside your constructor
+MyNode() {
+    PlayNode.call(this);
+}
 
-And the methods:
+// Assign its' prototype properties to your object's prototype
+Object.assign(MyNode.prototype, PlayNode.prototype);
 
-- `.start(time)`
-- `.stop(time)`
-
-To mix PlayNode into your own object you must:
-
-1) call the PlayNode constructor inside your constructor with your object as context
-
-    MyNode() {
-        PlayNode.call(this);
-    }
-
-2) assign its' prototype properties to your object's prototype
-
-    Object.assign(MyNode.prototype, PlayNode.prototype);
-
-3) define its' defined properties on your object's prototype
-
-    Object.defineProperties(MyNode.prototype, {
-        playing: Object.getOwnPropertyDescriptor(PlayNode.prototype, 'playing')
-    });
+// Define its' defined properties on your object's prototype
+Object.defineProperties(MyNode.prototype, {
+    playing: Object.getOwnPropertyDescriptor(PlayNode.prototype, 'playing')
+});
+```
 */
 
 import { logGroup, logGroupEnd } from '../modules/utilities/print.js';
@@ -55,6 +43,14 @@ PlayNode.reset = function(node) {
 };
 
 assign(PlayNode.prototype, {
+    /*
+    .start(time)
+    Sets `.startTime` to `time`, or where `time` is undefined, to
+    `context.currentTime`.
+
+    Returns `this`.
+    */
+
     start: function(time) {
         if (DEBUG && this.startTime !== undefined) {
             throw new Error('Attempt to start a node that is already started');
@@ -63,6 +59,15 @@ assign(PlayNode.prototype, {
         this.startTime = time || this.context.currentTime;
         return this;
     },
+
+    /*
+    .stop(time)
+    Sets `.stopTime` to `time` or where `time` is undefined, to
+    `context.currentTime`, this time is before `.startTime`, in which case
+    `.stopTime` is set equal to `.startTime`.
+
+    Returns `this`.
+    */
 
     stop: function(time) {
         if (DEBUG && this.startTime === undefined) {
@@ -81,11 +86,10 @@ assign(PlayNode.prototype, {
 });
 
 define(PlayNode.prototype, {
-
     /*
     .playing
-
-    A boolean indicating whether the node is currently generating a signal.
+    A boolean indicating whether the node is started and playing (`true`) or
+    stopped and idle {`false`}.
     */
 
     playing: {

@@ -25,6 +25,7 @@
     <link rel="stylesheet" href="../fn/css/docs.css" />
     <link rel="stylesheet" href="../fn/css/tests.css" />
     <link rel="stylesheet" href="css/theme.css" />
+    <link rel="stylesheet" href="css/respond.css" />
 
     <template id="function-template">
         <article build-fn="each append:body" class="toggle-block block" toggleable id="{[id]}">
@@ -71,7 +72,7 @@
     </div-->
 
     <section class="1-grid grid">
-        <header class="grid-0">
+        <header class="@2-col-2 @2-span-4">
             <h2 class="text-2" style="font-size: 1.875rem;">Quick start</h2>
             <pre><code class="language-js">// Import Soundstage
 import Soundstage from 'http://soundstage.sound.io/module.js';
@@ -104,7 +105,7 @@ const stage = new Soundstage({
     </section>
 
     <section class="1-2-3-grid grid">
-        <header class="grid-0">
+        <header class="@2-col-2 @2-span-4">
             <h2 class="text-2" style="font-size: 1.875rem;">Functions</h2>
             <pre><code class="language-js">// Import Soundstage
 import Soundstage from 'http://stephen.band/soundstage/soundstage.js';</code></pre>
@@ -112,7 +113,7 @@ import Soundstage from 'http://stephen.band/soundstage/soundstage.js';</code></p
 
         <h2 class="text-3 grid-1">Soundstage()</h2>
 
-        <section class="grid-2">
+        <section class="@2-col-5 @2-span-2">
             <h3 class="text-4">Properties</h3>
             <article build-fn="docs:'./modules/sequence.js?name','./modules/soundstage.js','./modules/graph.js?plugins,connections','./modules/sequence.js?events,sequences' each append:body" class="toggle-block block" toggleable id="{[id]}">
                 <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
@@ -123,7 +124,7 @@ import Soundstage from 'http://stephen.band/soundstage/soundstage.js';</code></p
             </article>
         </section>
 
-        <section class="grid-3">
+        <section class="@2-col-7 @2-span-2">
             <h3 class="text-4">Methods</h3>
             <template build-fn="docs:'./modules/graph.js?create,get','./modules/sequencer.js','./modules/location.js','./modules/meter.js','./modules/soundstage.js?timeAtDomTime'" build-include="#function-template"></template>
         </section>
@@ -133,101 +134,201 @@ import Soundstage from 'http://stephen.band/soundstage/soundstage.js';</code></p
     <!-- Nodes -->
 
     <section class="1-2-3-grid grid">
-        <header class="grid-0" build-fn="docs:'./nodes/sample.js?Sample' each append:body">
-            <h2 class="text-2" style="font-size: 1.875rem;" build-fn="append:title"></h2>
-        </header>
+        <h2 class="@2-col-2 @2-span-3 text-3"><code class="language-js">'input'</code></h2>
 
-        <section class="grid-2">
-            <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./nodes/sample.js?url','./nodes/graph.js?connect,disconnect'" build-include="#function-template"></template>
-        </section>
+        <div class="@2-col-2 @2-span-3" build-fn="docs:'./nodes/input.js?Input' each append:body"></div>
 
-        <section class="grid-3">
+        <section class="@2-col-7 @2-span-2">
             <h3 class="text-4">Properties</h3>
-            <template build-fn="docs:'./nodes/sample.js?frequency,gain','./nodes/graph.js?context','./nodes/play-node.js?playing,startTime,stopTime'" build-include="#property-template"></template>
+            <template build-fn="docs:'./nodes/input.js?channels','./nodes/graph.js?context'" build-include="#property-template"></template>
         </section>
-    </section>
 
-    <section class="1-2-3-grid grid">
-        <header class="grid-0" build-fn="docs:'./nodes/tone.js?Tone' each append:body">
-            <h2 class="text-2" style="font-size: 1.875rem;" build-fn="append:title"></h2>
-        </header>
 
-        <section class="grid-2">
+
+        <h2 class="@2-col-2 @2-span-3 text-3"><code class="language-js">'output'</code></h2>
+
+        <div class="@2-col-2 @2-span-3" build-fn="docs:'./nodes/output.js?Output' each append:body"></div>
+
+        <section class="@2-col-7 @2-span-2">
+            <h3 class="text-4">Properties</h3>
+            <template build-fn="docs:'./nodes/output.js?channels','./nodes/graph.js?context'" build-include="#property-template"></template>
+        </section>
+
+
+
+        <h2 class="@2-col-2 @2-span-3 text-3"><code class="language-js">'buffer'</code></h2>
+
+        <div class="@2-col-2 @2-span-3" build-fn="docs:'./nodes/buffer.js?Buffer' each append:body"></div>
+
+        <section class="@2-col-5 @2-span-2">
+            <h3 class="text-4">Methods</h3>
+            <template build-fn="docs:'./nodes/buffer.js?startRecord,stopRecord,start,stop,records'" build-include="#function-template"></template>
+        </section>
+
+        <section class="@2-col-7 @2-span-2">
+            <h3 class="text-4">Properties</h3>
+            <template build-fn="docs:'./nodes/buffer.js?data','./nodes/graph.js?context'" build-include="#property-template"></template>
+        </section>
+
+
+
+        <h2 class="@2-col-2 @2-span-3 text-3"><code class="language-js">'envelope'</code></h2>
+
+        <div class="@2-col-2 @2-span-3" build-fn="docs:'./nodes/envelope.js?Envelope' each append:body">
+            <p class="warn">
+            Take care not to connect an envelope directly to your outputs – expecially if you have expensive speakers attached.
+            They are capable of producing DC signal.
+            </p>
+        </div>
+
+        <section class="@2-col-5 @2-span-2">
+            <h3 class="text-4">Methods</h3>
+            <template build-fn="docs:'./nodes/envelope.js?start,stop'" build-include="#function-template"></template>
+        </section>
+
+        <section class="@2-col-7 @2-span-2">
+            <h3 class="text-4">Properties</h3>
+            <template build-fn="docs:'./nodes/envelope.js?attack,release,gain,rate','./nodes/graph.js?context'" build-include="#property-template"></template>
+        </section>
+
+
+
+        <h2 class="@2-col-2 @2-span-3 text-3"><code class="language-js">'looper'</code></h2>
+
+        <div class="@2-col-2 @2-span-3" build-fn="docs:'./nodes/sample.js?Sample' each append:body"></div>
+
+        <section class="@2-col-5 @2-span-2">
+            <h3 class="text-4">Methods</h3>
+            <template build-fn="docs:'./nodes/looper.js?startRecord,stopRecord,start,stop,records','./nodes/graph.js?connect,disconnect,get'" build-include="#function-template"></template>
+        </section>
+
+        <section class="@2-col-7 @2-span-2">
+            <h3 class="text-4">Properties</h3>
+            <template build-fn="docs:'./nodes/looper.js?dry,wet','./nodes/graph.js?context','./nodes/play-node.js?playing,startTime,stopTime'" build-include="#property-template"></template>
+        </section>
+
+
+
+        <h2 class="@2-col-2 @2-span-3 text-3"><code class="language-js">'sample'</code></h2>
+
+        <div class="@2-col-2 @2-span-3" build-fn="docs:'./nodes/sample.js?Sample' each append:body"></div>
+
+        <section class="@2-col-5 @2-span-2">
+            <h3 class="text-4">Methods</h3>
+            <template build-fn="docs:'./nodes/graph.js?connect,disconnect'" build-include="#function-template"></template>
+        </section>
+
+        <section class="@2-col-7 @2-span-2">
+            <h3 class="text-4">Properties</h3>
+            <template build-fn="docs:'./nodes/sample.js?url,frequency,gain','./nodes/graph.js?context','./nodes/play-node.js?playing,startTime,stopTime'" build-include="#property-template"></template>
+        </section>
+
+
+
+        <h2 class="@2-col-2 @2-span-4 text-3"><code class="language-js">'tone'</code></h2>
+
+        <div class="@2-col-2 @2-span-3" build-fn="docs:'./nodes/tone.js?Tone' each append:body"></div>
+
+        <section class="@2-col-5 @2-span-2">
             <h3 class="text-4">Methods</h3>
             <template build-fn="docs:'./nodes/tone.js?start,stop','./nodes/graph.js?connect,disconnect'" build-include="#function-template"></template>
         </section>
 
-        <section class="grid-3">
+        <section class="@2-col-7 @2-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/tone.js?type,frequency,detune,gain','./nodes/graph.js?context','./nodes/play-node.js?startTime,stopTime,playing'" build-include="#property-template"></template>
         </section>
-    </section>
 
-    <section class="1-2-3-grid grid">
-        <header class="grid-0" build-fn="docs:'./nodes/tick.js?Tick' each append:body">
-            <h2 class="text-2" style="font-size: 1.875rem;" build-fn="append:title"></h2>
-        </header>
 
-        <section class="grid-2">
+
+        <h2 class="@2-col-2 @2-span-3 text-3"><code class="language-js">'tick'</code></h2>
+
+        <div class="@2-col-2 @2-span-3" build-fn="docs:'./nodes/tick.js?Tick' each append:body"></div>
+
+        <section class="@2-col-5 @2-span-2">
             <h3 class="text-4">Methods</h3>
             <template build-fn="docs:'./nodes/tick.js?start,stop','./nodes/graph.js?connect,disconnect'" build-include="#function-template"></template>
         </section>
 
-        <section class="grid-3">
+        <section class="@2-col-7 @2-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/tick.js?resonance,decay,gain','./nodes/graph.js?context','./nodes/play-node.js?startTime,stopTime,playing'" build-include="#property-template"></template>
         </section>
-    </section>
 
 
-    <section class="1-2-3-grid grid">
-        <header class="grid-0" build-fn="docs:'./nodes/instrument.js?Instrument' each append:body">
-            <h2 class="text-2" style="font-size: 1.875rem;" build-fn="append:title"></h2>
-        </header>
 
-        <section class="grid-2">
+        <h2 class="@2-col-2 @2-span-3 text-3"><code class="language-js">'voice'</code></h2>
+
+        <div class="@2-col-2 @2-span-3" build-fn="docs:'./nodes/voice.js?Voice' each append:body"></div>
+
+        <section class="@2-col-5 @2-span-2">
+            <h3 class="text-4">Methods</h3>
+            <template build-fn="docs:'./nodes/voice.js?start,stop','./nodes/graph.js?connect,disconnect,get'" build-include="#function-template"></template>
+        </section>
+
+        <section class="@2-col-7 @2-span-2">
+            <h3 class="text-4">Properties</h3>
+            <template build-fn="docs:'./nodes/voice.js?detune','./nodes/play-node.js?startTime,stopTime,playing'" build-include="#property-template"></template>
+        </section>
+
+
+
+        <h2 class="@2-col-2 @2-span-3 text-3"><code class="language-js">'instrument'</code></h2>
+
+        <div class="@2-col-2 @2-span-3" build-fn="docs:'./nodes/instrument.js?Instrument' each append:body"></div>
+
+        <section class="@2-col-5 @2-span-2">
             <h3 class="text-4">Methods</h3>
             <template build-fn="docs:'./nodes/instrument.js?start,stop','./nodes/graph.js?connect,disconnect'" build-include="#function-template"></template>
         </section>
 
-        <section class="grid-3">
+        <section class="@2-col-7 @2-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/graph.js?context'" build-include="#property-template"></template>
         </section>
     </section>
 
 
-    <section class="1-2-3-grid grid">
-        <header class="grid-0" build-fn="docs:'./nodes/voice.js?Voice' each append:body">
-            <h2 class="text-2" style="font-size: 1.875rem;" build-fn="append:title"></h2>
-        </header>
-
-        <section class="grid-2">
-            <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./nodes/voice.js?start,stop','./nodes/graph.js?connect,disconnect,get'" build-include="#function-template"></template>
-        </section>
-
-        <section class="grid-3">
-            <h3 class="text-4">Properties</h3>
-            <template build-fn="docs:'./nodes/voice.js?detune','./nodes/play-node.js?startTime,stopTime,playing'" build-include="#property-template"></template>
-        </section>
-    </section>
-
 
     <section class="1-2-3-grid grid">
-        <header class="grid-0" build-fn="docs:'./nodes/graph.js?NodeGraph' each append:body">
-            <h2 class="text-2" style="font-size: 1.875rem;" build-fn="append:title"></h2>
+        <header class="@2-col-2 @2-span-3">
+            <h2 class="text-2" style="font-size: 1.875rem;">Mixins</h2>
+            <p>
+            Soundstage has a couple of helper constructors/mixins for composing nodes.
+            These constructors cannot be accessed via `stage.create(name)`.
+            </p>
         </header>
 
-        <section class="grid-2">
+
+
+        <div class="@2-col-2 @2-span-3" build-fn="docs:'./nodes/graph.js?NodeGraph' each append:body">
+            <h3 class="text-3" build-fn="append:title"></h3>
+        </div>
+
+        <section class="@2-col-5 @2-span-2">
             <h3 class="text-4">Methods</h3>
             <template build-fn="docs:'./nodes/graph.js?connect,disconnect'" build-include="#function-template"></template>
         </section>
 
-        <section class="grid-3">
+        <section class="@2-col-7 @2-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/graph.js?context,numberOfOutputs'" build-include="#property-template"></template>
+        </section>
+
+
+
+        <div class="@2-col-2 @2-span-3" build-fn="docs:'./nodes/play-node.js?PlayNode' each append:body">
+            <h3 class="text-3" build-fn="append:title"></h3>
+        </div>
+
+        <section class="@2-col-5 @2-span-2">
+            <h3 class="text-4">Methods</h3>
+            <template build-fn="docs:'./nodes/play-node.js?start,stop'" build-include="#function-template"></template>
+        </section>
+
+        <section class="@2-col-7 @2-span-2">
+            <h3 class="text-4">Properties</h3>
+            <template build-fn="docs:'./nodes/play-node.js?playing'" build-include="#property-template"></template>
         </section>
     </section>
 
@@ -235,7 +336,7 @@ import Soundstage from 'http://stephen.band/soundstage/soundstage.js';</code></p
     <!-- Custom nodes -->
 
     <section class="1-grid grid">
-        <header class="grid-0">
+        <header class="@2-col-2 @2-span-3">
             <h2 class="text-2" style="font-size: 1.875rem;">How to publish a Soundstage node</h2>
             <p>A Soundstage node is a WebAudio node.
             All the standard WebAudio nodes are available in Soundstage as built-ins,

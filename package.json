@@ -30,7 +30,8 @@
     "devDependencies": {
         "eslint": "^5.16.0",
         "rollup": "^1.8.0",
-        "puppeteer": "^1.15.0"
+        "puppeteer": "^1.15.0",
+        "node-sass": "^4.10.0"
     },
     "module": "module.js",
     "main": "index.js",
@@ -39,6 +40,7 @@
         "build": "npm run build-cjs && npm run build-esm",
         "build-cjs": "rollup module.js --o index.js --f cjs",
         "build-esm": "rollup module.js --o soundstage.js --f esm",
-        "build-docs": "node ../fn/render-html.js http://localhost/soundstage/template.html ./index.html 10"
+        "build-docs": "node ../fn/render-html.js http://localhost/soundstage/template.html ./index.html 10",
+        "sass": "node-sass --output-style compact --indent-type tab --indent-width 1 -o css css/respond.scss"
     }
 }

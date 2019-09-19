@@ -376,9 +376,9 @@ assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
         return this;
     },
 
-    save: function() {
+    records: function() {
         return this.nodes.reduce((list, node) => {
-            const data = node.save && node.save();
+            const data = node.records && node.records();
             return data ? list.concat(data) : list ;
         }, []);
     }

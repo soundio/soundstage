@@ -1,4 +1,14 @@
 
+/*
+Output()
+
+```
+const output = stage.create('output', {
+    channels: [1, 2]    // Device channels to send output to
+});
+```
+*/
+
 import { connect, disconnect } from '../modules/connect.js';
 
 const assign = Object.assign;
@@ -28,6 +38,13 @@ export default class OutputSplitter extends GainNode {
 		this.connect(splitter);
 
 		var channels = [];
+
+		/*
+		.channels
+
+		An array of channel numbers. For stereo output this would typically be
+		`[1, 2]`.
+		*/
 
 		define(this, {
 			channels: {

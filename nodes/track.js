@@ -209,9 +209,9 @@ assign(Track.prototype, NodeGraph.prototype, {
         return this;
     },
 
-    save: function() {
+    records: function() {
         return this.sources.reduce((list, source) => {
-            const data = source.save && source.save();
+            const data = source.records && source.records();
             return data ? list.concat(data) : list ;
         }, []);
     }

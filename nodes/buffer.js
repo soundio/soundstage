@@ -3,7 +3,7 @@
 Buffer(context, settings)
 
 ```
-const tone = stage.create('buffer', {
+const buffer = stage.create('buffer', {
     url:
     attack:
     release:
@@ -220,7 +220,20 @@ console.log('OPTIONS', options);
         return this;
     }
 
-    save() {
+
+    /* .records()
+
+    If the buffer is unsaved (ie, does not have a `.path`), retuns an array of
+    one record:
+
+    ```[{
+        type: 'buffer',
+        data: [...]    // Unsaved buffer data
+        callback: fn   // Function to call with a URL when this record is saved
+    }]```
+    */
+
+    records() {
         // If sample already has a path it is already saved
         if (this.path) { return; }
         return [{

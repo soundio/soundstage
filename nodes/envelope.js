@@ -1,4 +1,14 @@
 
+/*
+Envelope(context, settings)
+
+```
+const envelope = stage.create('envelope', {
+    [Todo]
+});
+```
+*/
+
 import PlayNode from './play-node.js';
 import { automate, getValueAtTime, validateParamEvent } from '../modules/automate.js';
 import config from '../config.js';
@@ -12,9 +22,30 @@ const getDefinition = Object.getOwnPropertyDescriptor;
 const targetDurationFactor = config.targetDurationFactor;
 
 const properties = {
+    /* .attack
+    An array of param events describing the attack curve of the envelope.
+    */
+
     attack:  { writable: true, enumerable: true },
+
+    /* .release
+    An array of param events describing the release curve of the envelope.
+    */
+
     release: { writable: true, enumerable: true },
+
+    /* .gain
+    A float, nominally in the rage `0–1`, that is read on `.start()` to
+    determine the gain to apply to the curve.
+    */
+
     gain:    { writable: true, enumerable: true },
+
+    /* .rate
+    A float that is read on `.start()` to determine the rate of playback to
+    apply to the curve.
+    */
+
     rate:    { writable: true, enumerable: true }
 };
 
@@ -59,12 +90,26 @@ export default class Envelope extends ConstantSourceNode {
         assignSettingz__(this, assign({}, defaults, settings));
     }
 
+    /* .start(time)
+
+    Start playback of envelope at `time`.
+
+    Returns `this`.
+    */
+
     start(time) {
         if (!this.attack) { return this; }
         PlayNode.prototype.start.apply(this, arguments);
         cueAutomation(this.offset, this.attack, this.startTime, this.gain, this.rate, 'ConstantSource.offset');
         return this;
     }
+
+    /* .stop(time)
+
+    Stop playback of envelope at `time`.
+
+    Returns `this`.
+    */
 
     stop(time) {
         if (!this.release) { return this; }
