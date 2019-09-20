@@ -26,7 +26,18 @@ const assign = Object.assign;
 const define = Object.defineProperties;
 
 const properties = {
+    /*
+    .startTime
+    The time at which playback is scheduled to start.
+    */
+
     startTime: { writable: true },
+
+    /*
+    .stopTime
+    The time at which playback is scheduled to stop.
+    */
+
     stopTime:  { writable: true }
 };
 
@@ -89,7 +100,7 @@ define(PlayNode.prototype, {
     /*
     .playing
     A boolean indicating whether the node is started and playing (`true`) or
-    stopped and idle {`false`}.
+    stopped and idle (`false`).
     */
 
     playing: {

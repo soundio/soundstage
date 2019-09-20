@@ -183,7 +183,7 @@ define(Transport.prototype, {
 	shy of 3ms.
 	*/
 
-	processDuration: {
+	blockDuration: {
 		get: function() {
 			return 128 / this.context.sampleRate;
 		}

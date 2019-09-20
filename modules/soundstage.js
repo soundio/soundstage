@@ -89,7 +89,21 @@ function requestAudioNode(type, context, settings, transport, basePath) {
 }
 
 
-// Soundstage
+/*
+Soundstage(data, settings)
+
+Create a new Soundstage object, passing in data about the node graph, controls
+and sequencer.
+```
+const stage = new Soundstage({
+    nodes:       [{ id: 'id', label: 'label', type: 'type', data: {} }]
+    connections: [{ source: 'id', target: 'id' }]
+    controls:    [...]
+    events:      [[ time, type, name, value, duration ]]
+    sequences:   [{ id: 'id', label: 'label',   }]
+});
+```
+*/
 
 export default function Soundstage(data = defaultData, settings = nothing) {
     if (!Soundstage.prototype.isPrototypeOf(this)) {
@@ -128,7 +142,15 @@ export default function Soundstage(data = defaultData, settings = nothing) {
 
     // Properties
 
+    /*
+    .label
+    */
+
     this.label = data.label || '';
+
+    /*
+    .mediaChannelCount
+    */
 
     define(this, {
         mediaChannelCount: { value: undefined, writable: true, configurable: true },
@@ -214,24 +236,19 @@ export default function Soundstage(data = defaultData, settings = nothing) {
 
     // Initialise soundstage as a Sequencer. Assigns:
     //
-    // start:      fn
-    // stop:       fn
-    // beatAtTime: fn
-    // timeAtBeat: fn
-    // beatAtBar:  fn
-    // barAtBeat:  fn
-    // meterAtBeat: fn
-    // cue:        fn
-    // status:     string
+    // start:       fn
+    // stop:        fn
+    // beatAtTime:  fn
+    // timeAtBeat:  fn
+    // beatAtBar:   fn
+    // barAtBeat:   fn
+    // cue:         fn
 
     Sequencer.call(this, transport, data, rateParam, timer, notify);
 
 
-    /*
     // Initialise as a recorder...
-
-    var recordStream   = RecordStream(this, this.sequences);
-    */
+    //var recordStream   = RecordStream(this, this.sequences);
 
 
     // Create metronome.
@@ -248,20 +265,15 @@ export default function Soundstage(data = defaultData, settings = nothing) {
 define(Soundstage.prototype, {
     version: { value: 1 },
 
-    time: {
-        get: function() {
-            return this.context.getOutputTimestamp().contextTime;
-        }
-    },
-
-    tempo:           getOwnPropertyDescriptor(Sequencer.prototype, 'tempo'),
-    meter:           getOwnPropertyDescriptor(Sequencer.prototype, 'meter'),
-    beat:            getOwnPropertyDescriptor(Sequencer.prototype, 'beat'),
-    bar:             getOwnPropertyDescriptor(Sequencer.prototype, 'bar'),
-    playing:         getOwnPropertyDescriptor(Sequencer.prototype, 'playing'),
-    processDuration: getOwnPropertyDescriptor(Transport.prototype, 'processDuration'),
-    frameDuration:   getOwnPropertyDescriptor(Transport.prototype, 'frameDuration'),
-    frameLookahead:  getOwnPropertyDescriptor(Transport.prototype, 'frameLookahead'),
+    time:           getOwnPropertyDescriptor(Sequencer.prototype, 'time'),
+    tempo:          getOwnPropertyDescriptor(Sequencer.prototype, 'tempo'),
+    meter:          getOwnPropertyDescriptor(Sequencer.prototype, 'meter'),
+    beat:           getOwnPropertyDescriptor(Sequencer.prototype, 'beat'),
+    bar:            getOwnPropertyDescriptor(Sequencer.prototype, 'bar'),
+    playing:        getOwnPropertyDescriptor(Sequencer.prototype, 'playing'),
+    //blockDuration:  getOwnPropertyDescriptor(Transport.prototype, 'blockDuration'),
+    //frameDuration:  getOwnPropertyDescriptor(Transport.prototype, 'frameDuration'),
+    //frameLookahead: getOwnPropertyDescriptor(Transport.prototype, 'frameLookahead'),
 
     /*
     .metronome
@@ -304,13 +316,6 @@ define(Soundstage.prototype, {
     }
 });
 
-/*
-.timeAtDomTime(domTime)
-
-Returns audio context time at a given DOM time, where `domTime` is a time in
-seconds relative to window.performance.now().
-*/
-
 assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
     createControl: function(source, target, options) {
         const privates = Privates(this);
@@ -343,9 +348,20 @@ assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
         return this;
     },
 
+    /*
+    .timeAtDomTime(domTime)
+    Returns audio context time at the given `domTime`, where `domTime` is a
+    time in seconds relative to window.performance.now().
+    */
+
     timeAtDomTime: function(domTime) {
         return timeAtDomTime(this.context, domTime);
     },
+
+    /*
+    .domTimeAtTime(time)
+    Returns DOM performance time at the given context `time`.
+    */
 
     domTimeAtTime: function(domTime) {
         return domTimeAtTime(this.context, domTime);
@@ -375,6 +391,11 @@ assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
         this[$store].modify('clear');
         return this;
     },
+
+    /*
+    .records()
+    Returns an array of record objects containing unsaved data.
+    */
 
     records: function() {
         return this.nodes.reduce((list, node) => {

@@ -9,9 +9,32 @@ const define = Object.defineProperties;
 const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
 const properties = {
+
+	/*
+	.context
+	The AudioContext.
+	*/
+
 	context:       { writable: true },
+
+	/*
+	.startTime
+	The time at which the clock was scheduled to start.
+	*/
+
 	startTime:     { writable: true, value: undefined },
+
+	/*
+	.startLocation
+	*/
+
 	startLocation: { writable: true, value: undefined },
+
+	/*
+	.stopTime
+	The time at which the clock has been scheduled to stop.
+	*/
+
 	stopTime:      { writable: true, value: undefined }
 };
 

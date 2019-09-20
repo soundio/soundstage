@@ -21,3 +21,7 @@ code {
 pre > code {
     background-color: #161f1e;
 }
+
+p {
+    max-width: 60ch;
+}

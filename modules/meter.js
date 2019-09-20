@@ -1,16 +1,4 @@
 
-/*
-.beatAtBar(bar)
-
-Returns the beat at a given `bar`.
-*/
-
-/*
-.barAtBeat(beat)
-
-Returns the bar at a given `beat`.
-*/
-
 import { nothing } from '../../fn/module.js';
 import { isMeterEvent } from './event.js';
 
@@ -51,9 +39,19 @@ export default function Meter(events) {
 }
 
 assign(Meter.prototype, {
+	/*
+	.barAtBeat(beat)
+	Returns the bar at a given `beat`.
+	*/
+
 	barAtBeat: function(beat) {
 		return barAtBeat(this.events && this.events.filter(isMeterEvent) || nothing, beat);
 	},
+
+	/*
+	.beatAtBar(bar)
+	Returns the beat at the start of a given `bar`.
+	*/
 
 	beatAtBar: function(bar) {
 		return beatAtBar(this.events && this.events.filter(isMeterEvent) || nothing, bar);

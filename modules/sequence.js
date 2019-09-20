@@ -25,11 +25,29 @@ export default function Sequence(transport, data) {
 	Privates(this).transport = transport;
 
 	// Properties
+
+	/*
+	.events
+	An array of events that are played on `.start()`.
+	*/
+
 	this.events    = data && data.events || [];
+
+	/*
+	.sequences
+	An array of child sequences that may be triggered by `'sequence'` events
+	stored in `.events`.
+	*/
+
 	this.sequences = data && data.sequences || [];
 }
 
 assign(Sequence.prototype, Clock.prototype, {
+	/*
+	.beatAtTime(time)
+	Returns the beat at a given `time`.
+	*/
+
 	beatAtTime: function(time) {
 		if (time < 0) { throw new Error('Sequence.beatAtTime(time) does not accept -ve time values'); }
 
@@ -43,6 +61,11 @@ assign(Sequence.prototype, Clock.prototype, {
 
 		return beatAtLocation(events, rate0, timeLoc - startLoc);
 	},
+
+	/*
+	.timeAtBeat(beat)
+	Returns the time at a given `beat`.
+	*/
 
 	timeAtBeat: function(beat) {
 		const privates  = Privates(this);

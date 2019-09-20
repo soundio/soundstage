@@ -1,38 +1,7 @@
 
-/*
-.start(time, beat)
-
-Starts the sequencer from `beat` at `time`.
-*/
-
-/*
-.stop(time)
-
-Stops the sequencer `time`.
-*/
-
-/*
-.cue(beat, fn)
-
-Cues `fn` to be called on beat.
-*/
-
-/*
-.beatAtTime(time)
-
-Returns the beat at a given `time`.
-*/
-
-/*
-.timeAtBeat(beat)
-
-Returns the time at a given `beat`.
-*/
-
 import { get, matches, Privates, Stream } from '../../fn/module.js';
-import { isRateEvent, getDuration, getBeat, isValidEvent, eventValidationHint } from './event.js';
+import { isRateEvent, getDuration, isValidEvent, eventValidationHint } from './event.js';
 import { automate, getValueAtTime } from './automate.js';
-import Transport from './transport.js';
 import Sequence from './sequence.js';
 import PlayNode from '../nodes/play-node.js';
 import { timeAtBeatOfEvents } from './location.js';
@@ -333,13 +302,6 @@ function automateRate(privates, event) {
 	return privates;
 }
 
-
-// Sequencer
-//
-// A singleton, Sequencer is a persistent, reusable wrapper for Cuestreams
-// and RecordStreams, which are read-once. It is the `master` object from
-// whence event streams sprout.
-
 export default function Sequencer(transport, data, rateParam, timer, notify) {
 
 	// PlayNode provides the properties:
@@ -386,10 +348,27 @@ export default function Sequencer(transport, data, rateParam, timer, notify) {
 }
 
 define(Sequencer.prototype, {
+
+	/* .time
+	The time of audio now leaving the device output. On browsers the have not
+	yet implemented `context.getOutputTimestamp()` this value is estimated from
+	`currentTime` and a guess at the output latency.
+	*/
+
+	time: {
+		get: function() {
+			return this.context.getOutputTimestamp().contextTime;
+		}
+	},
+
+	/* .tempo
+	The rate of the transport clock, expressed in bpm.
+	*/
+
 	tempo: {
 		get: function() {
 			const privates  = Privates(this);
-			return getValueAtTime(privates.rateParam, this.context.currentTime) * 60;
+			return getValueAtTime(privates.rateParam, this.time) * 60;
 		},
 
 		set: function(tempo) {
@@ -398,6 +377,10 @@ define(Sequencer.prototype, {
 			automate(privates.rateParam, this.context.currentTime, 'step', tempo / 60, null, privates.notify, this.context);
 		}
 	},
+
+	/* .meter
+	The current meter.
+	*/
 
 	meter: {
 		get: function() {
@@ -411,6 +394,10 @@ define(Sequencer.prototype, {
 		}
 	},
 
+	/* .beat
+	The current beat count.
+	*/
+
 	beat: {
 		get: function() {
 			const privates = Privates(this);
@@ -418,9 +405,8 @@ define(Sequencer.prototype, {
 			if (this.startTime === undefined || this.startTime >= this.context.currentTime || this.stopTime < this.context.currentTime) {
 				return privates.beat;
 			}
-			else {
-				return this.beatAtTime(this.context.currentTime);
-			}
+
+			return this.beatAtTime(this.time);
 		},
 
 		set: function(value) {
@@ -437,6 +423,11 @@ define(Sequencer.prototype, {
 			}
 		}
 	},
+
+	/*
+	.bar
+	The current bar count.
+	*/
 
 	bar: {
 		get: function() {
@@ -478,6 +469,11 @@ assign(Sequencer.prototype, Sequence.prototype, Meter.prototype, {
 
 		return transport.timeAtBeat(startLocation + beat);
 	},
+
+	/*
+	.start(time)
+	Starts the sequencer at `time`.
+	*/
 
 	start: function(time, beat) {
 		const privates  = Privates(this);
@@ -553,6 +549,11 @@ assign(Sequencer.prototype, Sequence.prototype, Meter.prototype, {
 		return this;
 	},
 
+	/*
+	.stop(time)
+	Stops the sequencer at `time`.
+	*/
+
 	stop: function(time) {
 		time = time || this.context.currentTime;
 
@@ -593,6 +594,11 @@ assign(Sequencer.prototype, Sequence.prototype, Meter.prototype, {
 		const transport = privates.transport;
 		return transport.sequence(toEventsBuffer);
 	},
+
+	/*
+	.cue(beat, fn)
+	Cues `fn` to be called on `beat`.
+	*/
 
 	cue: function(beat, fn) {
 		var stream = Privates(this).stream;

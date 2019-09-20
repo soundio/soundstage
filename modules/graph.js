@@ -2,35 +2,18 @@
 /*
 Graph()
 
-Constructs a graph of AudioObjects. The returned object has two proerties:
-
-- `nodes`
-- `connections`
+Constructs a graph of AudioNodes.
 
 */
 
 /*
-.nodes()
-
+.nodes
 An array of context graph nodes.
 */
 
 /*
-.connections()
-
+.connections
 An array of context graph connections.
-*/
-
-/*
-.createNode(type, settings)
-
-Create a new node of `type`.
-*/
-
-/*
-.get(id)
-
-Return the plugin with `id`, or undefined.
 */
 
 import { has, get, Privates }  from '../../fn/module.js';
@@ -83,14 +66,24 @@ export default function Graph(context, requests, data, transport) {
 }
 
 assign(Graph.prototype, {
+
+    /*
+    .get(id)
+    Return the node with `id`, or undefined.
+    */
+
     get: function(id) {
-        //console.log('GET', id, this.nodes.find(has('id', id)));
         return this.nodes.find(has('id', id)).data;
     },
 
     identify: function(data) {
         return this.nodes.find(has('data', data)).id;
     },
+
+    /*
+    .create(type, settings)
+    Create a new node of `type`.
+    */
 
     create: function(type, data) {
         const graph     = this;
@@ -107,6 +100,12 @@ assign(Graph.prototype, {
             return node;
         });
     },
+
+    /*
+    .createConnection(source, target)
+    Creates a connection between two nodes in `.nodes`, where `source` and
+    `target` are node ids.
+    */
 
     createConnection: function(source, target, output, input) {
         return new Connection(this, source, target, output, input);
