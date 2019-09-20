@@ -41,9 +41,7 @@ const properties = {
     loopStart: { enumerable: true, writable: true },
     loopEnd:   { enumerable: true, writable: true },
     endTime:   { enumerable: true, writable: true },
-    nominalFrequency: { enumerable: true, writable: true },
-    velocityRange:    { enumerable: true, writable: true },
-    gainFromVelocity: { enumerable: true, writable: true }
+    nominalFrequency: { enumerable: true, writable: true }
 };
 
 const defaults = {
@@ -223,14 +221,16 @@ console.log('OPTIONS', options);
 
     /* .records()
 
-    If the buffer is unsaved (ie, does not have a `.path`), retuns an array of
-    one record:
+    If the buffer is unsaved (ie, does not have a `.path`), returns an array
+    containing one record:
 
-    ```[{
+    ```
+    [{
         type: 'buffer',
         data: [...]    // Unsaved buffer data
         callback: fn   // Function to call with a URL when this record is saved
-    }]```
+    }]
+    ```
     */
 
     records() {

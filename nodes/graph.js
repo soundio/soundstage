@@ -3,7 +3,7 @@
 NodeGraph(context, settings)
 
 `NodeGraph` constructs an AudioNode-like object from a graph of child nodes.
-It may be used as a mixin or as a constructor. In Soundstage it is used to
+It may be used as a constructor or as a mixin. In Soundstage it is used to
 help compose nodes.
 
 ```
