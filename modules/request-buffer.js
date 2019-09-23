@@ -9,13 +9,8 @@ export function requestBuffer(context, url) {
         var request = new XMLHttpRequest();
         request.open('GET', url, true);
         request.responseType = 'arraybuffer';
-        request.onload = function() {
-            context.decodeAudioData(request.response, accept, reject);
-        };
+        request.onload = () => context.decodeAudioData(request.response, accept, reject);
+        request.onerror = reject;
         request.send();
-    })
-    .then((buffer) => {
-        log('Buffer loaded', url);
-        return buffer;
     }));
 }

@@ -6,15 +6,13 @@
 // A region looks like this:
 //
 // {
-//   url: 'audio.wav',
-//   noteRange: [minLimit, minFade, maxFade, maxLimit],     // All numbers as MIDI note numbers
-//   velocityRange: [minLimit, minFade, maxFade, maxLimit], // All numbers in the range 0-1
-//   velocitySensitivity: // 0-1
+//   src: 'audio.wav',
+//   nominalFrequency: 440,
+//   noteRange: [minLimit, minFade, maxFade, maxLimit], // All numbers as MIDI note numbers
+//   gainRange: [minLimit, minFade, maxFade, maxLimit], // All numbers in the range 0-1
 //   gain:                // 0-1
 //   muteDecay:           // seconds
 // }
-
-var AudioObject = window.AudioObject;
 
 // Note: URLs are temporary! They will change.
 
@@ -25,22 +23,21 @@ export default {
 
 	data: (function(names) {
 		var data = [];
-		var o = -1;
-		var n = 24;
+		var o = 0;
+		var n = 23;
 		var i;
 
 		while (++o < 7) {
 			i = -1;
 			while (++i < names.length) {
 				data.push({
-					path: 'http://localhost/sound.io/soundio/static/audio/fender-rhodes-mark-ii/samples/corsica-s-cs-rhodes-mark-ii-' + names[i] + o + '.wav',
-					nominalFrequency: floatToFrequency(440, n++),
+					src: 'http://localhost/soundio/soundio/static/audio/fender-rhodes-mark-ii/samples/corsica-s-cs-rhodes-mark-ii-' + names[i] + o + '.wav',
+					nominalFrequency: floatToFrequency(440, ++n),
 					noteRange: [n],
-					velocityRange: [0, 1],
-					gainFromVelocity: 1,
-					gain: 0.2,
+					gainRange: [0, 1],
+					gain: 1,
 					attack: 0,
-					release: 0.08
+					release: 0
 				});
 			}
 		}

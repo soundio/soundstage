@@ -164,6 +164,9 @@ assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
             entry = privates.__start[id];
 
             const target = this.get(id);
+            if (!target) {
+                throw new Error('Node "' + id + '" not found in nodes');
+            }
 
             // Cycle through frequency/gain transforms
             let key, transform;

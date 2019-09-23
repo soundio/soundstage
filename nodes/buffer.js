@@ -22,9 +22,9 @@ import PlayNode from './play-node.js';
 import { requestBuffer } from '../modules/request-buffer.js';
 import { Privates } from '../../fn/module.js';
 import { frequencyToFloat } from '../../midi/module.js';
-import { assignSettings } from '../modules/assign-settings.js';
+import { assignSettingz__ } from '../modules/assign-settings.js';
 
-const DEBUG = true;
+const DEBUG  = true;
 const assign = Object.assign;
 const define = Object.defineProperties;
 const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
@@ -55,9 +55,7 @@ const defaults = {
     attack:  0.000,
     release: undefined,
     mute:    0.012,
-    velocityRange: [0, 1],
     gain:    1,
-    gainFromVelocity: 0
 };
 
 const gainOptions = { gain: 0 };
@@ -65,7 +63,7 @@ const gainOptions = { gain: 0 };
 const sourceOptions = {};
 
 
-export default class Sample extends GainNode {
+export default class Buffer extends GainNode {
     constructor(context, options) {
         // Initialise as gain node
         super(context, gainOptions);
@@ -79,10 +77,10 @@ export default class Sample extends GainNode {
         const privates = Privates(this);
 
         // Expose a rate param
-        privates.rate = context.createConstantSource();
-        this.rate = privates.rate.offset;
-console.log('OPTIONS', options);
-        this.reset(context, options);
+        //privates.rate = context.createConstantSource();
+        //this.rate = privates.rate.offset;
+
+        Buffer.reset(this, arguments);
 
         if (!this.buffer && typeof this.path === 'string') {
             privates.request = requestBuffer(context, this.path)
@@ -93,32 +91,9 @@ console.log('OPTIONS', options);
             })
             .catch((e) => { console.warn(e); });
         }
-        // Todo: implement buffer playing
-        //else {}
     }
 
-    reset(context, options) {
-        const privates = Privates(this);
-
-        // Initialise .startTime, .stopTime and .playing
-        PlayNode.reset(this, arguments);
-
-        // Discard the old source node
-        privates.source && privates.source.disconnect();
-
-        this.buffer   = options.buffer;
-        privates.gain = options.gain || defaults.gain;
-        this.release  = undefined;
-
-        this.gain.setValueAtTime(0, this.context.currentTime);
-        this.rate.setValueAtTime(1, this.context.currentTime);
-
-        assignSettings(this, defaults, options);
-
-        console.log('Sample', this);
-    }
-
-    start(time, frequency = defaults.nominalFrequency, gain = 1) {
+    start(time) {
         const privates = Privates(this);
 
         if (!this.buffer) {
@@ -222,7 +197,7 @@ console.log('OPTIONS', options);
     /* .records()
 
     If the buffer is unsaved (ie, does not have a `.path`), returns an array
-    containing one record:
+    containing one record object:
 
     ```
     [{
@@ -251,6 +226,24 @@ console.log('OPTIONS', options);
 }
 
 // Mix in property definitions
-define(Sample.prototype, {
+define(Buffer.prototype, {
     playing: getOwnPropertyDescriptor(PlayNode.prototype, 'playing')
 });
+
+Buffer.reset = function(node, args) {
+    const privates = Privates(node);
+    const options  = args[1];
+
+    // Initialise .startTime, .stopTime and .playing
+    PlayNode.reset(this, arguments);
+
+    // Discard the old source node (should have been deiscarded
+    // automatically, bit no harm in playing safe)
+    privates.source && privates.source.disconnect();
+    privates.source = undefined;
+
+    // Set buffer data
+    node.buffer = options.buffer;
+
+    assignSettingz__(this, defaults, options);
+};
