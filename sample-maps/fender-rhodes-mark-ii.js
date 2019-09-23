@@ -1,7 +1,12 @@
 
-// C_S Fender Rhodes Mark II by Corsica_S
+// C_S Fender Rhodes Mark II
+//
+// Samples by Tim Kahn
 // Available on freesound.org:
 // http://www.freesound.org/people/Corsica_S/packs/3957/
+//
+// CC Attribution license:
+// https://creativecommons.org/licenses/by/3.0/
 
 // A region looks like this:
 //
@@ -13,8 +18,6 @@
 //   gain:                // 0-1
 //   muteDecay:           // seconds
 // }
-
-// Note: URLs are temporary! They will change.
 
 import { floatToFrequency } from '../../../../midi/module.js';
 

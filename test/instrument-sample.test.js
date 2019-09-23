@@ -20,11 +20,24 @@ test('Instrument', function(run, print, fixture) {
                         src: '/soundstage/sample-maps/fender-rhodes-mark-ii.js'
                     }
                 }, {
+                    id:   'osc-2',
+                    type: 'tone',
+                    data: {
+                        type: 'square'
+                    }
+                }, {
                     id:   'mix-1',
                     type: 'mix',
                     data: {
                         gain: 0.7,
                         pan: 0
+                    }
+                }, {
+                    id:   'mix-2',
+                    type: 'mix',
+                    data: {
+                        gain: 0.05,
+                        pan: 0.3
                     }
                 }, {
                     id:   'gain-envelope',
@@ -70,7 +83,9 @@ test('Instrument', function(run, print, fixture) {
                     { source: 'gain-envelope', target: 'gain.gain' },
                     { source: 'filter-envelope', target: 'filter.frequency' },
                     { source: 'osc-1', target: 'mix-1' },
+                    { source: 'osc-2', target: 'mix-2' },
                     { source: 'mix-1', target: 'gain' },
+                    { source: 'mix-2', target: 'gain' },
                     { source: 'gain', target: 'filter' }
                 ],
 
@@ -95,6 +110,12 @@ test('Instrument', function(run, print, fixture) {
                     },
 
                     'osc-1': {
+                        frequency: {
+                            1: { type: 'none' }
+                        }
+                    },
+
+                    'osc-2': {
                         frequency: {
                             1: { type: 'none' }
                         }
@@ -123,7 +144,7 @@ test('Instrument', function(run, print, fixture) {
                     node
                     .start(stage.time + 1.9, 'D3', 0.333333)
                     .stop(stage.time + 2.8);
-
+/*
                     node
                     .start(stage.time + 2.8, 'C3', 0.1)
                     .stop(stage.time + 3.2);
@@ -135,7 +156,7 @@ test('Instrument', function(run, print, fixture) {
                     node
                     .start(stage.time + 4.6, 'E3', 0.5)
                     .stop(stage.time + 5.5);
-
+*/
                     setTimeout(function() {
                         node
                         .start(stage.time + 1, 'C3', 0.0009765625)
@@ -144,7 +165,7 @@ test('Instrument', function(run, print, fixture) {
                         node
                         .start(stage.time + 1.6, 'C3', 1)
                         .stop(stage.time + 1.9);
-                    }, 6000);
+                    }, 3000);
                 }, 1000);
             });
         });

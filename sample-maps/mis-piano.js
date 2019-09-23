@@ -38,7 +38,7 @@ function createSample(name, dynamic) {
 	var frequency = floatToFrequency(number);
 
 	return {
-		path: base + dynamic + '.' + name + extension,
+		src: base + dynamic + '.' + name + extension,
 		nominalFrequency: floatToFrequency(440, number),
 		noteRange: [
 			number - (name === 'C2' ? 6 : (name[name.length - 1] === '2' || name[name.length - 1] === '3' || name[name.length - 1] === '4' || name[name.length - 1] === '5' || name[name.length - 1] === '6') ? 2 : 6),
@@ -46,11 +46,10 @@ function createSample(name, dynamic) {
 			number + ((name[name.length - 1] === '2' || name[name.length - 1] === '3' || name[name.length - 1] === '4' || name[name.length - 1] === '5') ? 2 : 6)
 		],
 
-		velocityRange: dynamic === 'pp' ? ppVelocity :
+		gainRange: dynamic === 'pp' ? ppVelocity :
 		               dynamic === 'mf' ? mfVelocity :
 		               ffVelocity ,
 
-		gainFromVelocity: 1,
 		gain: dynamic === 'pp' ? ppGain :
 		      dynamic === 'mf' ? mfGain :
 		      ffGain ,
