@@ -35,7 +35,7 @@ An AudioParam that modifies the frequency in cents.
 
 import { requestBuffer } from '../modules/request-buffer.js';
 import { requestData } from '../modules/request-data.js';
-import { get, Privates } from '../../fn/module.js';
+import { Privates } from '../../fn/module.js';
 import NodeGraph   from './graph.js';
 import PlayNode from './play-node.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
@@ -92,8 +92,8 @@ const defaults = {
 const cache = {};
 
 function regionRate(region, frequency, gain) {
-    return region.nominalFrequency ?
-        frequency / region.nominalFrequency :
+    return region.frequency ?
+        frequency / region.frequency :
         1 ;
 }
 

@@ -167,7 +167,7 @@ assign(Instrument.prototype, NodeGraph.prototype, {
     */
 
     start: function(time, note, velocity = 1) {
-        if (!note) {
+        if (!isDefined(note)) {
             throw new Error('Attempt to .start() a note without passing a note value.')
         }
 

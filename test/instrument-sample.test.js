@@ -17,7 +17,7 @@ test('Instrument', function(run, print, fixture) {
                     id:   'osc-1',
                     type: 'sample',
                     data: {
-                        src: '/soundstage/sample-maps/fender-rhodes-mark-ii.json'
+                        src: '../sample-maps/mis-piano.js'
                     }
                 }, {
                     id:   'osc-2',
@@ -133,11 +133,11 @@ test('Instrument', function(run, print, fixture) {
 
             stage.__promise.then(function() {
 
-                var n = 12;
-                var nmax = 116;
+                var n = -1;
+                var nmax = 128;
                 while (n++ < nmax) {
                     node
-                    .start(stage.time + n/8, n, 0.666667)
+                    .start(stage.time + n/8, n, 0.8)
                     .stop(stage.time + n/8 + 0.125);
                 }
 

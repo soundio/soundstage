@@ -22,7 +22,7 @@ import { toNoteNumber, floatToFrequency } from '../../../../midi/module.js';
 
 
 // Note: URLs are temporary! They will change.
-var base = 'http://localhost/sound.io/soundio/static/audio/mis-piano/samples/Piano.';
+var base = 'http://localhost/soundio/soundio/static/audio/mis-piano/samples/Piano.';
 var extension = '.wav';
 
 var ppVelocity = [0, 0, 2/12, 6/12];
@@ -39,7 +39,7 @@ function createSample(name, dynamic) {
 
 	return {
 		src: base + dynamic + '.' + name + extension,
-		nominalFrequency: floatToFrequency(440, number),
+		frequency: floatToFrequency(440, number),
 		noteRange: [
 			number - (name === 'C2' ? 6 : (name[name.length - 1] === '2' || name[name.length - 1] === '3' || name[name.length - 1] === '4' || name[name.length - 1] === '5' || name[name.length - 1] === '6') ? 2 : 6),
 			number,
