@@ -4,23 +4,22 @@ Sample(context, settings)
 
 ```
 const sample = stage.create('sample', {
-    url: 'path/to/data',  // A path where the data for the sample set is kept
+    src: 'path/to/data',  // A path where the data for the sample set is kept
 });
 ```
 
 A sample object represents a set of audio buffers that are mapped to the
-playback of via pitches via a sample-set data object that is fetched from
-a URL.
+playback of pitches. Mapping is defined in a JSON file.
 */
 
 /*
-.url
+.src
 Path to a JSON file for sample set data. See [Todo:link] Sample Set Data.
 */
 
 /*
 .gain
-A float picked up on `.start()`
+A float read on `.start()`
 */
 
 /*
@@ -35,6 +34,7 @@ An AudioParam that modifies the frequency in cents.
 
 
 import { requestBuffer } from '../modules/request-buffer.js';
+import { requestData } from '../modules/request-data.js';
 import { get, Privates } from '../../fn/module.js';
 import NodeGraph   from './graph.js';
 import PlayNode from './play-node.js';
@@ -69,10 +69,9 @@ const properties = {
         set: function(src) {
             const privates = Privates(this);
 
-            // Todo: dont use this.then as a flag or anything
-            this.promise = import(src)
-            .then(get('default'))
-            .then((data) => {
+            // Import JSON
+            // Todo: Expose a better way than this.promise
+            this.promise = requestData(src).then((data) => {
                 this.promise = undefined;
                 privates.src = src;
                 privates.map = data;
@@ -103,7 +102,8 @@ function regionGain(region, note, gain) {
     // waveforms are coherent) the crossfade at the 'ends' of the
     // note range
     const noteRange = region.noteRange;
-    const noteGain = noteRange.length < 3 ? 1 :
+    const noteGain = !noteRange ? 1 :
+        noteRange.length < 3 ? 1 :
         note < noteRange[1] ? (note - noteRange[2]) / (noteRange[1] - noteRange[2]) :
         note > noteRange[noteRange.length - 2] ? 1 - (note - noteRange[2]) / (noteRange[1] - noteRange[2]) :
         1 ;
@@ -112,7 +112,8 @@ function regionGain(region, note, gain) {
     // waveforms are coherent) the crossfade at the 'ends' of the
     // gain range
     const gainRange = region.gainRange;
-    const gainGain = gainRange.length < 3 ? 1 :
+    const gainGain = !gainRange ? 1 :
+        gainRange.length < 3 ? 1 :
         gain < gainRange[1] ? (gain - gainRange[2]) / (gainRange[1] - gainRange[2]) :
         gain > gainRange[gainRange.length - 2] ? 1 - (gain - gainRange[2]) / (gainRange[1] - gainRange[2]) :
         1 ;
@@ -168,7 +169,7 @@ function setupBufferNode(context, destination, detuneNode, region, buffer, time,
     const rate = regionRate(region, frequency);
     bufferNode.playbackRate.setValueAtTime(rate, time);
 
-    //detuneNode.connect(bufferNode.detune);
+    detuneNode.connect(bufferNode.detune);
     bufferNode.connect(destination);
 
     return start(time, bufferNode);
@@ -181,24 +182,28 @@ function startSources(sources, destination, detuneNode, map, time, frequency, no
 
     // Neuter velocity 0s - they dont seem to get filtered below
     return gain === 0 ? sources : map
-    .filter((region) => (region.noteRange[0] <= note
-        && region.noteRange[region.noteRange.length - 1] >= note
-        && region.gainRange[0] <= gain
-        && region.gainRange[region.gainRange.length - 1] >= gain)
-    )
+    .filter((region) => (
+        (!region.noteRange || (region.noteRange[0] <= note
+        && region.noteRange[region.noteRange.length - 1] >= note))
+        &&
+        (!region.gainRange || (region.gainRange[0] <= gain
+        && region.gainRange[region.gainRange.length - 1] >= gain))
+    ))
     .reduce((sources, region, i) => {
+        console.log(region.src);
+
         // Handle cached buffers synchronously
-        if (cache[region.url]) {
+        if (cache[region.src]) {
             sources[i] = setupGainNode(context, destination, sources[i], time, region, note, gain);
-            sources[i].bufferNode = setupBufferNode(context, destination, detuneNode, region, cache[region.url], time, frequency, note, gain);
+            sources[i].bufferNode = setupBufferNode(context, destination, detuneNode, region, cache[region.src], time, frequency, note, gain);
             sources[i].region = region;
         }
         else {
             requestBuffer(context, region.src)
             .then((buffer) => {
-                cache[region.url] = buffer;
+                cache[region.src] = buffer;
                 sources[i] = setupGainNode(context, destination, sources[i], time, region, note, gain);
-                sources[i].bufferNode = setupBufferNode(context, destination, detuneNode, region, cache[region.url], time, frequency, note, gain);
+                sources[i].bufferNode = setupBufferNode(context, destination, detuneNode, region, cache[region.src], time, frequency, note, gain);
                 sources[i].region = region;
             });
         }
@@ -307,7 +312,7 @@ assign(Sample.prototype, PlayNode.prototype, NodeGraph.prototype, {
         return this;
     },
 
-    stop: function(time, note, velocity = 1) {
+    stop: function(time) {
         // Clamp stopTime to startTime
         PlayNode.prototype.stop.call(this, time);
 

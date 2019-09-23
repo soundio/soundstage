@@ -17,7 +17,7 @@ test('Instrument', function(run, print, fixture) {
                     id:   'osc-1',
                     type: 'sample',
                     data: {
-                        src: '/soundstage/sample-maps/fender-rhodes-mark-ii.js'
+                        src: '/soundstage/sample-maps/fender-rhodes-mark-ii.json'
                     }
                 }, {
                     id:   'osc-2',
@@ -83,7 +83,7 @@ test('Instrument', function(run, print, fixture) {
                     { source: 'gain-envelope', target: 'gain.gain' },
                     { source: 'filter-envelope', target: 'filter.frequency' },
                     { source: 'osc-1', target: 'mix-1' },
-                    { source: 'osc-2', target: 'mix-2' },
+                    //{ source: 'osc-2', target: 'mix-2' },
                     { source: 'mix-1', target: 'gain' },
                     { source: 'mix-2', target: 'gain' },
                     { source: 'gain', target: 'filter' }
@@ -132,6 +132,16 @@ test('Instrument', function(run, print, fixture) {
             stage.createConnection(node, 'output');
 
             stage.__promise.then(function() {
+
+                var n = 12;
+                var nmax = 116;
+                while (n++ < nmax) {
+                    node
+                    .start(stage.time + n/8, n, 0.666667)
+                    .stop(stage.time + n/8 + 0.125);
+                }
+
+/*
                 setTimeout(function() {
                     window.voice = node
                     .start(stage.time + 1, 'C3', 0.5)
@@ -144,7 +154,7 @@ test('Instrument', function(run, print, fixture) {
                     node
                     .start(stage.time + 1.9, 'D3', 0.333333)
                     .stop(stage.time + 2.8);
-/*
+
                     node
                     .start(stage.time + 2.8, 'C3', 0.1)
                     .stop(stage.time + 3.2);
@@ -156,17 +166,18 @@ test('Instrument', function(run, print, fixture) {
                     node
                     .start(stage.time + 4.6, 'E3', 0.5)
                     .stop(stage.time + 5.5);
-*/
+
                     setTimeout(function() {
                         node
-                        .start(stage.time + 1, 'C3', 0.0009765625)
+                        .start(stage.time + 1, 'E3', 1)
                         .stop(stage.time + 1.5);
 
                         node
                         .start(stage.time + 1.6, 'C3', 1)
                         .stop(stage.time + 1.9);
-                    }, 3000);
+                    }, 6000);
                 }, 1000);
+*/
             });
         });
 
