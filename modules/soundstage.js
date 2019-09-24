@@ -92,13 +92,29 @@ function requestAudioNode(type, context, settings, transport, basePath) {
 /*
 Soundstage(data, settings)
 
-Create a new Soundstage object, passing in data about the node graph, controls
-and sequencer.
+Import Soundstage and create a new Soundstage object, passing in data about the
+node graph, controls and sequencer.
+
 ```
+import Soundstage from 'http://sound.io/soundstage/module.js';
+
 const stage = new Soundstage({
-    nodes:       [{ id: 'id', label: 'label', type: 'type', data: {} }]
-    connections: [{ source: 'id', target: 'id' }]
-    controls:    [...]
+    nodes: [
+        { id: '2', type: 'instrument', data: { ... } },
+        { id: '3', type: 'output' }
+    ],
+
+    connections: [
+        { source: '1', target: '2' },
+        { source: '2', target: '3' }
+    ],
+
+    controls: [{
+        source: { type: 'keyboard', data: 'space' },
+        type: 'record',
+        target: '2'
+    }],
+
     events:      [[ time, type, name, value, duration ]]
     sequences:   [{ id: 'id', label: 'label',   }]
 });
