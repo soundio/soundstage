@@ -190,8 +190,6 @@ function startSources(sources, destination, detuneNode, map, time, frequency, no
         && region.gainRange[region.gainRange.length - 1] >= gain))
     ))
     .reduce((sources, region, i) => {
-        console.log(region.src);
-
         // Handle cached buffers synchronously
         if (cache[region.src]) {
             sources[i] = setupGainNode(context, destination, sources[i], time, region, note, gain);

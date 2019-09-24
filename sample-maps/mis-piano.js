@@ -25,9 +25,9 @@ import { toNoteNumber, floatToFrequency } from '../../../../midi/module.js';
 var base = 'http://localhost/soundio/soundio/static/audio/mis-piano/samples/Piano.';
 var extension = '.wav';
 
-var ppVelocity = [0, 0, 2/12, 6/12];
-var mfVelocity = [2/12, 6/12, 7/12, 11/12];
-var ffVelocity = [7/12, 11/12, 1, 1];
+var ppVelocity = [0, 0, 0.0625, 0.125];
+var mfVelocity = [0.0625, 0.125, 0.25, 0.5];
+var ffVelocity = [0.25, 0.5, 1, 1];
 
 var ppGain = 6;
 var mfGain = 12/7;

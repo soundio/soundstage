@@ -82,7 +82,8 @@ assign(Graph.prototype, {
 
     /*
     .create(type, settings)
-    Create a new node of `type`.
+    Creates a new node of `type`, generates an id for it and adds it to the
+    stage. It is not connected to anything by default.
     */
 
     create: function(type, data) {
