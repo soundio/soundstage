@@ -1,8 +1,14 @@
 // prefix, min-width, grid count, gutter, space
 $breakpoints:
-	'\\@1-' 30em,
-	'\\@2-' 50em,
-    '\\@3-' 70em 9,
-	'\\@4-' 90em 9;
+    /* 560px */
+    '\\@1-' 35em  9,
+    /* 720px */
+	'\\@2-' 45em  9,
+    /* 960px */
+	'\\@3-' 65em  9,
+    /* 1320px */
+    '\\@4-' 85em  9,
+    /* 1680px */
+	'\\@5-' 105em 9;
 
 @import '../bolt/css/respond.scss';
