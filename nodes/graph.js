@@ -191,10 +191,9 @@ assign(NodeGraph.prototype, {
 
     /*
     .connect(target)
-    Mirrors the standard AudioNode `.connect()` method. This is provided as a
-    convenience: connections to other Soundstage nodes should be made via
-    [[[Todo:link]]]`stage.createConnection()` so that Soundstage may track changes to its
-    graph.
+    Connect node to target. In Soundstage calling this method directly is
+    discouraged: the graph cannot track changes to your connections if you use
+    it. Instead, call `stage.createConnection(node, target)`.
     */
 
     connect: function() {
@@ -205,7 +204,9 @@ assign(NodeGraph.prototype, {
 
     /*
     .disconnect(target)
-    Mirrors the standard AudioNode disconnect() method.
+    Disconnect node from target. In Soundstage calling this method directly is
+    discouraged: the graph cannot track changes to your connections if you use
+    it. Instead, call `stage.removeConnection(node, target)`.
     */
 
     disconnect: function() {

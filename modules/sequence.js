@@ -28,15 +28,16 @@ export default function Sequence(transport, data) {
 
 	/*
 	.events
-	An array of events that are played on `.start()`.
+	An array of events that are played on `.start(time)`.
+    See <a href="#events">Events</a>.
 	*/
 
 	this.events    = data && data.events || [];
 
 	/*
 	.sequences
-	An array of child sequences that may be triggered by `'sequence'` events
-	stored in `.events`.
+	An array of sequences that may be triggered by `'sequence'` events
+	stored in `.events`. See <a href="#sequences">Sequences</a>.
 	*/
 
 	this.sequences = data && data.sequences || [];

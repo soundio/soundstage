@@ -103,10 +103,31 @@
 
     <!-- Nodes -->
 
-    <section class="1-2-3-grid grid">
+    <section class="1-2-3-grid grid" id="nodes">
         <header class="col-1 span-6 @2-col-2 @2-span-6">
             <h2 class="text-2" style="font-size: 1.875rem;">Nodes</h2>
         </header>
+
+        <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3">
+            <p>
+                Pass in a <code>.nodes</code> array to put nodes in the graph:
+            </p>
+
+            <pre><code class="language-js">const stage = new Soundstage({
+    nodes: [
+        { id: '1', type: 'instrument', data: {...} },
+        { id: '2', type: 'output', data: {...} }
+    ]
+});</code></pre>
+
+            <p>
+                Or create a node by calling:
+            </p>
+
+            <pre><code class="language-js">const promise = stage.create(type, data);</code></pre>
+
+            <p>Here's the built-in node types:</p>
+        </div>
 
         <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3"><code class="language-js">'input'</code></h2>
 
@@ -114,7 +135,7 @@
 
         <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
             <h3 class="text-4">Properties</h3>
-            <template build-fn="docs:'./nodes/input.js?channels','./nodes/graph.js?context'" build-include="#property-template"></template>
+            <template build-fn="docs:'./nodes/input.js?channels'" build-include="#property-template"></template>
         </section>
 
 
@@ -125,7 +146,7 @@
 
         <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
             <h3 class="text-4">Properties</h3>
-            <template build-fn="docs:'./nodes/output.js?channels','./nodes/graph.js?context'" build-include="#property-template"></template>
+            <template build-fn="docs:'./nodes/output.js?channels'" build-include="#property-template"></template>
         </section>
 
 
@@ -140,14 +161,11 @@
 
         <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
             <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./nodes/graph.js?connect,disconnect'" build-include="#method-template"></template>
         </section>
 
         <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/compressor.js?xxx'" build-include="#property-template"></template>
-            <hr/>
-            <template build-fn="docs:'./nodes/graph.js?context'" build-include="#property-template"></template>
         </section>
 
 
@@ -158,12 +176,11 @@
 
         <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
             <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./nodes/graph.js?connect,disconnect'" build-include="#method-template"></template>
         </section>
 
         <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
             <h3 class="text-4">Properties</h3>
-            <template build-fn="docs:'./nodes/delay.js?delay','./nodes/graph.js?context'" build-include="#property-template"></template>
+            <template build-fn="docs:'./nodes/delay.js?delayTime'" build-include="#property-template"></template>
         </section>
 
 
@@ -174,14 +191,11 @@
 
         <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
             <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./nodes/graph.js?connect,disconnect'" build-include="#method-template"></template>
         </section>
 
         <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/eq.js?xxx'" build-include="#property-template"></template>
-            <hr/>
-            <template build-fn="docs:'./nodes/graph.js?context'" build-include="#property-template"></template>
         </section>
 
 
@@ -192,12 +206,12 @@
 
         <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
             <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./nodes/graph.js?connect,disconnect,get'" build-include="#method-template"></template>
+            <template build-fn="docs:'./nodes/graph.js?get'" build-include="#method-template"></template>
         </section>
 
         <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
             <h3 class="text-4">Properties</h3>
-            <template build-fn="docs:'./nodes/filter.js?xxx','./nodes/graph.js?context'" build-include="#property-template"></template>
+            <template build-fn="docs:'./nodes/filter.js?xxx'" build-include="#property-template"></template>
         </section>
 
 
@@ -208,12 +222,12 @@
 
         <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
             <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./nodes/graph.js?connect,disconnect,get'" build-include="#method-template"></template>
+            <template build-fn="docs:'./nodes/graph.js?get'" build-include="#method-template"></template>
         </section>
 
         <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
             <h3 class="text-4">Properties</h3>
-            <template build-fn="docs:'./nodes/flanger.js?delay,depth,feedback,frequency,dry,wet','./nodes/graph.js?context'" build-include="#property-template"></template>
+            <template build-fn="docs:'./nodes/flanger.js?delay,depth,feedback,frequency,dry,wet'" build-include="#property-template"></template>
         </section>
 
 
@@ -225,15 +239,13 @@
         <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
             <h3 class="text-4">Methods</h3>
             <template build-fn="docs:'./nodes/looper.js?startRecord,stopRecord,start,stop,records'" build-include="#method-template"></template>
-            <hr/>
-            <template build-fn="docs:'./nodes/graph.js?connect,disconnect,get'" build-include="#method-template"></template>
+            <template build-fn="docs:'./nodes/graph.js?get'" build-include="#method-template"></template>
         </section>
 
         <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/looper.js?beats,dry,wet'" build-include="#property-template"></template>
-            <hr />
-            <template build-fn="docs:'./nodes/graph.js?context','./nodes/play-node.js?playing,startTime,stopTime'" build-include="#property-template"></template>
+            <template build-fn="docs:'./nodes/play-node.js?playing,startTime,stopTime'" build-include="#property-template"></template>
         </section>
 
 
@@ -244,14 +256,12 @@
 
         <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
             <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./nodes/graph.js?connect,disconnect,get'" build-include="#method-template"></template>
+            <template build-fn="docs:'./nodes/graph.js?get'" build-include="#method-template"></template>
         </section>
 
         <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/saturator.js?cutoff,drive,shape,transform,dry,wet'" build-include="#property-template"></template>
-            <hr />
-            <template build-fn="docs:'./nodes/graph.js?context'" build-include="#property-template"></template>
         </section>
 
 
@@ -267,8 +277,6 @@
         <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/meter.js?peaks'" build-include="#property-template"></template>
-            <hr/>
-            <template build-fn="docs:'./nodes/graph.js?context'" build-include="#property-template"></template>
         </section>
 
 
@@ -279,14 +287,12 @@
 
         <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
             <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./nodes/graph.js?connect,disconnect,get'" build-include="#method-template"></template>
+            <template build-fn="docs:'./nodes/graph.js?get'" build-include="#method-template"></template>
         </section>
 
         <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/mix.js?gain,pan'" build-include="#property-template"></template>
-            <hr/>
-            <template build-fn="docs:'./nodes/graph.js?context'" build-include="#property-template"></template>
         </section>
 
 
@@ -298,15 +304,11 @@
         <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
             <h3 class="text-4">Methods</h3>
             <template build-fn="docs:'./nodes/noise.js?start,stop'" build-include="#method-template"></template>
-            <hr/>
-            <template build-fn="docs:'./nodes/graph.js?connect,disconnect'" build-include="#method-template"></template>
         </section>
 
         <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
             <h3 class="text-4">Properties</h3>
-            <template build-fn="docs:'./nodes/noise.js?type'" build-include="#property-template"></template>
-            <hr/>
-            <template build-fn="docs:'./nodes/graph.js?context','./nodes/play-node.js?startTime,stopTime,playing'" build-include="#property-template"></template>
+            <template build-fn="docs:'./nodes/noise.js?type','./nodes/play-node.js?startTime,stopTime,playing'" build-include="#property-template"></template>
         </section>
 
 
@@ -316,12 +318,11 @@
 
         <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
             <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./nodes/graph.js?connect,disconnect'" build-include="#method-template"></template>
         </section>
 
         <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
             <h3 class="text-4">Properties</h3>
-            <template build-fn="docs:'./nodes/sample.js?url,frequency,gain','./nodes/graph.js?context','./nodes/play-node.js?playing,startTime,stopTime'" build-include="#property-template"></template>
+            <template build-fn="docs:'./nodes/sample.js?url,frequency,gain','./nodes/play-node.js?playing,startTime,stopTime'" build-include="#property-template"></template>
         </section>
 
 
@@ -332,12 +333,12 @@
 
         <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
             <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./nodes/tone.js?start,stop','./nodes/graph.js?connect,disconnect'" build-include="#method-template"></template>
+            <template build-fn="docs:'./nodes/tone.js?start,stop'" build-include="#method-template"></template>
         </section>
 
         <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
             <h3 class="text-4">Properties</h3>
-            <template build-fn="docs:'./nodes/tone.js?type,frequency,detune,gain','./nodes/graph.js?context','./nodes/play-node.js?startTime,stopTime,playing'" build-include="#property-template"></template>
+            <template build-fn="docs:'./nodes/tone.js?type,frequency,detune,gain','./nodes/play-node.js?startTime,stopTime,playing'" build-include="#property-template"></template>
         </section>
 
 
@@ -348,12 +349,12 @@
 
         <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
             <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./nodes/tick.js?start,stop','./nodes/graph.js?connect,disconnect'" build-include="#method-template"></template>
+            <template build-fn="docs:'./nodes/tick.js?start,stop'" build-include="#method-template"></template>
         </section>
 
         <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
             <h3 class="text-4">Properties</h3>
-            <template build-fn="docs:'./nodes/tick.js?resonance,decay,gain','./nodes/graph.js?context','./nodes/play-node.js?startTime,stopTime,playing'" build-include="#property-template"></template>
+            <template build-fn="docs:'./nodes/tick.js?resonance,decay,gain','./nodes/play-node.js?startTime,stopTime,playing'" build-include="#property-template"></template>
         </section>
 
 
@@ -375,8 +376,6 @@
         <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/envelope.js?attack,release,gain,rate'" build-include="#property-template"></template>
-            <hr />
-            <template build-fn="docs:'./nodes/graph.js?context'" build-include="#property-template"></template>
         </section>
 
 
@@ -387,7 +386,25 @@
 
         <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
             <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./nodes/instrument.js?start,stop','./nodes/graph.js?connect,disconnect'" build-include="#method-template"></template>
+            <template build-fn="docs:'./nodes/instrument.js?start,stop'" build-include="#method-template"></template>
+        </section>
+
+        <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
+            <h3 class="text-4">Properties</h3>
+        </section>
+
+        <hr class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" style="margin: 3.75rem 0;" />
+
+        <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3">
+            <p>
+                All nodes, being AudioNodes (or objects that quack like
+                AudioNodes), have:
+            </p>
+        </div>
+
+        <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
+            <h3 class="text-4">Methods</h3>
+            <template build-fn="docs:'./nodes/graph.js?connect,disconnect'" build-include="#method-template"></template>
         </section>
 
         <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
@@ -397,7 +414,29 @@
     </section>
 
 
+    <!-- Sequences and events -->
 
+    <section class="1-2-3-grid grid" id="connections">
+        <header class="col-1 span-6 @2-col-2 @2-span-6">
+            <h2 class="text-2" style="font-size: 1.875rem;">Connections</h2>
+
+            <p></p>
+        </header>
+
+        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3"><code class="language-js">'instrument'</code></h2>
+
+        <!--div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./nodes/instrument.js?Instrument' each append:body"></div>
+
+        <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
+            <h3 class="text-4">Methods</h3>
+            <template build-fn="docs:'./nodes/instrument.js?start,stop'" build-include="#method-template"></template>
+        </section>
+
+        <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
+            <h3 class="text-4">Properties</h3>
+            <template build-fn="docs:'./nodes/graph.js?context'" build-include="#property-template"></template>
+        </section-->
+    </section>
 
 
 
@@ -415,7 +454,7 @@
 
         <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
             <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./nodes/instrument.js?start,stop','./nodes/graph.js?connect,disconnect'" build-include="#method-template"></template>
+            <template build-fn="docs:'./nodes/instrument.js?start,stop'" build-include="#method-template"></template>
         </section>
 
         <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
@@ -466,7 +505,7 @@
 
         <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
             <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./nodes/voice.js?start,stop','./nodes/graph.js?connect,disconnect,get'" build-include="#method-template"></template>
+            <template build-fn="docs:'./nodes/voice.js?start,stop','./nodes/graph.js?get'" build-include="#method-template"></template>
         </section>
 
         <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
@@ -482,7 +521,7 @@
 
         <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
             <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./nodes/graph.js?connect,disconnect'" build-include="#method-template"></template>
+
         </section>
 
         <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
