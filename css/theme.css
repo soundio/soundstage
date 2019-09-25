@@ -380,6 +380,18 @@ p {
     max-width: 52ch;
 }
 
+hr {
+    background-color: #6f7d7d;
+}
+
+* + hr {
+    margin-top: 0.875rem;
+}
+
+hr + .toggle-block {
+    margin-top: 0.5625rem;
+}
+
 .text-4 {
     color: #6f7d7d;
 }

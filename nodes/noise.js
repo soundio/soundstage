@@ -1,4 +1,16 @@
 
+/*
+Noise(context, settings)
+
+```
+const noise = stage.create('noise', {
+    type: 'sine',      // String 'white', 'pink', 'brown'
+});
+```
+
+A noise object generates noise.
+*/
+
 import { Privates } from '../../fn/module.js';
 import NodeGraph from './graph.js';
 import PlayNode from './play-node.js';
@@ -39,6 +51,11 @@ const graph = {
 };
 
 const properties = {
+    /*
+    .type
+    One of the strings `'white'`, `'pink'` or `'brown'` describing the
+    <i>colour</i> of noise to generate.
+    */
     type: {
 		enumerable: true,
 

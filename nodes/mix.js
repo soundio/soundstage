@@ -1,20 +1,37 @@
 
+/*
+Mix(context, settings)
+
+```
+const mix = stage.create('mix', {
+    gain: 1,
+    pan: 0
+});
+```
+*/
+
+
 import NodeGraph from './graph.js';
 
 const graph = {
-    nodes: [{
-        id: 'pan',
-        type: 'pan',
-        data: {
-            pan: 0
-        }
-    }],
+    nodes: [
+        { id: 'pan', type: 'pan', data: { pan: 0 }}
+    ],
 
     connections: [
         { source: 'this', target: 'pan' }
     ],
 
     properties: {
+        /*
+        .gain
+        AudioParam controlling gain.
+        */
+
+        /*
+        .pan
+        AudioParam controlling stereo pan position.
+        */
         pan: 'pan.pan'
     },
 
@@ -31,9 +48,8 @@ export default class Mix extends GainNode {
     }
 
     // Inherit from NodeGraph. We don't seem able to do this with Object.assign
-    // to prototype. Another stupid limitation of class syntax. Who the hell
+    // to prototype. Another stupid limitation of class syntax? Who the hell
     // thought forcing class syntax on AudioNodes was a good idea?
-
     get() {
         return NodeGraph.prototype.get.apply(this, arguments);
     }
@@ -44,9 +60,5 @@ export default class Mix extends GainNode {
 
     disconnect() {
         return NodeGraph.prototype.disconnect.apply(this, arguments);
-    }
-
-    toJSON() {
-        return NodeGraph.prototype.toJSON.apply(this, arguments);
     }
 }

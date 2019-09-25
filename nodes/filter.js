@@ -1,4 +1,22 @@
 
+/*
+Filter()
+
+```
+const filter = stage.create('filter');
+```
+
+Creates a filter node.
+*/
+
+/*
+.frequency
+*/
+
+/*
+.Q
+*/
+
 import AudioObject from './audio-object.js';
 // Todo: get rid of dependency on Soundstage
 
@@ -103,6 +121,9 @@ function Filter(audio, settings) {
 	});
 
 	Object.defineProperties(this, {
+        /*
+        .type
+        */
 		'filter': {
 			get: function() { return filter.type; },
 			set: function(val) { filter.type = val; },
@@ -110,7 +131,10 @@ function Filter(audio, settings) {
 			configurable: true
 		},
 
-		'lfo-type': {
+        /*
+        .lfoType
+        */
+		'lfoType': {
 			get: function() { return lfoType; },
 			set: function(name) {
 				if (!waveshapes[name]) { return; }
@@ -121,6 +145,9 @@ function Filter(audio, settings) {
 			configurable: true
 		},
 
+        /*
+        .envelope
+        */
 		'env-attack': {
 			get: function() { return enveloper.attack; },
 			set: function(value) { enveloper.attack = value; },
@@ -134,8 +161,6 @@ function Filter(audio, settings) {
 			enumerable: true,
 			configurable: true
 		},
-
-		type: { value: 'filter', enumerable: true },
 
 		destroy: {
 			value: function() {

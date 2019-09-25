@@ -190,7 +190,7 @@ export default function NodeGraph(context, data) {
 assign(NodeGraph.prototype, {
 
     /*
-    .connect(target, srcChan, tgtChan)
+    .connect(target)
     Mirrors the standard AudioNode `.connect()` method. This is provided as a
     convenience: connections to other Soundstage nodes should be made via
     [[[Todo:link]]]`stage.createConnection()` so that Soundstage may track changes to its
@@ -204,7 +204,7 @@ assign(NodeGraph.prototype, {
     },
 
     /*
-    .disconnect(target, srcChan, tgtChan)
+    .disconnect(target)
     Mirrors the standard AudioNode disconnect() method.
     */
 

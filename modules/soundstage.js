@@ -100,20 +100,13 @@ import Soundstage from 'http://sound.io/soundstage/module.js';
 
 const stage = new Soundstage({
     nodes: [
-        { id: '2', type: 'instrument', data: { ... } },
-        { id: '3', type: 'output' }
+        { id: '1', type: 'instrument', data: {...} },
+        { id: '2', type: 'output', data: {...} }
     ],
 
     connections: [
-        { source: '1', target: '2' },
-        { source: '2', target: '3' }
+        { source: '1', target: '2' }
     ],
-
-    controls: [{
-        source: { type: 'keyboard', data: 'space' },
-        type: 'record',
-        target: '2'
-    }],
 
     events:      [[ time, type, name, value, duration ]]
     sequences:   [{ id: 'id', label: 'label',   }]

@@ -60,6 +60,12 @@ var defaults = {
 const properties = {
     "type":            { enumerable: true, writable: true },
     "sources":         { enumerable: true, writable: true },
+
+    /*
+    .beats
+    The beat duration of the base loop.
+    */
+
     "beats":           { enumerable: true, writable: true },
     "recordStartTime": { enumerable: true, writable: true }
 };

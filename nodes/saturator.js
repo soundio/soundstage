@@ -1,4 +1,16 @@
 
+/*
+Saturator(context, settings)
+
+```
+const saturator = stage.create('saturator', {
+
+});
+```
+
+
+*/
+
 import { log, logGroup, logGroupEnd } from './print.js';
 import { Privates } from '../../fn/module.js';
 import NodeGraph from './graph.js';
@@ -131,7 +143,7 @@ const graph = {
     nodes: [
         { id: 'frequency', type: 'constant', data: { offset: 1000 } },
         { id: 'drive', type: 'gain', data: { gain: 1 } },
-        { id: 'waveshaper', type: 'wavershaper', data: {} },
+        { id: 'waveshaper', type: 'waveshaper', data: {} },
         { id: 'filter1', type: 'biquad-filter', data: { type: 'highpass' } },
         { id: 'filter2', type: 'biquad-filter', data: { type: 'highpass' } },
         { id: 'filter3', type: 'biquad-filter', data: { type: 'lowpass' } },
@@ -155,9 +167,24 @@ const graph = {
     ],
 
     params: {
+        /*
+        .drive
+        */
         drive:  'drive.gain',
+
+        /*
+        .cutoff
+        */
         cutoff: 'frequency.offset',
+
+        /*
+        .wet
+        */
         wet:    'wet.gain',
+
+        /*
+        .dry
+        */
         dry:    'dry.gain'
     },
 
@@ -202,6 +229,9 @@ export default class Saturator extends GainNode {
         populateCurve(curve, transform);
 
         define(this, {
+            /*
+            .shape
+            */
     		shape: {
     			get: function() {
     				return shapeName;
@@ -219,6 +249,9 @@ export default class Saturator extends GainNode {
 
     		//shapes: { value: Object.keys(shapes) },
 
+            /*
+            .transform
+            */
     		transform: {
     			value: transform,
     			configurable: true,
@@ -247,10 +280,9 @@ export default class Saturator extends GainNode {
     }
 }
 
-/*
-Saturate.defaults = {
-	'frequency':     { min: 16,  max: 16384, transform: 'logarithmic', value: 1000 },
-	'drive':         { min: 0.5, max: 8,     transform: 'cubic',       value: 1 },
-	'wet':           { min: 0,   max: 2,     transform: 'cubic',       value: 1 }
-};
-*/
+
+//Saturate.defaults = {
+//	'frequency':     { min: 16,  max: 16384, transform: 'logarithmic', value: 1000 },
+//	'drive':         { min: 0.5, max: 8,     transform: 'cubic',       value: 1 },
+//	'wet':           { min: 0,   max: 2,     transform: 'cubic',       value: 1 }
+//};

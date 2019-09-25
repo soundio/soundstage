@@ -1,9 +1,22 @@
 
+/*
+Meter(context)
+
+```
+const meter = stage.create('meter');
+```
+*/
+
 const decay = 0.9;
 
 export default class Meter extends window.AudioWorkletNode {
     constructor(context, settings) {
         super(context, 'meter');
+
+        /*
+        .peaks
+        Peak level readout per channel.
+        */
 
         this.peaks = [];
 

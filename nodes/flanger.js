@@ -1,9 +1,56 @@
 
+/*
+Flanger(context, settings)
+
+```
+const flanger = stage.create('flanger', {
+    delay:
+    depth:
+    feedback:
+    frequency:
+    type:
+    dry:
+    wet:
+});
+```
+
+Creates a modulation delay effect, or 'flanger'.
+*/
+
+/*
+.delay
+Base delay for the modulation.
+*/
+
+/*
+.depth
+Modulation depth.
+*/
+
+/*
+.feedback
+Signal gain to feed back into the modulator.
+*/
+
+/*
+.frequency
+Modulation frequency.
+*/
+
+/*
+.dry
+AudioParam controlling dry gain.
+*/
+
+/*
+.wet
+AudioParam controlling effect gain.
+*/
+
 import NodeGraph from './graph.js';
 import { validateOscillatorType } from '../modules/validate.js';
 
 const assign = Object.assign;
-const define = Object.defineProperties;
 
 const graph = {
     nodes: [
@@ -50,6 +97,10 @@ const graph = {
         { source: 'delay',        target: 'rdelay.delayTime' },
     ],
 
+    properties: {
+        type: 'osc.type'
+    },
+
     output: 'output'
 };
 
@@ -79,6 +130,7 @@ export default class Flanger extends GainNode {
 
 assign(Flanger.prototype, NodeGraph.prototype);
 
+/*
 define(Flanger.prototype, {
     type: {
         enumerable: true,
@@ -91,8 +143,8 @@ define(Flanger.prototype, {
         }
     }
 })
+*/
 
-/*
 Flanger.defaults  = {
 	'delay':         { min: 0,      max: 1,    transform: 'quadratic',   value: 0.012 },
 	'frequency':     { min: 0.0625, max: 256,  transform: 'logarithmic', value: 3 },
@@ -101,4 +153,3 @@ Flanger.defaults  = {
 	'wet':           { min: 0,      max: 1,    transform: 'cubic',       value: 1 },
 	'dry':           { min: 0,      max: 1,    transform: 'cubic',       value: 1 }
 };
-*/
