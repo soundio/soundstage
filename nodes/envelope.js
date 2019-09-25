@@ -4,7 +4,18 @@ Envelope(context, settings)
 
 ```
 const envelope = stage.create('envelope', {
-    [Todo]
+    // An array of param events describing the attack curve
+    attack: [
+        [0.01, 'linear', 1]
+    ],
+
+    // An array of param events describing the release curve
+    release: [
+        [0, 'target', 0, 0.2]
+    ],
+
+    gain: 1,
+    rate: 1
 });
 ```
 */
@@ -23,13 +34,17 @@ const targetDurationFactor = config.targetDurationFactor;
 
 const properties = {
     /* .attack
-    An array of param events describing the attack curve of the envelope.
+    An array of param events describing the attack curve of the envelope. Param
+    events have the form [time, type, value], or if type is `'target'`
+    [time, type, value, duration].
     */
 
     attack:  { writable: true, enumerable: true },
 
     /* .release
-    An array of param events describing the release curve of the envelope.
+    An array of param events describing the release curve of the envelope. Param
+    events have the form [time, type, value], or if type is `'target'`
+    [time, type, value, duration].
     */
 
     release: { writable: true, enumerable: true },

@@ -1,10 +1,19 @@
 
-// Sink
+/*
+Sink
 
-// You can't automate params until their nodes have a route to
-// context.destination. That's just the way things work. A sink
-// allows you to attach to destination without outputting any
-// sound. This is one per context.
+```
+const sink = stage.create('sink');
+```
+
+You can't automate params until their nodes have a route to
+context.destination. That's just the way things work. A sink
+allows you to attach to destination without outputting any
+sound. There is one sink node per context – all 'instances'
+of sink in all graphs for a context are actually the same
+instance.
+*/
+
 
 const $sink = Symbol('sink');
 
