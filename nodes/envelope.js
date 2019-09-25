@@ -4,12 +4,12 @@ Envelope(context, settings)
 
 ```
 const envelope = stage.create('envelope', {
-    // An array of param events describing the attack curve
+    // An array of param events describing a attack curve
     attack: [
         [0.01, 'linear', 1]
     ],
 
-    // An array of param events describing the release curve
+    // An array of param events describing a release curve
     release: [
         [0, 'target', 0, 0.2]
     ],
@@ -34,17 +34,26 @@ const targetDurationFactor = config.targetDurationFactor;
 
 const properties = {
     /* .attack
-    An array of param events describing the attack curve of the envelope. Param
-    events have the form [time, type, value], or if type is `'target'`
-    [time, type, value, duration].
+    An array of param events describing an arbitrary attack curve for the
+    envelope. Param events have the form [time, type, value] (or if type is
+    `'target'`, [time, type, value, duration]), where `time` is the time since
+    the time passed to `.start(time)`.
+
+    The default envelope value at time `0` is `0`.
     */
 
     attack:  { writable: true, enumerable: true },
 
     /* .release
     An array of param events describing the release curve of the envelope. Param
-    events have the form [time, type, value], or if type is `'target'`
-    [time, type, value, duration].
+    events have the form [time, type, value] (or if type is `'target'`
+    [time, type, value, duration]), where `time` is the time since the time
+    passed to `.stop(time)`.
+
+    Values are scaled to the current value of the envelope – if the attack
+    envelope decays to a value of `0.5`, say, by the scheduled stop time, all
+    values in the release envelope are multiplied by `0.5`. The last event
+    should have a value of `0`, otherwise the envelope will never stop.
     */
 
     release: { writable: true, enumerable: true },
@@ -57,8 +66,8 @@ const properties = {
     gain:    { writable: true, enumerable: true },
 
     /* .rate
-    A float that is read on `.start()` to determine the rate of playback to
-    apply to the curve.
+    A float that is read on `.start()` or `.stop()` to determine the rate of
+    playback to apply to the curve.
     */
 
     rate:    { writable: true, enumerable: true }
