@@ -90,41 +90,48 @@
         <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./modules/soundstage.js?Soundstage' each append:body"></div>
 
         <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
-            <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./modules/graph.js?create,createConnection,get','./modules/sequencer.js?start,stop','./modules/sequence.js?beatAtTime,timeAtBeat','./modules/meter.js?barAtBeat,beatAtBar','./modules/soundstage.js?timeAtDomTime,domTimeAtTime,records'" build-include="#method-template"></template>
+            <h3 class="text-4">Properties</h3>
+            <template build-fn="docs:'./modules/graph.js?nodes,connections','./modules/sequence.js?events,sequences','./nodes/graph.js?context','./modules/sequencer.js?time,beat,bar,tempo,meter','./nodes/play-node.js?startTime,stopTime,playing'" build-include="#property-template"></template>
         </section>
 
         <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
-            <h3 class="text-4">Properties</h3>
-            <template build-fn="docs:'./modules/graph.js?nodes,connections','./modules/sequence.js?events,sequences','./modules/sequencer.js?time,beat,bar,tempo,meter','./nodes/play-node.js?startTime,stopTime,playing'" build-include="#property-template"></template>
+            <h3 class="text-4">Methods</h3>
+            <template build-fn="docs:'./modules/graph.js?create,createConnection,get','./modules/sequencer.js?start,stop','./modules/sequence.js?beatAtTime,timeAtBeat','./modules/meter.js?barAtBeat,beatAtBar','./modules/soundstage.js?timeAtDomTime,domTimeAtTime,records','./nodes/graph.js?connect,disconnect'" build-include="#method-template"></template>
         </section>
     </section>
 
 
     <!-- Nodes -->
 
-    <section class="1-2-3-grid grid" id="nodes">
+    <section class="1-2-3-grid grid" id="nodes-and-connections">
         <header class="col-1 span-6 @2-col-2 @2-span-6">
-            <h2 class="text-2" style="font-size: 1.875rem;">Nodes</h2>
+            <h2 class="text-2" style="font-size: 1.875rem;">Nodes and Connections</h2>
         </header>
 
         <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3">
             <p>
-                Pass in a <code>.nodes</code> array to put nodes in the graph:
+                Pass in a <code>.nodes</code> array to put nodes in the graph,
+                and define how they are to be connected in <code>.connections</code>.
             </p>
 
             <pre><code class="language-js">const stage = new Soundstage({
     nodes: [
         { id: '1', type: 'instrument', data: {...} },
         { id: '2', type: 'output', data: {...} }
+    ],
+
+    connections: [
+        { source: '1', target: '2' }
     ]
 });</code></pre>
 
             <p>
-                Or create a node by calling:
+                Or create and connect a node by calling:
             </p>
 
-            <pre><code class="language-js">const promise = stage.create(type, data);</code></pre>
+            <pre><code class="language-js">const promise = stage.create(type, data);
+stage.connection(promise, '2');
+</code></pre>
 
             <p>Here's the built-in node types:</p>
         </div>
@@ -414,38 +421,13 @@
     </section>
 
 
-    <!-- Sequences and events -->
-
-    <section class="1-2-3-grid grid" id="connections">
-        <header class="col-1 span-6 @2-col-2 @2-span-6">
-            <h2 class="text-2" style="font-size: 1.875rem;">Connections</h2>
-
-            <p></p>
-        </header>
-
-        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3"><code class="language-js">'instrument'</code></h2>
-
-        <!--div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./nodes/instrument.js?Instrument' each append:body"></div>
-
-        <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
-            <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./nodes/instrument.js?start,stop'" build-include="#method-template"></template>
-        </section>
-
-        <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
-            <h3 class="text-4">Properties</h3>
-            <template build-fn="docs:'./nodes/graph.js?context'" build-include="#property-template"></template>
-        </section-->
-    </section>
-
-
 
 
     <!-- Sequences and events -->
 
     <section class="1-2-3-grid grid">
         <header class="col-1 span-6 @2-col-2 @2-span-6">
-            <h2 class="text-2" style="font-size: 1.875rem;">Sequences and events</h2>
+            <h2 class="text-2" style="font-size: 1.875rem;">Sequences and Events</h2>
         </header>
 
         <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3"><code class="language-js">'instrument'</code></h2>

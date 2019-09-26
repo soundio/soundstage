@@ -108,10 +108,39 @@ const stage = new Soundstage({
         { source: '1', target: '2' }
     ],
 
-    events:      [[ time, type, name, value, duration ]]
-    sequences:   [{ id: 'id', label: 'label',   }]
+    sequences: [...],
+    events: [...]
 });
 ```
+
+The properties of the stage object reflect those of the data passed in, and
+when the stage object is stringified as JSON, that JSON represents a Soundstage
+data object.
+
+```
+const json = JSON.stringify(stage);
+
+// '{
+//     "nodes": [...],
+//     "connections": [...],
+//     "sequences": [...],
+//     "events": [...]
+// }'
+```
+
+The Soundstage constructor also takes a second object of options.
+
+`.context`
+
+By default an AudioContext is created and shared by all stages. Pass in an
+AudioContext to have the stage use a different context.
+
+`.destination`
+
+[Todo: rename as a boolean option.]
+By default the output of the stage graph is connected to `context.destination`.
+Pass in `null` to create a disconnected stage (and use `stage.connect()`
+to route it elsewhere).
 */
 
 export default function Soundstage(data = defaultData, settings = nothing) {
@@ -127,7 +156,7 @@ export default function Soundstage(data = defaultData, settings = nothing) {
     if (DEBUG) { printGroup('Soundstage()'); }
 
     const context     = settings.context || audio;
-    const destination = settings.destination || context.destination;
+    const destination = settings.destination === undefined ? context.destination : settings.destination ;
     const notify      = settings.notify || noop;
     const output      = createOutputMerger(context, destination);
     const rateNode    = new window.ConstantSourceNode(context, { offset: 2 });

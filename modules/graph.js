@@ -8,12 +8,12 @@ Constructs a graph of AudioNodes.
 
 /*
 .nodes
-An array of objects defining graph nodes. See <a href="#nodes">Nodes</a>.
+An array of objects defining graph nodes. See <a href="#nodes-and-connections">Nodes and Connections</a>.
 */
 
 /*
 .connections
-An array of objects defining connections. See <a href="#connections">Connections</a>.
+An array of objects defining connections. See <a href="#nodes-and-connections">Nodes and Connections</a>.
 */
 
 import { has, get, Privates }  from '../../fn/module.js';
