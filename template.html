@@ -89,12 +89,12 @@
 
         <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./modules/soundstage.js?Soundstage' each append:body"></div>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @5-col-5 @5-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./modules/graph.js?nodes,connections','./modules/sequence.js?events,sequences','./nodes/graph.js?context','./modules/sequencer.js?time,beat,bar,tempo,meter','./nodes/play-node.js?startTime,stopTime,playing'" build-include="#property-template"></template>
         </section>
 
-        <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
+        <section class="col-1 span-7 @1-col-4 @1-span-4 @2-col-5 @3-span-3 @5-col-7 @5-span-2">
             <h3 class="text-4">Methods</h3>
             <template build-fn="docs:'./modules/graph.js?create,createConnection,get','./modules/sequencer.js?start,stop','./modules/sequence.js?beatAtTime,timeAtBeat','./modules/meter.js?barAtBeat,beatAtBar','./modules/soundstage.js?timeAtDomTime,domTimeAtTime,records','./nodes/graph.js?connect,disconnect'" build-include="#method-template"></template>
         </section>
@@ -110,8 +110,9 @@
 
         <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3">
             <p>
-                Pass in a <code>.nodes</code> array to put nodes in the graph,
-                and define how they are to be connected in <code>.connections</code>.
+                A Soundstage is a graph of nodes and connections. Pass in a
+                <code>.nodes</code> array to put nodes in the graph, and define
+                how they are to be connected in <code>.connections</code>.
             </p>
 
             <pre><code class="language-js">const stage = new Soundstage({
@@ -133,240 +134,218 @@
 stage.connection(promise, '2');
 </code></pre>
 
-            <p>Here's the built-in node types:</p>
+            <p>Here are the built-in node types that may be created:</p>
         </div>
 
-        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3"><code class="language-js">'input'</code></h2>
+        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3 dot-indent"><code class="language-js">'input'</code></h2>
 
         <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./nodes/input.js?Input' each append:body"></div>
 
-        <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @5-col-5 @5-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/input.js?channels'" build-include="#property-template"></template>
         </section>
 
 
 
-        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3"><code class="language-js">'output'</code></h2>
+        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3 dot-indent"><code class="language-js">'output'</code></h2>
 
         <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./nodes/output.js?Output' each append:body"></div>
 
-        <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @5-col-5 @5-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/output.js?channels'" build-include="#property-template"></template>
         </section>
 
 
 
-
-
-
-
-        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3"><code class="language-js">'compressor'</code></h2>
+        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3 dot-indent"><code class="language-js">'compressor'</code></h2>
 
         <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./nodes/compressor.js?Compressor' each append:body"></div>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
-            <h3 class="text-4">Methods</h3>
-        </section>
-
-        <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @5-col-5 @5-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/compressor.js?xxx'" build-include="#property-template"></template>
         </section>
 
 
 
-        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3"><code class="language-js">'delay'</code></h2>
+        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3 dot-indent"><code class="language-js">'delay'</code></h2>
 
         <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./nodes/delay.js?Delay' each append:body"></div>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
-            <h3 class="text-4">Methods</h3>
-        </section>
-
-        <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @5-col-5 @5-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/delay.js?delayTime'" build-include="#property-template"></template>
         </section>
 
 
 
-        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3"><code class="language-js">'eq'</code></h2>
+
+        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3 dot-indent"><code class="language-js">'eq'</code></h2>
 
         <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./nodes/eq.js?Eq' each append:body"></div>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
-            <h3 class="text-4">Methods</h3>
-        </section>
-
-        <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @5-col-5 @5-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/eq.js?xxx'" build-include="#property-template"></template>
         </section>
 
 
 
-        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3"><code class="language-js">'filter'</code></h2>
+
+        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3 dot-indent"><code class="language-js">'filter'</code></h2>
 
         <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./nodes/filter.js?Filter' each append:body"></div>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
-            <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./nodes/graph.js?get'" build-include="#method-template"></template>
-        </section>
-
-        <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @5-col-5 @5-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/filter.js?xxx'" build-include="#property-template"></template>
         </section>
 
-
-
-        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3"><code class="language-js">'flanger'</code></h2>
-
-        <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./nodes/flanger.js?Flanger' each append:body"></div>
-
-        <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
+        <section class="col-1 span-7 @1-col-4 @1-span-4 @2-col-5 @3-span-3 @5-col-7 @5-span-2">
             <h3 class="text-4">Methods</h3>
             <template build-fn="docs:'./nodes/graph.js?get'" build-include="#method-template"></template>
         </section>
 
-        <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
+
+
+        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3 dot-indent"><code class="language-js">'flanger'</code></h2>
+
+        <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./nodes/flanger.js?Flanger' each append:body"></div>
+
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @4-span-3 @5-col-5 @5-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/flanger.js?delay,depth,feedback,frequency,dry,wet'" build-include="#property-template"></template>
         </section>
 
-
-
-        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3"><code class="language-js">'looper'</code></h2>
-
-        <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./nodes/sample.js?Sample' each append:body"></div>
-
-        <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
+        <section class="col-1 span-7 @1-col-4 @1-span-4 @2-col-5 @3-span-3 @5-col-7 @5-span-2">
             <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./nodes/looper.js?startRecord,stopRecord,start,stop,records'" build-include="#method-template"></template>
             <template build-fn="docs:'./nodes/graph.js?get'" build-include="#method-template"></template>
         </section>
 
-        <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
+
+
+        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3 dot-indent"><code class="language-js">'looper'</code></h2>
+
+        <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./nodes/looper.js?Looper' each append:body"></div>
+
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @5-col-5 @5-span-2">
             <h3 class="text-4">Properties</h3>
-            <template build-fn="docs:'./nodes/looper.js?beats,dry,wet'" build-include="#property-template"></template>
-            <template build-fn="docs:'./nodes/play-node.js?playing,startTime,stopTime'" build-include="#property-template"></template>
+            <template build-fn="docs:'./nodes/looper.js?beats,dry,wet','./nodes/play-node.js?playing,startTime,stopTime'" build-include="#property-template"></template>
+        </section>
+
+        <section class="col-1 span-7 @1-col-4 @1-span-4 @2-col-5 @3-span-3 @5-col-7 @5-span-2">
+            <h3 class="text-4">Methods</h3>
+            <template build-fn="docs:'./nodes/looper.js?startRecord,stopRecord,start,stop,records','./nodes/graph.js?get'" build-include="#method-template"></template>
         </section>
 
 
 
-        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3"><code class="language-js">'saturator'</code></h2>
+        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3 dot-indent"><code class="language-js">'saturator'</code></h2>
 
         <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./nodes/saturator.js?Saturator' each append:body"></div>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
-            <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./nodes/graph.js?get'" build-include="#method-template"></template>
-        </section>
-
-        <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @5-col-5 @5-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/saturator.js?cutoff,drive,shape,transform,dry,wet'" build-include="#property-template"></template>
         </section>
 
+        <section class="col-1 span-7 @1-col-4 @1-span-4 @2-col-5 @3-span-3 @5-col-7 @5-span-2">
+            <h3 class="text-4">Methods</h3>
+            <template build-fn="docs:'./nodes/graph.js?get'" build-include="#method-template"></template>
+        </section>
 
 
-        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3"><code class="language-js">'meter'</code></h2>
+
+        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3 dot-indent"><code class="language-js">'meter'</code></h2>
 
         <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./nodes/meter.js?Meter' each append:body"></div>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
-            <h3 class="text-4">Methods</h3>
-        </section>
-
-        <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @5-col-5 @5-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/meter.js?peaks'" build-include="#property-template"></template>
         </section>
 
 
 
-        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3"><code class="language-js">'mix'</code></h2>
+        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3 dot-indent"><code class="language-js">'mix'</code></h2>
 
         <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./nodes/mix.js?Mix' each append:body"></div>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
-            <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./nodes/graph.js?get'" build-include="#method-template"></template>
-        </section>
-
-        <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @5-col-5 @5-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/mix.js?gain,pan'" build-include="#property-template"></template>
         </section>
 
+        <section class="col-1 span-7 @1-col-4 @1-span-4 @2-col-5 @3-span-3 @5-col-7 @5-span-2">
+            <h3 class="text-4">Methods</h3>
+            <template build-fn="docs:'./nodes/graph.js?get'" build-include="#method-template"></template>
+        </section>
 
 
-        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3"><code class="language-js">'noise'</code></h2>
+
+        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3 dot-indent"><code class="language-js">'noise'</code></h2>
 
         <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./nodes/noise.js?Noise' each append:body"></div>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
-            <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./nodes/noise.js?start,stop'" build-include="#method-template"></template>
-        </section>
-
-        <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @5-col-5 @5-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/noise.js?type','./nodes/play-node.js?startTime,stopTime,playing'" build-include="#property-template"></template>
         </section>
 
+        <section class="col-1 span-7 @1-col-4 @1-span-4 @2-col-5 @3-span-3 @5-col-7 @5-span-2">
+            <h3 class="text-4">Methods</h3>
+            <template build-fn="docs:'./nodes/noise.js?start,stop'" build-include="#method-template"></template>
+        </section>
 
-        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3"><code class="language-js">'sample'</code></h2>
+
+        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3 dot-indent"><code class="language-js">'sample'</code></h2>
 
         <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./nodes/sample.js?Sample' each append:body"></div>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
-            <h3 class="text-4">Methods</h3>
-        </section>
-
-        <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @5-col-5 @5-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/sample.js?url,frequency,gain','./nodes/play-node.js?playing,startTime,stopTime'" build-include="#property-template"></template>
         </section>
 
 
 
-        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3"><code class="language-js">'tone'</code></h2>
+
+        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3 dot-indent"><code class="language-js">'tone'</code></h2>
 
         <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./nodes/tone.js?Tone' each append:body"></div>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
-            <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./nodes/tone.js?start,stop'" build-include="#method-template"></template>
-        </section>
-
-        <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @5-col-5 @5-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/tone.js?type,frequency,detune,gain','./nodes/play-node.js?startTime,stopTime,playing'" build-include="#property-template"></template>
         </section>
 
+        <section class="col-1 span-7 @1-col-4 @1-span-4 @2-col-5 @3-span-3 @5-col-7 @5-span-2">
+            <h3 class="text-4">Methods</h3>
+            <template build-fn="docs:'./nodes/tone.js?start,stop'" build-include="#method-template"></template>
+        </section>
 
 
-        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3"><code class="language-js">'tick'</code></h2>
+
+
+        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3 dot-indent"><code class="language-js">'tick'</code></h2>
 
         <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./nodes/tick.js?Tick' each append:body"></div>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
-            <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./nodes/tick.js?start,stop'" build-include="#method-template"></template>
-        </section>
-
-        <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @5-col-5 @5-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/tick.js?resonance,decay,gain','./nodes/play-node.js?startTime,stopTime,playing'" build-include="#property-template"></template>
         </section>
 
+        <section class="col-1 span-7 @1-col-4 @1-span-4 @2-col-5 @3-span-3 @5-col-7 @5-span-2">
+            <h3 class="text-4">Methods</h3>
+            <template build-fn="docs:'./nodes/tick.js?start,stop'" build-include="#method-template"></template>
+        </section>
 
 
-        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3"><code class="language-js">'envelope'</code></h2>
+
+        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3 dot-indent"><code class="language-js">'envelope'</code></h2>
 
         <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./nodes/envelope.js?Envelope' each append:body">
             <p class="warn">
@@ -375,48 +354,49 @@ stage.connection(promise, '2');
             </p>
         </div>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
-            <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./nodes/envelope.js?start,stop'" build-include="#method-template"></template>
-        </section>
-
-        <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @5-col-5 @5-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/envelope.js?attack,release,gain,rate'" build-include="#property-template"></template>
         </section>
 
+        <section class="col-1 span-7 @1-col-4 @1-span-4 @2-col-5 @3-span-3 @5-col-7 @5-span-2">
+            <h3 class="text-4">Methods</h3>
+            <template build-fn="docs:'./nodes/envelope.js?start,stop'" build-include="#method-template"></template>
+        </section>
 
 
-        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3"><code class="language-js">'instrument'</code></h2>
+
+        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3 dot-indent"><code class="language-js">'instrument'</code></h2>
 
         <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./nodes/instrument.js?Instrument' each append:body"></div>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
+        <!--section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @5-col-5 @5-span-2">
+            <h3 class="text-4">Properties</h3>
+        </section-->
+
+        <section class="col-1 span-7 @1-col-4 @1-span-4 @2-col-5 @3-span-3 @5-col-7 @5-span-2">
             <h3 class="text-4">Methods</h3>
             <template build-fn="docs:'./nodes/instrument.js?start,stop'" build-include="#method-template"></template>
-        </section>
-
-        <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
-            <h3 class="text-4">Properties</h3>
         </section>
 
         <hr class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" style="margin: 3.75rem 0;" />
 
         <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3">
             <p>
-                All nodes, being AudioNodes (or objects that quack like
-                AudioNodes), have:
+                All nodes, being AudioNodes, and the stage itself, which quacks
+                like an AudioNode, have the standard AudioNode properties and
+                methods.
             </p>
         </div>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
-            <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./nodes/graph.js?connect,disconnect'" build-include="#method-template"></template>
-        </section>
-
-        <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @5-col-5 @5-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/graph.js?context'" build-include="#property-template"></template>
+        </section>
+
+        <section class="col-1 span-7 @1-col-4 @1-span-4 @2-col-5 @3-span-3 @5-col-7 @5-span-2">
+            <h3 class="text-4">Methods</h3>
+            <template build-fn="docs:'./nodes/graph.js?connect,disconnect'" build-include="#method-template"></template>
         </section>
     </section>
 
@@ -430,19 +410,7 @@ stage.connection(promise, '2');
             <h2 class="text-2" style="font-size: 1.875rem;">Sequences and Events</h2>
         </header>
 
-        <h2 class="col-1 span-6 @2-col-2 @2-span-6 text-3"><code class="language-js">'instrument'</code></h2>
-
-        <!--div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./nodes/instrument.js?Instrument' each append:body"></div>
-
-        <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
-            <h3 class="text-4">Methods</h3>
-            <template build-fn="docs:'./nodes/instrument.js?start,stop'" build-include="#method-template"></template>
-        </section>
-
-        <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
-            <h3 class="text-4">Properties</h3>
-            <template build-fn="docs:'./nodes/graph.js?context'" build-include="#property-template"></template>
-        </section-->
+        <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./modules/sequence.js?Sequence','./modules/event.js?Event' each append:body"></div>
     </section>
 
 
@@ -485,12 +453,12 @@ stage.connection(promise, '2');
 
         <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./nodes/voice.js?Voice' each append:body"></div>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @5-col-5 @5-span-2">
             <h3 class="text-4">Methods</h3>
             <template build-fn="docs:'./nodes/voice.js?start,stop','./nodes/graph.js?get'" build-include="#method-template"></template>
         </section>
 
-        <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
+        <section class="col-1 span-7 @1-col-4 @1-span-4 @2-col-5 @3-span-3 @5-col-7 @5-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/voice.js?detune','./nodes/play-node.js?startTime,stopTime,playing'" build-include="#property-template"></template>
         </section>
@@ -501,12 +469,12 @@ stage.connection(promise, '2');
 
         <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./nodes/graph.js?NodeGraph' each append:body"></div>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @5-col-5 @5-span-2">
             <h3 class="text-4">Methods</h3>
 
         </section>
 
-        <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
+        <section class="col-1 span-7 @1-col-4 @1-span-4 @2-col-5 @3-span-3 @5-col-7 @5-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/graph.js?context,numberOfOutputs'" build-include="#property-template"></template>
         </section>
@@ -517,12 +485,12 @@ stage.connection(promise, '2');
 
         <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3" build-fn="docs:'./nodes/play-node.js?PlayNode' each append:body"></div>
 
-        <section class="col-1 span-7 @1-col-1 @1-span-4 @2-col-2 @3-span-4 @4-span-3 @5-col-5 @5-span-2">
+        <section class="col-1 span-7 @1-col-1 @1-span-3 @2-col-2 @5-col-5 @5-span-2">
             <h3 class="text-4">Methods</h3>
             <template build-fn="docs:'./nodes/play-node.js?start,stop'" build-include="#method-template"></template>
         </section>
 
-        <section class="col-1 span-7 @1-col-5 @1-span-3 @2-col-6 @3-col-6 @3-span-3 @4-col-5 @5-col-7 @5-span-2">
+        <section class="col-1 span-7 @1-col-4 @1-span-4 @2-col-5 @3-span-3 @5-col-7 @5-span-2">
             <h3 class="text-4">Properties</h3>
             <template build-fn="docs:'./nodes/play-node.js?playing'" build-include="#property-template"></template>
         </section>

@@ -92,8 +92,8 @@ function requestAudioNode(type, context, settings, transport, basePath) {
 /*
 Soundstage(data, settings)
 
-Import Soundstage and create a new Soundstage object, passing in data about the
-node graph, controls and sequencer.
+Import Soundstage and create a new Soundstage object, passing in some setup
+data.
 
 ```
 import Soundstage from 'http://sound.io/soundstage/module.js';
@@ -113,9 +113,11 @@ const stage = new Soundstage({
 });
 ```
 
-The properties of the stage object reflect those of the data passed in, and
-when the stage object is stringified as JSON, that JSON represents a Soundstage
-data object.
+A stage is a graph of AudioNodes and connections, and a sequencer of events
+targeted at those nodes. A stage also quacks like an AudioNode, and can
+be connected to other nodes (although by default it is connected to
+`context.destination`). Finally, a stage can be stringified to JSON, and
+that JSON can be used to recreate the same node graph elsewhere.
 
 ```
 const json = JSON.stringify(stage);
@@ -126,9 +128,16 @@ const json = JSON.stringify(stage);
 //     "sequences": [...],
 //     "events": [...]
 // }'
-```
 
-The Soundstage constructor also takes a second object of options.
+// Elsewhere
+const stage = new Soundstage(JSON.parse(json));
+```
+*/
+
+/*
+Options
+
+The Soundstage constructor also accepts an optional second object, options.
 
 `.context`
 
@@ -141,6 +150,19 @@ AudioContext to have the stage use a different context.
 By default the output of the stage graph is connected to `context.destination`.
 Pass in `null` to create a disconnected stage (and use `stage.connect()`
 to route it elsewhere).
+
+`.notify`
+
+```
+const stage = new Soundstage({...}, {
+    notify: function(node, property, value) {...}
+});
+```
+
+A function that is called when an AudioParam is scheduled to change. A
+fundamental problem when creating a UI for a WebAudio graph is the lack of
+observability. Everything happens on a seperate thread, and cannot be
+interrogated. Use notify to have Soundstage notify changes to AudioParam values.
 */
 
 export default function Soundstage(data = defaultData, settings = nothing) {

@@ -1,3 +1,16 @@
+
+/*
+Looper(context, settings)
+
+```
+const looper = stage.create('looper', {
+    [Todo]
+});
+```
+
+Creates a node that records and loops audio.
+*/
+
 import { print, logGroup, logGroupEnd } from './print.js';
 import { Privates } from '../../fn/module.js';
 import NodeGraph from './graph.js';

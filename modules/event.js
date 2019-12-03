@@ -1,4 +1,59 @@
 
+/*
+Event()
+
+An event is an array containing a beat, type and some data.
+
+```
+[beat, type, data...]
+```
+
+`beat` is an arbitrary time value where the absolute time of a given beat
+depends on the start time and rate the sequence is being played at. The data an
+event carries is dependent on the `type`. Not all event types apply to all
+nodes, and if a node does not recognise an event the event is ignored. Here are
+the possible event types.
+
+'meter'
+
+```[beat, "meter", numerator, denominator]```
+
+`numerator` – Either a number in the range `0-127` or a string note name, eg. `'C3'`
+`denominator` – A float in the nominal range `0-1`, the force of the note's attack
+
+Meter events are only accepted by the base sequence – the stage object.
+
+'note'
+
+```[beat, "note", number, velocity, duration]```
+
+`name` – Either a number in the range `0-127` or a string note name, eg. `'C3'`
+`velocity` – A float in the nominal range `0-1`, the force of the note's attack
+`duration` – A positive float, the duration in beats
+
+If the target node does not have a `.start()` method, note events are ignored.
+
+'rate'
+
+```[beat, "rate", value]```
+
+`value` – A new rate. A rate of `1` means this sequence will start playing at
+the same rate as its' parent, `2`, twice the rate, etc.
+
+'sequence'
+
+```[beat, "sequence", sequenceId, nodeId]```
+
+`sequenceId` – the id of a sequence object in `.sequences`
+`nodeId` – the id of a node in `.nodes`
+
+If the sequence or node are not found an error is thrown?? Todo.
+*/
+
+
+
+
+
 import { compose, get, overload, remove } from '../../fn/module.js';
 import { bytesToSignedFloat, toType } from '../../midi/module.js';
 

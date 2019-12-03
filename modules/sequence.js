@@ -1,4 +1,47 @@
 
+
+/*
+Sequence()
+
+A sequence is an object with an `.events` property that is an array of events.
+The stage itself is a sequence. Pass in an <code>.events</code> array to tell
+the stage what to play on `.start()`.
+
+```
+const stage = new Soundstage({
+    events: [
+        [0, 'meter', 4, 4],
+        [0, 'rate', 1]
+    ]
+});
+```
+
+A sequence may also have a `.sequences` property that is an array of sequence
+objects. These are triggered by `'sequence'` events that refer to them by their
+ids.
+
+```
+const stage = new Soundstage({
+    events: [
+        [0, 'meter', 4, 4],
+        [0, 'rate', 1],
+        [2, 'sequence', 'melody']
+    ],
+
+    sequences: [{
+        id: 'melody',
+        events: [
+            [0,   "note", 76, 0.8, 0.5],
+            [0.5, "note", 77, 0.6, 0.5],
+            [1,   "note", 79, 1, 0.5],
+            [1.5, "note", 74, 1, 3.5]
+        ]
+    }]
+});
+```
+*/
+
+
 import Clock from './clock.js';
 import { nothing, insert, get } from '../../fn/module.js';
 import { Privates } from '../../fn/module.js';
