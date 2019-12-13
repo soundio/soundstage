@@ -1,0 +1,17 @@
+<head>
+    <template id="content">Hello content {[thing]}</template>
+</head>
+
+<body>
+    <template build-fn="hey">Hello content {[thing]}</template>
+    <script>window.DEBUG - true;</script>
+
+    <script build-remove type="module">
+        import '../fn/docs-build.js';
+        import { register } from '../sparky/module.js';
+
+        register('hey', function() {
+            console.log('HEY');
+        });
+    </script>
+</body>

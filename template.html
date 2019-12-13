@@ -1,9 +1,13 @@
 <!DOCTYPE html>
 <html lang="en" is="sparky">
-<head build-fn="import:package.json">
+<head>
     <meta charset="utf-8" />
-    <meta name="author" content="@{[author.twitter]}" />
-    <meta name="description" content="Documentation for {[title]}. {[description]}" />
+
+    <template build-fn="fetch:package.json">
+        <meta name="author" content="@{[author.twitter]}" />
+        <meta name="description" content="Documentation for {[title]}. {[description]}" />
+    </template>
+
     <meta name="viewport" content="width=device-width" />
 
     <title>{[title]}</title>
@@ -58,20 +62,22 @@
 </head>
 
 <body>
-    <header build-fn="import:package.json" class="grid" id="header">
-        <h1 class="col-1 span-7 @2-col-2">{[title]} <span class="text-6">{[version]}</span></h1>
+    <template build-fn="fetch:package.json">
+        <header class="grid" id="header">
+            <h1 class="col-1 span-7 @2-col-2">{[title]} <span class="text-6">{[version]}</span></h1>
 
-        <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3">
-            <p class="text-8">
-                {[description]}
-            </p>
+            <div class="col-1 span-7 @2-col-2 @3-span-6 @4-span-5 @5-span-3">
+                <p class="text-8">
+                    {[description]}
+                </p>
 
-            <ul class="link-index index">
-                <li><strong>repo:</strong> <a href="{[repository.url]}">{[repository.url]}</a></li>
-                <li><strong>bugs:</strong> <a href="{[bugs.url]}">{[bugs.url]}</a></li>
-            </ul>
-        </div>
-    </header>
+                <ul class="link-index index">
+                    <li><strong>repo:</strong> <a href="{[repository.url]}">{[repository.url]}</a></li>
+                    <li><strong>bugs:</strong> <a href="{[bugs.url]}">{[bugs.url]}</a></li>
+                </ul>
+            </div>
+        </header>
+    </template>
 
     <!--div class="demo-block block site-grid grid">
         <div class="midi-graph grid-1" id="midi-graph">
@@ -540,12 +546,15 @@ export default class Sample extends GainNode {
         </header>
     </section>
 
-    <script build-remove type="module" src="../fn/docs-build.js"></script>
+    <!-- Build document -->
+    <script build-remove type="module">
+        import '../fn/docs-build.js';
+    </script>
 
     <!-- Document interactivity -->
     <script type="module">
-    import '../dom/js/dom.root.js';
-    import '../dom/js/dom.toggleable.js';
+        import '../dom/js/device.js';
+        import '../dom/js/toggleable.js';
     </script>
 
     <!-- Tests -->
