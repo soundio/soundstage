@@ -38,8 +38,8 @@
     "scripts": {
         "lint": "eslint components/*.js && eslint modules/*.js && eslint nodes/*.js",
         "build": "npm run build-cjs && npm run build-esm",
-        "build-cjs": "rollup module.js --o index.js --f cjs",
-        "build-esm": "rollup module.js --o soundstage.js --f esm",
+        "build-cjs": "rollup module.js --o build/script.js --f cjs --output.name Soundstage",
+        "build-esm": "rollup module.js --o build/module.js --f esm",
         "build-docs": "node ../fn/render-html.js http://localhost/soundstage/template.html ./index.html 10",
         "sass": "node-sass --output-style compact --indent-type tab --indent-width 1 -o css css/respond.scss"
     }
