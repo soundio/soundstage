@@ -27,7 +27,7 @@ function byBeat(a, b) {
 }
 
 
-/* Command constructor and pool */
+// Command constructor and pool
 
 function Command(beat, type, event) {
 	// If there is a command in the pool use that
@@ -340,6 +340,11 @@ export default function Sequencer(transport, data, rateParam, timer, notify) {
 	privates.notify    = notify;
 	privates.context   = this.context;
 
+	/* .rate
+	An AudioParam representing the rate of the transport clock in
+	beats per second.
+	*/
+
 	define(this, {
 		rate: {
 			value: rateParam
@@ -595,10 +600,8 @@ assign(Sequencer.prototype, Sequence.prototype, Meter.prototype, {
 		return transport.sequence(toEventsBuffer);
 	},
 
-	/*
-	.cue(beat, fn)
-	Cues `fn` to be called on `beat`.
-	*/
+	//.cue(beat, fn)
+	//Cues `fn` to be called on `beat`.
 
 	cue: function(beat, fn) {
 		var stream = Privates(this).stream;

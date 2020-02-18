@@ -67,10 +67,65 @@ export default function Graph(context, requests, data, transport) {
 
 assign(Graph.prototype, {
 
-    /*
-    .get(id)
-    Return the node with `id`, or undefined.
-    */
+/*
+.createNode(type, settings)
+
+Creates a new AudioNode in the Soundstage graph.
+
+```js
+var wrap = stage.create('delay', {
+    delayTime: 0.5
+});
+```
+
+The `type` parameter is a string, and must be one of the [node types](#node-types)
+either built-in or registered with Soundstage. The `settings` parameter is an
+object of settings specific to that node type.
+
+The AudioNode is wrapped in an object with an id and label in the `.nodes`
+array. The wrapper object is returned.
+*/
+
+    createNode: function() {
+        return this.create.apply(this, arguments);
+    },
+
+    create: function (type, data) {
+        const graph = this;
+        const privates = Privates(this);
+        const requests = privates.requests;
+        const transport = privates.transport;
+        const notify = privates.notify;
+        const id = generateUnique(this.nodes.map(get('id')));
+
+        return new Node(graph, type, id, type, data, graph.context, requests, transport)
+            .request
+            .then((node) => {
+                notify(graph.nodes, '.');
+                return node;
+            });
+    },
+
+/*
+.createConnection(source, target)
+
+Creates a connection between two nodes in the graph. The parameters
+`source` and `target` are node ids.
+*/
+
+    createConnection: function (source, target, output, input) {
+        return new Connection(this, source, target, output, input);
+    },
+
+/*
+.get(id)
+
+Returns the AudioNode with `id` from the graph, or undefined.
+
+```js
+var node = stage.get('0');
+```
+*/
 
     get: function(id) {
         return this.nodes.find(has('id', id)).data;
@@ -78,37 +133,5 @@ assign(Graph.prototype, {
 
     identify: function(data) {
         return this.nodes.find(has('data', data)).id;
-    },
-
-    /*
-    .create(type, settings)
-    Creates a new node of `type`, generates an id for it and adds it to the
-    stage. It is not connected to anything by default.
-    */
-
-    create: function(type, data) {
-        const graph     = this;
-        const privates  = Privates(this);
-        const requests  = privates.requests;
-        const transport = privates.transport;
-        const notify    = privates.notify;
-        const id = generateUnique(this.nodes.map(get('id')));
-
-        return new Node(graph, type, id, type, data, graph.context, requests, transport)
-        .request
-        .then((node) => {
-            notify(graph.nodes, '.');
-            return node;
-        });
-    },
-
-    /*
-    .createConnection(source, target)
-    Creates a connection between two nodes in `.nodes`, where `source` and
-    `target` are node ids.
-    */
-
-    createConnection: function(source, target, output, input) {
-        return new Connection(this, source, target, output, input);
     }
 });

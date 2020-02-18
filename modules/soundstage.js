@@ -204,6 +204,7 @@ export default function Soundstage(data = defaultData, settings = nothing) {
 
     /*
     .label
+    A string name or title for this Soundstage document.
     */
 
     this.label = data.label || '';

@@ -361,6 +361,9 @@ line { stroke-width: 1; stroke: inherit; }
 body,
 html {
     color: #acb9b8;
+    color: #b2bbaa;
+    color: #b7b6ab;
+    color: #b2b7ab;
     background-color: #1c2726;
 }
 
@@ -378,6 +381,7 @@ pre > code {
 
 p {
     max-width: 52ch;
+    margin-left: 0;
 }
 
 hr {
