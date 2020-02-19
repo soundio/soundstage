@@ -2,52 +2,76 @@
 /*
 Event()
 
-An event is an array containing a beat, type and some data.
+An event requires a `beat`, `type` and some `data`.
 
+```js
+stage.createEvent(beat, type, data...);
 ```
-[beat, type, data...]
+
+- `beat` is a number representing the time in beats from the start of a
+sequence at which to play the event
+- `type` is a string
+
+Data parameters are dependent on the event type. The built-in
+events types and the data they expect are:
+*/
+
+/*
+meter
+
+```js
+[beat, "meter", numerator, denominator]
 ```
 
-`beat` is an arbitrary time value where the absolute time of a given beat
-depends on the start time and rate the sequence is being played at. The data an
-event carries is dependent on the `type`. Not all event types apply to all
-nodes, and if a node does not recognise an event the event is ignored. Here are
-the possible event types.
+- `numerator` is the number of meter divisions
+- `denominator` is the duration (in beats) of a meter division
+*/
 
-'meter'
+/*
+note
 
-```[beat, "meter", numerator, denominator]```
+```js
+[beat, "note", name, velocity, duration]
+```
 
-`numerator` – Either a number in the range `0-127` or a string note name, eg. `'C3'`
-`denominator` – A float in the nominal range `0-1`, the force of the note's attack
+- `name` is a number in the range `0-127` or a MIDI note name `"C3"`
+- `velocity` is a float in the nominal range `0-1`
+- `duration` is a float, in beats
+*/
 
-Meter events are only accepted by the base sequence – the stage object.
+/*
+param
 
-'note'
+```js
+[beat, "param", name, value, curve]
+```
 
-```[beat, "note", number, velocity, duration]```
+- `name` is a string, the name of a property of a node to automate
+- `value` is a float, the value to automate to
+- `curve` is `"step"`, `"linear"`, `"exponential"` or `"target"`
+*/
 
-`name` – Either a number in the range `0-127` or a string note name, eg. `'C3'`
-`velocity` – A float in the nominal range `0-1`, the force of the note's attack
-`duration` – A positive float, the duration in beats
+/*
+rate
 
-If the target node does not have a `.start()` method, note events are ignored.
+```js
+[beat, "rate", rate, curve]
+```
 
-'rate'
+- `rate` is a float, a multiplier of the rate of the parent sequence
+- `curve` is `"step"` or `"exponential"`
+*/
 
-```[beat, "rate", value]```
+/*
+sequence
 
-`value` – A new rate. A rate of `1` means this sequence will start playing at
-the same rate as its' parent, `2`, twice the rate, etc.
+```js
+[beat, "sequence", sequence, target, duration]
+```
 
-'sequence'
-
-```[beat, "sequence", sequenceId, nodeId]```
-
-`sequenceId` – the id of a sequence object in `.sequences`
-`nodeId` – the id of a node in `.nodes`
-
-If the sequence or node are not found an error is thrown?? Todo.
+- `sequence` is the id of a sequence in the `.sequences` array
+- `target` is the id of a node in the `.nodes` array
+- `duration` is a float, in beats
 */
 
 
@@ -72,38 +96,38 @@ function pitchToFloat(message) {
 // A constructor for pooled event objects, for internal use only. Internal
 // events are for flows of data (rather than storage), and have extra data
 // assigned.
-/*
-export default Event = Pool({
-	name: 'Soundstage Event',
 
-	create: noop,
+//export default Event = Pool({
+//	name: 'Soundstage Event',
+//
+//	create: noop,
+//
+//	reset: function reset() {
+//		assign(this, arguments);
+//		var n = arguments.length - 1;
+//		while (this[++n] !== undefined) { delete this[n]; }
+//		this.recordable = false;
+//		this.idle       = false;
+//	},
+//
+//	isIdle: function isIdle(object) {
+//		return !!object.idle;
+//	}
+//}, defineProperties({
+//	toJSON: function() {
+//		// Event has no length by default, we cant loop over it
+//		var array = [];
+//		var n = -1;
+//		while (this[++n] !== undefined) { array[n] = this[n]; }
+//		return array;
+//	}
+//}, {
+//	time:       { writable: true },
+//	object:     { writable: true },
+//	recordable: { writable: true },
+//	idle:       { writable: true }
+//}));
 
-	reset: function reset() {
-		assign(this, arguments);
-		var n = arguments.length - 1;
-		while (this[++n] !== undefined) { delete this[n]; }
-		this.recordable = false;
-		this.idle       = false;
-	},
-
-	isIdle: function isIdle(object) {
-		return !!object.idle;
-	}
-}, defineProperties({
-	toJSON: function() {
-		// Event has no length by default, we cant loop over it
-		var array = [];
-		var n = -1;
-		while (this[++n] !== undefined) { array[n] = this[n]; }
-		return array;
-	}
-}, {
-	time:       { writable: true },
-	object:     { writable: true },
-	recordable: { writable: true },
-	idle:       { writable: true }
-}));
-*/
 export default function Event(time, type, name, value, duration) {
 	assign(this, arguments);
 	this.length = arguments.length;
@@ -156,12 +180,6 @@ export function isParamEvent(event) {
 export function isSequenceEvent(event) {
 	return event[1] === 'sequence';
 }
-
-
-
-
-
-
 
 
 
@@ -257,7 +275,6 @@ export const isValidEvent = overload(get(1), {
 // [time, "pitch", semitones]
 // [time, "chord", root, mode, duration]
 // [time, "sequence", name || events, target, duration, transforms...]
-
 
 export const eventValidationHint = overload(get(1), {
 	note: (event) => {

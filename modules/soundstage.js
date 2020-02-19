@@ -90,80 +90,91 @@ function requestAudioNode(type, context, settings, transport, basePath) {
 
 
 /*
-Soundstage(data, settings)
+Soundstage()
 
-Import Soundstage and create a new Soundstage object, passing in some setup
-data.
+Import Soundstage.
 
-```
-import Soundstage from 'http://sound.io/soundstage/module.js';
-
-const stage = new Soundstage({
-    nodes: [
-        { id: '1', type: 'instrument', data: {...} },
-        { id: '2', type: 'output', data: {...} }
-    ],
-
-    connections: [
-        { source: '1', target: '2' }
-    ],
-
-    sequences: [...],
-    events: [...]
-});
+```js
+import Soundstage from '/soundstage/build/module.js';
 ```
 
-A stage is a graph of AudioNodes and connections, and a sequencer of events
-targeted at those nodes. A stage also quacks like an AudioNode, and can
-be connected to other nodes (although by default it is connected to
-`context.destination`). Finally, a stage can be stringified to JSON, and
-that JSON can be used to recreate the same node graph elsewhere.
+Create a new stage.
 
+```js
+const stage = new Soundstage();
 ```
-const json = JSON.stringify(stage);
 
-// '{
-//     "nodes": [...],
-//     "connections": [...],
-//     "sequences": [...],
-//     "events": [...]
-// }'
-
-// Elsewhere
-const stage = new Soundstage(JSON.parse(json));
-```
+A stage is a graph of AudioNodes and a sequencer of events. It has the
+following properties and methods.
 */
 
-/*
-Options
+// ```
+// import Soundstage from 'http://sound.io/soundstage/module.js';
+//
+// const stage = new Soundstage({
+//     nodes: [
+//         { id: '1', type: 'instrument', data: {...} },
+//         { id: '2', type: 'output', data: {...} }
+//     ],
+//
+//     connections: [
+//         { source: '1', target: '2' }
+//     ],
+//
+//     sequences: [...],
+//     events: [...]
+// });
+// ```
+//
+// A stage is a graph of AudioNodes and connections, and a sequencer of events
+// targeted at those nodes. A stage also quacks like an AudioNode, and can
+// be connected to other nodes (although by default it is connected to
+// `context.destination`). Finally, a stage can be stringified to JSON, and
+// that JSON can be used to recreate the same node graph elsewhere.
+//
+// ```
+// const json = JSON.stringify(stage);
+//
+// // '{
+// //     "nodes": [...],
+// //     "connections": [...],
+// //     "sequences": [...],
+// //     "events": [...]
+// // }'
+//
+// // Elsewhere
+// const stage = new Soundstage(JSON.parse(json));
+// ```
 
-The Soundstage constructor also accepts an optional second object, options.
+//Options
+//
+//The Soundstage constructor also accepts an optional second object, options.
+//
+//`.context`
+//
+//By default an AudioContext is created and shared by all stages. Pass in an
+//AudioContext to have the stage use a different context.
+//
+//`.destination`
+//
+//[Todo: rename as a boolean option.]
+//By default the output of the stage graph is connected to `context.destination`.
+//Pass in `null` to create a disconnected stage (and use `stage.connect()`
+//to route it elsewhere).
+//
+//`.notify`
+//
+//```
+//const stage = new Soundstage({...}, {
+//    notify: function(node, property, value) {...}
+//});
+//```
+//
+//A function that is called when an AudioParam is scheduled to change. A
+//fundamental problem when creating a UI for a WebAudio graph is the lack of
+//observability. Everything happens on a seperate thread, and cannot be
+//interrogated. Use notify to have Soundstage notify changes to AudioParam values.
 
-`.context`
-
-By default an AudioContext is created and shared by all stages. Pass in an
-AudioContext to have the stage use a different context.
-
-`.destination`
-
-[Todo: rename as a boolean option.]
-By default the output of the stage graph is connected to `context.destination`.
-Pass in `null` to create a disconnected stage (and use `stage.connect()`
-to route it elsewhere).
-
-`.notify`
-
-```
-const stage = new Soundstage({...}, {
-    notify: function(node, property, value) {...}
-});
-```
-
-A function that is called when an AudioParam is scheduled to change. A
-fundamental problem when creating a UI for a WebAudio graph is the lack of
-observability. Everything happens on a seperate thread, and cannot be
-interrogated. Use notify to have Soundstage notify changes to AudioParam values.
-*/
 
 export default function Soundstage(data = defaultData, settings = nothing) {
     if (!Soundstage.prototype.isPrototypeOf(this)) {

@@ -2,10 +2,10 @@
 // Just for documentation
 
 /*
-Compressor
+Compressor()
 
 ```
-const delay = stage.create('compressor');
+const compressor = stage.create('compressor');
 ```
 
 Creates a standard CompressorNode.

@@ -3,11 +3,20 @@
 /*
 Sequence()
 
-A sequence is an object with an `.events` property that is an array of events.
-The stage itself is a sequence. Pass in an <code>.events</code> array to tell
-the stage what to play on `.start()`.
+A sequence is an object with an `.events` array. A stage itself is a
+sequence: it has an `.events` array. Events may be created in the stage
+events array by calling `stage.createEvent()`:
 
+```js
+// Make the stage sequence play at 120bpm
+stage.createEvent(0, 'rate', 1);
 ```
+
+A stage may be initialised with events by passing them in the data object to the
+`Soundstage` constructor:
+
+```js
+// Set up the stage to play in 4/4 meter at 120bpm
 const stage = new Soundstage({
     events: [
         [0, 'meter', 4, 4],
@@ -15,6 +24,16 @@ const stage = new Soundstage({
     ]
 });
 ```
+
+Events in the `.events` array are played when the sequencer is started:
+
+```js
+stage.start();
+```
+*/
+
+/*
+Nothing()
 
 A sequence may also have a `.sequences` property that is an array of sequence
 objects. These are triggered by `'sequence'` events that refer to them by their

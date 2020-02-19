@@ -600,7 +600,7 @@ function findByProperty(key, value, array) {
 }
 
 
-/* Get path */
+// Get path
 
 function getRegexPathThing(regex, path, object, fn) {
     var tokens = regex.exec(path);
@@ -848,8 +848,6 @@ function findByProperty$1(key, value, array) {
         }
     }
 }
-
-/* Set path */
 
 function setRegexPath(regex, path, object, thing) {
     var tokens = regex.exec(path);
@@ -1677,18 +1675,6 @@ if (window.Symbol) {
 }
 
 /*
-remove(array, value)
-Remove `value` from `array`. Where `value` is not in `array`, does nothing.
-*/
-
-function remove(array, value) {
-    if (array.remove) { array.remove(value); }
-    var i = array.indexOf(value);
-    if (i !== -1) { array.splice(i, 1); }
-    return value;
-}
-
-/*
 Timer(duration, getTime)
 
 Create an object with a request/cancel pair of functions that
@@ -1763,8 +1749,6 @@ var assign$1    = Object.assign;
 
 function isDone$1(stream) {
     return stream.status === 'done';
-    // Accept arrays or streams
-    //return stream.length === 0 || stream.status === 'done';
 }
 
 function notify(object) {
@@ -2018,10 +2002,8 @@ Stream$1.prototype = assign$1(Object.create(Fn.prototype), {
 
     /* Map */
 
-    ///*
     //.chunk(n)
     //Batches values into arrays of length `n`.
-    //*/
 
     /*
     .flat()
@@ -2097,11 +2079,9 @@ Stream$1.prototype = assign$1(Object.create(Fn.prototype), {
     Filters the stream to the first `n` values.
     */
 
-    ///*
     //.clock(timer)
     //Emits values at the framerate of `timer`, one-per-frame. No values
     //are discarded.
-    //*/
     //
     //clock: function clock(timer) {
     //    return this.pipe(Stream.clock(timer));
@@ -2226,12 +2206,10 @@ Stream$1.prototype = assign$1(Object.create(Fn.prototype), {
         });
     },
 
-    ///*
     //.reduce(fn, accumulator)
     //Consumes the stream when stopped, calling `fn(accumulator, value)`
     //for each value in the stream. Returns a promise that resolves to
     //the last value returned by `fn(accumulator, value)`.
-    //*/
 
     reduce: function reduce(fn, accumulator) {
         // Support array.reduce semantics with optional seed
@@ -2720,6 +2698,18 @@ Stream$1.throttle = function(timer) {
     });
 };
 
+/*
+remove(array, value)
+Remove `value` from `array`. Where `value` is not in `array`, does nothing.
+*/
+
+function remove(array, value) {
+    if (array.remove) { array.remove(value); }
+    var i = array.indexOf(value);
+    if (i !== -1) { array.splice(i, 1); }
+    return value;
+}
+
 const nothing$1      = Object.freeze([]);
 
 /*
@@ -2910,6 +2900,169 @@ last(array)
 Gets the last value from an array.
 */
 
+function sum(a, b) { return b + a; }
+function multiply(a, b) { return b * a; }
+function pow(n, x) { return Math.pow(x, n); }
+function exp(n, x) { return Math.pow(n, x); }
+function log$1(n, x) { return Math.log(x) / Math.log(n); }
+function root(n, x) { return Math.pow(x, 1/n); }
+
+/*
+limit(min, max, n)
+*/
+
+function limit(min, max, n) {
+    return n > max ? max : n < min ? min : n;
+}
+
+/*
+wrap(min, max, n)
+*/
+
+function wrap(min, max, n) {
+    return (n < min ? max : min) + (n - min) % (max - min);
+}
+
+const curriedSum   = curry$1(sum);
+const curriedMultiply = curry$1(multiply);
+const curriedMin   = curry$1(Math.min, false, 2);
+const curriedMax   = curry$1(Math.max, false, 2);
+const curriedPow   = curry$1(pow);
+const curriedExp   = curry$1(exp);
+const curriedLog   = curry$1(log$1);
+const curriedRoot  = curry$1(root);
+const curriedLimit = curry$1(limit);
+const curriedWrap  = curry$1(wrap);
+
+/*
+toLevel(dB)
+*/
+
+function toLevel(n) { return Math.pow(2, n / 6); }
+
+/*
+toRad(deg)
+*/
+
+const angleFactor = 180 / Math.PI;
+
+/*
+gcd(a, b)
+
+Returns the greatest common divider of a and b.
+*/
+
+function gcd(a, b) {
+    return b ? gcd(b, a % b) : a;
+}
+
+const curriedGcd = curry$1(gcd);
+
+/*
+lcm(a, b)
+
+Returns the lowest common multiple of a and b.
+*/
+
+function lcm(a, b) {
+    return a * b / gcd(a, b);
+}
+
+const curriedLcm = curry$1(lcm);
+
+/*
+mod(divisor, n)
+
+JavaScript's modulu operator (`%`) uses Euclidean division, but for
+stuff that cycles through 0 the symmetrics of floored division are often
+are more useful. This function implements floored division.
+*/
+
+function mod(d, n) {
+    var value = n % d;
+    return value < 0 ? value + d : value;
+}
+
+curry$1(mod);
+
+/*
+toPolar(cartesian)
+*/
+
+// Cubic bezier function (originally translated from
+
+function sampleCubicBezier(a, b, c, t) {
+    // `ax t^3 + bx t^2 + cx t' expanded using Horner's rule.
+    return ((a * t + b) * t + c) * t;
+}
+
+function sampleCubicBezierDerivative(a, b, c, t) {
+    return (3 * a * t + 2 * b) * t + c;
+}
+
+function solveCubicBezierX(a, b, c, x, epsilon) {
+    // Solve x for a cubic bezier
+    var x2, d2, i;
+    var t2 = x;
+
+    // First try a few iterations of Newton's method -- normally very fast.
+    for(i = 0; i < 8; i++) {
+        x2 = sampleCubicBezier(a, b, c, t2) - x;
+        if (Math.abs(x2) < epsilon) {
+            return t2;
+        }
+        d2 = sampleCubicBezierDerivative(a, b, c, t2);
+        if (Math.abs(d2) < 1e-6) {
+            break;
+        }
+        t2 = t2 - x2 / d2;
+    }
+
+    // Fall back to the bisection method for reliability.
+    var t0 = 0;
+    var t1 = 1;
+
+    t2 = x;
+
+    if(t2 < t0) { return t0; }
+    if(t2 > t1) { return t1; }
+
+    while(t0 < t1) {
+        x2 = sampleCubicBezier(a, b, c, t2);
+        if(Math.abs(x2 - x) < epsilon) {
+            return t2;
+        }
+        if (x > x2) { t0 = t2; }
+        else { t1 = t2; }
+        t2 = (t1 - t0) * 0.5 + t0;
+    }
+
+    // Failure.
+    return t2;
+}
+
+function cubicBezier(p1, p2, duration, x) {
+    // The epsilon value to pass given that the animation is going
+    // to run over duruation seconds. The longer the animation, the
+    // more precision is needed in the timing function result to
+    // avoid ugly discontinuities.
+    var epsilon = 1 / (200 * duration);
+
+    // Calculate the polynomial coefficients. Implicit first and last
+    // control points are (0,0) and (1,1).
+    var cx = 3 * p1[0];
+    var bx = 3 * (p2[0] - p1[0]) - cx;
+    var ax = 1 - cx - bx;
+    var cy = 3 * p1[1];
+    var by = 3 * (p2[1] - p1[1]) - cy;
+    var ay = 1 - cy - by;
+
+    var y = solveCubicBezierX(ax, bx, cx, x, epsilon);
+    return sampleCubicBezier(ay, by, cy, y);
+}
+
+var bezierify = curry$1(cubicBezier, true, 4);
+
 const DEBUG$1 = window.DEBUG === undefined || window.DEBUG;
 
 const defs = {
@@ -3046,85 +3199,6 @@ function def(notation, fn, file, line) {
     } : fn ;
 }
 
-// Cubic bezier function (originally translated from
-// webkit source by Christian Effenberger):
-// http://www.netzgesta.de/dev/cubic-bezier-timing-function.html
-
-/*
-cubicBezier(point1, point2, duration, x)
-Where `point1` and `point2` are `[x, y]` arrays describing control points.
-*/
-
-function sampleCubicBezier(a, b, c, t) {
-    // `ax t^3 + bx t^2 + cx t' expanded using Horner's rule.
-    return ((a * t + b) * t + c) * t;
-}
-
-function sampleCubicBezierDerivative(a, b, c, t) {
-    return (3 * a * t + 2 * b) * t + c;
-}
-
-function solveCubicBezierX(a, b, c, x, epsilon) {
-    // Solve x for a cubic bezier
-    var x2, d2, i;
-    var t2 = x;
-
-    // First try a few iterations of Newton's method -- normally very fast.
-    for(i = 0; i < 8; i++) {
-        x2 = sampleCubicBezier(a, b, c, t2) - x;
-        if (Math.abs(x2) < epsilon) {
-            return t2;
-        }
-        d2 = sampleCubicBezierDerivative(a, b, c, t2);
-        if (Math.abs(d2) < 1e-6) {
-            break;
-        }
-        t2 = t2 - x2 / d2;
-    }
-
-    // Fall back to the bisection method for reliability.
-    var t0 = 0;
-    var t1 = 1;
-
-    t2 = x;
-
-    if(t2 < t0) { return t0; }
-    if(t2 > t1) { return t1; }
-
-    while(t0 < t1) {
-        x2 = sampleCubicBezier(a, b, c, t2);
-        if(Math.abs(x2 - x) < epsilon) {
-            return t2;
-        }
-        if (x > x2) { t0 = t2; }
-        else { t1 = t2; }
-        t2 = (t1 - t0) * 0.5 + t0;
-    }
-
-    // Failure.
-    return t2;
-}
-
-function cubicBezier(p1, p2, duration, x) {
-    // The epsilon value to pass given that the animation is going
-    // to run over duruation seconds. The longer the animation, the
-    // more precision is needed in the timing function result to
-    // avoid ugly discontinuities.
-    var epsilon = 1 / (200 * duration);
-
-    // Calculate the polynomial coefficients. Implicit first and last
-    // control points are (0,0) and (1,1).
-    var cx = 3 * p1[0];
-    var bx = 3 * (p2[0] - p1[0]) - cx;
-    var ax = 1 - cx - bx;
-    var cy = 3 * p1[1];
-    var by = 3 * (p2[1] - p1[1]) - cy;
-    var ay = 1 - cy - by;
-
-    var y = solveCubicBezierX(ax, bx, cx, x, epsilon);
-    return sampleCubicBezier(ay, by, cy, y);
-}
-
 // Normalisers take a min and max and transform a value in that range
 // to a value on the normal curve of a given type
 
@@ -3165,7 +3239,7 @@ const linearLogarithmic = def(
 
 const cubicBezier$1 = def(
     'Object, Object, Number => Number',
-    (begin, end, value) => cubicBezier({
+    (begin, end, value) => bezierify({
         0: linear(begin.point[0], end.point[0], begin.handle[0]),
         1: linear(begin.point[0], end.point[0], begin.handle[0])
     }, {
@@ -3223,7 +3297,7 @@ const linearLogarithmic$1 = def(
 
 const cubicBezier$2 = def(
     'Object, Object, Number => Number',
-    (begin, end, value) => linear$1(begin.point[1], end.point[1], cubicBezier({
+    (begin, end, value) => linear$1(begin.point[1], end.point[1], bezierify({
         0: linear(begin.point[0], end.point[0], begin.handle[0]),
         1: linear(begin.point[1], end.point[1], begin.handle[1])
     }, {
@@ -3241,73 +3315,6 @@ var denormalisers = /*#__PURE__*/Object.freeze({
     cubicBezier: cubicBezier$2
 });
 
-// Constant for converting radians to degrees
-const angleFactor = 180 / Math.PI;
-
-function sum(a, b)  { return b + a; }
-function multiply(a, b) { return b * a; }
-function min(a, b)  { return a > b ? b : a ; }
-function max(a, b)  { return a < b ? b : a ; }
-function pow(n, x)  { return Math.pow(x, n); }
-function exp(n, x)  { return Math.pow(n, x); }
-function log$1(n, x)  { return Math.log(x) / Math.log(n); }
-function root(n, x) { return Math.pow(x, 1/n); }
-
-/*
-mod(divisor, n)
-JavaScript's modulu operator (`%`) uses Euclidean division, but for
-stuff that cycles through 0 the symmetrics of floored division are often
-are more useful.
-*/
-
-function mod(d, n) {
-    var value = n % d;
-    return value < 0 ? value + d : value ;
-}
-
-/*
-limit(min, max, n)
-*/
-
-function limit(min, max, n) {
-    return n > max ? max : n < min ? min : n ;
-}
-
-function wrap(min, max, n) {
-    return (n < min ? max : min) + (n - min) % (max - min);
-}
-
-/*
-gcd(a, b)
-*/
-
-function gcd(a, b) {
-    // Greatest common divider
-    return b ? gcd(b, a % b) : a ;
-}
-
-/*
-lcm(a, b)
-*/
-
-function lcm(a, b) {
-    // Lowest common multiple.
-    return a * b / gcd(a, b);
-}
-
-function factorise(n, d) {
-    // Reduce a fraction by finding the Greatest Common Divisor and
-    // dividing by it.
-    var f = gcd(n, d);
-    return [n/f, d/f];
-}
-
-/*
-toLevel(dB)
-*/
-
-function toLevel(n) { return Math.pow(2, n / 6); }
-
 // Exponential functions
 //
 // e - exponent
@@ -3321,10 +3328,6 @@ function toLevel(n) { return Math.pow(2, n / 6); }
 function exponentialOut(e, x) {
     return 1 - Math.pow(1 - x, e);
 }
-
-/*
-toPolar(cartesian)
-*/
 
 function createOrdinals(ordinals) {
 	var array = [], n = 0;
@@ -3501,11 +3504,11 @@ var dateFormatters = {
 	YY:   function(date)       { return ('0' + date.getFullYear() % 100).slice(-2); },
 	MM:   function(date)       { return ('0' + (date.getMonth() + 1)).slice(-2); },
 	MMM:  function(date, lang) { return this.MMMM(date, lang).slice(0,3); },
-	MMMM: function(date, lang) { return langs[lang || Time.lang].months[date.getMonth()]; },
+	MMMM: function(date, lang) { return langs[lang].months[date.getMonth()]; },
 	D:    function(date)       { return '' + date.getDate(); },
 	DD:   function(date)       { return ('0' + date.getDate()).slice(-2); },
 	ddd:  function(date, lang) { return this.dddd(date, lang).slice(0,3); },
-	dddd: function(date, lang) { return langs[lang || Time.lang].days[date.getDay()]; },
+	dddd: function(date, lang) { return langs[lang].days[date.getDay()]; },
 	hh:   function(date)       { return ('0' + date.getHours()).slice(-2); },
 	//hh:   function(date)       { return ('0' + date.getHours() % 12).slice(-2); },
 	mm:   function(date)       { return ('0' + date.getMinutes()).slice(-2); },
@@ -3519,7 +3522,7 @@ var dateFormatters = {
 		return (date.getTimezoneOffset() < 0 ? '+' : '-') +
 			 ('0' + Math.round(100 * Math.abs(date.getTimezoneOffset()) / 60)).slice(-4) ;
 	},
-	th:   function(date, lang) { return langs[lang || Time.lang].ordinals[date.getDate()]; },
+	th:   function(date, lang) { return langs[lang].ordinals[date.getDate()]; },
 	n:    function(date) { return +date; },
 	ZZ:   function(date) { return -date.getTimezoneOffset() * 60; }
 };
@@ -3904,7 +3907,7 @@ function secondsToHours(n) { return n / 3600; }
 function secondsToDays(n) { return n / 86400; }
 function secondsToWeeks(n) { return n / 604800; }
 
-/* Months and years are not fixed durations – these are approximate */
+// Months and years are not fixed durations – these are approximate
 function secondsToMonths(n) { return n / 2629800; }
 function secondsToYears(n) { return n / 31557600; }
 
@@ -4235,7 +4238,7 @@ function toType$1(object) {
 // #332256
 
 if (window.console && window.console.log) {
-    window.console.log('%cFn%c          - https://github.com/stephband/fn', 'color: #de3b16; font-weight: 600;', 'color: inherit; font-weight: 400;');
+    window.console.log('%cFn%c          - https://stephen.band/fn', 'color: #de3b16; font-weight: 600;', 'color: inherit; font-weight: 400;');
 }
 const requestTime$1 = curry$1(requestTime, true, 2);
 const and     = curry$1(function and(a, b) { return !!(a && b); });
@@ -4266,31 +4269,16 @@ const update$1      = curry$1(update, true);
 const diff$2        = curry$1(diff, true);
 const intersect$1   = curry$1(intersect, true);
 const unite$1       = curry$1(unite, true);
-
-const sum$1         = curry$1(sum);
-
-const add         = curry$1(function(a, b) {
-    console.trace('Fn module add() is now sum()');
-    return sum(a, b);
-});
-
-const multiply$1    = curry$1(multiply);
-const min$1         = curry$1(min);
-const max$1         = curry$1(max);
-const mod$1         = curry$1(mod);
-const pow$1         = curry$1(pow);
-const exp$1         = curry$1(exp);
-const log$2         = curry$1(log$1);
-const gcd$1         = curry$1(gcd);
-const lcm$1         = curry$1(lcm);
-const root$1        = curry$1(root);
-const limit$1       = curry$1(limit);
-const wrap$1        = curry$1(wrap);
-const factorise$1   = curry$1(factorise);
-const cubicBezier$3 = curry$1(cubicBezier);
 const normalise   = curry$1(choose(normalisers), false, 4);
 const denormalise = curry$1(choose(denormalisers), false, 4);
 const exponentialOut$1 = curry$1(exponentialOut);
+
+
+
+const add = curry$1(function (a, b) {
+    console.trace('Deprecated: module add() is now sum()');
+    return a + b;
+});
 
 // Handle user media streams
 
@@ -7339,7 +7327,7 @@ const printGroupEnd$2 = window.console ?
     console.groupEnd.bind(console) :
     noop$3 ;
 
-const log$3 = window.console ?
+const log$2 = window.console ?
     function(name, message, ...args) { console.log('%c' + name + ' %c' + message, 'color: #b5002f; font-weight: 600;', 'color: #8e9e9d; font-weight: 300;', ...args); } :
     noop$3 ;
 
@@ -8314,34 +8302,6 @@ var text = document.createTextNode('');
 
 pre.appendChild(text);
 
-var mimetypes = {
-	xml: 'application/xml',
-	html: 'text/html',
-	svg: 'image/svg+xml'
-};
-
-function parse(type, string) {
-	if (!string) { return; }
-
-	var mimetype = mimetypes[type];
-	var xml;
-
-	// From jQuery source...
-	try {
-		xml = (new window.DOMParser()).parseFromString(string, mimetype);
-	} catch (e) {
-		xml = undefined;
-	}
-
-	if (!xml || xml.getElementsByTagName("parsererror").length) {
-		throw new Error("dom: Invalid XML: " + string);
-	}
-
-	return xml;
-}
-
-curry$1(parse, true);
-
 // Types
 
 function attribute(name, node) {
@@ -8363,7 +8323,7 @@ curry$1(contains$2, true);
 /*
 tag(node)
 
-Returns the tag name of `node`.
+Returns the tag name of `node`, in lowercase.
 
 ```
 const li = create('li', 'Salt and vinegar');
@@ -8423,36 +8383,37 @@ Returns an array of child elements of `node`.
 */
 
 /*
-append(target, node)`
+assign(node, properties)
 
-Appends node to `target`.
+Assigns each property of `properties` to `node`, as a property where that
+property exists in `node`, otherwise as an attribute.
 
-If `node` is a collection of nodes, appends each node to `target`.
+If `properties` has a property `'children'` it must be an array of nodes;
+they are appended to 'node'.
+
+The property `'html'` is treated as an alias of `'innerHTML'`. The property
+`'tag'` is treated as an alias of `'tagName'` (which is ignored, as
+`node.tagName` is read-only). The property `'is'` is also ignored.
 */
 
-if (!Element.prototype.append) {
-    console.warn('A polyfill for Element.append() is needed (https://developer.mozilla.org/en-US/docs/Web/API/ParentNode/append)');
-}
+const assignProperty = overload(id, {
+	// Ignore read-only properties or attributes
+	is: noop$1,
+	tag: noop$1,
 
-function append$1(target, node) {
-    target.append(node);
-    return node;
-}
-
-/*
-assign(node, attributes)
-
-Sets the key-value pairs of the object `attributes` as attributes on `node`.
-*/
-
-const setAttribute = overload(id, {
 	html: function(name, node, content) {
 		node.innerHTML = content;
 	},
 
 	children: function(name, node, content) {
+		// Empty the node and append children
+		node.innerHTML = '';
 		content.forEach((child) => { node.appendChild(child); });
 	},
+
+	// SVG points property must be set as string attribute - SVG elements
+	// have a read-only API exposed at .points
+	points: setAttribute,
 
 	default: function(name, node, content) {
 		if (name in node) {
@@ -8464,27 +8425,57 @@ const setAttribute = overload(id, {
 	}
 });
 
-function assignAttributes(node, attributes) {
+function setAttribute(name, node, content) {
+	node.setAttribute(name, content);
+}
+
+function assign$g(node, attributes) {
 	var names = Object.keys(attributes);
 	var n = names.length;
 
 	while (n--) {
-		setAttribute(names[n], node, attributes[names[n]]);
+		assignProperty(names[n], node, attributes[names[n]]);
 	}
 }
 
+var assign$h = curry$1(assign$g, true);
+
+/*
+append(target, node)
+
+Appends `node`, which may be a string or DOM node, to `target`. Returns `node`.
+*/
+
+if (!Element.prototype.append) {
+    throw new Error('A polyfill for Element.append() is needed (https://developer.mozilla.org/en-US/docs/Web/API/ParentNode/append)');
+}
+
+function append$1(target, node) {
+    target.append(node);
+    return target.lastChild;
+}
+
+curry$1(append$1, true);
+
+/*
+prepend(target, node)
+
+Prepends `node`, which may be a string or DOM node, to `target`. Returns `node`.
+*/
+
 if (!Element.prototype.prepend) {
-    console.warn('A polyfill for Element.prepend() is needed (https://developer.mozilla.org/en-US/docs/Web/API/ParentNode/prepend)');
+    throw new Error('A polyfill for Element.prepend() is needed (https://developer.mozilla.org/en-US/docs/Web/API/ParentNode/prepend)');
 }
 
 function prepend$2(target, node) {
     target.prepend(node);
-    return node;
+    return target.firstChild;
 }
 
-/*
-clone(node)`
+curry$1(prepend$2, true);
 
+/*
+clone(node)
 Returns a deep copy of `node`.
 */
 
@@ -8514,7 +8505,125 @@ features.textareaPlaceholderSet ?
 		return clone;
 	} ;
 
-const testDiv      = document.createElement('div');
+const svgNamespace = 'http://www.w3.org/2000/svg';
+const div = document.createElement('div');
+
+
+// Constructors
+
+const construct = overload(id, {
+	comment: function(tag, text) {
+		return document.createComment(text || '');
+	},
+
+	fragment: function(tag, html) {
+		var fragment = document.createDocumentFragment();
+
+		if (html) {
+			div.innerHTML = html;
+			const nodes = div.childNodes;
+			while (nodes[0]) {
+				fragment.appendChild(nodes[0]);
+			}
+		}
+
+		return fragment;
+	},
+
+	text: function (tag, text) {
+		return document.createTextNode(text || '');
+	},
+
+	circle:   constructSVG,
+	ellipse:  constructSVG,
+	g:        constructSVG,
+	glyph:    constructSVG,
+	image:    constructSVG,
+	line:     constructSVG,
+	rect:     constructSVG,
+	use:      constructSVG,
+	path:     constructSVG,
+	pattern:  constructSVG,
+	polygon:  constructSVG,
+	polyline: constructSVG,
+	svg:      constructSVG,
+	default:  constructHTML
+});
+
+function constructSVG(tag, html) {
+	var node = document.createElementNS(svgNamespace, tag);
+
+	if (html) {
+		node.innerHTML = html;
+	}
+
+	return node;
+}
+
+function constructHTML(tag, html) {
+	var node = document.createElement(tag);
+
+	if (html) {
+		node.innerHTML = html;
+	}
+
+	return node;
+}
+
+
+/*
+create(tag, content)
+
+Constructs and returns a new DOM node.
+
+- If `tag` is `"text"` a text node is created.
+- If `tag` is `"fragment"` a fragment is created.
+- If `tag` is `"comment"` a comment is created.
+- If `tag` is any other string the element `<tag></tag>` is created.
+- Where `tag` is an object, it must have a `"tag"` or `"tagName"` property.
+A node is created according to the above rules for tag strings, and other
+properties of the object are assigned with dom's `assign(node, object)` function.
+
+If `content` is a string it is set as text content on a text or comment node,
+or as inner HTML on an element or fragment. It may also be an object of
+properties which are assigned with dom's `assign(node, properties)` function.
+*/
+
+function toTypes() {
+	return Array.prototype.map.call(arguments, toType).join(' ');
+}
+
+function validateTag(tag) {
+	if (typeof tag !== 'string') {
+		throw new Error('create(object, content) object must have string property .tag or .tagName');
+	}
+}
+
+overload(toTypes, {
+	'string string': construct,
+
+	'string object': function(tag, content) {
+		return assign$h(construct(tag, ''), content);
+	},
+
+	'object string': function(properties, text) {
+		const tag = properties.tag || properties.tagName;
+		validateTag(tag);
+		// Warning: text is set before properties, but text should override
+		// html or innerHTML property, ie, be set after.
+		return assign$h(construct(tag, text), properties);
+	},
+
+	'object object': function(properties, content) {
+		const tag = properties.tag || properties.tagName;
+		validateTag(tag);
+		return assign$h(assign$h(construct(tag, ''), properties), content);
+	},
+
+	default: function() {
+		throw new Error('create(tag, content) does not accept argument types "' + Array.prototype.map.apply(arguments, toType).join(' ') + '"');
+	}
+});
 
 /*
 identify(node)
@@ -8523,7 +8632,8 @@ Returns the id of `node`, or where `node` has no id, a random id is generated,
 checked against the DOM for uniqueness, set on `node` and returned:
 
 ```
-query('button', document)
+// Get ids of all buttons in document
+select('button', document)
 .map(identify)
 .forEach((id) => ...)
 ```
@@ -8622,10 +8732,10 @@ function frameClass(string, node) {
 }
 
 /*
-box(node)
+rect(node)
 
-Returns a `DOMRect` object describing the draw box of `node`.
-(If `node` is `window` a plain object is returned).
+Returns a `DOMRect` object describing the draw rectangle of `node`.
+(If `node` is `window` a preudo-DOMRect object is returned).
 */
 
 function windowBox() {
@@ -8639,7 +8749,7 @@ function windowBox() {
 	};
 }
 
-function box(node) {
+function rect(node) {
 	return node === window ?
 		windowBox() :
 		node.getClientRects()[0] ;
@@ -8653,8 +8763,8 @@ descendants.
 */
 
 function offset(node1, node2) {
-	var box1 = box(node1);
-	var box2 = box(node2);
+	var box1 = rect(node1);
+	var box2 = rect(node2);
 	return [box2.left - box1.left, box2.top - box1.top];
 }
 
@@ -8662,7 +8772,7 @@ if (!NodeList.prototype.forEach) {
     console.warn('A polyfill for NodeList.forEach() is needed (https://developer.mozilla.org/en-US/docs/Web/API/NodeList/forEach)');
 }
 
-const assign$g      = Object.assign;
+const assign$i      = Object.assign;
 const CustomEvent = window.CustomEvent;
 
 const defaults$8    = {
@@ -8690,7 +8800,7 @@ function Event$1(type, options) {
 	let settings;
 
 	if (typeof type === 'object') {
-		settings = assign$g({}, defaults$8, type);
+		settings = assign$i({}, defaults$8, type);
 		type = settings.type;
 	}
 
@@ -8699,7 +8809,7 @@ function Event$1(type, options) {
 			settings.detail = options.detail;
 		}
 		else {
-			settings = assign$g({ detail: options.detail }, defaults$8);
+			settings = assign$i({ detail: options.detail }, defaults$8);
 		}
 	}
 
@@ -8707,13 +8817,13 @@ function Event$1(type, options) {
 
 	if (options) {
 		delete options.detail;
-		assign$g(event, options);
+		assign$i(event, options);
 	}
 
 	return event;
 }
 
-const assign$h  = Object.assign;
+const assign$j  = Object.assign;
 const rspaces = /\s+/;
 
 function prefixType(type) {
@@ -8796,7 +8906,7 @@ function Source(notify, stop, type, options, node) {
 	types.reduce(listen$1, this);
 }
 
-assign$h(Source.prototype, {
+assign$j(Source.prototype, {
 	shift: function shiftEvent() {
 		const buffer = this.buffer;
 		return buffer.shift();
@@ -9103,7 +9213,7 @@ scrollRatio(node)
 Return the ratio of scrollTop to scrollHeight - clientHeight.
 */
 
-const assign$i = Object.assign;
+const assign$k = Object.assign;
 
 /*
 config
@@ -9137,35 +9247,35 @@ const config$1 = {
 
 const createHeaders = choose({
 	'application/x-www-form-urlencoded': function(headers) {
-		return assign$i(headers, {
+		return assign$k(headers, {
 			"Content-Type": 'application/x-www-form-urlencoded',
 			"X-Requested-With": "XMLHttpRequest"
 		});
 	},
 
 	'application/json': function(headers) {
-		return assign$i(headers, {
+		return assign$k(headers, {
 			"Content-Type": "application/json; charset=utf-8",
 			"X-Requested-With": "XMLHttpRequest"
 		});
 	},
 
 	'multipart/form-data': function(headers) {
-		return assign$i(headers, {
+		return assign$k(headers, {
 			"Content-Type": 'multipart/form-data',
 			"X-Requested-With": "XMLHttpRequest"
 		});
 	},
 
 	'audio/wav': function(headers) {
-		return assign$i(headers, {
+		return assign$k(headers, {
 			"Content-Type": 'audio/wav',
 			"X-Requested-With": "XMLHttpRequest"
 		});
 	},
 
 	'default': function(headers) {
-		return assign$i(headers, {
+		return assign$k(headers, {
 			"Content-Type": 'application/x-www-form-urlencoded',
 			"X-Requested-With": "XMLHttpRequest"
 		});
@@ -9308,11 +9418,8 @@ function request$2(type = 'GET', mimetype = 'application/json', url, data) {
 }
 
 if (window.console && window.console.log) {
-    window.console.log('%cdom%c         – https://github.com/stephband/dom', 'color: #3a8ab0; font-weight: 600;', 'color: inherit; font-weight: 400;');
+    window.console.log('%cdom%c         – https://stephen.band/dom', 'color: #3a8ab0; font-weight: 600;', 'color: inherit; font-weight: 400;');
 }
-const assign$j  = curry$1(assignAttributes, true);
-const append$2  = curry$1(append$1, true);
-const prepend$3 = curry$1(prepend$2, true);
 const before$1  = curry$1(before, true);
 const after$1   = curry$1(after, true);
 const replace$1 = curry$1(replace, true);
@@ -9808,7 +9915,7 @@ through a selectable transform function to a target stream.
 
 const DEBUG$4  = window.DEBUG;
 
-const assign$k = Object.assign;
+const assign$l = Object.assign;
 const seal$1   = Object.seal;
 
 const sources = {
@@ -9978,7 +10085,7 @@ function Control(controls, source, target, settings, notify) {
     notify(controls);
 }
 
-assign$k(Control.prototype, {
+assign$l(Control.prototype, {
     tap: function(fn) {
         privates(this).taps.push(fn);
         return this;
@@ -10011,7 +10118,7 @@ const input = stage.create('input', {
 ```
 */
 
-var assign$l   = Object.assign;
+var assign$m   = Object.assign;
 var defaults$9 = {
 	channels: [0, 1]
 };
@@ -10022,7 +10129,7 @@ function increment(n) { return ++n; }
 
 class Input extends ChannelMergerNode {
     constructor(context, settings, input) {
-		var options = assign$l({}, defaults$9, settings);
+		var options = assign$m({}, defaults$9, settings);
 		options.numberOfInputs = options.channels.length || 2;
 		super(context, options);
 
@@ -10081,7 +10188,7 @@ class Input extends ChannelMergerNode {
     }
 }
 
-const assign$m = Object.assign;
+const assign$n = Object.assign;
 const define$f = Object.defineProperties;
 const rautoname$1 = /Out\s\d+\/\d+/;
 const defaults$a = {
@@ -10092,7 +10199,7 @@ function increment$1(n) { return n + 1; }
 
 class OutputSplitter extends GainNode {
     constructor(context, settings, output) {
-		var options = assign$m({}, defaults$a, settings);
+		var options = assign$n({}, defaults$a, settings);
 		options.numberOfOutputs = options.channels.length || 2;
 		options.channelCountMode = 'explicit';
 		options.channelCount = options.numberOfOutputs;
@@ -10154,7 +10261,7 @@ class OutputSplitter extends GainNode {
 if (!NodeGraph.prototype.get) {
 	throw new Error('NodeGraph is not fully formed?')
 }
-const assign$n = Object.assign;
+const assign$o = Object.assign;
 const define$g = Object.defineProperties;
 const getOwnPropertyDescriptor$5 = Object.getOwnPropertyDescriptor;
 
@@ -10296,10 +10403,10 @@ function Metronome(context, settings, transport) {
     this.gain = voice.gain;
 
 	// Update settings
-	assignSettingz__(this, assign$n({}, defaults$b, settings));
+	assignSettingz__(this, assign$o({}, defaults$b, settings));
 }
 
-assign$n(Metronome.prototype, PlayNode.prototype, NodeGraph.prototype, {
+assign$o(Metronome.prototype, PlayNode.prototype, NodeGraph.prototype, {
 	start: function(time) {
 		const privates$1  = privates(this);
 		const transport = privates$1.transport;
@@ -10352,7 +10459,7 @@ function roundBeat(n) {
 
 //import Sequence from './sequence.js';
 
-const assign$o = Object.assign;
+const assign$p = Object.assign;
 const define$h = Object.defineProperties;
 
 const properties$8 = {
@@ -10391,7 +10498,7 @@ function Node(graph, type, id, label, data, context, requests, transport) {
     graph.nodes.push(this);
 }
 
-assign$o(Node.prototype, {
+assign$p(Node.prototype, {
     automate: function(type, time, name, value, duration) {
         const privates$1 = privates(this.graph);
 
@@ -10474,7 +10581,7 @@ assign$o(Node.prototype, {
     }
 });
 
-const assign$p = Object.assign;
+const assign$q = Object.assign;
 const define$i = Object.defineProperties;
 const seal$2   = Object.seal;
 
@@ -10521,7 +10628,7 @@ function Connection(graph, sourceId, targetId, sourceChan, targetChan) {
     }
 }
 
-assign$p(Connection.prototype, {
+assign$q(Connection.prototype, {
     remove: function() {
         // Disconnect them
         if (disconnect(this.source, this.targetParam || this.target, this.data && this.data[0], this.data && this.data[1])) {
@@ -10544,7 +10651,7 @@ assign$p(Connection.prototype, {
     }
 });
 
-const assign$q    = Object.assign;
+const assign$r    = Object.assign;
 const define$j    = Object.defineProperties;
 
 function addConnection(graph, setting) {
@@ -10587,12 +10694,67 @@ function Graph(context, requests, data, transport) {
     this.ready = promise.then.bind(promise);
 }
 
-assign$q(Graph.prototype, {
+assign$r(Graph.prototype, {
 
-    /*
-    .get(id)
-    Return the node with `id`, or undefined.
-    */
+/*
+.createNode(type, settings)
+
+Creates a new AudioNode in the Soundstage graph.
+
+```js
+var wrap = stage.create('delay', {
+    delayTime: 0.5
+});
+```
+
+The `type` parameter is a string, and must be one of the [node types](#node-types)
+either built-in or registered with Soundstage. The `settings` parameter is an
+object of settings specific to that node type.
+
+The AudioNode is wrapped in an object with an id and label in the `.nodes`
+array. The wrapper object is returned.
+*/
+
+    createNode: function() {
+        return this.create.apply(this, arguments);
+    },
+
+    create: function (type, data) {
+        const graph = this;
+        const privates$1 = privates(this);
+        const requests = privates$1.requests;
+        const transport = privates$1.transport;
+        const notify = privates$1.notify;
+        const id = generateUnique(this.nodes.map(get$1('id')));
+
+        return new Node(graph, type, id, type, data, graph.context, requests, transport)
+            .request
+            .then((node) => {
+                notify(graph.nodes, '.');
+                return node;
+            });
+    },
+
+/*
+.createConnection(source, target)
+
+Creates a connection between two nodes in the graph. The parameters
+`source` and `target` are node ids.
+*/
+
+    createConnection: function (source, target, output, input) {
+        return new Connection(this, source, target, output, input);
+    },
+
+/*
+.get(id)
+
+Returns the AudioNode with `id` from the graph, or undefined.
+
+```js
+var node = stage.get('0');
+```
+*/
 
     get: function(id) {
         return this.nodes.find(has$1('id', id)).data;
@@ -10600,38 +10762,6 @@ assign$q(Graph.prototype, {
 
     identify: function(data) {
         return this.nodes.find(has$1('data', data)).id;
-    },
-
-    /*
-    .create(type, settings)
-    Creates a new node of `type`, generates an id for it and adds it to the
-    stage. It is not connected to anything by default.
-    */
-
-    create: function(type, data) {
-        const graph     = this;
-        const privates$1  = privates(this);
-        const requests  = privates$1.requests;
-        const transport = privates$1.transport;
-        const notify    = privates$1.notify;
-        const id = generateUnique(this.nodes.map(get$1('id')));
-
-        return new Node(graph, type, id, type, data, graph.context, requests, transport)
-        .request
-        .then((node) => {
-            notify(graph.nodes, '.');
-            return node;
-        });
-    },
-
-    /*
-    .createConnection(source, target)
-    Creates a connection between two nodes in `.nodes`, where `source` and
-    `target` are node ids.
-    */
-
-    createConnection: function(source, target, output, input) {
-        return new Connection(this, source, target, output, input);
     }
 });
 
@@ -10660,7 +10790,7 @@ function importPlugin(path) {
 }
 
 const worker = new Worker(config.basePath + 'modules/timer.worker.js');
-const assign$r = Object.assign;
+const assign$s = Object.assign;
 
 const defaults$c = {
 	lookahead: 0.12,
@@ -10705,7 +10835,7 @@ function Timer$1(now, duration = defaults$c.duration, lookahead = defaults$c.loo
 	this.duration    = duration;
 }
 
-assign$r(Timer$1.prototype, {
+assign$s(Timer$1.prototype, {
     frame: function(count) {
         const currentRequests = this.requests;
 
@@ -10762,7 +10892,7 @@ assign$r(Timer$1.prototype, {
     }
 });
 
-const assign$s           = Object.assign;
+const assign$t           = Object.assign;
 const getData          = get$1('data');
 
 const pitchBendRange   = 2;
@@ -10809,11 +10939,11 @@ export default Event = Pool({
 }));
 */
 function Event$3(time, type, name, value, duration) {
-	assign$s(this, arguments);
+	assign$t(this, arguments);
 	this.length = arguments.length;
 }
 
-assign$s(Event$3.prototype, {
+assign$t(Event$3.prototype, {
 	remove: function() {
 		if (!this.sequence) {
 			console.warn('Trying to remove event. Event has not had a sequence assigned. This should (probably) not be possible.');
@@ -10976,7 +11106,7 @@ const eventValidationHint = overload(get$1(1), {
 	}
 });
 
-var assign$t = Object.assign;
+var assign$u = Object.assign;
 var freeze = Object.freeze;
 var meter0 = freeze({ 0: 0, 1: 'meter', 2: 4, 3: 1, bar: 0 });
 
@@ -11012,7 +11142,7 @@ function Meter$1(events) {
 	this.events = events;
 }
 
-assign$t(Meter$1.prototype, {
+assign$u(Meter$1.prototype, {
 	/*
 	.barAtBeat(beat)
 	Returns the bar at a given `beat`.
@@ -11193,7 +11323,7 @@ function beatAtLocation(events, event, location) {
 	return event[0] + beatAtTimeOfEvents(event, events[n], location - locCount);
 }
 
-const assign$u = Object.assign;
+const assign$v = Object.assign;
 const define$k = Object.defineProperties;
 const getOwnPropertyDescriptor$6 = Object.getOwnPropertyDescriptor;
 
@@ -11235,7 +11365,7 @@ function Clock(context, notify) {
 	privates(this).notify = notify;
 }
 
-assign$u(Clock.prototype, {
+assign$v(Clock.prototype, {
 	// Todo: Inherit start/stop from PlayNode
 
 	start: function(time) {
@@ -11281,7 +11411,7 @@ define$k(Clock.prototype, {
     playing: getOwnPropertyDescriptor$6(PlayNode.prototype, 'playing')
 });
 
-const assign$v = Object.assign;
+const assign$w = Object.assign;
 const define$l = Object.defineProperties;
 const getOwnPropertyDescriptor$7 = Object.getOwnPropertyDescriptor;
 
@@ -11300,7 +11430,7 @@ function Transport(context, rateParam, timer, notify) {
 	privates$1.sequenceCount = 0;
 }
 
-assign$v(Transport.prototype, Clock.prototype, {
+assign$w(Transport.prototype, Clock.prototype, {
 	beatAtTime: function(time) {
 		if (time < 0) { throw new Error('Location: beatAtLoc(loc) does not accept -ve values.'); }
 
@@ -11475,7 +11605,7 @@ define$l(Transport.prototype, {
 });
 
 const A$5      = Array.prototype;
-const assign$w = Object.assign;
+const assign$x = Object.assign;
 const freeze$2 = Object.freeze;
 
 const insertByBeat = insert$1(get$1('0'));
@@ -11512,7 +11642,7 @@ function Sequence(transport, data) {
 	this.sequences = data && data.sequences || [];
 }
 
-assign$w(Sequence.prototype, Clock.prototype, {
+assign$x(Sequence.prototype, Clock.prototype, {
 	/*
 	.beatAtTime(time)
 	Returns the beat at a given `time`.
@@ -11572,7 +11702,7 @@ assign$w(Sequence.prototype, Clock.prototype, {
 
 const DEBUG$5 = window.DEBUG;
 
-const assign$x    = Object.assign;
+const assign$y    = Object.assign;
 const define$m    = Object.defineProperties;
 const getOwnPropertyDescriptor$8 = Object.getOwnPropertyDescriptor;
 
@@ -11587,7 +11717,7 @@ function byBeat(a, b) {
 }
 
 
-/* Command constructor and pool */
+// Command constructor and pool
 
 function Command(beat, type, event) {
 	// If there is a command in the pool use that
@@ -11900,6 +12030,11 @@ function Sequencer(transport, data, rateParam, timer, notify) {
 	privates$1.notify    = notify;
 	privates$1.context   = this.context;
 
+	/* .rate
+	An AudioParam representing the rate of the transport clock in
+	beats per second.
+	*/
+
 	define$m(this, {
 		rate: {
 			value: rateParam
@@ -11998,7 +12133,7 @@ define$m(Sequencer.prototype, {
 	playing: getOwnPropertyDescriptor$8(PlayNode.prototype, 'playing')
 });
 
-assign$x(Sequencer.prototype, Sequence.prototype, Meter$1.prototype, {
+assign$y(Sequencer.prototype, Sequence.prototype, Meter$1.prototype, {
 	createSequence: function() {
 		// Todo: turn this into a constructor that creates objects with a
 		// .remove() method, ie.
@@ -12155,10 +12290,8 @@ assign$x(Sequencer.prototype, Sequence.prototype, Meter$1.prototype, {
 		return transport.sequence(toEventsBuffer);
 	},
 
-	/*
-	.cue(beat, fn)
-	Cues `fn` to be called on `beat`.
-	*/
+	//.cue(beat, fn)
+	//Cues `fn` to be called on `beat`.
 
 	cue: function(beat, fn) {
 		var stream = privates(this).stream;
@@ -12168,7 +12301,7 @@ assign$x(Sequencer.prototype, Sequence.prototype, Meter$1.prototype, {
 });
 
 const DEBUG$6        = window.DEBUG || false;
-const assign$y       = Object.assign;
+const assign$z       = Object.assign;
 const define$n       = Object.defineProperties;
 const getOwnPropertyDescriptor$9 = Object.getOwnPropertyDescriptor;
 
@@ -12239,80 +12372,86 @@ function requestAudioNode(type, context, settings, transport, basePath) {
 
 
 /*
-Soundstage(data, settings)
+Soundstage()
 
-Import Soundstage and create a new Soundstage object, passing in some setup
-data.
+Import Soundstage and create a new stage:
 
-```
-import Soundstage from 'http://sound.io/soundstage/module.js';
-
-const stage = new Soundstage({
-    nodes: [
-        { id: '1', type: 'instrument', data: {...} },
-        { id: '2', type: 'output', data: {...} }
-    ],
-
-    connections: [
-        { source: '1', target: '2' }
-    ],
-
-    sequences: [...],
-    events: [...]
-});
+```js
+import Soundstage from '/soundstage/build/module.js';
+const stage = new Soundstage();
 ```
 
-A stage is a graph of AudioNodes and connections, and a sequencer of events
-targeted at those nodes. A stage also quacks like an AudioNode, and can
-be connected to other nodes (although by default it is connected to
-`context.destination`). Finally, a stage can be stringified to JSON, and
-that JSON can be used to recreate the same node graph elsewhere.
-
-```
-const json = JSON.stringify(stage);
-
-// '{
-//     "nodes": [...],
-//     "connections": [...],
-//     "sequences": [...],
-//     "events": [...]
-// }'
-
-// Elsewhere
-const stage = new Soundstage(JSON.parse(json));
-```
+A stage is a graph of AudioNodes and sequencer of events with the following
+properties and methods.
 */
 
-/*
-Options
+// ```
+// import Soundstage from 'http://sound.io/soundstage/module.js';
+//
+// const stage = new Soundstage({
+//     nodes: [
+//         { id: '1', type: 'instrument', data: {...} },
+//         { id: '2', type: 'output', data: {...} }
+//     ],
+//
+//     connections: [
+//         { source: '1', target: '2' }
+//     ],
+//
+//     sequences: [...],
+//     events: [...]
+// });
+// ```
+//
+// A stage is a graph of AudioNodes and connections, and a sequencer of events
+// targeted at those nodes. A stage also quacks like an AudioNode, and can
+// be connected to other nodes (although by default it is connected to
+// `context.destination`). Finally, a stage can be stringified to JSON, and
+// that JSON can be used to recreate the same node graph elsewhere.
+//
+// ```
+// const json = JSON.stringify(stage);
+//
+// // '{
+// //     "nodes": [...],
+// //     "connections": [...],
+// //     "sequences": [...],
+// //     "events": [...]
+// // }'
+//
+// // Elsewhere
+// const stage = new Soundstage(JSON.parse(json));
+// ```
 
-The Soundstage constructor also accepts an optional second object, options.
+//Options
+//
+//The Soundstage constructor also accepts an optional second object, options.
+//
+//`.context`
+//
+//By default an AudioContext is created and shared by all stages. Pass in an
+//AudioContext to have the stage use a different context.
+//
+//`.destination`
+//
+//[Todo: rename as a boolean option.]
+//By default the output of the stage graph is connected to `context.destination`.
+//Pass in `null` to create a disconnected stage (and use `stage.connect()`
+//to route it elsewhere).
+//
+//`.notify`
+//
+//```
+//const stage = new Soundstage({...}, {
+//    notify: function(node, property, value) {...}
+//});
+//```
+//
+//A function that is called when an AudioParam is scheduled to change. A
+//fundamental problem when creating a UI for a WebAudio graph is the lack of
+//observability. Everything happens on a seperate thread, and cannot be
+//interrogated. Use notify to have Soundstage notify changes to AudioParam values.
 
-`.context`
-
-By default an AudioContext is created and shared by all stages. Pass in an
-AudioContext to have the stage use a different context.
-
-`.destination`
-
-[Todo: rename as a boolean option.]
-By default the output of the stage graph is connected to `context.destination`.
-Pass in `null` to create a disconnected stage (and use `stage.connect()`
-to route it elsewhere).
-
-`.notify`
-
-```
-const stage = new Soundstage({...}, {
-    notify: function(node, property, value) {...}
-});
-```
-
-A function that is called when an AudioParam is scheduled to change. A
-fundamental problem when creating a UI for a WebAudio graph is the lack of
-observability. Everything happens on a seperate thread, and cannot be
-interrogated. Use notify to have Soundstage notify changes to AudioParam values.
-*/
 
 function Soundstage(data = defaultData, settings = nothing) {
     if (!Soundstage.prototype.isPrototypeOf(this)) {
@@ -12353,6 +12492,7 @@ function Soundstage(data = defaultData, settings = nothing) {
 
     /*
     .label
+    A string name or title for this Soundstage document.
     */
 
     this.label = data.label || '';
@@ -12525,7 +12665,7 @@ define$n(Soundstage.prototype, {
     }
 });
 
-assign$y(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
+assign$z(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
     createControl: function(source, target, options) {
         const privates$1 = privates(this);
 

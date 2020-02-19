@@ -2,7 +2,7 @@
 /*
 Envelope(context, settings)
 
-```
+```js
 const envelope = stage.create('envelope', {
     // An array of param events describing a attack curve
     attack: [
@@ -18,6 +18,11 @@ const envelope = stage.create('envelope', {
     rate: 1
 });
 ```
+
+<p class="warn">
+Take care not to connect an envelope directly to your outputs – expecially if you have expensive speakers attached.
+They are capable of producing DC signal.
+</p>
 */
 
 import PlayNode from './play-node.js';
