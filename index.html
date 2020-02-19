@@ -1506,14 +1506,11 @@ instrument
         <!--div--><div class="x-1 xspan-3 @1-x-1 @2-x-2"><p>A sequence is an object with an <code>.events</code> array. A stage itself is a
 sequence: it has an <code>.events</code> array. Events may be created in the stage
 events array by calling <code>stage.createEvent()</code>:</p>
-<pre><code class="language-js"><span class="token comment">// Make the stage sequence play at 120bpm</span>
-stage<span class="token punctuation">.</span><span class="token function">createEvent</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token string">'rate'</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+<pre><code class="language-js">stage<span class="token punctuation">.</span><span class="token function">createEvent</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token string">'rate'</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
 <p>A stage may be initialised with events by passing them in the data object to the
 <code>Soundstage</code> constructor:</p>
-<pre><code class="language-js"><span class="token comment">// Set up the stage to play in 4/4 meter at 120bpm</span>
-<span class="token keyword">const</span> stage <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Soundstage</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+<pre><code class="language-js"><span class="token keyword">const</span> stage <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Soundstage</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
     events<span class="token punctuation">:</span> <span class="token punctuation">[</span>
-        <span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token string">'meter'</span><span class="token punctuation">,</span> <span class="token number">4</span><span class="token punctuation">,</span> <span class="token number">4</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
         <span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token string">'rate'</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">]</span>
     <span class="token punctuation">]</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>

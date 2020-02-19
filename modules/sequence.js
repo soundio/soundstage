@@ -8,7 +8,6 @@ sequence: it has an `.events` array. Events may be created in the stage
 events array by calling `stage.createEvent()`:
 
 ```js
-// Make the stage sequence play at 120bpm
 stage.createEvent(0, 'rate', 1);
 ```
 
@@ -16,10 +15,8 @@ A stage may be initialised with events by passing them in the data object to the
 `Soundstage` constructor:
 
 ```js
-// Set up the stage to play in 4/4 meter at 120bpm
 const stage = new Soundstage({
     events: [
-        [0, 'meter', 4, 4],
         [0, 'rate', 1]
     ]
 });
