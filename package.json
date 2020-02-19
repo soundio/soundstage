@@ -1,7 +1,7 @@
 {
     "name": "soundstage",
     "title": "Soundstage",
-    "version": "0.8.0",
+    "version": "0.8.1",
     "homepage": "http://sound.io",
     "description": "An audio node graph, sequencing engine, MIDI controller and JSON schema for the Web Audio API.",
     "repository": {
@@ -28,18 +28,18 @@
         "sequence"
     ],
     "devDependencies": {
-        "eslint": "^5.16.0",
-        "rollup": "^1.8.0",
-        "puppeteer": "^1.15.0",
-        "node-sass": "^4.10.0"
+        "rollup": "^1.27.9",
+        "eslint": "^6.5.1",
+        "node-sass": "^4.13.0",
+        "puppeteer": "^1.20.0"
     },
     "module": "module.js",
     "main": "index.js",
     "scripts": {
         "lint": "eslint components/*.js && eslint modules/*.js && eslint nodes/*.js",
-        "build": "npm run build-cjs && npm run build-esm",
-        "build-cjs": "rollup module.js --o build/script.js --f cjs --output.name Soundstage",
-        "build-esm": "rollup module.js --o build/module.js --f esm",
+        "build": "npm run build-script && npm run build-module && npm run build-docs",
+        "build-script": "rollup module.js --o build/script.js --f iife --output.name Soundstage",
+        "build-module": "rollup module.js --o build/module.js --f esm",
         "build-docs": "node ../fn/render-html.js http://localhost/soundstage/template.html ./index.html 10",
         "sass": "node-sass --output-style compact --indent-type tab --indent-width 1 -o css css/respond.scss"
     }

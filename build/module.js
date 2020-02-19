@@ -214,8 +214,6 @@ function requestTick(fn) {
     return fn;
 }
 
-// Throttle
-
 /*
 toArray(object)
 */
@@ -336,28 +334,6 @@ function slice(n, m, object) {
         object.slice(n, m) :
         A$1.slice.call(object, n, m) ;
 }
-
-/*
-args()
-
-Returns `arguments` object.
-
-```
-code(block)
-```
-
-*/
-
-/*
-argument(n)
-
-Returns a function that returns its nth argument when called.
-*/
-
-/*
-call(fn)
-Returns a function that calls `fn()` with no arguments.
-*/
 
 /*
 exec(regex, fn, string)
@@ -712,11 +688,6 @@ function matches(object, item) {
 
 var matches$1 = curry$1(matches, true);
 
-/*
-not(value)
-Returns `!value`.
-*/
-
 const done     = { done: true };
 const iterator = { next: () => done };
 
@@ -740,12 +711,6 @@ function now() {
     // Return time in seconds
     return +new Date() / 1000;
 }
-
-/*
-once(fn)
-Returns a function that calls `fn` the first time it is invoked,
-and then becomes a noop.
-*/
 
 /*
 overload(fn, map)
@@ -779,12 +744,6 @@ function overload(fn, map) {
         } ;
 }
 
-/*
-parseInt(string)
-Parse to integer without having to worry about the radix parameter,
-making it suitable, for example, to use in `array.map(parseInt)`.
-*/
-
 function apply(value, fn) {
     return fn(value);
 }
@@ -813,11 +772,6 @@ function privates(object) {
             value: {}
         })[$private] ;
 }
-
-/*
-self()
-Returns `this`.
-*/
 
 /*
 set(key, object, value)
@@ -933,11 +887,6 @@ function toFixed(n, value) {
 curry$1(toFixed, true);
 
 /*
-toString(object)
-Returns `object.toString()`.
-*/
-
-/*
 toType(object)
 Returns `typeof object`.
 */
@@ -945,13 +894,6 @@ Returns `typeof object`.
 function toType(object) {
     return typeof object;
 }
-
-/*
-weakCache(fn)
-Returns a function that caches the return values of `fn()`
-against input values in a WeakMap, such that for each input value
-`fn` is only ever called once.
-*/
 
 function prepend(string1, string2) {
     return '' + string1 + string2;
@@ -1427,7 +1369,7 @@ assign(Fn.prototype, {
             if (stream === pullStream) { return value; }
 
             if (stream === undefined) {
-                stream = createPart(key, value);
+                stream = createPart(key);
                 buffer.push(stream);
             }
 
@@ -1445,7 +1387,7 @@ assign(Fn.prototype, {
             var stream = streams.get(key);
 
             if (stream === undefined) {
-                stream = createPart(key, value);
+                stream = createPart(key);
                 stream.push(value);
                 return stream;
             }
@@ -2712,13 +2654,6 @@ function remove(array, value) {
 
 const nothing$1      = Object.freeze([]);
 
-/*
-parseSelector(string)
-
-Takes a string of the form '[key=value, ... ]' and returns a function isMatch
-that returns true when passed an object that matches the selector.
-*/
-
 { window.observeCount = 0; }
 const nothing$2 = Object.freeze([]);
 
@@ -2760,14 +2695,6 @@ function postpad(chars, n, value) {
 }
 
 curry$1(postpad);
-
-/*
-slugify(string)
-
-Replaces any series of non-word characters with a `'-'` and lowercases the rest.
-
-    slugify('Party on #mydudes!') // 'party-on-mydudes'
-*/
 
 function requestTime(s, fn) {
     return setTimeout(fn, s * 1000);
@@ -2811,12 +2738,6 @@ function take(i, object) {
     while (n--) { a[n] = object[n]; }
     return a;
 }
-
-/*
-unique(array)
-Takes an array or stream as `array`, returns an object of the same
-type without duplicate values.
-*/
 
 /*
 update(create, destroy, fn, target, source)
@@ -2895,11 +2816,6 @@ function unite(array, object) {
     .concat(values);
 }
 
-/*
-last(array)
-Gets the last value from an array.
-*/
-
 function sum(a, b) { return b + a; }
 function multiply(a, b) { return b * a; }
 function pow(n, x) { return Math.pow(x, n); }
@@ -2941,12 +2857,6 @@ toLevel(dB)
 function toLevel(n) { return Math.pow(2, n / 6); }
 
 /*
-toRad(deg)
-*/
-
-const angleFactor = 180 / Math.PI;
-
-/*
 gcd(a, b)
 
 Returns the greatest common divider of a and b.
@@ -2984,10 +2894,6 @@ function mod(d, n) {
 }
 
 curry$1(mod);
-
-/*
-toPolar(cartesian)
-*/
 
 // Cubic bezier function (originally translated from
 
@@ -3249,6 +3155,7 @@ const cubicBezier$1 = def(
 );
 
 var normalisers = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     linear: linear,
     quadratic: quadratic,
     cubic: cubic,
@@ -3307,6 +3214,7 @@ const cubicBezier$2 = def(
 );
 
 var denormalisers = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     linear: linear$1,
     quadratic: quadratic$1,
     cubic: cubic$1,
@@ -4911,17 +4819,14 @@ function targetToString(node) {
 function connect(source, target, sourceChan, targetChan) {
     if (!source) {
         { throw new Error('Trying to connect to source ' + source); }
-        return;
     }
 
     if (!target) {
         { throw new Error('Trying to connect to target ' + target); }
-        return;
     }
 
     if (!isAudioParam(target) && !target.numberOfInputs) {
         { throw new Error('Trying to connect target with no inputs.'); }
-        return;
     }
 
     if (isDefined(sourceChan)) {
@@ -4930,7 +4835,6 @@ function connect(source, target, sourceChan, targetChan) {
                 throw new Error('Cannot .connect() from a non-existent output (' +
                     sourceChan + ') on output node {numberOfOutputs: ' + source.numberOfOutputs);
             }
-            return;
         }
 
         if (isDefined(targetChan)) {
@@ -5658,7 +5562,7 @@ class Envelope extends ConstantSourceNode {
     start(time) {
         if (!this.attack) { return this; }
         PlayNode.prototype.start.apply(this, arguments);
-        cueAutomation(this.offset, this.attack, this.startTime, this.gain, this.rate, 'ConstantSource.offset');
+        cueAutomation(this.offset, this.attack, this.startTime, this.gain, this.rate);
         return this;
     }
 
@@ -5675,7 +5579,7 @@ class Envelope extends ConstantSourceNode {
 
         // Use the current signal as the start gain of the release
         const gain = getValueAtTime(this.offset, this.stopTime);
-        cueAutomation(this.offset, this.release, this.stopTime, gain, this.rate, 'ConstantSource.offset');
+        cueAutomation(this.offset, this.release, this.stopTime, gain, this.rate);
 
         // Update stopTime to include release tail
         const last = this.release[this.release.length - 1];
@@ -6062,9 +5966,6 @@ function remove$2(array, value) {
     var i = array.indexOf(value);
     if (i !== -1) { array.splice(i, 1); }
 }
-
-const performance = window.performance;
-
 
 // Incoming message routing
 
@@ -6737,7 +6638,6 @@ function requestData(url) {
         fetch(url).then((response) => response.json()) ;
 }
 
-const DEBUG$2  = window.DEBUG;
 const assign$a = Object.assign;
 const define$6 = Object.defineProperties;
 const getOwnPropertyDescriptor$1 = Object.getOwnPropertyDescriptor;
@@ -6888,7 +6788,7 @@ function startSources(sources, destination, detuneNode, map, time, frequency, no
         // Handle cached buffers synchronously
         if (cache$1[region.src]) {
             sources[i] = setupGainNode(context, destination, sources[i], time, region, note, gain);
-            sources[i].bufferNode = setupBufferNode(context, destination, detuneNode, region, cache$1[region.src], time, frequency, note, gain);
+            sources[i].bufferNode = setupBufferNode(context, destination, detuneNode, region, cache$1[region.src], time, frequency);
             sources[i].region = region;
         }
         else {
@@ -6896,7 +6796,7 @@ function startSources(sources, destination, detuneNode, map, time, frequency, no
             .then((buffer) => {
                 cache$1[region.src] = buffer;
                 sources[i] = setupGainNode(context, destination, sources[i], time, region, note, gain);
-                sources[i].bufferNode = setupBufferNode(context, destination, detuneNode, region, cache$1[region.src], time, frequency, note, gain);
+                sources[i].bufferNode = setupBufferNode(context, destination, detuneNode, region, cache$1[region.src], time, frequency);
                 sources[i].region = region;
             });
         }
@@ -7327,10 +7227,6 @@ const printGroupEnd$2 = window.console ?
     console.groupEnd.bind(console) :
     noop$3 ;
 
-const log$2 = window.console ?
-    function(name, message, ...args) { console.log('%c' + name + ' %c' + message, 'color: #b5002f; font-weight: 600;', 'color: #8e9e9d; font-weight: 300;', ...args); } :
-    noop$3 ;
-
 const logGroup$1 = window.console ?
     function(name, message, ...args) { console.groupCollapsed('%c' + name + ' %c' + message, 'color: #b5002f; font-weight: 600;', 'color: #8e9e9d; font-weight: 300;', ...args); } :
     noop$3 ;
@@ -7561,7 +7457,7 @@ assign$d(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
     }
 });
 
-const printGroup$3 = console.groupCollapsed.bind(console, '%cPool %c%s', 'color: #b5002f; font-weight: 600;', 'color: #8e9e9d; font-weight: 300;');
+const printGroup$3 =  console.groupCollapsed.bind(console, '%cPool %c%s', 'color: #b5002f; font-weight: 600;', 'color: #8e9e9d; font-weight: 300;');
 const assign$e = Object.assign;
 
 function Pool(constructor, isIdle, setup) {
@@ -7618,7 +7514,7 @@ assign$e(Pool.prototype, {
     }
 });
 
-const DEBUG$3  = window.DEBUG;
+const DEBUG$2  = window.DEBUG;
 const assign$f = Object.assign;
 const define$a = Object.defineProperties;
 
@@ -7670,7 +7566,7 @@ function isIdle(node) {
 
 class Instrument extends GainNode {
     constructor(context, settings) {
-        if (DEBUG$3) { logGroup$1(new.target === Instrument ? 'Node' : 'mixin ', 'Instrument'); }
+        if (DEBUG$2) { logGroup$1(new.target === Instrument ? 'Node' : 'mixin ', 'Instrument'); }
 
         // Init gain node
         super(context, settings);
@@ -7711,7 +7607,7 @@ class Instrument extends GainNode {
         // Update settings
         assignSettingz__(this, defaults$7);
 
-        if (DEBUG$3) { logGroupEnd$1(); }
+        if (DEBUG$2) { logGroupEnd$1(); }
     }
 }
 
@@ -8302,8 +8198,6 @@ var text = document.createTextNode('');
 
 pre.appendChild(text);
 
-// Types
-
 function attribute(name, node) {
 	return node.getAttribute && node.getAttribute(name) || undefined ;
 }
@@ -8375,12 +8269,6 @@ function select(selector, node) {
 }
 
 curry$1(select, true);
-
-/*
-children(node)
-
-Returns an array of child elements of `node`.
-*/
 
 /*
 assign(node, properties)
@@ -8625,20 +8513,6 @@ overload(toTypes, {
 	}
 });
 
-/*
-identify(node)
-
-Returns the id of `node`, or where `node` has no id, a random id is generated,
-checked against the DOM for uniqueness, set on `node` and returned:
-
-```
-// Get ids of all buttons in document
-select('button', document)
-.map(identify)
-.forEach((id) => ...)
-```
-*/
-
 /* DOM Mutation */
 
 /*
@@ -8754,13 +8628,6 @@ function rect(node) {
 		windowBox() :
 		node.getClientRects()[0] ;
 }
-
-/*
-bounds(node)
-
-Returns a `DOMRect` object describing the bounding box of `node` and its
-descendants.
-*/
 
 function offset(node1, node2) {
 	var box1 = rect(node1);
@@ -9160,12 +9027,12 @@ transition(3, function(progress) {
 ```
 */
 
-const performance$1           = window.performance;
+const performance           = window.performance;
 const requestAnimationFrame$1 = window.requestAnimationFrame;
 const cancelAnimationFrame$1  = window.cancelAnimationFrame;
 
 function transition(duration, fn) {
-	var t0 = performance$1.now();
+	var t0 = performance.now();
 
 	function frame(t1) {
 		// Progress from 0-1
@@ -9207,11 +9074,6 @@ define$c({
     top:    { get: function() { return style('padding-top', document.body); }, enumerable: true, configurable: true },
     bottom: { get: function() { return window.innerHeight; }, enumerable: true, configurable: true }
 });
-
-/*
-scrollRatio(node)
-Return the ratio of scrollTop to scrollHeight - clientHeight.
-*/
 
 const assign$k = Object.assign;
 
@@ -9299,7 +9161,7 @@ const createBody = choose({
 		// Mmmmmhmmm?
 		return data.get ?
             data :
-            dataToFormData(data) ;
+            dataToFormData() ;
 	}
 });
 
@@ -9913,7 +9775,7 @@ through a selectable transform function to a target stream.
 
 */
 
-const DEBUG$4  = window.DEBUG;
+const DEBUG$3  = window.DEBUG;
 
 const assign$l = Object.assign;
 const seal$1   = Object.seal;
@@ -10047,7 +9909,7 @@ function Control(controls, source, target, settings, notify) {
             type = value === 0 ? 'noteoff' : 'noteon';
         }
 
-        if (DEBUG$4) {
+        if (DEBUG$3) {
             console.log(control, type, type, name, value);
         }
 
@@ -10906,38 +10768,38 @@ function pitchToFloat(message) {
 // A constructor for pooled event objects, for internal use only. Internal
 // events are for flows of data (rather than storage), and have extra data
 // assigned.
-/*
-export default Event = Pool({
-	name: 'Soundstage Event',
 
-	create: noop,
+//export default Event = Pool({
+//	name: 'Soundstage Event',
+//
+//	create: noop,
+//
+//	reset: function reset() {
+//		assign(this, arguments);
+//		var n = arguments.length - 1;
+//		while (this[++n] !== undefined) { delete this[n]; }
+//		this.recordable = false;
+//		this.idle       = false;
+//	},
+//
+//	isIdle: function isIdle(object) {
+//		return !!object.idle;
+//	}
+//}, defineProperties({
+//	toJSON: function() {
+//		// Event has no length by default, we cant loop over it
+//		var array = [];
+//		var n = -1;
+//		while (this[++n] !== undefined) { array[n] = this[n]; }
+//		return array;
+//	}
+//}, {
+//	time:       { writable: true },
+//	object:     { writable: true },
+//	recordable: { writable: true },
+//	idle:       { writable: true }
+//}));
 
-	reset: function reset() {
-		assign(this, arguments);
-		var n = arguments.length - 1;
-		while (this[++n] !== undefined) { delete this[n]; }
-		this.recordable = false;
-		this.idle       = false;
-	},
-
-	isIdle: function isIdle(object) {
-		return !!object.idle;
-	}
-}, defineProperties({
-	toJSON: function() {
-		// Event has no length by default, we cant loop over it
-		var array = [];
-		var n = -1;
-		while (this[++n] !== undefined) { array[n] = this[n]; }
-		return array;
-	}
-}, {
-	time:       { writable: true },
-	object:     { writable: true },
-	recordable: { writable: true },
-	idle:       { writable: true }
-}));
-*/
 function Event$3(time, type, name, value, duration) {
 	assign$t(this, arguments);
 	this.length = arguments.length;
@@ -10978,12 +10840,6 @@ Event$3.from = function(data) {
 		data[3] !== undefined ? new Event$3(data[0], data[1], data[2], data[3]) :
 		new Event$3(data[0], data[1], data[2]) ;
 };
-
-
-
-
-
-
 
 
 
@@ -11074,7 +10930,6 @@ const isValidEvent = overload(get$1(1), {
 // [time, "pitch", semitones]
 // [time, "chord", root, mode, duration]
 // [time, "sequence", name || events, target, duration, transforms...]
-
 
 const eventValidationHint = overload(get$1(1), {
 	note: (event) => {
@@ -11700,8 +11555,6 @@ assign$x(Sequence.prototype, Clock.prototype, {
 	}
 });
 
-const DEBUG$5 = window.DEBUG;
-
 const assign$y    = Object.assign;
 const define$m    = Object.defineProperties;
 const getOwnPropertyDescriptor$8 = Object.getOwnPropertyDescriptor;
@@ -12300,7 +12153,7 @@ assign$y(Sequencer.prototype, Sequence.prototype, Meter$1.prototype, {
 	}
 });
 
-const DEBUG$6        = window.DEBUG || false;
+const DEBUG$4        = window.DEBUG || false;
 const assign$z       = Object.assign;
 const define$n       = Object.defineProperties;
 const getOwnPropertyDescriptor$9 = Object.getOwnPropertyDescriptor;
@@ -12374,15 +12227,20 @@ function requestAudioNode(type, context, settings, transport, basePath) {
 /*
 Soundstage()
 
-Import Soundstage and create a new stage:
+Import Soundstage.
 
 ```js
 import Soundstage from '/soundstage/build/module.js';
+```
+
+Create a new stage.
+
+```js
 const stage = new Soundstage();
 ```
 
-A stage is a graph of AudioNodes and sequencer of events with the following
-properties and methods.
+A stage is a graph of AudioNodes and a sequencer of events. It has the
+following properties and methods.
 */
 
 // ```
@@ -12463,7 +12321,7 @@ function Soundstage(data = defaultData, settings = nothing) {
         throw new Error('Soundstage: data version mismatch.', this.version, data.version);
     }
 
-    if (DEBUG$6) { printGroup('Soundstage()'); }
+    if (DEBUG$4) { printGroup('Soundstage()'); }
 
     const context$1     = settings.context || context;
     const destination = settings.destination === undefined ? context$1.destination : settings.destination ;
@@ -12565,7 +12423,7 @@ function Soundstage(data = defaultData, settings = nothing) {
             }
         });
 
-        if (DEBUG$6) {
+        if (DEBUG$4) {
             const sources = map$1(get$1('source'), stage.controls);
             print('controls', sources.filter(isKeyboardInputSource).length + ' keyboard, ' + sources.filter(isMIDIInputSource).length + ' MIDI');
         }
@@ -12608,7 +12466,7 @@ function Soundstage(data = defaultData, settings = nothing) {
     this.transport = transport;
 
 
-    if (DEBUG$6) { printGroupEnd(); }
+    if (DEBUG$4) { printGroupEnd(); }
 }
 
 define$n(Soundstage.prototype, {
@@ -12957,12 +12815,10 @@ function writeString (view, offset, string) {
 
 function getEventsDuration() {
     return 4;
-    throw new Error('Import this from old');
 }
 
 function getEventDuration() {
     return 4;
-    throw new Error('Import this from old');
 }
 
 print(' - http://github.com/soundio/soundstage');
