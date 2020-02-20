@@ -444,6 +444,10 @@ define(Sequencer.prototype, {
 });
 
 assign(Sequencer.prototype, Sequence.prototype, Meter.prototype, {
+	/*
+	.createSequence()
+	*/
+
 	createSequence: function() {
 		// Todo: turn this into a constructor that creates objects with a
 		// .remove() method, ie.
@@ -535,7 +539,7 @@ assign(Sequencer.prototype, Sequence.prototype, Meter.prototype, {
 			updateFrame(this, frame);
 
 			// Event index
-			let n = advanceToB1(events, frame);
+			const n = advanceToB1(events, frame);
 
 			// Grab meter events up to b2
 			// We do this first so that a generator might follow these changes

@@ -106,7 +106,7 @@ export default function Sequence(transport, data) {
 assign(Sequence.prototype, Clock.prototype, {
 
 	/*
-	.createEvent(beat, type, ...data)
+	.createEvent(beat, type, ...)
 	*/
 
 	createEvent: function(beat, type) {

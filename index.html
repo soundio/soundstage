@@ -223,7 +223,7 @@ following properties and methods.</p>
                 <code class="property language-js">.nodes</code>
             </a>
         </h3>
-    <p>An array of objects defining graph nodes. See <a href="#nodes-and-connections">Nodes and Connections</a>.</p>
+    <p>An array of objects defining graph nodes. See <a href="#nodes-and-connections">Nodes and Connectors</a>.</p>
 </article>
 
     <article class="property-toggle-block toggle-block block" toggleable="" id="connections">
@@ -232,7 +232,7 @@ following properties and methods.</p>
                 <code class="property language-js">.connections</code>
             </a>
         </h3>
-    <p>An array of objects defining connections. See <a href="#nodes-and-connections">Nodes and Connections</a>.</p>
+    <p>An array of objects defining connections. See <a href="#nodes-and-connections">Nodes and Connectors</a>.</p>
 </article>
 
     </section>
@@ -256,10 +256,10 @@ object of settings specific to that node type.</p>
 array. The wrapper object is returned.</p>
 </article>
 
-    <article class="method-toggle-block toggle-block block" toggleable="" id="createconnection-source-target">
+    <article class="method-toggle-block toggle-block block" toggleable="" id="createconnector-source-target">
         <h3 class="text-5 dot-indent">
-            <a href="#createconnection-source-target">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">createConnection</span><span class="token punctuation">(</span>source<span class="token punctuation">,</span> target<span class="token punctuation">)</span></code>
+            <a href="#createconnector-source-target">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">createConnector</span><span class="token punctuation">(</span>source<span class="token punctuation">,</span> target<span class="token punctuation">)</span></code>
             </a>
         </h3>
     <p>Creates a connection between two nodes in the graph. The parameters
@@ -381,6 +381,14 @@ array. The wrapper object is returned.</p>
 
     <section class="x-1 xspan-2 @1-x-3 @2-x-4">
         <!--template-->
+    <article class="method-toggle-block toggle-block block" toggleable="" id="createsequence">
+        <h3 class="text-5 dot-indent">
+            <a href="#createsequence">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">createSequence</span><span class="token punctuation">(</span><span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
+
     <article class="method-toggle-block toggle-block block" toggleable="" id="start-time">
         <h3 class="text-5 dot-indent">
             <a href="#start-time">
@@ -398,6 +406,14 @@ array. The wrapper object is returned.</p>
         </h3>
     <p>Stops the sequencer at <code>time</code>.</p>
 </article>
+
+    <article class="method-toggle-block toggle-block block" toggleable="" id="createevent-beat-type">
+        <h3 class="text-5 dot-indent">
+            <a href="#createevent-beat-type">
+                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">createEvent</span><span class="token punctuation">(</span>beat<span class="token punctuation">,</span> type<span class="token punctuation">,</span> <span class="token operator">...</span><span class="token punctuation">)</span></code>
+            </a>
+        </h3>
+    </article>
 
     <article class="method-toggle-block toggle-block block" toggleable="" id="beatattime-time">
         <h3 class="text-5 dot-indent">
@@ -1472,12 +1488,12 @@ instrument
 
     <section class="x-1 xspan-3 @1-xspan-6 @2-x-2 grid-6 grid" id="nodes">
         <header class="x-1 xspan-3">
-            <h2 class="text-2">Connections</h2>
+            <h2 class="text-2">Connectors</h2>
         </header>
 
         <div class="x-1 xspan-3">
             <p>Connect two nodes in the stage graph:</p>
-            <pre class=" language-js"><code class=" language-js">stage<span class="token punctuation">.</span><span class="token function">createConnection</span><span class="token punctuation">(</span>source<span class="token punctuation">,</span> target<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+            <pre class=" language-js"><code class=" language-js">stage<span class="token punctuation">.</span><span class="token function">createConnector</span><span class="token punctuation">(</span>source<span class="token punctuation">,</span> target<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
 
             <p>A stage may be initialised with nodes connected by passing in an
             object with a connections array to the <code>Soundstage</code>

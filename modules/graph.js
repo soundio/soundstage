@@ -8,25 +8,25 @@ Constructs a graph of AudioNodes.
 
 /*
 .nodes
-An array of objects defining graph nodes. See <a href="#nodes-and-connections">Nodes and Connections</a>.
+An array of objects defining graph nodes. See <a href="#nodes-and-connections">Nodes and Connectors</a>.
 */
 
 /*
 .connections
-An array of objects defining connections. See <a href="#nodes-and-connections">Nodes and Connections</a>.
+An array of objects defining connections. See <a href="#nodes-and-connections">Nodes and Connectors</a>.
 */
 
 import { has, get, Privates }  from '../../fn/module.js';
 import { print }  from './print.js';
 import { generateUnique }  from './utilities.js';
 import Node       from './node.js';
-import Connection from './connection.js';
+import Connector from './connector.js';
 
 const assign    = Object.assign;
 const define    = Object.defineProperties;
 
-function addConnection(graph, setting) {
-    new Connection(graph, setting.source, setting.target, setting.output, setting.input);
+function addConnector(graph, setting) {
+    new Connector(graph, setting.source, setting.target, setting.output, setting.input);
     return graph;
 }
 
@@ -54,7 +54,7 @@ export default function Graph(context, requests, data, transport) {
     )
     .then(function(loaders) {
         if (data.connections) {
-            data.connections.reduce(addConnection, graph);
+            data.connections.reduce(addConnector, graph);
         }
 
         print('graph', graph.nodes.length + ' nodes, ' + graph.connections.length + ' connections');
@@ -107,14 +107,14 @@ array. The wrapper object is returned.
     },
 
 /*
-.createConnection(source, target)
+.createConnector(source, target)
 
 Creates a connection between two nodes in the graph. The parameters
 `source` and `target` are node ids.
 */
 
-    createConnection: function (source, target, output, input) {
-        return new Connection(this, source, target, output, input);
+    createConnector: function (source, target, output, input) {
+        return new Connector(this, source, target, output, input);
     },
 
 /*

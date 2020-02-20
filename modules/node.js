@@ -1,6 +1,7 @@
 
-import { Privates, remove } from '../../fn/module.js';
+import { Privates, remove, invoke, nothing, matches } from '../../fn/module.js';
 import { automato__, isAudioParam } from './automate.js';
+import { matchesId } from './utilities.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
 //import Sequence from './sequence.js';
 
@@ -45,15 +46,35 @@ export default function Node(graph, type, id, label, data, context, requests, tr
 }
 
 assign(Node.prototype, {
+    connect: function(target) {
+        this.graph.createConnector(this, target);
+        return this;
+    },
+
+    disconnect: function(target) {
+        target = typeof target === 'string' ?
+            this.graph.nodes.find(matchesId(target)) :
+            target ;
+
+        this.graph.connections
+        .filter(matches({ source: this, target: target }))
+        .forEach(invoke('remove', nothing));
+
+        return this;
+    },
+
     automate: function(type, time, name, value, duration) {
         const privates = Privates(this.graph);
 
         if (this.record) {
-            const sequence = this.graph.createSequence();
-            const beat     = this.graph.beatAtTime(time);
-            const event    = this.graph.createEvent(beat, 'sequence', sequence.id, this.id);
+            if (!privates.recordSequence) {
+                const sequence = this.graph.createSequence();
+                const beat     = Math.floor(this.graph.beatAtTime(time));
+                const event    = this.graph.createEvent(beat, 'sequence', sequence.id, this.id);
+                privates.recordSequence = sequence;
+            }
 
-            sequence.createEvent(
+            privates.recordSequence.createEvent(
                 this.graph.beatAtTime(time) - beat,
                 type, name, value, duration
             );

@@ -1,12 +1,12 @@
 
-import { Privates, remove }              from '../../fn/module.js';
+import { Privates, remove }    from '../../fn/module.js';
 import { connect, disconnect } from './connect.js';
 
 const assign = Object.assign;
 const define = Object.defineProperties;
 const seal   = Object.seal;
 
-export default function Connection(graph, sourceId, targetId, sourceChan, targetChan) {
+export default function Connector(graph, sourceId, targetId, sourceChan, targetChan) {
 
     // Get source node
     //const sourceParts = sourceId.split('.');
@@ -49,7 +49,7 @@ export default function Connection(graph, sourceId, targetId, sourceChan, target
     }
 }
 
-assign(Connection.prototype, {
+assign(Connector.prototype, {
     remove: function() {
         // Disconnect them
         if (disconnect(this.source, this.targetParam || this.target, this.data && this.data[0], this.data && this.data[1])) {

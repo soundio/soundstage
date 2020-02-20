@@ -129,7 +129,7 @@ test('Instrument', function(run, print, fixture) {
             output: 1
         })
         .then(function(node) {
-            stage.createConnection(node, 'output');
+            stage.createConnector(node, 'output');
 
             stage.__promise.then(function() {
 

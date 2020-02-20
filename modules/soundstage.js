@@ -2,7 +2,7 @@
 import { get, isDefined, noop, nothing, map, matches, Privates }   from '../../fn/module.js';
 import requestInputSplitter   from './request-input-splitter.js';
 import { print, printGroup, printGroupEnd }     from './print.js';
-import audio, { timeAtDomTime } from './context.js';
+import audio, { domTimeAtTime, timeAtDomTime } from './context.js';
 import constructors  from './constructors.js';
 import { isKeyboardInputSource } from './control-sources/keyboard-input-source.js';
 import { isMIDIInputSource } from './control-sources/midi-input-source.js';
@@ -308,6 +308,8 @@ export default function Soundstage(data = defaultData, settings = nothing) {
 
     // Initialise soundstage as a Sequencer. Assigns:
     //
+    // createEvent: fn
+    // createSequence: fn
     // start:       fn
     // stop:        fn
     // beatAtTime:  fn
@@ -410,7 +412,7 @@ assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
         return input;
     },
 
-    disconnect: function(input, port) {
+    disconnect: function(input, port, channel) {
         const outputs = Privates(this).outputs;
         const output = typeof port === 'string' ? outputs[port] : outputs.default ;
 

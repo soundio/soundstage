@@ -1,6 +1,5 @@
 
-import { id, Stream } from '../../fn/module.js';
-import { Privates } from '../../fn/module.js';
+import { id, Stream, Privates } from '../../fn/module.js';
 import { roundBeat } from './utilities.js';
 import { automate, getValueAtTime, getAutomation } from './automate.js';
 import { barAtBeat, beatAtBar } from './meter.js';
@@ -178,7 +177,7 @@ define(Transport.prototype, {
 		}
 	},
 
- 	/*
+	/*
 	Duration of one process cycle. At 44.1kHz this works out just
 	shy of 3ms.
 	*/

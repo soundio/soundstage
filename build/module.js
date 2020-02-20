@@ -643,7 +643,7 @@ function invoke(name, values, object) {
     return object[name].apply(object, values);
 }
 
-curry$1(invoke, true);
+var invoke$1 = curry$1(invoke, true);
 
 const is = Object.is || function is(a, b) { return a === b; };
 
@@ -4298,7 +4298,7 @@ function timeAtDomTime(context, domTime) {
     return stampTimeAtDomTime(stamp, domTime);
 }
 
-function domTimeAtTime$1(context, time) {
+function domTimeAtTime(context, time) {
     var stamp = context.getOutputTimestamp();
     return stamp.performanceTime + (time - stamp.contextTime) * 1000;
 }
@@ -4906,7 +4906,7 @@ function createNode(context, type, settings) {
     return node;
 }
 
-function createConnection(nodes, data) {
+function createConnector(nodes, data) {
     // Split paths such as env.gain.0 to ['env', 'gain', 0]
     const srcPath = data.source.split('.');
     const srcLast = srcPath[srcPath.length - 1];
@@ -5017,7 +5017,7 @@ function NodeGraph(context, data) {
     }
 
     seal(nodes);
-    data.connections && data.connections.reduce(createConnection, nodes);
+    data.connections && data.connections.reduce(createConnector, nodes);
 }
 
 assign$4(NodeGraph.prototype, {
@@ -5026,7 +5026,7 @@ assign$4(NodeGraph.prototype, {
     .connect(target)
     Connect node to target. In Soundstage calling this method directly is
     discouraged: the graph cannot track changes to your connections if you use
-    it. Instead, call `stage.createConnection(node, target)`.
+    it. Instead, call `stage.createConnector(node, target)`.
     */
 
     connect: function() {
@@ -5039,7 +5039,7 @@ assign$4(NodeGraph.prototype, {
     .disconnect(target)
     Disconnect node from target. In Soundstage calling this method directly is
     discouraged: the graph cannot track changes to your connections if you use
-    it. Instead, call `stage.removeConnection(node, target)`.
+    it. Instead, call `stage.removeConnector(node, target)`.
     */
 
     disconnect: function() {
@@ -10307,11 +10307,19 @@ Metronome.defaults  = {
 	filterFrequency: { min: 16,  max: 16000, transform: 'logarithmic', value: 16 }
 };
 
+// Generate unique numbers from keys of objects in an array
+
 const generateUnique = function(values) {
     var value  = -1;
     while (values.indexOf(++value + '') !== -1);
     return value + '';
 };
+
+const matchesId = curry$1(function matchesId(id, object) {
+    return object.id === id;
+});
+
+const insertBy0 = insert$1(get$1('0'));
 
 function roundBeat(n) {
     // Mitigate floating-point rounding errors by rounding to the nearest
@@ -10361,23 +10369,39 @@ function Node(graph, type, id, label, data, context, requests, transport) {
 }
 
 assign$p(Node.prototype, {
+    connect: function(target) {
+        this.graph.createConnector(this, target);
+        return this;
+    },
+
+    disconnect: function(target) {
+        target = typeof target === 'string' ?
+            this.graph.nodes.find(matchesId(target)) :
+            target ;
+
+        this.graph.connections
+        .filter(matches$1({ source: this, target: target }))
+        .forEach(invoke$1('remove', nothing));
+
+        return this;
+    },
+
     automate: function(type, time, name, value, duration) {
         const privates$1 = privates(this.graph);
 
-        //        if (this.record) {
-        //            if (!this.recordDestination) {
-        //                const data = {
-        //                    id: this.id + '-take-' + (this.recordCount++),
-        //                    events: []
-        //                };
-        //
-        //                this.recordDestination = (new Sequence(this.graph, data)).start(time);
-        //                this.graph.sequences.push(data);
-        //                this.graph.record(time, 'sequence', data.id, this.id, arguments[4]);
-        //            }
-        //
-        //            this.recordDestination.record.apply(this.recordDestination, arguments);
-        //        }
+        if (this.record) {
+            if (!privates$1.recordSequence) {
+                const sequence = this.graph.createSequence();
+                const beat     = Math.floor(this.graph.beatAtTime(time));
+                const event    = this.graph.createEvent(beat, 'sequence', sequence.id, this.id);
+                privates$1.recordSequence = sequence;
+            }
+
+            privates$1.recordSequence.createEvent(
+                this.graph.beatAtTime(time) - beat,
+                type, name, value, duration
+            );
+        }
 
         return typeof this.data[type] === 'function' ?
             this.data[type](time, name, value) :
@@ -10447,7 +10471,7 @@ const assign$q = Object.assign;
 const define$i = Object.defineProperties;
 const seal$2   = Object.seal;
 
-function Connection(graph, sourceId, targetId, sourceChan, targetChan) {
+function Connector(graph, sourceId, targetId, sourceChan, targetChan) {
 
     // Get source node
     //const sourceParts = sourceId.split('.');
@@ -10490,7 +10514,7 @@ function Connection(graph, sourceId, targetId, sourceChan, targetChan) {
     }
 }
 
-assign$q(Connection.prototype, {
+assign$q(Connector.prototype, {
     remove: function() {
         // Disconnect them
         if (disconnect(this.source, this.targetParam || this.target, this.data && this.data[0], this.data && this.data[1])) {
@@ -10516,8 +10540,8 @@ assign$q(Connection.prototype, {
 const assign$r    = Object.assign;
 const define$j    = Object.defineProperties;
 
-function addConnection(graph, setting) {
-    new Connection(graph, setting.source, setting.target, setting.output, setting.input);
+function addConnector(graph, setting) {
+    new Connector(graph, setting.source, setting.target, setting.output, setting.input);
     return graph;
 }
 
@@ -10545,7 +10569,7 @@ function Graph(context, requests, data, transport) {
     )
     .then(function(loaders) {
         if (data.connections) {
-            data.connections.reduce(addConnection, graph);
+            data.connections.reduce(addConnector, graph);
         }
 
         print('graph', graph.nodes.length + ' nodes, ' + graph.connections.length + ' connections');
@@ -10598,14 +10622,14 @@ array. The wrapper object is returned.
     },
 
 /*
-.createConnection(source, target)
+.createConnector(source, target)
 
 Creates a connection between two nodes in the graph. The parameters
 `source` and `target` are node ids.
 */
 
-    createConnection: function (source, target, output, input) {
-        return new Connection(this, source, target, output, input);
+    createConnector: function (source, target, output, input) {
+        return new Connector(this, source, target, output, input);
     },
 
 /*
@@ -10802,7 +10826,6 @@ function pitchToFloat(message) {
 
 function Event$3(time, type, name, value, duration) {
 	assign$t(this, arguments);
-	this.length = arguments.length;
 }
 
 assign$t(Event$3.prototype, {
@@ -10834,12 +10857,17 @@ Event$3.of = function() {
 };
 
 Event$3.from = function(data) {
-	return data[6] !== undefined ? new Event$3(data[0], data[1], data[2], data[3], data[4], data[5], data[6]) :
-		data[5] !== undefined ? new Event$3(data[0], data[1], data[2], data[3], data[4], data[5]) :
-		data[4] !== undefined ? new Event$3(data[0], data[1], data[2], data[3], data[4]) :
-		data[3] !== undefined ? new Event$3(data[0], data[1], data[2], data[3]) :
-		new Event$3(data[0], data[1], data[2]) ;
+	return Event$3.of(data[0], data[1], data[2], data[3], data[4], data[5], data[6]) ;
 };
+
+function isRateEvent(event) {
+	return event[1] === 'rate';
+}
+
+function isMeterEvent(event) {
+	return event[1] === 'meter';
+}
+
 
 
 
@@ -10865,8 +10893,6 @@ Event$3.fromMIDI = overload(compose(toType$2, getData), {
 	}
 });
 
-function isRateEvent(e)  { return e[1] === 'rate'; }
-function isMeterEvent(e) { return e[1] === 'meter'; }
 
 const getBeat = get$1(0);
 const getType = get$1(1);
@@ -10891,27 +10917,27 @@ function getDuration(e)  {
 
 const isValidEvent = overload(get$1(1), {
 	note: (event) => {
-		return event.length === 5;
+		return event[4] !== undefined;
 	},
 
 	noteon: (event) => {
-		return event.length === 4;
+		return event[3] !== undefined;
 	},
 
 	noteoff: (event) => {
-		return event.length === 4;
+		return event[3] !== undefined;
 	},
 
 	sequence: (event) => {
-		return event.length > 4;
+		return event[4] !== undefined;
 	},
 
 	meter: (event) => {
-		return event.length === 4;
+		return event[3] !== undefined;
 	},
 
 	rate: (event) => {
-		return event.length === 3;
+		return event[2] !== undefined;
 	},
 
 	default: function() {
@@ -11435,7 +11461,7 @@ define$l(Transport.prototype, {
 		}
 	},
 
- 	/*
+	/*
 	Duration of one process cycle. At 44.1kHz this works out just
 	shy of 3ms.
 	*/
@@ -11462,8 +11488,6 @@ define$l(Transport.prototype, {
 const A$5      = Array.prototype;
 const assign$x = Object.assign;
 const freeze$2 = Object.freeze;
-
-const insertByBeat = insert$1(get$1('0'));
 
 const rate0$1  = freeze$2({ 0: 0, 1: 'rate', 2: 1, location: 0 });
 
@@ -11497,7 +11521,30 @@ function Sequence(transport, data) {
 	this.sequences = data && data.sequences || [];
 }
 
+
+
+
 assign$x(Sequence.prototype, Clock.prototype, {
+
+	/*
+	.createEvent(beat, type, ...)
+	*/
+
+	createEvent: function(beat, type) {
+		const event = Event$3.from(arguments);
+
+		if (type === 'sequence') {
+			const id = arguments[2];
+			const sequence = this.sequences.find(matchesId(id));
+			if (!sequence) {
+				throw new Error('Sequence.createEvent() Missing sequence "' + id + '"');
+			}
+		}
+
+		insertBy0(this.events, event);
+		return event;
+	},
+
 	/*
 	.beatAtTime(time)
 	Returns the beat at a given `time`.
@@ -11550,7 +11597,7 @@ assign$x(Sequence.prototype, Clock.prototype, {
 			throw new Error('Sequence cant .record(...) invalid event ' + JSON.stringify(event));
 		}
 
-		insertByBeat(this.events, event);
+		insertBy0(this.events, event);
 		return this;
 	}
 });
@@ -11987,6 +12034,10 @@ define$m(Sequencer.prototype, {
 });
 
 assign$y(Sequencer.prototype, Sequence.prototype, Meter$1.prototype, {
+	/*
+	.createSequence()
+	*/
+
 	createSequence: function() {
 		// Todo: turn this into a constructor that creates objects with a
 		// .remove() method, ie.
@@ -12078,7 +12129,7 @@ assign$y(Sequencer.prototype, Sequence.prototype, Meter$1.prototype, {
 			updateFrame(this, frame);
 
 			// Event index
-			let n = advanceToB1(events, frame);
+			const n = advanceToB1(events, frame);
 
 			// Grab meter events up to b2
 			// We do this first so that a generator might follow these changes
@@ -12443,6 +12494,8 @@ function Soundstage(data = defaultData, settings = nothing) {
 
     // Initialise soundstage as a Sequencer. Assigns:
     //
+    // createEvent: fn
+    // createSequence: fn
     // start:       fn
     // stop:        fn
     // beatAtTime:  fn
@@ -12545,7 +12598,7 @@ assign$z(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
         return input;
     },
 
-    disconnect: function(input, port) {
+    disconnect: function(input, port, channel) {
         const outputs = privates(this).outputs;
         const output = typeof port === 'string' ? outputs[port] : outputs.default ;
 
@@ -12824,4 +12877,4 @@ function getEventDuration() {
 print(' - http://github.com/soundio/soundstage');
 
 export default Soundstage;
-export { automate, automato__, bufferToWAV, domTimeAtTime$1 as domTimeAtTime, getContextTime, getEventDuration, getEventsDuration, getValueAtTime, isAudioParam, parseValue, requestBuffer, timeAtDomTime, transforms };
+export { automate, automato__, bufferToWAV, domTimeAtTime, getContextTime, getEventDuration, getEventsDuration, getValueAtTime, isAudioParam, parseValue, requestBuffer, timeAtDomTime, transforms };

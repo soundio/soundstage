@@ -85,7 +85,7 @@ export function isEvent(object) {
 export function toEventDuration(event, find) {
     // find - a function for finding sequences referred
     // to by sequence events.
-    return event[1] === "note" ? e[4] :
+    return event[1] === "note" ? event[4] :
         event[1] === "param" ?
             event[4] === "step" ? 0 :
                 event[5] :
