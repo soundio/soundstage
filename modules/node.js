@@ -48,20 +48,16 @@ assign(Node.prototype, {
     automate: function(type, time, name, value, duration) {
         const privates = Privates(this.graph);
 
-        //        if (this.record) {
-        //            if (!this.recordDestination) {
-        //                const data = {
-        //                    id: this.id + '-take-' + (this.recordCount++),
-        //                    events: []
-        //                };
-        //
-        //                this.recordDestination = (new Sequence(this.graph, data)).start(time);
-        //                this.graph.sequences.push(data);
-        //                this.graph.record(time, 'sequence', data.id, this.id, arguments[4]);
-        //            }
-        //
-        //            this.recordDestination.record.apply(this.recordDestination, arguments);
-        //        }
+        if (this.record) {
+            const sequence = this.graph.createSequence();
+            const beat     = this.graph.beatAtTime(time);
+            const event    = this.graph.createEvent(beat, 'sequence', sequence.id, this.id);
+
+            sequence.createEvent(
+                this.graph.beatAtTime(time) - beat,
+                type, name, value, duration
+            );
+        }
 
         return typeof this.data[type] === 'function' ?
             this.data[type](time, name, value) :

@@ -56,7 +56,7 @@ output by the `.connect()` and `.disconnect()` methods.
 */
 
 import { Privates } from '../../fn/module.js';
-import { logGroup, logGroupEnd } from '../modules/utilities/print.js';
+import { logGroup, logGroupEnd } from '../modules/print.js';
 import { connect, disconnect } from '../modules/connect.js';
 import constructors from '../modules/constructors.js';
 

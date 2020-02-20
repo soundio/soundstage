@@ -128,10 +128,11 @@ function pitchToFloat(message) {
 //	idle:       { writable: true }
 //}));
 
-export default function Event(time, type, name, value, duration) {
+export function Event(time, type, name, value, duration) {
 	assign(this, arguments);
-	this.length = arguments.length;
 }
+
+export default Event;
 
 assign(Event.prototype, {
 	remove: function() {
@@ -162,11 +163,7 @@ Event.of = function() {
 };
 
 Event.from = function(data) {
-	return data[6] !== undefined ? new Event(data[0], data[1], data[2], data[3], data[4], data[5], data[6]) :
-		data[5] !== undefined ? new Event(data[0], data[1], data[2], data[3], data[4], data[5]) :
-		data[4] !== undefined ? new Event(data[0], data[1], data[2], data[3], data[4]) :
-		data[3] !== undefined ? new Event(data[0], data[1], data[2], data[3]) :
-		new Event(data[0], data[1], data[2]) ;
+	return Event.of(data[0], data[1], data[2], data[3], data[4], data[5], data[6]) ;
 };
 
 export function isNoteEvent(event) {
@@ -180,6 +177,15 @@ export function isParamEvent(event) {
 export function isSequenceEvent(event) {
 	return event[1] === 'sequence';
 }
+
+export function isRateEvent(event) {
+	return event[1] === 'rate';
+}
+
+export function isMeterEvent(event) {
+	return event[1] === 'meter';
+}
+
 
 
 
@@ -208,10 +214,8 @@ Event.fromMIDI = overload(compose(toType, getData), {
 export function release(event) {
 	event.idle = true;
 	return event;
-};
+}
 
-export function isRateEvent(e)  { return e[1] === 'rate'; }
-export function isMeterEvent(e) { return e[1] === 'meter'; }
 
 export const getBeat = get(0);
 export const getType = get(1);
@@ -236,27 +240,27 @@ export function getDuration(e)  {
 
 export const isValidEvent = overload(get(1), {
 	note: (event) => {
-		return event.length === 5;
+		return event[4] !== undefined;
 	},
 
 	noteon: (event) => {
-		return event.length === 4;
+		return event[3] !== undefined;
 	},
 
 	noteoff: (event) => {
-		return event.length === 4;
+		return event[3] !== undefined;
 	},
 
 	sequence: (event) => {
-		return event.length > 4;
+		return event[4] !== undefined;
 	},
 
 	meter: (event) => {
-		return event.length === 4;
+		return event[3] !== undefined;
 	},
 
 	rate: (event) => {
-		return event.length === 3;
+		return event[2] !== undefined;
 	},
 
 	default: function() {

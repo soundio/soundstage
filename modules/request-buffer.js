@@ -1,4 +1,4 @@
-import { print as log } from './utilities/print.js';
+import { print as log } from './print.js';
 
 // Fetch audio buffer from a URL and decode it
 

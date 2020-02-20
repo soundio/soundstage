@@ -1,4 +1,4 @@
-import { log, logGroup, logGroupEnd } from './utilities/print.js';
+import { log, logGroup, logGroupEnd } from './print.js';
 import { automato__, getAutomation } from './automate.js';
 
 const DEBUG = true;

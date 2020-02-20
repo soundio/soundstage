@@ -1,5 +1,5 @@
 
-import { print } from './utilities/print.js';
+import { print } from './print.js';
 
 // Safari still requires a prefixed AudioContext
 window.AudioContext = window.AudioContext || window.webkitAudioContext;

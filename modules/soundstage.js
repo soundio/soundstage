@@ -1,7 +1,7 @@
 
 import { get, isDefined, noop, nothing, map, matches, Privates }   from '../../fn/module.js';
 import requestInputSplitter   from './request-input-splitter.js';
-import { print, printGroup, printGroupEnd }     from './utilities/print.js';
+import { print, printGroup, printGroupEnd }     from './print.js';
 import audio, { timeAtDomTime } from './context.js';
 import constructors  from './constructors.js';
 import { isKeyboardInputSource } from './control-sources/keyboard-input-source.js';

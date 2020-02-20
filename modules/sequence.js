@@ -59,16 +59,14 @@ const stage = new Soundstage({
 
 
 import Clock from './clock.js';
-import { nothing, insert, get } from '../../fn/module.js';
-import { Privates } from '../../fn/module.js';
+import { Privates, nothing } from '../../fn/module.js';
+import { insertBy0, matchesId } from './utilities.js';
 import { beatAtLocation, locationAtBeat } from './location.js';
-import { isRateEvent, isValidEvent } from './event.js';
+import { Event, isRateEvent, isValidEvent } from './event.js';
 
 const A      = Array.prototype;
 const assign = Object.assign;
 const freeze = Object.freeze;
-
-const insertByBeat = insert(get('0'));
 
 const rate0  = freeze({ 0: 0, 1: 'rate', 2: 1, location: 0 });
 
@@ -102,7 +100,30 @@ export default function Sequence(transport, data) {
 	this.sequences = data && data.sequences || [];
 }
 
+
+
+
 assign(Sequence.prototype, Clock.prototype, {
+
+	/*
+	.createEvent(beat, type, ...data)
+	*/
+
+	createEvent: function(beat, type) {
+		const event = Event.from(arguments);
+
+		if (type === 'sequence') {
+			const id = arguments[2];
+			const sequence = this.sequences.find(matchesId(id));
+			if (!sequence) {
+				throw new Error('Sequence.createEvent() Missing sequence "' + id + '"');
+			}
+		}
+
+		insertBy0(this.events, event);
+		return event;
+	},
+
 	/*
 	.beatAtTime(time)
 	Returns the beat at a given `time`.
@@ -155,7 +176,7 @@ assign(Sequence.prototype, Clock.prototype, {
 			throw new Error('Sequence cant .record(...) invalid event ' + JSON.stringify(event));
 		}
 
-		insertByBeat(this.events, event);
+		insertBy0(this.events, event);
 		return this;
 	}
 });

@@ -1,6 +1,5 @@
-import { matches } from '../../fn/module.js';
-import { print } from './utilities/print.js';
-import { overload } from '../../fn/module.js';
+import { matches, overload } from '../../fn/module.js';
+import { print } from './print.js';
 import { toNoteNumber } from '../../midi/module.js';
 import { automato__ } from './automate.js';
 

@@ -1,22 +1,25 @@
 
-import { curry, get } from '../../../fn/module.js';
+import { curry, get, insert } from '../../fn/module.js';
 
 
 // Generate unique numbers from keys of objects in an array
-
-// Todo: replace createId with the more generic generateUniqueValue...
-export function createId(objects) {
-    var ids = objects.map(get('id'));
-    var id = -1;
-    while (ids.indexOf(++id + '') !== -1);
-    return id + '';
-}
 
 export const generateUnique = function(values) {
     var value  = -1;
     while (values.indexOf(++value + '') !== -1);
     return value + '';
 }
+
+export function createId(objects) {
+    var ids = objects.map(get('id'));
+    return generateUnique(ids);
+}
+
+export const matchesId = curry(function matchesId(id, object) {
+    return object.id === id;
+});
+
+export const insertBy0 = insert(get('0'));
 
 export function roundBeat(n) {
     // Mitigate floating-point rounding errors by rounding to the nearest
@@ -107,3 +110,4 @@ export function toEventsDuration(events, round, find) {
         duration + round - (duration % round) :
         duration ;
 }
+

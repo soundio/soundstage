@@ -7,7 +7,7 @@ import PlayNode from '../nodes/play-node.js';
 import { timeAtBeatOfEvents } from './location.js';
 import Meter from './meter.js';
 import { distribute } from './distribute.js';
-import { generateUnique }  from './utilities/utilities.js';
+import { generateUnique }  from './utilities.js';
 
 const DEBUG = window.DEBUG;
 

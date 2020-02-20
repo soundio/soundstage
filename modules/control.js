@@ -30,7 +30,6 @@ through a selectable transform function to a target stream.
 
 */
 
-import { print } from './utilities/print.js';
 import { getContextTime, timeAtDomTime } from './context.js';
 import { noop, Privates, remove }     from '../../fn/module.js';
 import { floatToFrequency }     from '../../midi/module.js';

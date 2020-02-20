@@ -1,4 +1,4 @@
-import { print as log } from './utilities/print.js';
+import { print as log } from './print.js';
 import { get } from '../../fn/module.js';
 
 export function requestData(url) {

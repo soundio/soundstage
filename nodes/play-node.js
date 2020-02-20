@@ -19,7 +19,7 @@ Object.defineProperties(MyNode.prototype, {
 ```
 */
 
-import { logGroup, logGroupEnd } from '../modules/utilities/print.js';
+import { logGroup, logGroupEnd } from '../modules/print.js';
 
 const DEBUG  = false;//window.DEBUG;
 const assign = Object.assign;

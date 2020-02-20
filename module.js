@@ -7,7 +7,7 @@
 // Palegreen fg #acb9b8
 // Darkgreen bg #1c2726
 
-import { print } from './modules/utilities/print.js';
+import { print } from './modules/print.js';
 
 print(' - http://github.com/soundio/soundstage');
 

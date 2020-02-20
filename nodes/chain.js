@@ -1,6 +1,6 @@
 
 import { get, Privates }  from '../../fn/module.js';
-import { print }  from '../modules/utilities/print.js';
+import { print }  from '../modules/print.js';
 
 const assign    = Object.assign;
 const define    = Object.defineProperties;

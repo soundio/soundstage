@@ -1,6 +1,6 @@
 
 import { get, isDefined } from '../../fn/module.js';
-import { print, log } from './utilities/print.js';
+import { print, log } from './print.js';
 import { isAudioParam } from './automate.js';
 
 const DEBUG = true;//window.DEBUG;
