@@ -1,13 +1,12 @@
 
-import { get, matches, Privates, Stream } from '../../fn/module.js';
+import { matches, Privates, Stream } from '../../fn/module.js';
 import { isRateEvent, getDuration, isValidEvent, eventValidationHint } from './event.js';
 import { automate, getValueAtTime } from './automate.js';
-import Sequence from './sequence.js';
+import { Sequence, SSSequencer } from './sequence.js';
 import PlayNode from '../nodes/play-node.js';
 import { timeAtBeatOfEvents } from './location.js';
 import Meter from './meter.js';
 import { distribute } from './distribute.js';
-import { generateUnique }  from './utilities.js';
 
 const DEBUG = window.DEBUG;
 
@@ -17,7 +16,6 @@ const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
 const seedRateEvent  = { 0: 0, 1: 'rate' };
 const seedMeterEvent = { 0: 0, 1: 'meter', 2: 4, 3: 1 };
-const getId          = get('id');
 const idQuery        = { id: '' };
 
 function byBeat(a, b) {
@@ -219,7 +217,7 @@ function addSequenceData(data, command) {
 
 	// Stream events
 	const childData = {
-		sequence:     new Sequence(target, sequence).start(command.time),
+		sequence:     new SSSequencer(target, sequence).start(command.time),
 		buffer:       [],
 		commands:     [],
 		stopCommands: [],
@@ -313,12 +311,13 @@ export default function Sequencer(transport, data, rateParam, timer, notify) {
 	PlayNode.call(this);
 
 
-	// Sequence assigns the proerties:
+	// SSSequencer provides the properties:
 	//
-	// events:         array
-	// sequences:      array
+	// startTime:  number || undefined
+	// stopTime:   number || undefined
+	// playing:    boolean
 
-	Sequence.call(this, transport, data);
+	SSSequencer.call(this, transport, this);
 
 
 	// Mix in Meter
@@ -345,11 +344,11 @@ export default function Sequencer(transport, data, rateParam, timer, notify) {
 	beats per second.
 	*/
 
-	define(this, {
-		rate: {
-			value: rateParam
-		}
-	});
+	//define(this, {
+	//	rate: {
+	//		value: rateParam
+	//	}
+	//});
 }
 
 define(Sequencer.prototype, {
@@ -366,20 +365,34 @@ define(Sequencer.prototype, {
 		}
 	},
 
+	/* .rate
+	The rate of the transport clock in beats per second.
+	*/
+
+	rate: {
+		get: function () {
+			const privates = Privates(this);
+			return getValueAtTime(privates.rateParam, this.time);
+		},
+
+		set: function (rate) {
+			const privates = Privates(this);
+			// param, time, curve, value, duration, notify, context
+			automate(privates.rateParam, this.context.currentTime, 'step', rate, null, privates.notify, this.context);
+		}
+	},
+
 	/* .tempo
 	The rate of the transport clock, expressed in bpm.
 	*/
 
 	tempo: {
 		get: function() {
-			const privates  = Privates(this);
-			return getValueAtTime(privates.rateParam, this.time) * 60;
+			return this.rate * 60;
 		},
 
 		set: function(tempo) {
-			const privates  = Privates(this);
-			// param, time, curve, value, duration, notify, context
-			automate(privates.rateParam, this.context.currentTime, 'step', tempo / 60, null, privates.notify, this.context);
+			this.rate = tempo / 60;
 		}
 	},
 
@@ -443,25 +456,7 @@ define(Sequencer.prototype, {
 	playing: getOwnPropertyDescriptor(PlayNode.prototype, 'playing')
 });
 
-assign(Sequencer.prototype, Sequence.prototype, Meter.prototype, {
-	/*
-	.createSequence()
-	*/
-
-	createSequence: function() {
-		// Todo: turn this into a constructor that creates objects with a
-		// .remove() method, ie.
-		// new Sequence(stage, options)
-		const sequence = {
-			id: generateUnique(this.sequences.map(getId)),
-			label: '',
-			events: [],
-			sequences: []
-		};
-
-		this.sequences.push(sequence);
-		return sequence;
-	},
+assign(Sequencer.prototype, Meter.prototype, {
 
 	beatAtTime: function(time) {
 		const transport     = Privates(this).transport;
@@ -510,7 +505,7 @@ assign(Sequencer.prototype, Sequence.prototype, Meter.prototype, {
 		}
 
 		// Set this.startTime
-		Sequence.prototype.start.call(this, time, beat);
+		SSSequencer.prototype.start.call(this, time, beat);
 
 		// Set rates
 		const rates = this.events ?
@@ -551,7 +546,7 @@ assign(Sequencer.prototype, Sequence.prototype, Meter.prototype, {
 				}
 			}
 		})
-		.fold(processFrame, data)
+		.scan(processFrame, data)
 		.each(distributeData)
 		.start(time);
 
@@ -571,7 +566,7 @@ assign(Sequencer.prototype, Sequence.prototype, Meter.prototype, {
 		const rateParam = privates.rateParam;
 
 		// Set this.stopTime
-		Sequence.prototype.stop.call(this, time);
+		SSSequencer.prototype.stop.call(this, time);
 
 		// Hold automation for the rate node
 		// param, time, curve, value, duration, notify, context
@@ -596,12 +591,6 @@ assign(Sequencer.prototype, Sequence.prototype, Meter.prototype, {
 		//}
 
 		return this;
-	},
-
-	sequence: function(toEventsBuffer) {
-		const privates = Privates(this);
-		const transport = privates.transport;
-		return transport.sequence(toEventsBuffer);
 	},
 
 	//.cue(beat, fn)

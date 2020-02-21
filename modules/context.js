@@ -14,7 +14,7 @@ if (!AudioContext.prototype.getOutputTimestamp) {
     };
 }
 
-const context = new window.AudioContext();
+export const context = new window.AudioContext();
 context.destination.channelInterpretation = "discrete";
 context.destination.channelCount = context.destination.maxChannelCount;
 
@@ -62,6 +62,7 @@ if (context.state === 'suspended') {
     });
 }
 
+// Todo: remove default
 export default context;
 
 function stampTimeAtDomTime(stamp, domTime) {

@@ -3,7 +3,7 @@
 Looper(context, settings)
 
 ```
-const looper = stage.create('looper', {
+const looper = stage.createNode('looper', {
     [Todo]
 });
 ```

@@ -3,7 +3,7 @@
 Sample(context, settings)
 
 ```
-const sample = stage.create('sample', {
+const sample = stage.createNode('sample', {
     src: 'path/to/data',  // A path where the data for the sample set is kept
 });
 ```

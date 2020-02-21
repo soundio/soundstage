@@ -11,7 +11,7 @@ test('Instrument', function(run, print, fixture) {
             connections: []
         });
 
-        stage.create('instrument', {
+        stage.createNode('instrument', {
             voice: {
                 nodes: [{
                     id:   'osc-1',

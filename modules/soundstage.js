@@ -2,7 +2,7 @@
 import { get, isDefined, noop, nothing, map, matches, Privates }   from '../../fn/module.js';
 import requestInputSplitter   from './request-input-splitter.js';
 import { print, printGroup, printGroupEnd }     from './print.js';
-import audio, { domTimeAtTime, timeAtDomTime } from './context.js';
+import { context, domTimeAtTime, timeAtDomTime } from './context.js';
 import constructors  from './constructors.js';
 import { isKeyboardInputSource } from './control-sources/keyboard-input-source.js';
 import { isMIDIInputSource } from './control-sources/midi-input-source.js';
@@ -16,12 +16,17 @@ import requestPlugin from './request-plugin.js';
 import Timer         from './timer.js';
 import Transport     from './transport.js';
 import Sequencer     from './sequencer.js';
+import Sequence      from './sequence.js';
 import config        from '../config.js';
 
 const DEBUG        = window.DEBUG || false;
 const assign       = Object.assign;
 const define       = Object.defineProperties;
 const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
+
+const defaults = {
+    context: context
+};
 
 const defaultData = {
     nodes: [{ id: '0', type: 'output' }]
@@ -188,7 +193,7 @@ export default function Soundstage(data = defaultData, settings = nothing) {
 
     if (DEBUG) { printGroup('Soundstage()'); }
 
-    const context     = settings.context || audio;
+    const context     = settings.context || defaults.context;
     const destination = settings.destination === undefined ? context.destination : settings.destination ;
     const notify      = settings.notify || noop;
     const output      = createOutputMerger(context, destination);
@@ -232,7 +237,7 @@ export default function Soundstage(data = defaultData, settings = nothing) {
 
     // Initialise audio regions. Assigns:
     //
-    // regions:    array
+    // regions:        array
 
     //const regions
     //    = this.regions
@@ -243,8 +248,8 @@ export default function Soundstage(data = defaultData, settings = nothing) {
 
     // Initialise soundstage as a graph. Assigns:
     //
-    // nodes:       array
-    // connections: array
+    // nodes:          array
+    // connectors:     array
 
     const requestTypes = {
         input: function(type, context, data) {
@@ -271,7 +276,7 @@ export default function Soundstage(data = defaultData, settings = nothing) {
 
     // Initialise MIDI and keyboard controls. Assigns:
     //
-    // controls:   array-like
+    // controls:       array-like
 
     this.__promise = this.ready(function graphReady(stage) {
         define(stage, {
@@ -306,17 +311,25 @@ export default function Soundstage(data = defaultData, settings = nothing) {
     });
 
 
+    // Initialise soundstage as a Sequence. Assigns:
+    //
+    // events:         array
+    // sequences:      array
+    // createEvent:    fn
+    // createSequence: fn
+
+    Sequence.call(this, data.events, data.sequences, data.label, data.id);
+
+
     // Initialise soundstage as a Sequencer. Assigns:
     //
-    // createEvent: fn
-    // createSequence: fn
-    // start:       fn
-    // stop:        fn
-    // beatAtTime:  fn
-    // timeAtBeat:  fn
-    // beatAtBar:   fn
-    // barAtBeat:   fn
-    // cue:         fn
+    // start:          fn
+    // stop:           fn
+    // beatAtTime:     fn
+    // timeAtBeat:     fn
+    // beatAtBar:      fn
+    // barAtBeat:      fn
+    // cue:            fn
 
     Sequencer.call(this, transport, data, rateParam, timer, notify);
 
@@ -340,6 +353,7 @@ define(Soundstage.prototype, {
     version: { value: 1 },
 
     time:           getOwnPropertyDescriptor(Sequencer.prototype, 'time'),
+    rate:           getOwnPropertyDescriptor(Sequencer.prototype, 'rate'),
     tempo:          getOwnPropertyDescriptor(Sequencer.prototype, 'tempo'),
     meter:          getOwnPropertyDescriptor(Sequencer.prototype, 'meter'),
     beat:           getOwnPropertyDescriptor(Sequencer.prototype, 'beat'),
@@ -390,7 +404,7 @@ define(Soundstage.prototype, {
     }
 });
 
-assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
+assign(Soundstage.prototype, Sequence.prototype, Sequencer.prototype, Graph.prototype, {
     createControl: function(source, target, options) {
         const privates = Privates(this);
 

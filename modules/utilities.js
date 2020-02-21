@@ -10,14 +10,17 @@ export const generateUnique = function(values) {
     return value + '';
 }
 
-export function createId(objects) {
-    var ids = objects.map(get('id'));
-    return generateUnique(ids);
-}
+export const getId = get('id');
 
 export const matchesId = curry(function matchesId(id, object) {
     return object.id === id;
 });
+
+export function createId(objects) {
+    var ids = objects.map(getId);
+    return generateUnique(ids);
+}
+
 
 export const insertBy0 = insert(get('0'));
 

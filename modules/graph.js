@@ -73,7 +73,7 @@ assign(Graph.prototype, {
 Creates a new AudioNode in the Soundstage graph.
 
 ```js
-var wrap = stage.create('delay', {
+var wrap = stage.createNode('delay', {
     delayTime: 0.5
 });
 ```
@@ -86,11 +86,13 @@ The AudioNode is wrapped in an object with an id and label in the `.nodes`
 array. The wrapper object is returned.
 */
 
-    createNode: function() {
-        return this.create.apply(this, arguments);
+    create: function() {
+        console.warn('Deprecation: stage.createNode() is now stage.createNode().');
+        console.trace();
+        return this.createNode.apply(this, arguments);
     },
 
-    create: function (type, data) {
+    createNode: function (type, data) {
         const graph = this;
         const privates = Privates(this);
         const requests = privates.requests;

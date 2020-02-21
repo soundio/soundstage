@@ -5,7 +5,7 @@
 Delay()
 
 ```
-const delay = stage.create('delay');
+const delay = stage.createNode('delay');
 ```
 
 Creates a standard DelayNode.

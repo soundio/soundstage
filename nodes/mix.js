@@ -3,7 +3,7 @@
 Mix(context, settings)
 
 ```
-const mix = stage.create('mix', {
+const mix = stage.createNode('mix', {
     gain: 1,
     pan: 0
 });

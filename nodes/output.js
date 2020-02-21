@@ -3,7 +3,7 @@
 Output()
 
 ```
-const output = stage.create('output', {
+const output = stage.createNode('output', {
     channels: [1, 2]    // Device channels to send output to
 });
 ```

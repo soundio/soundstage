@@ -3,7 +3,7 @@
 Tick(context, settings)
 
 ```
-const tick = stage.create('tick', {
+const tick = stage.createNode('tick', {
     resonance:         // Todo
     decay:             // Todo
     gain: 1            // Output gain nominally in the range `0–1`

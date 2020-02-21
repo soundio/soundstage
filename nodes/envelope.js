@@ -3,7 +3,7 @@
 Envelope(context, settings)
 
 ```js
-const envelope = stage.create('envelope', {
+const envelope = stage.createNode('envelope', {
     // An array of param events describing a attack curve
     attack: [
         [0.01, 'linear', 1]

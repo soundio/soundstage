@@ -3,7 +3,7 @@
 Saturator(context, settings)
 
 ```
-const saturator = stage.create('saturator', {
+const saturator = stage.createNode('saturator', {
 
 });
 ```

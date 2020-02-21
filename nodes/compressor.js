@@ -5,7 +5,7 @@
 Compressor()
 
 ```
-const compressor = stage.create('compressor');
+const compressor = stage.createNode('compressor');
 ```
 
 Creates a standard CompressorNode.

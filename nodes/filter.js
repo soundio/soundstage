@@ -3,7 +3,7 @@
 Filter()
 
 ```
-const filter = stage.create('filter');
+const filter = stage.createNode('filter');
 ```
 
 Creates a filter node.
@@ -53,7 +53,7 @@ function Filter(audio, settings) {
 	var input = audio.createGain();
 	var output = audio.createGain();
 	var filter = audio.createBiquadFilter();
-	var enveloper = Soundstage.create(audio, 'envelope', {
+	var enveloper = Soundstage.createNode(audio, 'envelope', {
 	    	attack: options['env-attack'],
 	    	decay: options['env-decay']
 	    });

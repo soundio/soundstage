@@ -60,7 +60,7 @@ const stage = new Soundstage({
 
 import Clock from './clock.js';
 import { Privates, nothing } from '../../fn/module.js';
-import { insertBy0, matchesId } from './utilities.js';
+import { insertBy0, createId, matchesId } from './utilities.js';
 import { beatAtLocation, locationAtBeat } from './location.js';
 import { Event, isRateEvent, isValidEvent } from './event.js';
 
@@ -74,22 +74,25 @@ function round(n) {
 	return Math.round(n * 1000000000000) / 1000000000000;
 }
 
-export default function Sequence(transport, data) {
-	// Super
-	Clock.call(this, transport.context);
 
-	// Private
-	Privates(this).transport = transport;
+export function Sequence(events, sequences, label, id) {
 
-	// Properties
+	this.id = id;
+
+	/*
+	.label
+	A string.
+	*/
+
+	this.label = label || '';
 
 	/*
 	.events
 	An array of events that are played on `.start(time)`.
-    See <a href="#events">Events</a>.
+	See <a href="#events">Events</a>.
 	*/
 
-	this.events    = data && data.events || [];
+	this.events = events && events.map(Event.from) || [];
 
 	/*
 	.sequences
@@ -97,26 +100,32 @@ export default function Sequence(transport, data) {
 	stored in `.events`. See <a href="#sequences">Sequences</a>.
 	*/
 
-	this.sequences = data && data.sequences || [];
+	this.sequences = sequences && sequences.map(Sequence.from) || [];
 }
 
+Sequence.of = function (events, sequences, label, id) {
+	return new Sequence(events, sequences, label, id);
+};
 
+Sequence.from = function (data) {
+	return new Sequence(data.events, data.sequences, data.label, data.id);
+};
 
-
-assign(Sequence.prototype, Clock.prototype, {
+assign(Sequence.prototype, {
 
 	/*
 	.createEvent(beat, type, ...)
 	*/
 
-	createEvent: function(beat, type) {
+	createEvent: function (beat, type) {
 		const event = Event.from(arguments);
 
+		// Validate that sequence event target sequence exists
 		if (type === 'sequence') {
 			const id = arguments[2];
 			const sequence = this.sequences.find(matchesId(id));
 			if (!sequence) {
-				throw new Error('Sequence.createEvent() Missing sequence "' + id + '"');
+				throw new Error('Sequence.createEvent() Sequence id="' + id + '" not found');
 			}
 		}
 
@@ -124,6 +133,32 @@ assign(Sequence.prototype, Clock.prototype, {
 		return event;
 	},
 
+	/*
+	.createSequence()
+	*/
+
+	createSequence: function () {
+		const sequence = Sequence.of([], [], '', createId(this.sequences));
+		this.sequences.push(sequence);
+		return sequence;
+	}
+});
+
+export default Sequence;
+
+
+
+export function SSSequencer(transport, sequence) {
+	// Super
+	Clock.call(this, transport.context);
+
+	// Private
+	Privates(this).transport = transport;
+
+	this.sequence = sequence;
+}
+
+assign(SSSequencer.prototype, Clock.prototype, {
 	/*
 	.beatAtTime(time)
 	Returns the beat at a given `time`.
@@ -136,8 +171,8 @@ assign(Sequence.prototype, Clock.prototype, {
 		const transport = privates.transport;
 		const startLoc  = this.startLocation || (this.startLocation = transport.beatAtTime(this.startTime));
 		const timeLoc   = transport.beatAtTime(time);
-		const events    = this.events ?
-			this.events.filter(isRateEvent) :
+		const events    = this.sequence.events ?
+			this.sequence.events.filter(isRateEvent) :
 			nothing ;
 
 		return beatAtLocation(events, rate0, timeLoc - startLoc);
@@ -152,8 +187,8 @@ assign(Sequence.prototype, Clock.prototype, {
 		const privates  = Privates(this);
 		const transport = privates.transport;
 		const startLoc  = this.startLocation || (this.startLocation = transport.beatAtTime(this.startTime));
-		const events    = this.events ?
-			this.events.filter(isRateEvent) :
+		const events    = this.sequence.events ?
+			this.sequence.events.filter(isRateEvent) :
 			nothing ;
 
 		const beatLoc   = locationAtBeat(events, rate0, beat);

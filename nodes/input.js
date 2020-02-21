@@ -3,7 +3,7 @@
 Input()
 
 ```
-const input = stage.create('input', {
+const input = stage.createNode('input', {
     channels: [1, 2]    // Device channels to use as input
 });
 ```

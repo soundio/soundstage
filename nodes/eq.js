@@ -3,7 +3,7 @@
 EQ()
 
 ```js
-const eq = stage.create('eq');
+const eq = stage.createNode('eq');
 ```
 */
 

@@ -3,7 +3,7 @@
 Sink
 
 ```
-const sink = stage.create('sink');
+const sink = stage.createNode('sink');
 ```
 
 You can't automate params until their nodes have a route to

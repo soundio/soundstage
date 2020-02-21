@@ -3,7 +3,7 @@
 Noise(context, settings)
 
 ```
-const noise = stage.create('noise', {
+const noise = stage.createNode('noise', {
     type: 'sine',      // String 'white', 'pink', 'brown'
 });
 ```

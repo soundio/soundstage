@@ -3,7 +3,7 @@
 Meter(context)
 
 ```
-const meter = stage.create('meter');
+const meter = stage.createNode('meter');
 ```
 */
 

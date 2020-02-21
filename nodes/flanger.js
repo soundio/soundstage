@@ -3,7 +3,7 @@
 Flanger(context, settings)
 
 ```
-const flanger = stage.create('flanger', {
+const flanger = stage.createNode('flanger', {
     delay:
     depth:
     feedback:

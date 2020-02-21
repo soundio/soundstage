@@ -3,7 +3,7 @@
 Instrument(context, settings)
 
 ```
-const instrument = stage.create('instrument', {
+const instrument = stage.createNode('instrument', {
     voice: {
         // Inherited from NodeGraph
         nodes: [...],

@@ -3,7 +3,7 @@
 Tone(context, settings)
 
 ```
-const tone = stage.create('tone', {
+const tone = stage.createNode('tone', {
     type: 'sine',      // String 'sine', 'square', 'sawtooth', 'triangle'
     frequency: 440,    // Frequency in Hz
     detune: 0,         // Deviation from frequency in cents
