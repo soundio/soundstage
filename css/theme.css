@@ -59,7 +59,7 @@ body > .grid-block + .grid-block {
 
 .doc-block h4 + ul { margin-top: 0; }
 
-.demo-block {
+.docdemo-block {
    color: var(--code-fg);
    background-color: var(--code-bg);
    margin-left:  -1.875rem;
@@ -74,11 +74,11 @@ body > .\31-grid + .\30-grid {
    margin-top: 2.8125rem;
 }
 
-body > .\31-grid + .demo-block {
+body > .\31-grid + .docdemo-block {
    margin-top: 7.5rem;
 }
 
-body > .demo-block + .grid {
+body > .docdemo-block + .grid {
    margin-top: 2.8125rem;
 }
 
