@@ -1,4 +1,4 @@
-/*
+/**
 PlayNode()
 
 A mixin that sets up an object to be playable.
@@ -17,7 +17,7 @@ Object.defineProperties(MyNode.prototype, {
     playing: Object.getOwnPropertyDescriptor(PlayNode.prototype, 'playing')
 });
 ```
-*/
+**/
 
 import { logGroup, logGroupEnd } from '../modules/print.js';
 
@@ -26,17 +26,17 @@ const assign = Object.assign;
 const define = Object.defineProperties;
 
 const properties = {
-    /*
+    /**
     .startTime
     The time at which playback is scheduled to start.
-    */
+    **/
 
     startTime: { writable: true },
 
-    /*
+    /**
     .stopTime
     The time at which playback is scheduled to stop.
-    */
+    **/
 
     stopTime:  { writable: true }
 };
@@ -54,13 +54,13 @@ PlayNode.reset = function(node) {
 };
 
 assign(PlayNode.prototype, {
-    /*
+    /**
     .start(time)
     Sets `.startTime` to `time`, or where `time` is undefined, to
     `context.currentTime`.
 
     Returns `this`.
-    */
+    **/
 
     start: function(time) {
         if (DEBUG && this.startTime !== undefined) {
@@ -71,14 +71,14 @@ assign(PlayNode.prototype, {
         return this;
     },
 
-    /*
+    /**
     .stop(time)
     Sets `.stopTime` to `time` or where `time` is undefined, to
     `context.currentTime`, this time is before `.startTime`, in which case
     `.stopTime` is set equal to `.startTime`.
 
     Returns `this`.
-    */
+    **/
 
     stop: function(time) {
         if (DEBUG && this.startTime === undefined) {
@@ -97,11 +97,11 @@ assign(PlayNode.prototype, {
 });
 
 define(PlayNode.prototype, {
-    /*
+    /**
     .playing
     A boolean indicating whether the node is started and playing (`true`) or
     stopped and idle (`false`).
-    */
+    **/
 
     playing: {
         get: function() {

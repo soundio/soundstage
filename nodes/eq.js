@@ -1,17 +1,17 @@
 
-/*
+/**
 EQ()
 
 ```js
 const eq = stage.createNode('eq');
 ```
-*/
+**/
 
-/*
+/**
 .nodes
 
 An array of biquad-filter nodes.
-*/
+**/
 
 import NodeGraph from './graph.js';
 import Chain from './chain.js';

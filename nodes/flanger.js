@@ -1,5 +1,5 @@
 
-/*
+/**
 Flanger(context, settings)
 
 ```
@@ -15,37 +15,37 @@ const flanger = stage.createNode('flanger', {
 ```
 
 Creates a modulation delay effect, or 'flanger'.
-*/
+**/
 
-/*
+/**
 .delay
 Base delay for the modulation.
-*/
+**/
 
-/*
+/**
 .depth
 Modulation depth.
-*/
+**/
 
-/*
+/**
 .feedback
 Signal gain to feed back into the modulator.
-*/
+**/
 
-/*
+/**
 .frequency
 Modulation frequency.
-*/
+**/
 
-/*
+/**
 .dry
 AudioParam controlling dry gain.
-*/
+**/
 
-/*
+/**
 .wet
 AudioParam controlling effect gain.
-*/
+**/
 
 import NodeGraph from './graph.js';
 import { validateOscillatorType } from '../modules/validate.js';

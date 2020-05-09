@@ -1,5 +1,5 @@
 
-/*
+/**
 NodeGraph(context, settings)
 
 `NodeGraph` constructs an AudioNode-like object from a graph of child nodes.
@@ -53,7 +53,7 @@ been warned.
 
 Finally, the `output` property is the id of a child node that is used as an
 output by the `.connect()` and `.disconnect()` methods.
-*/
+**/
 
 import { Privates } from '../../fn/module.js';
 import { logGroup, logGroupEnd } from '../modules/print.js';
@@ -135,17 +135,17 @@ export default function NodeGraph(context, data) {
         const output = nodes[privates.outputId];
         define(this, {
 
-            /*
+            /**
             .context
             The AudioContext object.
-            */
+            **/
 
             context: { value: context },
 
-            /*
+            /**
             .numberOfOutputs
             The number of outputs.
-            */
+            **/
 
             numberOfOutputs: { value: output ? output.numberOfOutputs : 0 }
         });
@@ -189,12 +189,12 @@ export default function NodeGraph(context, data) {
 
 assign(NodeGraph.prototype, {
 
-    /*
+    /**
     .connect(target)
     Connect node to target. In Soundstage calling this method directly is
     discouraged: the graph cannot track changes to your connections if you use
     it. Instead, call `stage.createConnector(node, target)`.
-    */
+    **/
 
     connect: function() {
         const privates = Privates(this);
@@ -202,12 +202,12 @@ assign(NodeGraph.prototype, {
         return output.connect.apply(output, arguments);
     },
 
-    /*
+    /**
     .disconnect(target)
     Disconnect node from target. In Soundstage calling this method directly is
     discouraged: the graph cannot track changes to your connections if you use
     it. Instead, call `stage.removeConnector(node, target)`.
-    */
+    **/
 
     disconnect: function() {
         const privates = Privates(this);
@@ -215,10 +215,10 @@ assign(NodeGraph.prototype, {
         return output.disconnect.apply(output, arguments);
     },
 
-    /*
+    /**
     .get(id)
     Returns a child node by its id.
-    */
+    **/
 
     get: function(id) {
         const privates = Privates(this);

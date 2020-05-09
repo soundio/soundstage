@@ -1,5 +1,5 @@
 
-/*
+/**
 Sample(context, settings)
 
 ```
@@ -10,27 +10,27 @@ const sample = stage.createNode('sample', {
 
 A sample object represents a set of audio buffers that are mapped to the
 playback of pitches. Mapping is defined in a JSON file.
-*/
+**/
 
-/*
+/**
 .src
 Path to a JSON file for sample set data. See [Todo:link] Sample Set Data.
-*/
+**/
 
-/*
+/**
 .gain
 A float read on `.start()`
-*/
+**/
 
-/*
+/**
 .frequency
 A float that is read on `.start()`.
-*/
+**/
 
-/*
+/**
 .detune
 An AudioParam that modifies the frequency in cents.
-*/
+**/
 
 
 import { requestBuffer } from '../modules/request-buffer.js';

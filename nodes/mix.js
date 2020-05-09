@@ -1,5 +1,5 @@
 
-/*
+/**
 Mix(context, settings)
 
 ```
@@ -8,7 +8,7 @@ const mix = stage.createNode('mix', {
     pan: 0
 });
 ```
-*/
+**/
 
 
 import NodeGraph from './graph.js';
@@ -23,15 +23,15 @@ const graph = {
     ],
 
     properties: {
-        /*
+        /**
         .gain
         AudioParam controlling gain.
-        */
+        **/
 
-        /*
+        /**
         .pan
         AudioParam controlling stereo pan position.
-        */
+        **/
         pan: 'pan.pan'
     },
 

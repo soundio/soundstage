@@ -1,5 +1,5 @@
 
-/*
+/**
 Tone(context, settings)
 
 ```
@@ -16,7 +16,7 @@ oscillator may only be started once, a tone can be started and stopped at will.
 
 It is unusual to create tones directly, but they are an essential component for
 defining voices for instruments.
-*/
+**/
 
 import NodeGraph from './graph.js';
 import PlayNode from './play-node.js';
@@ -37,22 +37,22 @@ const graph = {
     ],
 
     properties: {
-        /*
+        /**
         .type
         A string. One of `'sine'`, `'square'`, `'sawtooth'` or `'triangle'`.
-        */
+        **/
         type:      'osc.type',
 
-        /*
+        /**
         .frequency
         An AudioParam representing frequency in Hz.
-        */
+        **/
         frequency: 'osc.frequency',
 
-        /*
+        /**
         .detune
         An AudioParam representing a deviation from frequency in cents.
-        */
+        **/
         detune:    'osc.detune'
     },
 
@@ -66,12 +66,12 @@ const defaults = {
 };
 
 const properties = {
-    /*
+    /**
     .gain
     A float, nominally in the range `0–1`, that is read on calling `.start()`
     to set the gain of the tone. Changes to `.gain` during playback have no
     effect.
-    */
+    **/
 
     gain: {
         value:    1,
@@ -102,10 +102,10 @@ Tone.reset = function(node, args) {
 
 assign(Tone.prototype, NodeGraph.prototype, PlayNode.prototype, {
 
-    /*
+    /**
     .start(time)
     Start the tone at `time`.
-    */
+    **/
 
     start: function(time) {
         PlayNode.prototype.start.apply(this, arguments);
@@ -113,10 +113,10 @@ assign(Tone.prototype, NodeGraph.prototype, PlayNode.prototype, {
         return this;
     },
 
-    /*
+    /**
     .stop(time)
     Stop the tone at `time`.
-    */
+    **/
 
     stop: function(time, frequency, gain) {
         PlayNode.prototype.stop.apply(this, arguments);

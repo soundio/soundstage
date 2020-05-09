@@ -1,28 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" is="sparky">
-<head>
-    <meta charset="utf-8" />
-
-    <template build-fn="fetch:package.json">
-        <meta name="author" content="@{[author.twitter]}" />
-        <meta name="description" content="Documentation for {[title]}. {[description]}" />
-    </template>
-
-    <meta name="viewport" content="width=device-width" />
-
-    <title>{[title]}</title>
+<html lang="en">
+<head build-fn="fetch:package.json">
+    <template build-src="../fn/templates.html#head-template"></template>
 
     <script>
-    document.documentElement.className = 'js';
     window.DEBUG = true;
     </script>
 
-    <link rel="shortcut icon" href="images/logo-64x64.ico" />
-    <link rel="icon" type="image/png" href="images/logo-32x32.png" sizes="32x32">
-    <link rel="icon" type="image/png" href="images/logo-64x64.png" sizes="64x64">
-    <link rel="icon" type="image/png" href="images/logo-128x128.png" sizes="128x128">
-
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono:100,300,400,500,700" />
     <link rel="stylesheet" href="../bolt/style.min.css" />
     <link rel="stylesheet" href="../dom/css/dom.css" />
     <link rel="stylesheet" href="../fn/css/prism-cruncher.css" />
@@ -33,7 +17,7 @@
 
     <!--template id="method-template">
         <article build-fn="each append:body" class="toggle-block block" toggleable id="{[id]}">
-            <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
+            <h3 class="doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
                 <a href="#{[id]}">
                     <code build-fn="append:title" class="function language-js"></code>
                 </a>
@@ -43,7 +27,7 @@
 
     <!--template id="property-template">
         <article build-fn="each append:body" class="toggle-block block" toggleable id="{[id]}">
-            <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
+            <h3 class="doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
                 <a href="#{[id]}">
                     <code build-fn="append:title" class="property language-js"></code>
                 </a>
@@ -53,7 +37,7 @@
 
     <!--template id="function-template">
         <article build-fn="each append:body" class="toggle-block block" toggleable id="{[id]}">
-            <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
+            <h3 class="doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
                 <a href="#{[id]}">
                     <code build-fn="append:title" class="property language-js"></code>
                 </a>
@@ -63,7 +47,7 @@
 
     <template id="constructor-template">
         <article class="function-toggle-block toggle-block block 3x" toggleable id="{[0.id]}">
-            <h3 build-fn="get:0 after:body" class="text-5 dot-indent">
+            <h3 build-fn="get:0 after:body" class="doctext-05 dot-indent">
                 <a href="#{[id]}">
                     <code class="property language-js">"{[name|lowercase]}"</code>
                 </a>
@@ -75,32 +59,32 @@
 
     <template id="type-template">
         <article build-fn="append:body" class="block 3x">
-            <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
+            <h3 class="doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
                 <code class="property language-js">"{[name|lowercase]}"</code>
             </h3>
         </article>
     </template>
 </head>
 
-<body class="grid grid-3 @1-grid-6 @2-grid-9">
+<body class="grid 3x-grid @1-6x-grid @2-9x-grid">
     <header class="x-1 3x @1-6x @2-x-2" id="header">
         <template build-fn="fetch:package.json" build-src="/fn/templates.html#header-template"></template>
     </header>
 
-    <section class="x-1 3x @1-6x @2-x-1 grid-6 grid">
+    <section class="x-1 3x @1-6x @2-x-1 6x-grid grid">
         <template build-fn="docs: modules/soundstage.js?soundstage each" build-src="/fn/templates.html#h2-template"></template>
         <template build-fn="docs: modules/soundstage.js?label" build-src="/fn/templates.html#property-method-template"></template>
-        <h3 class="x-1 end-x text-4">Graph</h3>
+        <h3 class="x-1 end-x doctext-04">Graph</h3>
         <template build-fn="docs: modules/graph.js" build-src="/fn/templates.html#property-method-template"></template>
-        <h3 class="x-1 end-x text-4">Sequencer</h3>
+        <h3 class="x-1 end-x doctext-04">Sequencer</h3>
         <template build-fn="docs: 'nodes/play-node.js?startTime,stopTime',modules/sequencer.js,'modules/sequence.js',modules/meter.js" build-src="/fn/templates.html#property-method-template"></template>
-        <h3 class="x-1 end-x text-4">Audio</h3>
+        <h3 class="x-1 end-x doctext-04">Audio</h3>
         <template build-fn="docs: 'nodes/graph.js?context,numberOfOutputs'" build-src="/fn/templates.html#property-method-template"></template>
     </section>
 
-    <section class="x-1 3x @1-6x @2-x-2 grid-6 grid" id="nodes">
+    <section class="x-1 3x @1-6x @2-x-2 6x-grid grid" id="nodes">
         <header class="x-1 3x">
-            <h2 class="text-2">Nodes</h2>
+            <h2 class="doctext-02">Nodes</h2>
         </header>
 
         <div class="x-1 3x">
@@ -151,9 +135,9 @@
         <template build-fn="docs:nodes/instrument.js" build-src="#constructor-template"></template>
     </section>
 
-    <section class="x-1 3x @1-6x @2-x-2 grid-6 grid" id="nodes">
+    <section class="x-1 3x @1-6x @2-x-2 6x-grid grid" id="nodes">
         <header class="x-1 3x">
-            <h2 class="text-2">Connectors</h2>
+            <h2 class="doctext-02">Connectors</h2>
         </header>
 
         <div class="x-1 3x">
@@ -179,17 +163,17 @@
 
 
 
-    <section class="x-1 3x @1-6x @2-x-1 grid-6 grid">
+    <section class="x-1 3x @1-6x @2-x-1 6x-grid grid">
         <header class="x-1 4x @1-x-1 @2-x-2">
-            <h2 class="text-2">Sequences</h2>
+            <h2 class="doctext-02">Sequences</h2>
         </header>
 
         <div class="x-1 3x @1-x-1 @2-x-2" build-fn="docs:'./modules/sequence.js?Sequence' each append:body"></div>
     </section>
 
-    <section class="x-1 3x @1-6x @2-x-2 grid-6 grid">
+    <section class="x-1 3x @1-6x @2-x-2 6x-grid grid">
         <header class="x-1 3x">
-            <h2 class="text-2">Events</h2>
+            <h2 class="doctext-02">Events</h2>
         </header>
 
         <div class="x-1 3x" build-fn="docs:'./modules/event.js?Event' each append:body"></div>
@@ -211,7 +195,7 @@
 
     <!--section class="x-1 3x @1-6x @2-9x @3-x-2 grid">
         <header class="x-1 6x @2-x-2 @2-6x">
-            <h2 class="text-2" style="font-size: 1.875rem;">Functions</h2>
+            <h2 class="doctext-02" style="font-size: 1.875rem;">Functions</h2>
         </header>
 
         <template build-fn="docs:'./modules/automate.js','./modules/request-buffer.js','./modules/request-data.js','./modules/transforms.js'" build-src="#property-template"></template>
@@ -219,7 +203,7 @@
 
     <!--section class="x-1 3x @1-6x @2-9x @3-x-2 grid">
         <header class="x-1 7x @2-x-2 @3-6x @4-5x @5-3x">
-            <h2 class="text-2" style="font-size: 1.875rem;">Mixins</h2>
+            <h2 class="doctext-02" style="font-size: 1.875rem;">Mixins</h2>
             <p>
             Soundstage has a couple of helper constructors/mixins for composing nodes.
             These constructors cannot be accessed via `stage.createNode(name)`.
@@ -228,49 +212,49 @@
 
 
 
-        <h2 class="x-1 6x @2-x-2 @2-6x text-3"><code class="language-js">Voice()</code></h2>
+        <h2 class="x-1 6x @2-x-2 @2-6x doctext-03"><code class="language-js">Voice()</code></h2>
 
         <div class="x-1 7x @2-x-2 @3-6x @4-5x @5-3x" build-fn="docs:'./nodes/voice.js?Voice' each append:body"></div>
 
         <section class="x-1 7x @1-x-1 @1-3x @2-x-2 @5-x-5 @5-2x">
-            <h3 class="text-4">Methods</h3>
+            <h3 class="doctext-04">Methods</h3>
             <template build-fn="docs:'./nodes/voice.js?start,stop','./nodes/graph.js?get'" build-src="#method-template"></template>
         </section>
 
         <section class="x-1 7x @1-x-4 @1-4x @2-x-5 @3-3x @5-x-7 @5-2x">
-            <h3 class="text-4">Properties</h3>
+            <h3 class="doctext-04">Properties</h3>
             <template build-fn="docs:'./nodes/voice.js?detune','./nodes/play-node.js?startTime,stopTime,playing'" build-src="#property-template"></template>
         </section>
 
 
 
-        <h2 class="x-1 6x @2-x-2 @2-6x text-3"><code class="language-js">NodeGraph()</code></h2>
+        <h2 class="x-1 6x @2-x-2 @2-6x doctext-03"><code class="language-js">NodeGraph()</code></h2>
 
         <div class="x-1 7x @2-x-2 @3-6x @4-5x @5-3x" build-fn="docs:'./nodes/graph.js?NodeGraph' each append:body"></div>
 
         <section class="x-1 7x @1-x-1 @1-3x @2-x-2 @5-x-5 @5-2x">
-            <h3 class="text-4">Methods</h3>
+            <h3 class="doctext-04">Methods</h3>
 
         </section>
 
         <section class="x-1 7x @1-x-4 @1-4x @2-x-5 @3-3x @5-x-7 @5-2x">
-            <h3 class="text-4">Properties</h3>
+            <h3 class="doctext-04">Properties</h3>
             <template build-fn="docs:'./nodes/graph.js?context,numberOfOutputs'" build-src="#property-template"></template>
         </section>
 
 
 
-        <h2 class="x-1 6x @2-x-2 @2-6x text-3"><code class="language-js">PlayNode()</code></h2>
+        <h2 class="x-1 6x @2-x-2 @2-6x doctext-03"><code class="language-js">PlayNode()</code></h2>
 
         <div class="x-1 7x @2-x-2 @3-6x @4-5x @5-3x" build-fn="docs:'./nodes/play-node.js?PlayNode' each append:body"></div>
 
         <section class="x-1 7x @1-x-1 @1-3x @2-x-2 @5-x-5 @5-2x">
-            <h3 class="text-4">Methods</h3>
+            <h3 class="doctext-04">Methods</h3>
             <template build-fn="docs:'./nodes/play-node.js?start,stop'" build-src="#method-template"></template>
         </section>
 
         <section class="x-1 7x @1-x-4 @1-4x @2-x-5 @3-3x @5-x-7 @5-2x">
-            <h3 class="text-4">Properties</h3>
+            <h3 class="doctext-04">Properties</h3>
             <template build-fn="docs:'./nodes/play-node.js?playing'" build-src="#property-template"></template>
         </section>
     </section-->
@@ -280,7 +264,7 @@
 
     <!--section class="x-1 3x @1-6x @2-9x @3-x-2 grid">
         <header class="x-1 7x @2-x-2 @3-6x @4-5x @5-3x">
-            <h2 class="text-2" style="font-size: 1.875rem;">How to publish a Soundstage node</h2>
+            <h2 class="doctext-02" style="font-size: 1.875rem;">How to publish a Soundstage node</h2>
             <p>A Soundstage node is a WebAudio node.
             All the standard WebAudio nodes are available in Soundstage as built-ins,
             as are a number of nodes such as `input`, `output`, `envelope`. Then there
@@ -320,14 +304,14 @@ export default class Sample extends GainNode {
     </section-->
 
     <!-- Build document -->
-    <script type="module" build-remove>
-        import '../fn/docs-build.js';
-    </script>
+    <script build-remove type="module" src="../fn/docs-build.js"></script>
 
     <!-- Document interactivity -->
     <script type="module">
         import '../dom/js/device.js';
         import '../dom/js/toggleable.js';
+        import '../dom/js/locateable.js';
+        import '../bolt/components/toggle-block.js';
     </script>
 
     <!-- Tests -->

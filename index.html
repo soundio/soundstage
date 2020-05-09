@@ -1,26 +1,10 @@
-<!DOCTYPE html><html lang="en" is="sparky" class="js"><head>
-    <meta charset="utf-8">
-
-
-        <meta name="author" content="@stephband">
-        <meta name="description" content="Documentation for Soundstage. An audio node graph, sequencing engine, MIDI controller and JSON schema for the Web Audio API.">
-
-
-    <meta name="viewport" content="width=device-width">
-
-    <title></title>
+<!DOCTYPE html><html lang="en"><head>
+    <template build-src="../fn/templates.html#head"></template>
 
     <script>
-    document.documentElement.className = 'js';
     window.DEBUG = true;
     </script>
 
-    <link rel="shortcut icon" href="images/logo-64x64.ico">
-    <link rel="icon" type="image/png" href="images/logo-32x32.png" sizes="32x32">
-    <link rel="icon" type="image/png" href="images/logo-64x64.png" sizes="64x64">
-    <link rel="icon" type="image/png" href="images/logo-128x128.png" sizes="128x128">
-
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono:100,300,400,500,700">
     <link rel="stylesheet" href="../bolt/style.min.css">
     <link rel="stylesheet" href="../dom/css/dom.css">
     <link rel="stylesheet" href="../fn/css/prism-cruncher.css">
@@ -31,7 +15,7 @@
 
     <!--template id="method-template">
         <article build-fn="each append:body" class="toggle-block block" toggleable id="{[id]}">
-            <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
+            <h3 class="doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
                 <a href="#{[id]}">
                     <code build-fn="append:title" class="function language-js"></code>
                 </a>
@@ -41,7 +25,7 @@
 
     <!--template id="property-template">
         <article build-fn="each append:body" class="toggle-block block" toggleable id="{[id]}">
-            <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
+            <h3 class="doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
                 <a href="#{[id]}">
                     <code build-fn="append:title" class="property language-js"></code>
                 </a>
@@ -51,7 +35,7 @@
 
     <!--template id="function-template">
         <article build-fn="each append:body" class="toggle-block block" toggleable id="{[id]}">
-            <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
+            <h3 class="doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
                 <a href="#{[id]}">
                     <code build-fn="append:title" class="property language-js"></code>
                 </a>
@@ -61,7 +45,7 @@
 
     <template id="constructor-template">
         <article class="function-toggle-block toggle-block block 3x" toggleable="" id="{[0.id]}">
-            <h3 build-fn="get:0 after:body" class="text-5 dot-indent">
+            <h3 build-fn="get:0 after:body" class="doctext-05 dot-indent">
                 <a href="#{[id]}">
                     <code class="property language-js">"{[name|lowercase]}"</code>
                 </a>
@@ -73,408 +57,64 @@
 
     <template id="type-template">
         <article build-fn="append:body" class="block 3x">
-            <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
+            <h3 class="doctext-05 {[prefix|is:'.'|yesno:'dot-indent','']}">
                 <code class="property language-js">"{[name|lowercase]}"</code>
             </h3>
         </article>
     </template>
-<template id="header-template" title="/fn/">
-        <h1>{[title]} <span class="text-6">{[version]}</span></h1>
+</head>
 
-        <p class="text-8">
-            {[description]}
-        </p>
-
-        <ul class="link-index index">
-            <li><strong>repo:</strong> <a href="{[repository.url]}">{[repository.url]}</a></li>
-            <li><strong>bugs:</strong> <a href="{[bugs.url]}">{[bugs.url]}</a></li>
-        </ul>
-</template><template id="title-template" title="/fn/">
-    <h3 class="text-4" build-fn="after:body">{[name]}</h3>
-</template><template id="h2-template" title="/fn/">
-    <header class="x-1 4x @1-x-1 @2-x-2">
-        <h2 class="text-2">
-            <a href="#{[id]}">
-                <code class="language-js" build-fn="append:title" style="color: inherit;"></code>
-            </a>
-        </h2>
-    </header>
-
-    <div class="x-1 3x @2-x-2" build-fn="append:body"></div>
-</template><template id="attribute-template" title="/fn/">
-    <article build-fn="append:body" class="attribute-toggle-block toggle-block block" toggleable="" id="{[id]}">
-        <h3 class="text-5">
-            <a href="#{[id]}">
-                <code class="token language-js"><span>[</span><span build-fn="append:title"></span><span>]</span></code>
-            </a>
-        </h3>
-
-        <pre><code class="language-js">import '/dom/js/{[name]}.js';</code></pre>
-    </article>
-</template><template id="method-template" title="/fn/">
-    <article build-fn="append:body" class="method-toggle-block toggle-block block" toggleable="" id="{[id]}">
-        <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
-            <a href="#{[id]}">
-                <code build-fn="append:title" class="function language-js"></code>
-            </a>
-        </h3>
-    </article>
-</template><template id="property-template" title="/fn/">
-    <article build-fn="append:body" class="property-toggle-block toggle-block block" toggleable="" id="{[id]}">
-        <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
-            <a href="#{[id]}">
-                <code build-fn="append:title" class="property language-js"></code>
-            </a>
-        </h3>
-    </article>
-</template><template id="function-template" title="/fn/">
-    <article build-fn="append:body" class="function-toggle-block toggle-block block" toggleable="" id="{[id]}">
-        <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
-            <a href="#{[id]}">
-                <code build-fn="append:title" class="function language-js"></code>
-            </a>
-        </h3>
-    </article>
-</template><template id="fn-template" title="/fn/">
-    <article build-fn="append:body" class="fn-toggle-block toggle-block block" toggleable="" id="{[id]}">
-        <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
-            <a href="#{[id]}">
-                <code build-fn="append:title" class="language-js"></code>
-            </a>
-        </h3>
-    </article>
-</template><template id="section-template" title="/fn/">
-    <article build-fn="append:body" class="section-toggle-block toggle-block block active" id="{[id]}">
-        <h3 class="text-5 {[prefix|is:'.'|yesno:'dot-indent','']}">
-            <code build-fn="append:title" class="function language-js"></code>
-        </h3>
-    </article>
-</template><template id="body-template" title="/fn/">
-    <article build-fn="append:body" class="body-toggle-block toggle-block block active" id="{[id]}"></article>
-</template><template id="property-method-template" title="/fn/">
-    <section class="x-1 2x @1-x-1 @2-x-2">
-        <template build-fn="filter-property each" build-src="/fn/templates.html#{[type]}-template"></template>
-    </section>
-
-    <section class="x-1 2x @1-x-3 @2-x-4">
-        <template build-fn="filter-method each" build-src="/fn/templates.html#{[type]}-template"></template>
-    </section>
-</template></head>
-
-<body class="grid grid-3 @1-grid-6 @2-grid-9">
+<body class="grid 3x-grid @1-6x-grid @2-9x-grid">
     <header class="x-1 3x @1-6x @2-x-2" id="header">
+        
+    <h1 class="doctext-01">Soundstage <span class="doctext-06">0.8.1</span></h1>
 
-        <h1>Soundstage <span class="text-6">0.8.1</span></h1>
+    <p class="doctext-08">
+        An audio node graph, sequencing engine, MIDI controller and JSON schema for the Web Audio API.
+    </p>
 
-        <p class="text-8">
-            An audio node graph, sequencing engine, MIDI controller and JSON schema for the Web Audio API.
-        </p>
-
-        <ul class="link-index index">
-            <li><strong>repo:</strong> <a href="https://github.com/soundio/soundstage.git">https://github.com/soundio/soundstage.git</a></li>
-            <li><strong>bugs:</strong> <a href="https://github.com/soundio/soundstage/issues">https://github.com/soundio/soundstage/issues</a></li>
-        </ul>
+    <ul class="link-index index">
+        <li><strong>repo:</strong> <a href="https://github.com/soundio/soundstage.git">https://github.com/soundio/soundstage.git</a></li>
+        <li><strong>bugs:</strong> <a href="https://github.com/soundio/soundstage/issues">https://github.com/soundio/soundstage/issues</a></li>
+    </ul>
 
     </header>
 
-    <section class="x-1 3x @1-6x @2-x-1 grid-6 grid">
+    <section class="x-1 3x @1-6x @2-x-1 6x-grid grid">
         <!--template-->
-    <header class="x-1 4x @1-x-1 @2-x-2">
-        <h2 class="text-2">
-            <a href="#soundstage">
-                <code class="language-js" style="color: inherit;"><span class="token function">Soundstage</span><span class="token punctuation">(</span><span class="token punctuation">)</span></code>
-            </a>
-        </h2>
-    </header>
-
-    <div class="x-1 3x @2-x-2"><p>Import Soundstage.</p>
-<pre><code class="language-js"><span class="token keyword">import</span> Soundstage <span class="token keyword">from</span> <span class="token string">'/soundstage/build/module.js'</span><span class="token punctuation">;</span></code></pre>
-<p>Create a new stage.</p>
-<pre><code class="language-js"><span class="token keyword">const</span> stage <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Soundstage</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
-<p>A stage is a graph of AudioNodes and a sequencer of events. It has the
-following properties and methods.</p>
-</div>
-
-
+        
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
-    <article class="property-toggle-block toggle-block block" toggleable="" id="label">
-        <h3 class="text-5 dot-indent">
-            <a href="#label">
-                <code class="property language-js">.label</code>
-            </a>
-        </h3>
-    <p>A string name or title for this Soundstage document.</p>
-</article>
-
     </section>
 
     <section class="x-1 2x @1-x-3 @2-x-4">
         <!--template-->
     </section>
 
-        <h3 class="x-1 end-x text-4">Graph</h3>
-
+        <h3 class="x-1 end-x doctext-04">Graph</h3>
+        
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
-    <article class="property-toggle-block toggle-block block" toggleable="" id="nodes">
-        <h3 class="text-5 dot-indent">
-            <a href="#nodes">
-                <code class="property language-js">.nodes</code>
-            </a>
-        </h3>
-    <p>An array of objects defining graph nodes. See <a href="#nodes-and-connections">Nodes and Connectors</a>.</p>
-</article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="connections">
-        <h3 class="text-5 dot-indent">
-            <a href="#connections">
-                <code class="property language-js">.connections</code>
-            </a>
-        </h3>
-    <p>An array of objects defining connections. See <a href="#nodes-and-connections">Nodes and Connectors</a>.</p>
-</article>
-
     </section>
 
     <section class="x-1 2x @1-x-3 @2-x-4">
         <!--template-->
-    <article class="method-toggle-block toggle-block block" toggleable="" id="createnode-type-settings">
-        <h3 class="text-5 dot-indent">
-            <a href="#createnode-type-settings">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">createNode</span><span class="token punctuation">(</span>type<span class="token punctuation">,</span> settings<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Creates a new AudioNode in the Soundstage graph.</p>
-<pre><code class="language-js"><span class="token keyword">var</span> wrap <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token string">'delay'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-    delayTime<span class="token punctuation">:</span> <span class="token number">0.5</span>
-<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
-<p>The <code>type</code> parameter is a string, and must be one of the <a href="#node-types">node types</a>
-either built-in or registered with Soundstage. The <code>settings</code> parameter is an
-object of settings specific to that node type.</p>
-<p>The AudioNode is wrapped in an object with an id and label in the <code>.nodes</code>
-array. The wrapper object is returned.</p>
-</article>
-
-    <article class="method-toggle-block toggle-block block" toggleable="" id="createconnector-source-target">
-        <h3 class="text-5 dot-indent">
-            <a href="#createconnector-source-target">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">createConnector</span><span class="token punctuation">(</span>source<span class="token punctuation">,</span> target<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Creates a connection between two nodes in the graph. The parameters
-<code>source</code> and <code>target</code> are node ids.</p>
-</article>
-
-    <article class="method-toggle-block toggle-block block" toggleable="" id="get-id">
-        <h3 class="text-5 dot-indent">
-            <a href="#get-id">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token keyword">get</span><span class="token punctuation">(</span>id<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Returns the AudioNode with <code>id</code> from the graph, or undefined.</p>
-<pre><code class="language-js"><span class="token keyword">var</span> node <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token keyword">get</span><span class="token punctuation">(</span><span class="token string">'0'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
-</article>
-
     </section>
 
-        <h3 class="x-1 end-x text-4">Sequencer</h3>
-
+        <h3 class="x-1 end-x doctext-04">Sequencer</h3>
+        
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
-    <article class="property-toggle-block toggle-block block" toggleable="" id="starttime">
-        <h3 class="text-5 dot-indent">
-            <a href="#starttime">
-                <code class="property language-js">.startTime</code>
-            </a>
-        </h3>
-    <p>The time at which playback is scheduled to start.</p>
-</article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="stoptime">
-        <h3 class="text-5 dot-indent">
-            <a href="#stoptime">
-                <code class="property language-js">.stopTime</code>
-            </a>
-        </h3>
-    <p>The time at which playback is scheduled to stop.</p>
-</article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="rate">
-        <h3 class="text-5 dot-indent">
-            <a href="#rate">
-                <code class="property language-js">.rate</code>
-            </a>
-        </h3>
-    <p>An AudioParam representing the rate of the transport clock in
-    beats per second.</p>
-</article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="time">
-        <h3 class="text-5 dot-indent">
-            <a href="#time">
-                <code class="property language-js">.time</code>
-            </a>
-        </h3>
-    <p>The time of audio now leaving the device output. On browsers the have not
-    yet implemented <code>context.getOutputTimestamp()</code> this value is estimated from
-    <code>currentTime</code> and a guess at the output latency.</p>
-</article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="tempo">
-        <h3 class="text-5 dot-indent">
-            <a href="#tempo">
-                <code class="property language-js">.tempo</code>
-            </a>
-        </h3>
-    <p>The rate of the transport clock, expressed in bpm.</p>
-</article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="meter">
-        <h3 class="text-5 dot-indent">
-            <a href="#meter">
-                <code class="property language-js">.meter</code>
-            </a>
-        </h3>
-    <p>The current meter.</p>
-</article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="beat">
-        <h3 class="text-5 dot-indent">
-            <a href="#beat">
-                <code class="property language-js">.beat</code>
-            </a>
-        </h3>
-    <p>The current beat count.</p>
-</article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="bar">
-        <h3 class="text-5 dot-indent">
-            <a href="#bar">
-                <code class="property language-js">.bar</code>
-            </a>
-        </h3>
-    <p>The current bar count.</p>
-</article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="events">
-        <h3 class="text-5 dot-indent">
-            <a href="#events">
-                <code class="property language-js">.events</code>
-            </a>
-        </h3>
-    <p>An array of events that are played on <code>.start(time)</code>.
-    See <a href="#events">Events</a>.</p>
-</article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="sequences">
-        <h3 class="text-5 dot-indent">
-            <a href="#sequences">
-                <code class="property language-js">.sequences</code>
-            </a>
-        </h3>
-    <p>An array of sequences that may be triggered by <code>'sequence'</code> events
-    stored in <code>.events</code>. See <a href="#sequences">Sequences</a>.</p>
-</article>
-
     </section>
 
     <section class="x-1 2x @1-x-3 @2-x-4">
         <!--template-->
-    <article class="method-toggle-block toggle-block block" toggleable="" id="createsequence">
-        <h3 class="text-5 dot-indent">
-            <a href="#createsequence">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">createSequence</span><span class="token punctuation">(</span><span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    </article>
-
-    <article class="method-toggle-block toggle-block block" toggleable="" id="start-time">
-        <h3 class="text-5 dot-indent">
-            <a href="#start-time">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span>time<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Starts the sequencer at <code>time</code>.</p>
-</article>
-
-    <article class="method-toggle-block toggle-block block" toggleable="" id="stop-time">
-        <h3 class="text-5 dot-indent">
-            <a href="#stop-time">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">stop</span><span class="token punctuation">(</span>time<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Stops the sequencer at <code>time</code>.</p>
-</article>
-
-    <article class="method-toggle-block toggle-block block" toggleable="" id="createevent-beat-type">
-        <h3 class="text-5 dot-indent">
-            <a href="#createevent-beat-type">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">createEvent</span><span class="token punctuation">(</span>beat<span class="token punctuation">,</span> type<span class="token punctuation">,</span> <span class="token operator">...</span><span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    </article>
-
-    <article class="method-toggle-block toggle-block block" toggleable="" id="beatattime-time">
-        <h3 class="text-5 dot-indent">
-            <a href="#beatattime-time">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">beatAtTime</span><span class="token punctuation">(</span>time<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Returns the beat at a given <code>time</code>.</p>
-</article>
-
-    <article class="method-toggle-block toggle-block block" toggleable="" id="timeatbeat-beat">
-        <h3 class="text-5 dot-indent">
-            <a href="#timeatbeat-beat">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">timeAtBeat</span><span class="token punctuation">(</span>beat<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Returns the time at a given <code>beat</code>.</p>
-</article>
-
-    <article class="method-toggle-block toggle-block block" toggleable="" id="baratbeat-beat">
-        <h3 class="text-5 dot-indent">
-            <a href="#baratbeat-beat">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">barAtBeat</span><span class="token punctuation">(</span>beat<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Returns the bar at a given <code>beat</code>.</p>
-</article>
-
-    <article class="method-toggle-block toggle-block block" toggleable="" id="beatatbar-bar">
-        <h3 class="text-5 dot-indent">
-            <a href="#beatatbar-bar">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">beatAtBar</span><span class="token punctuation">(</span>bar<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Returns the beat at the start of a given <code>bar</code>.</p>
-</article>
-
     </section>
 
-        <h3 class="x-1 end-x text-4">Audio</h3>
-
+        <h3 class="x-1 end-x doctext-04">Audio</h3>
+        
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
-    <article class="property-toggle-block toggle-block block" toggleable="" id="context">
-        <h3 class="text-5 dot-indent">
-            <a href="#context">
-                <code class="property language-js">.context</code>
-            </a>
-        </h3>
-    <p>The AudioContext object.</p>
-</article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="numberofoutputs">
-        <h3 class="text-5 dot-indent">
-            <a href="#numberofoutputs">
-                <code class="property language-js">.numberOfOutputs</code>
-            </a>
-        </h3>
-    <p>The number of outputs.</p>
-</article>
-
     </section>
 
     <section class="x-1 2x @1-x-3 @2-x-4">
@@ -483,9 +123,9 @@ array. The wrapper object is returned.</p>
 
     </section>
 
-    <section class="x-1 3x @1-6x @2-x-2 grid-6 grid" id="nodes">
+    <section class="x-1 3x @1-6x @2-x-2 6x-grid grid" id="nodes">
         <header class="x-1 3x">
-            <h2 class="text-2">Nodes</h2>
+            <h2 class="doctext-02">Nodes</h2>
         </header>
 
         <div class="x-1 3x">
@@ -494,7 +134,7 @@ array. The wrapper object is returned.</p>
             settings object:
             </p>
 
-            <pre class=" language-js"><code class=" language-js">stage<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token string">'tick'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+            <pre class=" language-js"><code class=" language-js">stage<span class="token punctuation">.</span><span class="token function">createNode</span><span class="token punctuation">(</span><span class="token string">'tick'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
     gain<span class="token punctuation">:</span> <span class="token number">0.25</span><span class="token punctuation">,</span>
     resonance<span class="token punctuation">:</span> <span class="token number">1.1</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
@@ -517,29 +157,17 @@ array. The wrapper object is returned.</p>
         <!-- For layout only. Get rid of, if poss. -->
         <div class="x-4 3x"></div>
 
-
-        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="input">
-            <h3 class="text-5 dot-indent">
-                <a href="#input">
-                    <code class="property language-js">"input"</code>
+        
+        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="">
+            <h3 class="doctext-05 dot-indent">
+                <a href="#{[id]}">
+                    <code class="property language-js">"{[name|lowercase]}"</code>
                 </a>
-            </h3><pre><code><span class="token keyword">const</span> input <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token string">'input'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-    channels<span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">]</span>    <span class="token comment">// Device channels to use as input</span>
-<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+            </h3>
 
-
+            
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
-    <article class="property-toggle-block toggle-block block" toggleable="" id="channels">
-        <h3 class="text-5 dot-indent">
-            <a href="#channels">
-                <code class="property language-js">.channels</code>
-            </a>
-        </h3>
-    <p>An array of channel numbers. For stereo input this would typically be
-        <code>[1, 2]</code>.</p>
-</article>
-
     </section>
 
     <section class="x-1 2x @1-x-3 @2-x-4">
@@ -547,30 +175,18 @@ array. The wrapper object is returned.</p>
     </section>
 
         </article>
-
-
-        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="output">
-            <h3 class="text-5 dot-indent">
-                <a href="#output">
-                    <code class="property language-js">"output"</code>
+    
+        
+        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="">
+            <h3 class="doctext-05 dot-indent">
+                <a href="#{[id]}">
+                    <code class="property language-js">"{[name|lowercase]}"</code>
                 </a>
-            </h3><pre><code><span class="token keyword">const</span> output <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token string">'output'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-    channels<span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">]</span>    <span class="token comment">// Device channels to send output to</span>
-<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+            </h3>
 
-
+            
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
-    <article class="property-toggle-block toggle-block block" toggleable="" id="channels">
-        <h3 class="text-5 dot-indent">
-            <a href="#channels">
-                <code class="property language-js">.channels</code>
-            </a>
-        </h3>
-    <p>An array of channel numbers. For stereo output this would typically be
-        <code>[1, 2]</code>.</p>
-</article>
-
     </section>
 
     <section class="x-1 2x @1-x-3 @2-x-4">
@@ -578,38 +194,38 @@ array. The wrapper object is returned.</p>
     </section>
 
         </article>
-
-
+    
+        
         <article class="function-toggle-block toggle-block block 3x" toggleable="" id="compressor">
-            <h3 class="text-5 dot-indent">
+            <h3 class="doctext-05 dot-indent">
                 <a href="#compressor">
                     <code class="property language-js">"compressor"</code>
                 </a>
-            </h3><pre><code><span class="token keyword">const</span> compressor <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token string">'compressor'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre><p>Creates a standard CompressorNode.</p>
+            </h3><pre><code><span class="token keyword">const</span> compressor <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token function">createNode</span><span class="token punctuation">(</span><span class="token string">'compressor'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre><p>Creates a standard CompressorNode.</p>
 
 
-
+            
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
-    <article class="property-toggle-block toggle-block block" toggleable="" id="threshold">
-        <h3 class="text-5 dot-indent">
-            <a href="#threshold">
+    <article class="property-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="property-threshold">
+        <h3 class="doctext-05 dot-indent">
+            <a href="#property-threshold">
                 <code class="property language-js">.threshold</code>
             </a>
         </h3>
     </article>
 
-    <article class="property-toggle-block toggle-block block" toggleable="" id="knee">
-        <h3 class="text-5 dot-indent">
-            <a href="#knee">
+    <article class="property-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="property-knee">
+        <h3 class="doctext-05 dot-indent">
+            <a href="#property-knee">
                 <code class="property language-js">.knee</code>
             </a>
         </h3>
     </article>
 
-    <article class="property-toggle-block toggle-block block" toggleable="" id="ratio">
-        <h3 class="text-5 dot-indent">
-            <a href="#ratio">
+    <article class="property-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="property-ratio">
+        <h3 class="doctext-05 dot-indent">
+            <a href="#property-ratio">
                 <code class="property language-js">.ratio</code>
             </a>
         </h3>
@@ -622,22 +238,22 @@ array. The wrapper object is returned.</p>
     </section>
 
         </article>
-
-
+    
+        
         <article class="function-toggle-block toggle-block block 3x" toggleable="" id="delay">
-            <h3 class="text-5 dot-indent">
+            <h3 class="doctext-05 dot-indent">
                 <a href="#delay">
                     <code class="property language-js">"delay"</code>
                 </a>
-            </h3><pre><code><span class="token keyword">const</span> delay <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token string">'delay'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre><p>Creates a standard DelayNode.</p>
+            </h3><pre><code><span class="token keyword">const</span> delay <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token function">createNode</span><span class="token punctuation">(</span><span class="token string">'delay'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre><p>Creates a standard DelayNode.</p>
 
 
-
+            
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
-    <article class="property-toggle-block toggle-block block" toggleable="" id="delaytime">
-        <h3 class="text-5 dot-indent">
-            <a href="#delaytime">
+    <article class="property-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="property-delaytime">
+        <h3 class="doctext-05 dot-indent">
+            <a href="#property-delaytime">
                 <code class="property language-js">.delayTime</code>
             </a>
         </h3>
@@ -651,28 +267,18 @@ array. The wrapper object is returned.</p>
     </section>
 
         </article>
-
-
-        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="eq">
-            <h3 class="text-5 dot-indent">
-                <a href="#eq">
-                    <code class="property language-js">"eq"</code>
+    
+        
+        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="">
+            <h3 class="doctext-05 dot-indent">
+                <a href="#{[id]}">
+                    <code class="property language-js">"{[name|lowercase]}"</code>
                 </a>
-            </h3><pre><code class="language-js"><span class="token keyword">const</span> eq <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token string">'eq'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+            </h3>
 
-
-
+            
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
-    <article class="property-toggle-block toggle-block block" toggleable="" id="nodes">
-        <h3 class="text-5 dot-indent">
-            <a href="#nodes">
-                <code class="property language-js">.nodes</code>
-            </a>
-        </h3>
-    <p>An array of biquad-filter nodes.</p>
-</article>
-
     </section>
 
     <section class="x-1 2x @1-x-3 @2-x-4">
@@ -680,59 +286,18 @@ array. The wrapper object is returned.</p>
     </section>
 
         </article>
-
-
-        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="filter">
-            <h3 class="text-5 dot-indent">
-                <a href="#filter">
-                    <code class="property language-js">"filter"</code>
+    
+        
+        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="">
+            <h3 class="doctext-05 dot-indent">
+                <a href="#{[id]}">
+                    <code class="property language-js">"{[name|lowercase]}"</code>
                 </a>
-            </h3><pre><code><span class="token keyword">const</span> filter <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token string">'filter'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre><p>Creates a filter node.</p>
+            </h3>
 
-
-
+            
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
-    <article class="property-toggle-block toggle-block block" toggleable="" id="frequency">
-        <h3 class="text-5 dot-indent">
-            <a href="#frequency">
-                <code class="property language-js">.frequency</code>
-            </a>
-        </h3>
-    </article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="q">
-        <h3 class="text-5 dot-indent">
-            <a href="#q">
-                <code class="property language-js">.Q</code>
-            </a>
-        </h3>
-    </article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="type">
-        <h3 class="text-5 dot-indent">
-            <a href="#type">
-                <code class="property language-js">.type</code>
-            </a>
-        </h3>
-    </article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="lfotype">
-        <h3 class="text-5 dot-indent">
-            <a href="#lfotype">
-                <code class="property language-js">.lfoType</code>
-            </a>
-        </h3>
-    </article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="envelope">
-        <h3 class="text-5 dot-indent">
-            <a href="#envelope">
-                <code class="property language-js">.envelope</code>
-            </a>
-        </h3>
-    </article>
-
     </section>
 
     <section class="x-1 2x @1-x-3 @2-x-4">
@@ -740,81 +305,18 @@ array. The wrapper object is returned.</p>
     </section>
 
         </article>
-
-
-        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="flanger-context-settings">
-            <h3 class="text-5 dot-indent">
-                <a href="#flanger-context-settings">
-                    <code class="property language-js">"flanger"</code>
+    
+        
+        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="">
+            <h3 class="doctext-05 dot-indent">
+                <a href="#{[id]}">
+                    <code class="property language-js">"{[name|lowercase]}"</code>
                 </a>
-            </h3><pre><code><span class="token keyword">const</span> flanger <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token string">'flanger'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-    delay<span class="token punctuation">:</span>
-    depth<span class="token punctuation">:</span>
-    feedback<span class="token punctuation">:</span>
-    frequency<span class="token punctuation">:</span>
-    type<span class="token punctuation">:</span>
-    dry<span class="token punctuation">:</span>
-    wet<span class="token punctuation">:</span>
-<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre><p>Creates a modulation delay effect, or ‘flanger’.</p>
+            </h3>
 
-
-
+            
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
-    <article class="property-toggle-block toggle-block block" toggleable="" id="delay">
-        <h3 class="text-5 dot-indent">
-            <a href="#delay">
-                <code class="property language-js">.delay</code>
-            </a>
-        </h3>
-    <p>Base delay for the modulation.</p>
-</article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="depth">
-        <h3 class="text-5 dot-indent">
-            <a href="#depth">
-                <code class="property language-js">.depth</code>
-            </a>
-        </h3>
-    <p>Modulation depth.</p>
-</article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="feedback">
-        <h3 class="text-5 dot-indent">
-            <a href="#feedback">
-                <code class="property language-js">.feedback</code>
-            </a>
-        </h3>
-    <p>Signal gain to feed back into the modulator.</p>
-</article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="frequency">
-        <h3 class="text-5 dot-indent">
-            <a href="#frequency">
-                <code class="property language-js">.frequency</code>
-            </a>
-        </h3>
-    <p>Modulation frequency.</p>
-</article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="dry">
-        <h3 class="text-5 dot-indent">
-            <a href="#dry">
-                <code class="property language-js">.dry</code>
-            </a>
-        </h3>
-    <p>AudioParam controlling dry gain.</p>
-</article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="wet">
-        <h3 class="text-5 dot-indent">
-            <a href="#wet">
-                <code class="property language-js">.wet</code>
-            </a>
-        </h3>
-    <p>AudioParam controlling effect gain.</p>
-</article>
-
     </section>
 
     <section class="x-1 2x @1-x-3 @2-x-4">
@@ -822,169 +324,18 @@ array. The wrapper object is returned.</p>
     </section>
 
         </article>
-
-
-        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="looper-context-settings">
-            <h3 class="text-5 dot-indent">
-                <a href="#looper-context-settings">
-                    <code class="property language-js">"looper"</code>
+    
+        
+        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="">
+            <h3 class="doctext-05 dot-indent">
+                <a href="#{[id]}">
+                    <code class="property language-js">"{[name|lowercase]}"</code>
                 </a>
-            </h3><pre><code><span class="token keyword">const</span> looper <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token string">'looper'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-    <span class="token punctuation">[</span>Todo<span class="token punctuation">]</span>
-<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre><p>Creates a node that records and loops audio.</p>
+            </h3>
 
-
-
+            
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
-    <article class="property-toggle-block toggle-block block" toggleable="" id="dry">
-        <h3 class="text-5 dot-indent">
-            <a href="#dry">
-                <code class="property language-js">.dry</code>
-            </a>
-        </h3>
-    <p>An AudioParam controlling the direct signal (‘dry’) gain.</p>
-</article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="wet">
-        <h3 class="text-5 dot-indent">
-            <a href="#wet">
-                <code class="property language-js">.wet</code>
-            </a>
-        </h3>
-    <p>An AudioParam controlling the looper signal (‘wet’) gain.</p>
-</article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="beats">
-        <h3 class="text-5 dot-indent">
-            <a href="#beats">
-                <code class="property language-js">.beats</code>
-            </a>
-        </h3>
-    <p>The beat duration of the base loop.</p>
-</article>
-
-    </section>
-
-    <section class="x-1 2x @1-x-3 @2-x-4">
-        <!--template-->
-    <article class="method-toggle-block toggle-block block" toggleable="" id="start-time">
-        <h3 class="text-5 dot-indent">
-            <a href="#start-time">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span>time<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Start playback of loops at <code>time</code>. If Soundstage’s transport is not running,
-    it is set to run at the same rate as the looper and also started at <code>time</code>.</p>
-<pre><code>Returns <span class="token template-string"><span class="token string">`this`</span></span><span class="token punctuation">.</span></code></pre></article>
-
-    <article class="method-toggle-block toggle-block block" toggleable="" id="stop-time">
-        <h3 class="text-5 dot-indent">
-            <a href="#stop-time">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">stop</span><span class="token punctuation">(</span>time<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Stop playback of loops at <code>time</code>.</p>
-<pre><code>Returns <span class="token template-string"><span class="token string">`this`</span></span><span class="token punctuation">.</span></code></pre></article>
-
-    <article class="method-toggle-block toggle-block block" toggleable="" id="startrecord-time">
-        <h3 class="text-5 dot-indent">
-            <a href="#startrecord-time">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">startRecord</span><span class="token punctuation">(</span>time<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Starts recording at <code>time</code>. The looper is continually buffering a signal,
-    so <code>time</code> may be before <code>context.currentTime</code> (by up to 0.6s @44.1kHz or
-    0.3s @96kHz). This means recorded loops may be started in syncrounisation
-    with audio already leaving the system’s output.</p>
-<pre><code>Returns <span class="token template-string"><span class="token string">`this`</span></span><span class="token punctuation">.</span></code></pre></article>
-
-    <article class="method-toggle-block toggle-block block" toggleable="" id="stoprecord-time">
-        <h3 class="text-5 dot-indent">
-            <a href="#stoprecord-time">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">stopRecord</span><span class="token punctuation">(</span>time<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Stop recording at <code>time</code>. If the looper is not already playing, playback
-    is started at the same time.</p>
-<pre><code>Returns <span class="token template-string"><span class="token string">`this`</span></span><span class="token punctuation">.</span></code></pre></article>
-
-    <article class="method-toggle-block toggle-block block" toggleable="" id="records">
-        <h3 class="text-5 dot-indent">
-            <a href="#records">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">records</span><span class="token punctuation">(</span><span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Returns an array of records, objects containing unsaved buffers. This
-    method is called by <code>Soundstage.records()</code> when gathering records from all
-    nodes.</p>
-</article>
-
-    </section>
-
-        </article>
-
-
-        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="saturator-context-settings">
-            <h3 class="text-5 dot-indent">
-                <a href="#saturator-context-settings">
-                    <code class="property language-js">"saturator"</code>
-                </a>
-            </h3><pre><code><span class="token keyword">const</span> saturator <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token string">'saturator'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-
-<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
-
-
-    <section class="x-1 2x @1-x-1 @2-x-2">
-        <!--template-->
-    <article class="property-toggle-block toggle-block block" toggleable="" id="drive">
-        <h3 class="text-5 dot-indent">
-            <a href="#drive">
-                <code class="property language-js">.drive</code>
-            </a>
-        </h3>
-    </article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="cutoff">
-        <h3 class="text-5 dot-indent">
-            <a href="#cutoff">
-                <code class="property language-js">.cutoff</code>
-            </a>
-        </h3>
-    </article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="wet">
-        <h3 class="text-5 dot-indent">
-            <a href="#wet">
-                <code class="property language-js">.wet</code>
-            </a>
-        </h3>
-    </article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="dry">
-        <h3 class="text-5 dot-indent">
-            <a href="#dry">
-                <code class="property language-js">.dry</code>
-            </a>
-        </h3>
-    </article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="shape">
-        <h3 class="text-5 dot-indent">
-            <a href="#shape">
-                <code class="property language-js">.shape</code>
-            </a>
-        </h3>
-    </article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="transform">
-        <h3 class="text-5 dot-indent">
-            <a href="#transform">
-                <code class="property language-js">.transform</code>
-            </a>
-        </h3>
-    </article>
-
     </section>
 
     <section class="x-1 2x @1-x-3 @2-x-4">
@@ -992,27 +343,18 @@ array. The wrapper object is returned.</p>
     </section>
 
         </article>
-
-
-        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="meter-context">
-            <h3 class="text-5 dot-indent">
-                <a href="#meter-context">
-                    <code class="property language-js">"meter"</code>
+    
+        
+        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="">
+            <h3 class="doctext-05 dot-indent">
+                <a href="#{[id]}">
+                    <code class="property language-js">"{[name|lowercase]}"</code>
                 </a>
-            </h3><pre><code><span class="token keyword">const</span> meter <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token string">'meter'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+            </h3>
 
-
+            
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
-    <article class="property-toggle-block toggle-block block" toggleable="" id="peaks">
-        <h3 class="text-5 dot-indent">
-            <a href="#peaks">
-                <code class="property language-js">.peaks</code>
-            </a>
-        </h3>
-    <p>Peak level readout per channel.</p>
-</article>
-
     </section>
 
     <section class="x-1 2x @1-x-3 @2-x-4">
@@ -1020,39 +362,18 @@ array. The wrapper object is returned.</p>
     </section>
 
         </article>
-
-
-        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="mix-context-settings">
-            <h3 class="text-5 dot-indent">
-                <a href="#mix-context-settings">
-                    <code class="property language-js">"mix"</code>
+    
+        
+        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="">
+            <h3 class="doctext-05 dot-indent">
+                <a href="#{[id]}">
+                    <code class="property language-js">"{[name|lowercase]}"</code>
                 </a>
-            </h3><pre><code><span class="token keyword">const</span> mix <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token string">'mix'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-    gain<span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
-    pan<span class="token punctuation">:</span> <span class="token number">0</span>
-<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+            </h3>
 
-
+            
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
-    <article class="property-toggle-block toggle-block block" toggleable="" id="gain">
-        <h3 class="text-5 dot-indent">
-            <a href="#gain">
-                <code class="property language-js">.gain</code>
-            </a>
-        </h3>
-    <p>AudioParam controlling gain.</p>
-</article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="pan">
-        <h3 class="text-5 dot-indent">
-            <a href="#pan">
-                <code class="property language-js">.pan</code>
-            </a>
-        </h3>
-    <p>AudioParam controlling stereo pan position.</p>
-</article>
-
     </section>
 
     <section class="x-1 2x @1-x-3 @2-x-4">
@@ -1060,31 +381,18 @@ array. The wrapper object is returned.</p>
     </section>
 
         </article>
-
-
-        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="noise-context-settings">
-            <h3 class="text-5 dot-indent">
-                <a href="#noise-context-settings">
-                    <code class="property language-js">"noise"</code>
+    
+        
+        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="">
+            <h3 class="doctext-05 dot-indent">
+                <a href="#{[id]}">
+                    <code class="property language-js">"{[name|lowercase]}"</code>
                 </a>
-            </h3><pre><code><span class="token keyword">const</span> noise <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token string">'noise'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-    type<span class="token punctuation">:</span> <span class="token string">'sine'</span><span class="token punctuation">,</span>      <span class="token comment">// String 'white', 'pink', 'brown'</span>
-<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre><p>A noise object generates noise.</p>
+            </h3>
 
-
-
+            
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
-    <article class="property-toggle-block toggle-block block" toggleable="" id="type">
-        <h3 class="text-5 dot-indent">
-            <a href="#type">
-                <code class="property language-js">.type</code>
-            </a>
-        </h3>
-    <p>One of the strings <code>'white'</code>, <code>'pink'</code> or <code>'brown'</code> describing the
-    <i>colour</i> of noise to generate.</p>
-</article>
-
     </section>
 
     <section class="x-1 2x @1-x-3 @2-x-4">
@@ -1092,58 +400,18 @@ array. The wrapper object is returned.</p>
     </section>
 
         </article>
-
-
-        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="sample-context-settings">
-            <h3 class="text-5 dot-indent">
-                <a href="#sample-context-settings">
-                    <code class="property language-js">"sample"</code>
+    
+        
+        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="">
+            <h3 class="doctext-05 dot-indent">
+                <a href="#{[id]}">
+                    <code class="property language-js">"{[name|lowercase]}"</code>
                 </a>
-            </h3><pre><code><span class="token keyword">const</span> sample <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token string">'sample'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-    src<span class="token punctuation">:</span> <span class="token string">'path/to/data'</span><span class="token punctuation">,</span>  <span class="token comment">// A path where the data for the sample set is kept</span>
-<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre><p>A sample object represents a set of audio buffers that are mapped to the
-playback of pitches. Mapping is defined in a JSON file.</p>
+            </h3>
 
-
-
+            
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
-    <article class="property-toggle-block toggle-block block" toggleable="" id="src">
-        <h3 class="text-5 dot-indent">
-            <a href="#src">
-                <code class="property language-js">.src</code>
-            </a>
-        </h3>
-    <p>Path to a JSON file for sample set data. See [Todo:link] Sample Set Data.</p>
-</article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="gain">
-        <h3 class="text-5 dot-indent">
-            <a href="#gain">
-                <code class="property language-js">.gain</code>
-            </a>
-        </h3>
-    <p>A float read on <code>.start()</code></p>
-</article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="frequency">
-        <h3 class="text-5 dot-indent">
-            <a href="#frequency">
-                <code class="property language-js">.frequency</code>
-            </a>
-        </h3>
-    <p>A float that is read on <code>.start()</code>.</p>
-</article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="detune">
-        <h3 class="text-5 dot-indent">
-            <a href="#detune">
-                <code class="property language-js">.detune</code>
-            </a>
-        </h3>
-    <p>An AudioParam that modifies the frequency in cents.</p>
-</article>
-
     </section>
 
     <section class="x-1 2x @1-x-3 @2-x-4">
@@ -1151,344 +419,107 @@ playback of pitches. Mapping is defined in a JSON file.</p>
     </section>
 
         </article>
-
-
-        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="tone-context-settings">
-            <h3 class="text-5 dot-indent">
-                <a href="#tone-context-settings">
-                    <code class="property language-js">"tone"</code>
+    
+        
+        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="">
+            <h3 class="doctext-05 dot-indent">
+                <a href="#{[id]}">
+                    <code class="property language-js">"{[name|lowercase]}"</code>
                 </a>
-            </h3><pre><code><span class="token keyword">const</span> tone <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token string">'tone'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-    type<span class="token punctuation">:</span> <span class="token string">'sine'</span><span class="token punctuation">,</span>      <span class="token comment">// String 'sine', 'square', 'sawtooth', 'triangle'</span>
-    frequency<span class="token punctuation">:</span> <span class="token number">440</span><span class="token punctuation">,</span>    <span class="token comment">// Frequency in Hz</span>
-    detune<span class="token punctuation">:</span> <span class="token number">0</span><span class="token punctuation">,</span>         <span class="token comment">// Deviation from frequency in cents</span>
-    gain<span class="token punctuation">:</span> <span class="token number">1</span>            <span class="token comment">// A float nominally in the range 0-1</span>
-<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre><p>A tone object is a simple wrapper for a standard oscillator node, but where an
-oscillator may only be started once, a tone can be started and stopped at will.</p>
-<p>It is unusual to create tones directly, but they are an essential component for
-defining voices for instruments.</p>
+            </h3>
 
-
-
-    <section class="x-1 2x @1-x-1 @2-x-2">
-        <!--template-->
-    <article class="property-toggle-block toggle-block block" toggleable="" id="type">
-        <h3 class="text-5 dot-indent">
-            <a href="#type">
-                <code class="property language-js">.type</code>
-            </a>
-        </h3>
-    <p>A string. One of <code>'sine'</code>, <code>'square'</code>, <code>'sawtooth'</code> or <code>'triangle'</code>.</p>
-</article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="frequency">
-        <h3 class="text-5 dot-indent">
-            <a href="#frequency">
-                <code class="property language-js">.frequency</code>
-            </a>
-        </h3>
-    <p>An AudioParam representing frequency in Hz.</p>
-</article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="detune">
-        <h3 class="text-5 dot-indent">
-            <a href="#detune">
-                <code class="property language-js">.detune</code>
-            </a>
-        </h3>
-    <p>An AudioParam representing a deviation from frequency in cents.</p>
-</article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="gain">
-        <h3 class="text-5 dot-indent">
-            <a href="#gain">
-                <code class="property language-js">.gain</code>
-            </a>
-        </h3>
-    <p>A float, nominally in the range <code>0–1</code>, that is read on calling <code>.start()</code>
-    to set the gain of the tone. Changes to <code>.gain</code> during playback have no
-    effect.</p>
-</article>
-
-    </section>
-
-    <section class="x-1 2x @1-x-3 @2-x-4">
-        <!--template-->
-    <article class="method-toggle-block toggle-block block" toggleable="" id="start-time">
-        <h3 class="text-5 dot-indent">
-            <a href="#start-time">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span>time<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Start the tone at <code>time</code>.</p>
-</article>
-
-    <article class="method-toggle-block toggle-block block" toggleable="" id="stop-time">
-        <h3 class="text-5 dot-indent">
-            <a href="#stop-time">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">stop</span><span class="token punctuation">(</span>time<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Stop the tone at <code>time</code>.</p>
-</article>
-
-    </section>
-
-        </article>
-
-
-        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="tick-context-settings">
-            <h3 class="text-5 dot-indent">
-                <a href="#tick-context-settings">
-                    <code class="property language-js">"tick"</code>
-                </a>
-            </h3><pre><code><span class="token keyword">const</span> tick <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token string">'tick'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-    resonance<span class="token punctuation">:</span>         <span class="token comment">// Todo</span>
-    decay<span class="token punctuation">:</span>             <span class="token comment">// Todo</span>
-    gain<span class="token punctuation">:</span> <span class="token number">1</span>            <span class="token comment">// Output gain nominally in the range `0–1`</span>
-<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre><p>A tick object is a signal generator that emits a ‘tick’ sound on <code>.start()</code>.
-Used inside the metronome.</p>
-
-
-
-    <section class="x-1 2x @1-x-1 @2-x-2">
-        <!--template-->
-    <article class="property-toggle-block toggle-block block" toggleable="" id="resonance">
-        <h3 class="text-5 dot-indent">
-            <a href="#resonance">
-                <code class="property language-js">.resonance</code>
-            </a>
-        </h3>
-    <p>A float?? Todo.</p>
-</article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="decay">
-        <h3 class="text-5 dot-indent">
-            <a href="#decay">
-                <code class="property language-js">.decay</code>
-            </a>
-        </h3>
-    <p>A float?? Todo.</p>
-</article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="gain">
-        <h3 class="text-5 dot-indent">
-            <a href="#gain">
-                <code class="property language-js">.gain</code>
-            </a>
-        </h3>
-    <p>An AudioParam representing output gain.</p>
-</article>
-
-    </section>
-
-    <section class="x-1 2x @1-x-3 @2-x-4">
-        <!--template-->
-    <article class="method-toggle-block toggle-block block" toggleable="" id="start-time-note-velocity">
-        <h3 class="text-5 dot-indent">
-            <a href="#start-time-note-velocity">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span>time<span class="token punctuation">,</span> note<span class="token punctuation">,</span> velocity<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Todo: move parameters to be properties of tick object, echoing other signal generators</p>
-</article>
-
-    <article class="method-toggle-block toggle-block block" toggleable="" id="stop">
-        <h3 class="text-5 dot-indent">
-            <a href="#stop">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">stop</span><span class="token punctuation">(</span><span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>A noop method, provided to echo the interface of other generators.</p>
-</article>
-
-    </section>
-
-        </article>
-
-
-        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="envelope-context-settings">
-            <h3 class="text-5 dot-indent">
-                <a href="#envelope-context-settings">
-                    <code class="property language-js">"envelope"</code>
-                </a>
-            </h3><pre><code class="language-js"><span class="token keyword">const</span> envelope <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token string">'envelope'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-    <span class="token comment">// An array of param events describing a attack curve</span>
-    attack<span class="token punctuation">:</span> <span class="token punctuation">[</span>
-        <span class="token punctuation">[</span><span class="token number">0.01</span><span class="token punctuation">,</span> <span class="token string">'linear'</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">]</span>
-    <span class="token punctuation">]</span><span class="token punctuation">,</span>
-
-    <span class="token comment">// An array of param events describing a release curve</span>
-    release<span class="token punctuation">:</span> <span class="token punctuation">[</span>
-        <span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token string">'target'</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">,</span> <span class="token number">0.2</span><span class="token punctuation">]</span>
-    <span class="token punctuation">]</span><span class="token punctuation">,</span>
-
-    gain<span class="token punctuation">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
-    rate<span class="token punctuation">:</span> <span class="token number">1</span>
-<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
-<p class="warn">
-Take care not to connect an envelope directly to your outputs – expecially if you have expensive speakers attached.
-They are capable of producing DC signal.
-</p>
-
-
-
-    <section class="x-1 2x @1-x-1 @2-x-2">
-        <!--template-->
-    <article class="property-toggle-block toggle-block block" toggleable="" id="attack">
-        <h3 class="text-5 dot-indent">
-            <a href="#attack">
-                <code class="property language-js">.attack</code>
-            </a>
-        </h3>
-    <p>An array of param events describing an arbitrary attack curve for the
-    envelope. Param events have the form [time, type, value] (or if type is
-    <code>'target'</code>, [time, type, value, duration]), where <code>time</code> is the time since
-    the time passed to <code>.start(time)</code>.</p>
-<pre><code>The <span class="token keyword">default</span> envelope value at time <span class="token template-string"><span class="token string">`0`</span></span> is <span class="token template-string"><span class="token string">`0`</span></span><span class="token punctuation">.</span></code></pre></article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="release">
-        <h3 class="text-5 dot-indent">
-            <a href="#release">
-                <code class="property language-js">.release</code>
-            </a>
-        </h3>
-    <p>An array of param events describing the release curve of the envelope. Param
-    events have the form [time, type, value] (or if type is <code>'target'</code>
-    [time, type, value, duration]), where <code>time</code> is the time since the time
-    passed to <code>.stop(time)</code>.</p>
-<pre><code>Values are scaled to the current value <span class="token keyword">of</span> the envelope – <span class="token keyword">if</span> the attack
-envelope decays to a value <span class="token keyword">of</span> <span class="token template-string"><span class="token string">`0.5`</span></span><span class="token punctuation">,</span> say<span class="token punctuation">,</span> by the scheduled stop time<span class="token punctuation">,</span> all
-values <span class="token keyword">in</span> the release envelope are multiplied by <span class="token template-string"><span class="token string">`0.5`</span></span><span class="token punctuation">.</span> The last event
-should have a value <span class="token keyword">of</span> <span class="token template-string"><span class="token string">`0`</span></span><span class="token punctuation">,</span> otherwise the envelope will never stop<span class="token punctuation">.</span></code></pre></article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="gain">
-        <h3 class="text-5 dot-indent">
-            <a href="#gain">
-                <code class="property language-js">.gain</code>
-            </a>
-        </h3>
-    <p>A float, nominally in the rage <code>0–1</code>, that is read on <code>.start()</code> to
-    determine the gain to apply to the curve.</p>
-</article>
-
-    <article class="property-toggle-block toggle-block block" toggleable="" id="rate">
-        <h3 class="text-5 dot-indent">
-            <a href="#rate">
-                <code class="property language-js">.rate</code>
-            </a>
-        </h3>
-    <p>A float that is read on <code>.start()</code> or <code>.stop()</code> to determine the rate of
-    playback to apply to the curve.</p>
-</article>
-
-    </section>
-
-    <section class="x-1 2x @1-x-3 @2-x-4">
-        <!--template-->
-    <article class="method-toggle-block toggle-block block" toggleable="" id="start-time">
-        <h3 class="text-5 dot-indent">
-            <a href="#start-time">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span>time<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Start playback of envelope at <code>time</code>.</p>
-<pre><code>Returns <span class="token template-string"><span class="token string">`this`</span></span><span class="token punctuation">.</span></code></pre></article>
-
-    <article class="method-toggle-block toggle-block block" toggleable="" id="stop-time">
-        <h3 class="text-5 dot-indent">
-            <a href="#stop-time">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">stop</span><span class="token punctuation">(</span>time<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Stop playback of envelope at <code>time</code>.</p>
-<pre><code>Returns <span class="token template-string"><span class="token string">`this`</span></span><span class="token punctuation">.</span></code></pre></article>
-
-    </section>
-
-        </article>
-
-
-        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="instrument-context-settings">
-            <h3 class="text-5 dot-indent">
-                <a href="#instrument-context-settings">
-                    <code class="property language-js">"instrument"</code>
-                </a>
-            </h3><pre><code><span class="token keyword">const</span> instrument <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token function">create</span><span class="token punctuation">(</span><span class="token string">'instrument'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
-    voice<span class="token punctuation">:</span> <span class="token punctuation">{</span>
-        <span class="token comment">// Inherited from NodeGraph</span>
-        nodes<span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token operator">...</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
-        connections<span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token operator">...</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
-        properties<span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token operator">...</span><span class="token punctuation">}</span><span class="token punctuation">,</span>
-        output<span class="token punctuation">:</span> <span class="token string">'id'</span><span class="token punctuation">,</span>
-
-        <span class="token comment">// Start parameters</span>
-        __start<span class="token punctuation">:</span> <span class="token punctuation">{</span>
-            filter<span class="token punctuation">:</span> <span class="token punctuation">{</span>
-                frequency<span class="token punctuation">:</span> <span class="token punctuation">{</span>
-                    <span class="token number">1</span><span class="token punctuation">:</span> <span class="token punctuation">{</span> type<span class="token punctuation">:</span> <span class="token string">'scale'</span><span class="token punctuation">,</span> scale<span class="token punctuation">:</span> <span class="token number">1</span> <span class="token punctuation">}</span>
-                <span class="token punctuation">}</span>
-            <span class="token punctuation">}</span>
-        <span class="token punctuation">}</span><span class="token punctuation">,</span>
-    <span class="token punctuation">}</span>
-<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre><p>An instrument is a polyphonic controller for multiple voice nodes. The <code>voice</code>
-property of an instrument describes an arbitrary node graph that is used to
-build and play a voice node each time <code>instrument.start()</code> is called.</p>
-<aside class="note">I'm lying to you. In reality new voices are not created on
-<i>every</i> call to start. For efficiency, they are pooled then reused when
-they are idle behind the scenes.</aside>
-
-<p>The voice settings <code>nodes</code>, <code>connections</code>, <code>properties</code> and <code>output</code> are
-inherited from NodeGraph (see below).</p>
-<p>The <code>__start</code> object defines transforms that determine how <code>.start()</code> parameters
-map to property and param values of the voice. In the example above start
-parameter 1 (note frequency) is scaled then used to set the <code>frequency</code>
-AudioParam of the child node <code>'filter'</code>.</p>
-
-
-
+            
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
     </section>
 
     <section class="x-1 2x @1-x-3 @2-x-4">
         <!--template-->
-    <article class="method-toggle-block toggle-block block" toggleable="" id="start-time-note-velocity">
-        <h3 class="text-5 dot-indent">
-            <a href="#start-time-note-velocity">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span>time<span class="token punctuation">,</span> note<span class="token punctuation">,</span> velocity<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Creates a voice node from the data in <code>.voice</code>, then calls its <code>.start()</code>
-    method with the same parameters.</p>
-<pre><code>Returns the voice node<span class="token punctuation">,</span> enabling the pattern<span class="token punctuation">:</span>
-
-<span class="token template-string"><span class="token string">``</span></span><span class="token template-string"><span class="token string">`
-instrument
-.start(startTime, note, velocity)
-.stop(stopTime);
-`</span></span><span class="token template-string"><span class="token string">``</span></span></code></pre></article>
-
-    <article class="method-toggle-block toggle-block block" toggleable="" id="stop-time-note">
-        <h3 class="text-5 dot-indent">
-            <a href="#stop-time-note">
-                <code class="function language-js"><span class="token punctuation">.</span><span class="token function">stop</span><span class="token punctuation">(</span>time<span class="token punctuation">,</span> note<span class="token punctuation">)</span></code>
-            </a>
-        </h3>
-    <p>Stops the first playing voice node found to match <code>note</code>. Provided as a
-    convenience: normally voice nodes are stopped using their own <code>.stop()</code>
-    method.</p>
-<pre><code>Returns <span class="token keyword">this</span><span class="token punctuation">.</span></code></pre></article>
-
     </section>
 
         </article>
+    
+        
+        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="">
+            <h3 class="doctext-05 dot-indent">
+                <a href="#{[id]}">
+                    <code class="property language-js">"{[name|lowercase]}"</code>
+                </a>
+            </h3>
 
+            
+    <section class="x-1 2x @1-x-1 @2-x-2">
+        <!--template-->
     </section>
 
-    <section class="x-1 3x @1-6x @2-x-2 grid-6 grid" id="nodes">
+    <section class="x-1 2x @1-x-3 @2-x-4">
+        <!--template-->
+    </section>
+
+        </article>
+    
+        
+        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="">
+            <h3 class="doctext-05 dot-indent">
+                <a href="#{[id]}">
+                    <code class="property language-js">"{[name|lowercase]}"</code>
+                </a>
+            </h3>
+
+            
+    <section class="x-1 2x @1-x-1 @2-x-2">
+        <!--template-->
+    </section>
+
+    <section class="x-1 2x @1-x-3 @2-x-4">
+        <!--template-->
+    </section>
+
+        </article>
+    
+        
+        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="">
+            <h3 class="doctext-05 dot-indent">
+                <a href="#{[id]}">
+                    <code class="property language-js">"{[name|lowercase]}"</code>
+                </a>
+            </h3>
+
+            
+    <section class="x-1 2x @1-x-1 @2-x-2">
+        <!--template-->
+    </section>
+
+    <section class="x-1 2x @1-x-3 @2-x-4">
+        <!--template-->
+    </section>
+
+        </article>
+    
+        
+        <article class="function-toggle-block toggle-block block 3x" toggleable="" id="">
+            <h3 class="doctext-05 dot-indent">
+                <a href="#{[id]}">
+                    <code class="property language-js">"{[name|lowercase]}"</code>
+                </a>
+            </h3>
+
+            
+    <section class="x-1 2x @1-x-1 @2-x-2">
+        <!--template-->
+    </section>
+
+    <section class="x-1 2x @1-x-3 @2-x-4">
+        <!--template-->
+    </section>
+
+        </article>
+    
+    </section>
+
+    <section class="x-1 3x @1-6x @2-x-2 6x-grid grid" id="nodes">
         <header class="x-1 3x">
-            <h2 class="text-2">Connectors</h2>
+            <h2 class="doctext-02">Connectors</h2>
         </header>
 
         <div class="x-1 3x">
@@ -1514,105 +545,25 @@ instrument
 
 
 
-    <section class="x-1 3x @1-6x @2-x-1 grid-6 grid">
+    <section class="x-1 3x @1-6x @2-x-1 6x-grid grid">
         <header class="x-1 4x @1-x-1 @2-x-2">
-            <h2 class="text-2">Sequences</h2>
+            <h2 class="doctext-02">Sequences</h2>
         </header>
 
-        <!--div--><div class="x-1 3x @1-x-1 @2-x-2"><p>A sequence is an object with an <code>.events</code> array. A stage itself is a
-sequence: it has an <code>.events</code> array. Events may be created in the stage
-events array by calling <code>stage.createEvent()</code>:</p>
-<pre><code class="language-js">stage<span class="token punctuation">.</span><span class="token function">createEvent</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token string">'rate'</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
-<p>A stage may be initialised with events by passing them in the data object to the
-<code>Soundstage</code> constructor:</p>
-<pre><code class="language-js"><span class="token keyword">const</span> stage <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Soundstage</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
-    events<span class="token punctuation">:</span> <span class="token punctuation">[</span>
-        <span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token string">'rate'</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">]</span>
-    <span class="token punctuation">]</span>
-<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
-<p>Events in the <code>.events</code> array are played when the sequencer is started:</p>
-<pre><code class="language-js">stage<span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
-</div>
+        <!--div-->
     </section>
 
-    <section class="x-1 3x @1-6x @2-x-2 grid-6 grid">
+    <section class="x-1 3x @1-6x @2-x-2 6x-grid grid">
         <header class="x-1 3x">
-            <h2 class="text-2">Events</h2>
+            <h2 class="doctext-02">Events</h2>
         </header>
 
-        <!--div--><div class="x-1 3x"><p>An event requires a <code>beat</code>, <code>type</code> and some <code>data</code>.</p>
-<pre><code class="language-js">stage<span class="token punctuation">.</span><span class="token function">createEvent</span><span class="token punctuation">(</span>beat<span class="token punctuation">,</span> type<span class="token punctuation">,</span> data<span class="token operator">...</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
-<ul>
-<li><code>beat</code> is a number representing the time in beats from the start of a
-sequence at which to play the event</li>
-<li><code>type</code> is a string</li>
-</ul>
-<p>Data parameters are dependent on the event type. The built-in
-events types and the data they expect are:</p>
-</div>
+        <!--div-->
 
         <!-- For layout only. Get rid of, if poss. -->
         <div class="x-4 3x"></div>
 
         <!--template-->
-        <article class="block 3x">
-            <h3 class="text-5 ">
-                <code class="property language-js">"meter"</code>
-            </h3>
-        <pre><code class="language-js"><span class="token punctuation">[</span>beat<span class="token punctuation">,</span> <span class="token string">"meter"</span><span class="token punctuation">,</span> numerator<span class="token punctuation">,</span> denominator<span class="token punctuation">]</span></code></pre>
-<ul>
-<li><code>numerator</code> is the number of meter divisions</li>
-<li><code>denominator</code> is the duration (in beats) of a meter division</li>
-</ul>
-</article>
-
-        <article class="block 3x">
-            <h3 class="text-5 ">
-                <code class="property language-js">"note"</code>
-            </h3>
-        <pre><code class="language-js"><span class="token punctuation">[</span>beat<span class="token punctuation">,</span> <span class="token string">"note"</span><span class="token punctuation">,</span> name<span class="token punctuation">,</span> velocity<span class="token punctuation">,</span> duration<span class="token punctuation">]</span></code></pre>
-<ul>
-<li><code>name</code> is a number in the range <code>0-127</code> or a MIDI note name <code>"C3"</code></li>
-<li><code>velocity</code> is a float in the nominal range <code>0-1</code></li>
-<li><code>duration</code> is a float, in beats</li>
-</ul>
-</article>
-
-        <article class="block 3x">
-            <h3 class="text-5 ">
-                <code class="property language-js">"param"</code>
-            </h3>
-        <pre><code class="language-js"><span class="token punctuation">[</span>beat<span class="token punctuation">,</span> <span class="token string">"param"</span><span class="token punctuation">,</span> name<span class="token punctuation">,</span> value<span class="token punctuation">,</span> curve<span class="token punctuation">]</span></code></pre>
-<ul>
-<li><code>name</code> is a string, the name of a property of a node to automate</li>
-<li><code>value</code> is a float, the value to automate to</li>
-<li><code>curve</code> is <code>"step"</code>, <code>"linear"</code>, <code>"exponential"</code> or <code>"target"</code></li>
-</ul>
-</article>
-
-        <article class="block 3x">
-            <h3 class="text-5 ">
-                <code class="property language-js">"rate"</code>
-            </h3>
-        <pre><code class="language-js"><span class="token punctuation">[</span>beat<span class="token punctuation">,</span> <span class="token string">"rate"</span><span class="token punctuation">,</span> rate<span class="token punctuation">,</span> curve<span class="token punctuation">]</span></code></pre>
-<ul>
-<li><code>rate</code> is a float, a multiplier of the rate of the parent sequence</li>
-<li><code>curve</code> is <code>"step"</code> or <code>"exponential"</code></li>
-</ul>
-</article>
-
-        <article class="block 3x">
-            <h3 class="text-5 ">
-                <code class="property language-js">"sequence"</code>
-            </h3>
-        <pre><code class="language-js"><span class="token punctuation">[</span>beat<span class="token punctuation">,</span> <span class="token string">"sequence"</span><span class="token punctuation">,</span> sequence<span class="token punctuation">,</span> target<span class="token punctuation">,</span> duration<span class="token punctuation">]</span></code></pre>
-<ul>
-<li><code>sequence</code> is the id of a sequence in the <code>.sequences</code> array</li>
-<li><code>target</code> is the id of a node in the <code>.nodes</code> array</li>
-<li><code>duration</code> is a float, in beats</li>
-</ul>
-</article>
-
     </section>
 
 
@@ -1626,7 +577,7 @@ events types and the data they expect are:</p>
 
     <!--section class="x-1 3x @1-6x @2-9x @3-x-2 grid">
         <header class="x-1 6x @2-x-2 @2-6x">
-            <h2 class="text-2" style="font-size: 1.875rem;">Functions</h2>
+            <h2 class="doctext-02" style="font-size: 1.875rem;">Functions</h2>
         </header>
 
         <template build-fn="docs:'./modules/automate.js','./modules/request-buffer.js','./modules/request-data.js','./modules/transforms.js'" build-src="#property-template"></template>
@@ -1634,7 +585,7 @@ events types and the data they expect are:</p>
 
     <!--section class="x-1 3x @1-6x @2-9x @3-x-2 grid">
         <header class="x-1 7x @2-x-2 @3-6x @4-5x @5-3x">
-            <h2 class="text-2" style="font-size: 1.875rem;">Mixins</h2>
+            <h2 class="doctext-02" style="font-size: 1.875rem;">Mixins</h2>
             <p>
             Soundstage has a couple of helper constructors/mixins for composing nodes.
             These constructors cannot be accessed via `stage.createNode(name)`.
@@ -1643,49 +594,49 @@ events types and the data they expect are:</p>
 
 
 
-        <h2 class="x-1 6x @2-x-2 @2-6x text-3"><code class="language-js">Voice()</code></h2>
+        <h2 class="x-1 6x @2-x-2 @2-6x doctext-03"><code class="language-js">Voice()</code></h2>
 
         <div class="x-1 7x @2-x-2 @3-6x @4-5x @5-3x" build-fn="docs:'./nodes/voice.js?Voice' each append:body"></div>
 
         <section class="x-1 7x @1-x-1 @1-3x @2-x-2 @5-x-5 @5-2x">
-            <h3 class="text-4">Methods</h3>
+            <h3 class="doctext-04">Methods</h3>
             <template build-fn="docs:'./nodes/voice.js?start,stop','./nodes/graph.js?get'" build-src="#method-template"></template>
         </section>
 
         <section class="x-1 7x @1-x-4 @1-4x @2-x-5 @3-3x @5-x-7 @5-2x">
-            <h3 class="text-4">Properties</h3>
+            <h3 class="doctext-04">Properties</h3>
             <template build-fn="docs:'./nodes/voice.js?detune','./nodes/play-node.js?startTime,stopTime,playing'" build-src="#property-template"></template>
         </section>
 
 
 
-        <h2 class="x-1 6x @2-x-2 @2-6x text-3"><code class="language-js">NodeGraph()</code></h2>
+        <h2 class="x-1 6x @2-x-2 @2-6x doctext-03"><code class="language-js">NodeGraph()</code></h2>
 
         <div class="x-1 7x @2-x-2 @3-6x @4-5x @5-3x" build-fn="docs:'./nodes/graph.js?NodeGraph' each append:body"></div>
 
         <section class="x-1 7x @1-x-1 @1-3x @2-x-2 @5-x-5 @5-2x">
-            <h3 class="text-4">Methods</h3>
+            <h3 class="doctext-04">Methods</h3>
 
         </section>
 
         <section class="x-1 7x @1-x-4 @1-4x @2-x-5 @3-3x @5-x-7 @5-2x">
-            <h3 class="text-4">Properties</h3>
+            <h3 class="doctext-04">Properties</h3>
             <template build-fn="docs:'./nodes/graph.js?context,numberOfOutputs'" build-src="#property-template"></template>
         </section>
 
 
 
-        <h2 class="x-1 6x @2-x-2 @2-6x text-3"><code class="language-js">PlayNode()</code></h2>
+        <h2 class="x-1 6x @2-x-2 @2-6x doctext-03"><code class="language-js">PlayNode()</code></h2>
 
         <div class="x-1 7x @2-x-2 @3-6x @4-5x @5-3x" build-fn="docs:'./nodes/play-node.js?PlayNode' each append:body"></div>
 
         <section class="x-1 7x @1-x-1 @1-3x @2-x-2 @5-x-5 @5-2x">
-            <h3 class="text-4">Methods</h3>
+            <h3 class="doctext-04">Methods</h3>
             <template build-fn="docs:'./nodes/play-node.js?start,stop'" build-src="#method-template"></template>
         </section>
 
         <section class="x-1 7x @1-x-4 @1-4x @2-x-5 @3-3x @5-x-7 @5-2x">
-            <h3 class="text-4">Properties</h3>
+            <h3 class="doctext-04">Properties</h3>
             <template build-fn="docs:'./nodes/play-node.js?playing'" build-src="#property-template"></template>
         </section>
     </section-->
@@ -1695,7 +646,7 @@ events types and the data they expect are:</p>
 
     <!--section class="x-1 3x @1-6x @2-9x @3-x-2 grid">
         <header class="x-1 7x @2-x-2 @3-6x @4-5x @5-3x">
-            <h2 class="text-2" style="font-size: 1.875rem;">How to publish a Soundstage node</h2>
+            <h2 class="doctext-02" style="font-size: 1.875rem;">How to publish a Soundstage node</h2>
             <p>A Soundstage node is a WebAudio node.
             All the standard WebAudio nodes are available in Soundstage as built-ins,
             as are a number of nodes such as `input`, `output`, `envelope`. Then there
@@ -1735,12 +686,14 @@ export default class Sample extends GainNode {
     </section-->
 
     <!-- Build document -->
-
+    
 
     <!-- Document interactivity -->
     <script type="module">
         import '../dom/js/device.js';
         import '../dom/js/toggleable.js';
+        import '../dom/js/locateable.js';
+        import '../bolt/components/toggle-block.js';
     </script>
 
     <!-- Tests -->

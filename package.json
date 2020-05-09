@@ -37,7 +37,7 @@
         "lint": "eslint components/*.js && eslint modules/*.js && eslint nodes/*.js",
         "build": "npm run build-module && npm run build-css && npm run build-docs",
         "build-module": "rollup module.js --o module.rolled.js --f esm",
-        "build-docs": "node ../fn/build-html.js index.template.html index.html 6",
+        "build-docs": "node ../fn/build-html.js index.template.html index.html 10",
         "build-css": "node ../fn/build-css.js package.json style.min.css"
     }
 }

@@ -1,5 +1,5 @@
 
-/*
+/**
 Envelope(context, settings)
 
 ```js
@@ -23,7 +23,7 @@ const envelope = stage.createNode('envelope', {
 Take care not to connect an envelope directly to your outputs – expecially if you have expensive speakers attached.
 They are capable of producing DC signal.
 </p>
-*/
+**/
 
 import PlayNode from './play-node.js';
 import { automate, getValueAtTime, validateParamEvent } from '../modules/automate.js';
@@ -38,18 +38,18 @@ const getDefinition = Object.getOwnPropertyDescriptor;
 const targetDurationFactor = config.targetDurationFactor;
 
 const properties = {
-    /* .attack
+    /** .attack
     An array of param events describing an arbitrary attack curve for the
     envelope. Param events have the form [time, type, value] (or if type is
     `'target'`, [time, type, value, duration]), where `time` is the time since
     the time passed to `.start(time)`.
 
     The default envelope value at time `0` is `0`.
-    */
+    **/
 
     attack:  { writable: true, enumerable: true },
 
-    /* .release
+    /** .release
     An array of param events describing the release curve of the envelope. Param
     events have the form [time, type, value] (or if type is `'target'`
     [time, type, value, duration]), where `time` is the time since the time
@@ -59,21 +59,21 @@ const properties = {
     envelope decays to a value of `0.5`, say, by the scheduled stop time, all
     values in the release envelope are multiplied by `0.5`. The last event
     should have a value of `0`, otherwise the envelope will never stop.
-    */
+    **/
 
     release: { writable: true, enumerable: true },
 
-    /* .gain
+    /** .gain
     A float, nominally in the rage `0–1`, that is read on `.start()` to
     determine the gain to apply to the curve.
-    */
+    **/
 
     gain:    { writable: true, enumerable: true },
 
-    /* .rate
+    /** .rate
     A float that is read on `.start()` or `.stop()` to determine the rate of
     playback to apply to the curve.
-    */
+    **/
 
     rate:    { writable: true, enumerable: true }
 };
@@ -119,12 +119,12 @@ export default class Envelope extends ConstantSourceNode {
         assignSettingz__(this, assign({}, defaults, settings));
     }
 
-    /* .start(time)
+    /** .start(time)
 
     Start playback of envelope at `time`.
 
     Returns `this`.
-    */
+    **/
 
     start(time) {
         if (!this.attack) { return this; }
@@ -133,12 +133,12 @@ export default class Envelope extends ConstantSourceNode {
         return this;
     }
 
-    /* .stop(time)
+    /** .stop(time)
 
     Stop playback of envelope at `time`.
 
     Returns `this`.
-    */
+    **/
 
     stop(time) {
         if (!this.release) { return this; }

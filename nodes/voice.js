@@ -1,5 +1,5 @@
 
-/*
+/**
 Voice(context, settings)
 
 ```
@@ -22,7 +22,7 @@ A voice is an arbitrary graph of nodes intended to be used as a sound generator.
 Voices are normally created and started on the fly by a polyphonic Instrument,
 but may also be useful for game sound or interface hits where monophony is
 enough.
-*/
+**/
 
 import { Privates, denormalise } from '../../fn/module.js';
 import NodeGraph from './graph.js';
@@ -64,11 +64,11 @@ function Voice(context, data) {
 
     // Create detune
 
-    /*
+    /**
     .detune
 
     AudioParam Todo: description
-    */
+    **/
 
     const detune = createNode(context, 'constant', {
         offset: 0
@@ -125,7 +125,7 @@ function setPropertyOrParam(target, key, value) {
 
 assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 
-    /*
+    /**
     .start(time, note, velocity)
 
     Starts nodes in the graph that have `__start` settings.
@@ -139,7 +139,7 @@ assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
     to transforms in their `__start` settings).
 
     Returns this.
-    */
+    **/
 
     start: function(time, note = 49, velocity = 1) {
         PlayNode.prototype.start.apply(this, arguments);
@@ -196,7 +196,7 @@ assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
         return this;
     },
 
-    /*
+    /**
     .stop(time)
 
     Stops nodes in the graph that have `__start` settings.
@@ -207,7 +207,7 @@ assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
     told to, and this is reflected in the `.stopTime` of the voice.
 
     Returns this.
-    */
+    **/
 
     stop: function(time, note = 49, velocity = 1) {
         PlayNode.prototype.stop.apply(this, arguments);

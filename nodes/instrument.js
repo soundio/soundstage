@@ -1,5 +1,5 @@
 
-/*
+/**
 Instrument(context, settings)
 
 ```
@@ -38,7 +38,7 @@ The `__start` object defines transforms that determine how `.start()` parameters
 map to property and param values of the voice. In the example above start
 parameter 1 (note frequency) is scaled then used to set the `frequency`
 AudioParam of the child node `'filter'`.
-*/
+**/
 
 import { logGroup, logGroupEnd } from './print.js';
 import { isDefined, Privates } from '../../fn/module.js';
@@ -53,7 +53,7 @@ const assign = Object.assign;
 const define = Object.defineProperties;
 
 export const config = {
-	tuning: 440
+    tuning: 440
 };
 
 const graph = {
@@ -151,7 +151,7 @@ export default class Instrument extends GainNode {
 
 assign(Instrument.prototype, NodeGraph.prototype, {
 
-    /*
+    /**
     .start(time, note, velocity)
 
     Creates a voice node from the data in `.voice`, then calls its `.start()`
@@ -164,7 +164,7 @@ assign(Instrument.prototype, NodeGraph.prototype, {
     .start(startTime, note, velocity)
     .stop(stopTime);
     ```
-    */
+    **/
 
     start: function(time, note, velocity = 1) {
         if (!isDefined(note)) {
@@ -180,7 +180,7 @@ assign(Instrument.prototype, NodeGraph.prototype, {
         .start(time, note, velocity);
     },
 
-    /*
+    /**
     .stop(time, note)
 
     Stops the first playing voice node found to match `note`. Provided as a
@@ -188,7 +188,7 @@ assign(Instrument.prototype, NodeGraph.prototype, {
     method.
 
     Returns this.
-    */
+    **/
 
     stop: function(time, note, velocity = 1) {
         const privates = Privates(this);
@@ -231,43 +231,43 @@ assign(Instrument.prototype, NodeGraph.prototype, {
 
 // Assign defaults
 assign(Instrument, {
-	defaultControls: [{
-		source: {
-			device: 'midi',
-			type: 'note'
-		},
-		type: 'note'
-	}, {
-		source: {
-			device: 'midi',
-			type: 'pitch'
-		},
-		transform: 'linear',
-		min:  -2,
-		max:  2,
-		type: 'param',
-		name: 'pitch'
-	}, {
-		source: {
-			device: 'midi',
-			type: 'control',
-			name: 'modulation'
-		},
-		transform: 'logarithmic',
-		min:  0.125,
-		max:  4,
-		type: 'param',
-		name: 'frequency'
-	}, {
-		source: {
-			device: 'midi',
-			type: 'control',
-			name: 'volume'
-		},
-		transform: 'linear-logarithmic',
-		min:  0.00390625,
-		max:  1,
-		type: 'param',
-		name: 'volume'
-	}]
+    defaultControls: [{
+        source: {
+            device: 'midi',
+            type: 'note'
+        },
+        type: 'note'
+    }, {
+        source: {
+            device: 'midi',
+            type: 'pitch'
+        },
+        transform: 'linear',
+        min:  -2,
+        max:  2,
+        type: 'param',
+        name: 'pitch'
+    }, {
+        source: {
+            device: 'midi',
+            type: 'control',
+            name: 'modulation'
+        },
+        transform: 'logarithmic',
+        min:  0.125,
+        max:  4,
+        type: 'param',
+        name: 'frequency'
+    }, {
+        source: {
+            device: 'midi',
+            type: 'control',
+            name: 'volume'
+        },
+        transform: 'linear-logarithmic',
+        min:  0.00390625,
+        max:  1,
+        type: 'param',
+        name: 'volume'
+    }]
 });

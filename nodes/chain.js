@@ -37,19 +37,19 @@ assign(Entry.prototype, {
 });
 
 export default function Chain(context, data, transport, constructors) {
-	const chain       = this;
-	const privates    = Privates(this);
+    const chain       = this;
+    const privates    = Privates(this);
     const nodes       = [];
 
-	privates.requests = constructors;
-	privates.transport = transport;
+    privates.requests = constructors;
+    privates.transport = transport;
 
-	define(this, {
+    define(this, {
         nodes: { enumerable: true, value: nodes }
     });
 
     // Load nodes
-	if (data.nodes) {
+    if (data.nodes) {
         data.nodes.reduce(function(graph, data) {
             const node = new constructors[data.type](graph.context, data.node, transport);
             nodes.push(new Entry(graph, data.type, node));
@@ -69,15 +69,15 @@ export default function Chain(context, data, transport, constructors) {
 
     print('chain', chain.nodes.length + ' nodes');
 
-	//this.done = promise.then.bind(promise);
+    //this.done = promise.then.bind(promise);
 }
 
 assign(Chain.prototype, {
-	createNode: function(type, data) {
-		const chain     = this;
-		const privates  = Privates(this);
-		const constructors  = privates.constructors;
-		const transport = privates.transport;
+    createNode: function(type, data) {
+        const chain     = this;
+        const privates  = Privates(this);
+        const constructors  = privates.constructors;
+        const transport = privates.transport;
 
         const node = new constructors[data.type](chain.context, data.node, transport);
         const last = chain.nodes.length ?
@@ -92,5 +92,5 @@ assign(Chain.prototype, {
         this.nodes.push(entry);
 
         return node;
-	}
+    }
 });

@@ -1,5 +1,5 @@
 
-/*
+/**
 Sink
 
 ```
@@ -12,7 +12,7 @@ allows you to attach to destination without outputting any
 sound. There is one sink node per context – all 'instances'
 of sink in all graphs for a context are actually the same
 instance.
-*/
+**/
 
 
 const $sink = Symbol('sink');

@@ -1,5 +1,5 @@
 
-/*
+/**
 Saturator(context, settings)
 
 ```
@@ -8,18 +8,12 @@ const saturator = stage.createNode('saturator', {
 });
 ```
 
+**/
 
-*/
 
-import { log, logGroup, logGroupEnd } from './print.js';
-import { Privates } from '../../fn/module.js';
 import NodeGraph from './graph.js';
-import { connect, disconnect } from '../modules/connect.js';
-import { automate, getValueAtTime } from '../modules/automate.js';
-
 
 var define = Object.defineProperties;
-var assign = Object.assign;
 var exp    = Math.exp;
 var sqrt   = Math.sqrt;
 var abs    = Math.abs;
@@ -30,59 +24,59 @@ var pi     = Math.PI;
 
 
 function populateCurve(curve, fn) {
-	var l = curve.length;
-	var n = l;
+    var l = curve.length;
+    var n = l;
 
-	// Populate the curve array with values given by fn
-	// for the range -1 to 1
-	while (n--) {
-		curve[n] = fn(2 * n/l - 1);
-	}
+    // Populate the curve array with values given by fn
+    // for the range -1 to 1
+    while (n--) {
+        curve[n] = fn(2 * n/l - 1);
+    }
 }
 
 function linear(x) {
-	return x;
+    return x;
 }
 
 function poly3(x) {
-	return 1.5 * x - 0.5 * pow(x, 3);
+    return 1.5 * x - 0.5 * pow(x, 3);
 }
 
 function gloubiBoulga(x) {
-	var x1 = x * 0.686306;
-	var a = 1 + exp(sqrt(abs(x1)) * -0.75);
-	var b = exp(x1);
+    var x1 = x * 0.686306;
+    var a = 1 + exp(sqrt(abs(x1)) * -0.75);
+    var b = exp(x1);
 
-	return (b - exp(-x * a)) * b / (b * b + 1);
+    return (b - exp(-x * a)) * b / (b * b + 1);
 }
 
 function transformLinear() {
-	return linear;
+    return linear;
 }
 
 function transform3rdPolynomial() {
-	return poly3;
+    return poly3;
 }
 
 function transformGloubiBoulga() {
-	return gloubiBoulga;
+    return gloubiBoulga;
 }
 
 function transformChebyshev1(h0, h1, h2, h3, h4, h5, h6, h7, h8) {
-	// Chebyshev Polynomials of the first kind
-	// http://mathworld.wolfram.com/ChebyshevPolynomialoftheFirstKind.html
+    // Chebyshev Polynomials of the first kind
+    // http://mathworld.wolfram.com/ChebyshevPolynomialoftheFirstKind.html
 
-	return function chebyshev(x) {
-		return h0 * 1 +
-			h1 * x +
-			h2 * (2   * pow(x, 2) - 1) +
-			h3 * (4   * pow(x, 3) - 3   * x) +
-			h4 * (8   * pow(x, 4) - 8   * pow(x, 2) + 1) +
-			h5 * (16  * pow(x, 5) - 20  * pow(x, 3) + 5 * x) +
-			h6 * (32  * pow(x, 6) - 48  * pow(x, 4) + 18  * pow(x, 2) - 1) +
-			h7 * (64  * pow(x, 7) - 112 * pow(x, 5) + 56  * pow(x, 3) - 7 * x) +
-			h8 * (128 * pow(x, 8) - 256 * pow(x, 6) + 160 * pow(x, 4) - 32 * pow(x, 2) + 1);
-	};
+    return function chebyshev(x) {
+        return h0 * 1 +
+            h1 * x +
+            h2 * (2   * pow(x, 2) - 1) +
+            h3 * (4   * pow(x, 3) - 3   * x) +
+            h4 * (8   * pow(x, 4) - 8   * pow(x, 2) + 1) +
+            h5 * (16  * pow(x, 5) - 20  * pow(x, 3) + 5 * x) +
+            h6 * (32  * pow(x, 6) - 48  * pow(x, 4) + 18  * pow(x, 2) - 1) +
+            h7 * (64  * pow(x, 7) - 112 * pow(x, 5) + 56  * pow(x, 3) - 7 * x) +
+            h8 * (128 * pow(x, 8) - 256 * pow(x, 6) + 160 * pow(x, 4) - 32 * pow(x, 2) + 1);
+    };
 }
 
 // Chebyshev Polynomials of the second kind
@@ -96,47 +90,47 @@ function transformChebyshev1(h0, h1, h2, h3, h4, h5, h6, h7, h8) {
 //	U_6(x)	=	64x^6-80x^4+24x^2-1
 
 function transformBram1(a) {
-	return function bram1(x) {
-		return (2 * (a+1)) * (a + (x-a) / (1 + pow((x-a)/(1-a), 2)));
-	}
+    return function bram1(x) {
+        return (2 * (a+1)) * (a + (x-a) / (1 + pow((x-a)/(1-a), 2)));
+    }
 }
 
 function transformBram2(a) {
-	// a must be in range -0.9999 to 0.9999
+    // a must be in range -0.9999 to 0.9999
 
-	return function bram2(x) {
-		var k = 2 * a / (1 - a);
-		return (1 - a) * (1 + k) * x / (1 + k * abs(x));
-	}
+    return function bram2(x) {
+        var k = 2 * a / (1 - a);
+        return (1 - a) * (1 + k) * x / (1 + k * abs(x));
+    }
 }
 
 function transformAtan(a) {
-	return a === 0 ? linear :
-		function tangent(x) {
-			return atan(a * x * 0.5 * pi) / atan(a * 0.5 * pi);
-		};
+    return a === 0 ? linear :
+        function tangent(x) {
+            return atan(a * x * 0.5 * pi) / atan(a * 0.5 * pi);
+        };
 }
 
 function transformSine(a) {
-	return a === 0 ? linear :
-		(a > 1 || a < -1) ?
-		function sine(x) {
-			return sin(a * x * 0.5 * pi);
-		} :
-		function sine(x) {
-			return sin(a * x * 0.5 * pi) / sin(a * 0.5 * pi)
-		} ;
+    return a === 0 ? linear :
+        (a > 1 || a < -1) ?
+        function sine(x) {
+            return sin(a * x * 0.5 * pi);
+        } :
+        function sine(x) {
+            return sin(a * x * 0.5 * pi) / sin(a * 0.5 * pi)
+        } ;
 }
 
 const shapes = {
-	"linear": transformLinear,
-	"classic": transform3rdPolynomial,
-	"sine": transformSine,
-	"atan": transformAtan,
-	"chebyshev": transformChebyshev1,
-	"bram 1": transformBram1,
-	"bram 2": transformBram2,
-	"gloubi boulga": transformGloubiBoulga
+    "linear": transformLinear,
+    "classic": transform3rdPolynomial,
+    "sine": transformSine,
+    "atan": transformAtan,
+    "chebyshev": transformChebyshev1,
+    "bram 1": transformBram1,
+    "bram 2": transformBram2,
+    "gloubi boulga": transformGloubiBoulga
 };
 
 const graph = {
@@ -167,24 +161,24 @@ const graph = {
     ],
 
     params: {
-        /*
+        /**
         .drive
-        */
+        **/
         drive:  'drive.gain',
 
-        /*
+        /**
         .cutoff
-        */
+        **/
         cutoff: 'frequency.offset',
 
-        /*
+        /**
         .wet
-        */
+        **/
         wet:    'wet.gain',
 
-        /*
+        /**
         .dry
-        */
+        **/
         dry:    'dry.gain'
     },
 
@@ -193,12 +187,12 @@ const graph = {
 
 const defaults = {
     gain:  1,
-	frequency: 1000,
-	curve: [-0.125,-0.5,0,0.5,0.125],
-	q:     1,
-	drive: 1,
-	dry:   1,
-	wet:   1
+    frequency: 1000,
+    curve: [-0.125,-0.5,0,0.5,0.125],
+    q:     1,
+    drive: 1,
+    dry:   1,
+    wet:   1
 };
 
 export default class Saturator extends GainNode {
@@ -229,54 +223,54 @@ export default class Saturator extends GainNode {
         populateCurve(curve, transform);
 
         define(this, {
-            /*
+            /**
             .shape
-            */
-    		shape: {
-    			get: function() {
-    				return shapeName;
-    			},
+            **/
+            shape: {
+                get: function() {
+                    return shapeName;
+                },
 
-    			set: function(name) {
-    				shapeName = name;
-    				this.transform = shapes[shapeName].apply(this, params);
-    				populateCurve(curve, this.transform);
-    			},
+                set: function(name) {
+                    shapeName = name;
+                    this.transform = shapes[shapeName].apply(this, params);
+                    populateCurve(curve, this.transform);
+                },
 
-    			enumerable: true,
-    			configurable: true
-    		},
+                enumerable: true,
+                configurable: true
+            },
 
-    		//shapes: { value: Object.keys(shapes) },
+            //shapes: { value: Object.keys(shapes) },
 
-            /*
+            /**
             .transform
-            */
-    		transform: {
-    			value: transform,
-    			configurable: true,
-    			writable: true
-    		}
-    	});
+            **/
+            transform: {
+                value: transform,
+                configurable: true,
+                writable: true
+            }
+        });
 
         // Params
 
         var l = params.length;
 
-    	while (l--) {
-    		(function(l) {
-    			Object.defineProperty(this, l, {
-    				get: function() { return params[l]; },
-    				set: function(n) {
-    					params[l] = n;
-    					this.transform = shapes[shapeName].apply(this, params);
-    					populateCurve(curve, this.transform);
-    				},
-    				configurable: true,
-    				enumerable: true
-    			});
-    		})(l);
-    	}
+        while (l--) {
+            (function(l) {
+                Object.defineProperty(this, l, {
+                    get: function() { return params[l]; },
+                    set: function(n) {
+                        params[l] = n;
+                        this.transform = shapes[shapeName].apply(this, params);
+                        populateCurve(curve, this.transform);
+                    },
+                    configurable: true,
+                    enumerable: true
+                });
+            })(l);
+        }
     }
 }
 

@@ -1,5 +1,5 @@
 
-/*
+/**
 Looper(context, settings)
 
 ```
@@ -9,7 +9,7 @@ const looper = stage.createNode('looper', {
 ```
 
 Creates a node that records and loops audio.
-*/
+**/
 
 import { print, logGroup, logGroupEnd } from './print.js';
 import { Privates } from '../../fn/module.js';
@@ -44,17 +44,17 @@ const graph = {
     ],
 
     properties: {
-        /*
+        /**
         .dry
         An AudioParam controlling the direct signal ('dry') gain.
-        */
+        **/
 
         dry: 'dray.gain',
 
-        /*
+        /**
         .wet
         An AudioParam controlling the looper signal ('wet') gain.
-        */
+        **/
 
         wet: 'wet.gain'
     },
@@ -74,10 +74,10 @@ const properties = {
     "type":            { enumerable: true, writable: true },
     "sources":         { enumerable: true, writable: true },
 
-    /*
+    /**
     .beats
     The beat duration of the base loop.
-    */
+    **/
 
     "beats":           { enumerable: true, writable: true },
     "recordStartTime": { enumerable: true, writable: true }
@@ -135,13 +135,13 @@ define(Looper.prototype, {
 
 // Mix AudioObject prototype into MyObject prototype
 assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {
-    /* .start(time)
+    /** .start(time)
 
     Start playback of loops at `time`. If Soundstage's transport is not running,
     it is set to run at the same rate as the looper and also started at `time`.
 
     Returns `this`.
-    */
+    **/
 
     start: function(time) {
         if (this.syncToTempo) {
@@ -185,12 +185,12 @@ assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {
         return this;
     },
 
-    /* .stop(time)
+    /** .stop(time)
 
     Stop playback of loops at `time`.
 
     Returns `this`.
-    */
+    **/
 
     stop: function(time) {
         PlayNode.prototype.stop.apply(this, arguments);
@@ -198,7 +198,7 @@ assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {
         return this;
     },
 
-    /* .startRecord(time)
+    /** .startRecord(time)
 
     Starts recording at `time`. The looper is continually buffering a signal,
     so `time` may be before `context.currentTime` (by up to 0.6s @44.1kHz or
@@ -206,7 +206,7 @@ assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {
     with audio already leaving the system's output.
 
     Returns `this`.
-    */
+    **/
 
     startRecord: function(time) {
         const privates  = Privates(this);
@@ -286,13 +286,13 @@ assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {
         return this;
     },
 
-    /* .stopRecord(time)
+    /** .stopRecord(time)
 
     Stop recording at `time`. If the looper is not already playing, playback
     is started at the same time.
 
     Returns `this`.
-    */
+    **/
 
     stopRecord: function(time) {
         const privates  = Privates(this);
@@ -315,12 +315,12 @@ assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {
         return this;
     },
 
-    /* .records()
+    /** .records()
 
     Returns an array of records, objects containing unsaved buffers. This
     method is called by `Soundstage.records()` when gathering records from all
     nodes.
-    */
+    **/
 
     records: function() {
         return this.sources.reduce((list, source) => {
