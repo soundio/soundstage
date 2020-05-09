@@ -86,7 +86,7 @@ export const distributors = {
     },
 
     'default': function(target, time, type, name, value, duration, notify) {
-        print('Cannot cue unrecognised type "' + type + '". (Possible types: noteon, noteoff, noteparam, param).' )
+        print('Cannot cue unrecognised type "' + type + '". (Possible types: noteon, noteoff, noteparam, param).');
     }
 };
 

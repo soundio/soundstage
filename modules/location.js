@@ -1,14 +1,6 @@
 
-import { Fn, compose, get, is, nothing } from '../../fn/module.js';
-import { Privates } from '../../fn/module.js';
-import { default as Event, isRateEvent, release } from './event.js';
-
-var assign = Object.assign;
 var freeze = Object.freeze;
-var rate0  = freeze({ 0: 0, 1: 'rate', 2: 2, location: 0 });
 var automationDefaultEvent = freeze({ time: 0, curve: 'step', value: 1, beat: 0 });
-var get1   = get('1');
-
 
 export function beatAtTimeStep(value0, time) {
     // value0 = start rate
@@ -57,13 +49,13 @@ export function timeAtBeatExponentialDuration(value0, value1, duration, beat) {
     // beat     = current beat
     const n = value1 / value0;
     const c = 1 / duration;
-    const logn = loge(n);
-    return duration * loge(1 + beat * c * logn / value0) / logn;
+    const logn = Math.log(n);
+    return duration * Math.log(1 + beat * c * logn / value0) / logn;
 }
 
 export function rateAtTimeExponential(value0, value1, duration, time) {
-    /* Same algo as automation getValueAtTime - this is the curve
-       descriptor after all. */
+    // Same algo as automation getValueAtTime - this is the curve
+    // descriptor after all.
     return value0 * Math.pow(value1 / value0, time / duration) ;
 }
 
@@ -93,7 +85,7 @@ function beatAtTimeAutomation(e0, e1, time) {
             beatAtTimeStep(e0.value, time - e0.time) ;
 }
 
-export function beatAtTimeOfAutomation(events, seed = defaultAutomationEvent, time) {
+export function beatAtTimeOfAutomation(events, seed = automationDefaultEvent, time) {
     let b = seed.beat || 0;
     let n = -1;
 
@@ -122,7 +114,7 @@ function timeAtBeatAutomation(e0, e1, beat) {
             timeAtBeatStep(e0.value, beat - (e0.beat || 0)) ;
 }
 
-export function timeAtBeatOfAutomation(events, seed = defaultAutomationEvent, beat) {
+export function timeAtBeatOfAutomation(events, seed = automationDefaultEvent, beat) {
     let b = seed.beat || 0;
     let n = -1;
 

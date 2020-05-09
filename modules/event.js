@@ -82,7 +82,6 @@ import { compose, get, overload, remove } from '../../fn/module.js';
 import { bytesToSignedFloat, toType } from '../../midi/module.js';
 
 const assign           = Object.assign;
-const defineProperties = Object.defineProperties;
 const getData          = get('data');
 
 const pitchBendRange   = 2;

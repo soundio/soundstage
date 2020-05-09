@@ -2,7 +2,7 @@
 import { matches, Privates, Stream } from '../../fn/module.js';
 import { isRateEvent, getDuration, isValidEvent, eventValidationHint } from './event.js';
 import { automate, getValueAtTime } from './automate.js';
-import { Sequence, SSSequencer } from './sequence.js';
+import { SSSequencer } from './sequence.js';
 import PlayNode from '../nodes/play-node.js';
 import { timeAtBeatOfEvents } from './location.js';
 import Meter from './meter.js';
@@ -15,7 +15,6 @@ const define    = Object.defineProperties;
 const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
 const seedRateEvent  = { 0: 0, 1: 'rate' };
-const seedMeterEvent = { 0: 0, 1: 'meter', 2: 4, 3: 1 };
 const idQuery        = { id: '' };
 
 function byBeat(a, b) {

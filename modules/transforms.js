@@ -43,7 +43,7 @@ export const transforms = {
 
     'frequency': {
         tx: (value, min, max) => {
-            return (floatToFrequency(value) - min) * (max - min) / floatToFrequency(127) + min ;
+            return min + (floatToFrequency(value) - min) * (max - min) / floatToFrequency(127);
         },
 
         ix: function(value, min, max) {

@@ -476,7 +476,7 @@ assign(Soundstage.prototype, Sequence.prototype, Sequencer.prototype, Graph.prot
         var output = privates.outputs.default;
         output.disconnect();
 
-        this[$store].modify('clear');
+        //this[$store].modify('clear');
         return this;
     },
 

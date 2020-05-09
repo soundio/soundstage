@@ -1,5 +1,5 @@
 
-import { get, isDefined } from '../../fn/module.js';
+import { isDefined } from '../../fn/module.js';
 import { print, log } from './print.js';
 import { isAudioParam } from './automate.js';
 
