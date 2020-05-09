@@ -1,6 +1,6 @@
 
 
-/*
+/**
 Sequence()
 
 A sequence is an object with an `.events` array. A stage itself is a
@@ -27,9 +27,9 @@ Events in the `.events` array are played when the sequencer is started:
 ```js
 stage.start();
 ```
-*/
+**/
 
-/*
+/**
 Nothing()
 
 A sequence may also have a `.sequences` property that is an array of sequence
@@ -55,7 +55,7 @@ const stage = new Soundstage({
     }]
 });
 ```
-*/
+**/
 
 
 import Clock from './clock.js';
@@ -79,26 +79,26 @@ export function Sequence(events, sequences, label, id) {
 
 	this.id = id;
 
-	/*
+	/**
 	.label
 	A string.
-	*/
+	**/
 
 	this.label = label || '';
 
-	/*
+	/**
 	.events
 	An array of events that are played on `.start(time)`.
 	See <a href="#events">Events</a>.
-	*/
+	**/
 
 	this.events = events && events.map(Event.from) || [];
 
-	/*
+	/**
 	.sequences
 	An array of sequences that may be triggered by `'sequence'` events
 	stored in `.events`. See <a href="#sequences">Sequences</a>.
-	*/
+	**/
 
 	this.sequences = sequences && sequences.map(Sequence.from) || [];
 }
@@ -113,9 +113,9 @@ Sequence.from = function (data) {
 
 assign(Sequence.prototype, {
 
-	/*
+	/**
 	.createEvent(beat, type, ...)
-	*/
+	**/
 
 	createEvent: function (beat, type) {
 		const event = Event.from(arguments);
@@ -133,9 +133,9 @@ assign(Sequence.prototype, {
 		return event;
 	},
 
-	/*
+	/**
 	.createSequence()
-	*/
+	**/
 
 	createSequence: function () {
 		const sequence = Sequence.of([], [], '', createId(this.sequences));
@@ -159,10 +159,10 @@ export function SSSequencer(transport, sequence) {
 }
 
 assign(SSSequencer.prototype, Clock.prototype, {
-	/*
+	/**
 	.beatAtTime(time)
 	Returns the beat at a given `time`.
-	*/
+	**/
 
 	beatAtTime: function(time) {
 		if (time < 0) { throw new Error('Sequence.beatAtTime(time) does not accept -ve time values'); }
@@ -178,10 +178,10 @@ assign(SSSequencer.prototype, Clock.prototype, {
 		return beatAtLocation(events, rate0, timeLoc - startLoc);
 	},
 
-	/*
+	/**
 	.timeAtBeat(beat)
 	Returns the time at a given `beat`.
-	*/
+	**/
 
 	timeAtBeat: function(beat) {
 		const privates  = Privates(this);

@@ -10,84 +10,84 @@ const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
 const properties = {
 
-	/*
-	.context
-	The AudioContext.
-	*/
+    /**
+    .context
+    The AudioContext.
+    **/
 
-	context:       { writable: true },
+    context:       { writable: true },
 
-	/*
-	.startTime
-	The time at which the clock was scheduled to start.
-	*/
+    /**
+    .startTime
+    The time at which the clock was scheduled to start.
+    **/
 
-	startTime:     { writable: true, value: undefined },
+    startTime:     { writable: true, value: undefined },
 
-	/*
-	.startLocation
-	*/
+    /**
+    .startLocation
+    **/
 
-	startLocation: { writable: true, value: undefined },
+    startLocation: { writable: true, value: undefined },
 
-	/*
-	.stopTime
-	The time at which the clock has been scheduled to stop.
-	*/
+    /**
+    .stopTime
+    The time at which the clock has been scheduled to stop.
+    **/
 
-	stopTime:      { writable: true, value: undefined }
+    stopTime:      { writable: true, value: undefined }
 };
 
 export default function Clock(context, notify) {
-	// Properties
-	define(this, properties);
-	this.context = context;
+    // Properties
+    define(this, properties);
+    this.context = context;
 
-	Privates(this).notify = notify;
+    Privates(this).notify = notify;
 }
 
 assign(Clock.prototype, {
-	// Todo: Inherit start/stop from PlayNode
+    // Todo: Inherit start/stop from PlayNode
 
-	start: function(time) {
-		// If clock is running, don't start it again
-		if (this.startTime !== undefined && this.stopTime === undefined) {
-			if (DEBUG) { console.warn('Attempted clock.start() when clock is already started (or scheduled to start)'); }
-			return this;
-		}
+    start: function(time) {
+        // If clock is running, don't start it again
+        if (this.startTime !== undefined && this.stopTime === undefined) {
+            if (DEBUG) { console.warn('Attempted clock.start() when clock is already started (or scheduled to start)'); }
+            return this;
+        }
 
-		if (this.context.currentTime < this.stopTime) {
-			if (DEBUG) { throw new Error('Attempted clock.start() at a time before clock.stopTime'); }
-			return this;
-		}
+        if (this.context.currentTime < this.stopTime) {
+            if (DEBUG) { throw new Error('Attempted clock.start() at a time before clock.stopTime'); }
+            return this;
+        }
 
-		this.startTime     = time !== undefined ? time : this.context.currentTime ;
-		this.startLocation = undefined;
-		this.stopTime      = undefined;
+        this.startTime     = time !== undefined ? time : this.context.currentTime ;
+        this.startLocation = undefined;
+        this.stopTime      = undefined;
 
-		//Privates(this).notify(this, 'playing');
+        //Privates(this).notify(this, 'playing');
 
-		return this;
-	},
+        return this;
+    },
 
-	stop: function(time) {
-		// If clock is running, don't start it again
-		if (this.startTime === undefined || this.startTime < this.stopTime) {
-			if (DEBUG) { throw new Error('Clock .stop(time) attempted on stopped clock'); }
-			else { return this; }
-		}
+    stop: function(time) {
+        // If clock is running, don't start it again
+        if (this.startTime === undefined || this.startTime < this.stopTime) {
+            if (DEBUG) { throw new Error('Clock .stop(time) attempted on stopped clock'); }
+            else { return this; }
+        }
 
-		time = time === undefined ? this.context.currentTime : time ;
+        time = time === undefined ? this.context.currentTime : time ;
 
-		if (time < this.startTime) {
-			throw new Error('Clock .stop(time) attempted with time less than .startTime');
-		}
+        if (time < this.startTime) {
+            throw new Error('Clock .stop(time) attempted with time less than .startTime');
+        }
 
-		this.stopTime = time;
-		//Privates(this).notify(this, 'playing');
+        this.stopTime = time;
+        //Privates(this).notify(this, 'playing');
 
-		return this;
-	}
+        return this;
+    }
 });
 
 // Mix in property definitions

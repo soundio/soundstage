@@ -94,7 +94,7 @@ function requestAudioNode(type, context, settings, transport, basePath) {
 }
 
 
-/*
+/**
 Soundstage()
 
 Import Soundstage.
@@ -111,7 +111,7 @@ const stage = new Soundstage();
 
 A stage is a graph of AudioNodes and a sequencer of events. It has the
 following properties and methods.
-*/
+**/
 
 // ```
 // import Soundstage from 'http://sound.io/soundstage/module.js';
@@ -218,16 +218,16 @@ export default function Soundstage(data = defaultData, settings = nothing) {
 
     // Properties
 
-    /*
+    /**
     .label
     A string name or title for this Soundstage document.
-    */
+    **/
 
     this.label = data.label || '';
 
-    /*
+    /**
     .mediaChannelCount
-    */
+    **/
 
     define(this, {
         mediaChannelCount: { value: undefined, writable: true, configurable: true },
@@ -363,14 +363,14 @@ define(Soundstage.prototype, {
     //frameDuration:  getOwnPropertyDescriptor(Transport.prototype, 'frameDuration'),
     //frameLookahead: getOwnPropertyDescriptor(Transport.prototype, 'frameLookahead'),
 
-    /*
+    /**
     .metronome
 
     A boolean property that is a shortcut control the first metronome node in
     the graph. Indicates whether a metronome is playing at the current time.
     Setting .metronome to true will create a metronome node (if there inspect
     not already one in the graph, and then start it.
-    */
+    **/
 
     metronome: {
         enumerable: true,
@@ -436,20 +436,20 @@ assign(Soundstage.prototype, Sequence.prototype, Sequencer.prototype, Graph.prot
         return this;
     },
 
-    /*
+    /**
     .timeAtDomTime(domTime)
     Returns audio context time at the given `domTime`, where `domTime` is a
     time in seconds relative to window.performance.now().
-    */
+    **/
 
     timeAtDomTime: function(domTime) {
         return timeAtDomTime(this.context, domTime);
     },
 
-    /*
+    /**
     .domTimeAtTime(time)
     Returns DOM performance time at the given context `time`.
-    */
+    **/
 
     domTimeAtTime: function(domTime) {
         return domTimeAtTime(this.context, domTime);
@@ -480,10 +480,10 @@ assign(Soundstage.prototype, Sequence.prototype, Sequencer.prototype, Graph.prot
         return this;
     },
 
-    /*
+    /**
     .records()
     Returns an array of record objects containing unsaved data.
-    */
+    **/
 
     records: function() {
         return this.nodes.reduce((list, node) => {

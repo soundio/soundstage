@@ -1,4 +1,4 @@
-/*
+/**
 KeyboardInputSource(selector)
 
 Constructor of muteable objects representing keyboard input bindings. Sources
@@ -10,7 +10,7 @@ and the methods:
 
 - `each(fn)`: registers `fn` to consume the stream of input messages
 - `stop()`: stops the stream of input messages
-*/
+**/
 
 import { noop, remove } from '../../../fn/module.js';
 import { toKeyString, toKeyCode } from '../../../dom/module.js';

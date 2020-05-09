@@ -1,4 +1,4 @@
-/*
+/**
 Control(audio, distribute)
 
 Constructor for muteable objects that represent a route from a source stream
@@ -28,7 +28,7 @@ through a selectable transform function to a target stream.
 }
 ```
 
-*/
+**/
 
 import { getContextTime, timeAtDomTime } from './context.js';
 import { noop, Privates, remove }     from '../../fn/module.js';

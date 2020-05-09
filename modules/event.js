@@ -1,5 +1,5 @@
 
-/*
+/**
 Event()
 
 An event requires a `beat`, `type` and some `data`.
@@ -14,9 +14,9 @@ sequence at which to play the event
 
 Data parameters are dependent on the event type. The built-in
 events types and the data they expect are:
-*/
+**/
 
-/*
+/**
 meter
 
 ```js
@@ -25,9 +25,9 @@ meter
 
 - `numerator` is the number of meter divisions
 - `denominator` is the duration (in beats) of a meter division
-*/
+**/
 
-/*
+/**
 note
 
 ```js
@@ -37,9 +37,9 @@ note
 - `name` is a number in the range `0-127` or a MIDI note name `"C3"`
 - `velocity` is a float in the nominal range `0-1`
 - `duration` is a float, in beats
-*/
+**/
 
-/*
+/**
 param
 
 ```js
@@ -49,9 +49,9 @@ param
 - `name` is a string, the name of a property of a node to automate
 - `value` is a float, the value to automate to
 - `curve` is `"step"`, `"linear"`, `"exponential"` or `"target"`
-*/
+**/
 
-/*
+/**
 rate
 
 ```js
@@ -60,9 +60,9 @@ rate
 
 - `rate` is a float, a multiplier of the rate of the parent sequence
 - `curve` is `"step"` or `"exponential"`
-*/
+**/
 
-/*
+/**
 sequence
 
 ```js
@@ -72,7 +72,7 @@ sequence
 - `sequence` is the id of a sequence in the `.sequences` array
 - `target` is the id of a node in the `.nodes` array
 - `duration` is a float, in beats
-*/
+**/
 
 
 

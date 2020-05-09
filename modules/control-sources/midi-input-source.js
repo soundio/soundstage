@@ -1,4 +1,4 @@
-/*
+/**
 MIDIInputSource(selector)
 
 Constructor of muteable objects representing MIDI Input bindings. Sources have
@@ -14,7 +14,7 @@ and the methods:
 
 - `each(fn)`: registers `fn` to consume the stream of input messages
 - `stop()`: stops the stream of input messages
-*/
+**/
 
 import { choose, noop, nothing } from '../../../fn/module.js';
 import { on, off, toChannel, toType, bytesToWeightedFloat, int7ToFloat, int7ToWeightedFloat } from '../../../midi/module.js';

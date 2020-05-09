@@ -47,24 +47,24 @@ export function assignSettings(node, defaults, settings, ignored) {
             // Ignore AudioParams coming from a parent node
             if (settings[key] && settings[key].setValueAtTime) { continue; }
 
-    		// We want to assign only when a property has been declared, as we may
-    		// pass composite options (options for more than one node) into this.
-    		if (node.hasOwnProperty(key) && settings[key] !== undefined) {
+            // We want to assign only when a property has been declared, as we may
+            // pass composite options (options for more than one node) into this.
+            if (node.hasOwnProperty(key) && settings[key] !== undefined) {
                 assignSetting(node, key, settings[key]);
                 keys[key] = true;
             }
-    	}
+        }
     }
 
     for (let key in defaults) {
         // Ignore ignored key
         if (ignored && ignored.indexOf(key) > -1) { continue; }
 
-		// If we have already set this, or it's not settable, move on
-		if (!keys[key]) {
+        // If we have already set this, or it's not settable, move on
+        if (!keys[key]) {
             assignSetting(node, key, defaults[key]);
         }
-	}
+    }
 
     if (DEBUG) { logGroupEnd(); }
 }
@@ -81,12 +81,12 @@ export function assignSettingz__(node, settings, ignored) {
         // Ignore AudioParams coming from a parent node
         if (settings[key] && settings[key].setValueAtTime) { continue; }
 
-		// We want to assign only when a property has been declared, as we may
-		// pass composite options (options for more than one node) into this.
-		if (node.hasOwnProperty(key) && settings[key] !== undefined) {
+        // We want to assign only when a property has been declared, as we may
+        // pass composite options (options for more than one node) into this.
+        if (node.hasOwnProperty(key) && settings[key] !== undefined) {
             assignSetting(node, key, settings[key]);
         }
-	}
+    }
 
     if (DEBUG) { logGroupEnd(); }
 }

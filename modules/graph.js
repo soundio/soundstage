@@ -1,20 +1,20 @@
 
-/*
+/**
 Graph()
 
 Constructs a graph of AudioNodes.
 
-*/
+**/
 
-/*
+/**
 .nodes
 An array of objects defining graph nodes. See <a href="#nodes-and-connections">Nodes and Connectors</a>.
-*/
+**/
 
-/*
+/**
 .connections
 An array of objects defining connections. See <a href="#nodes-and-connections">Nodes and Connectors</a>.
-*/
+**/
 
 import { has, get, Privates }  from '../../fn/module.js';
 import { print }  from './print.js';
@@ -49,7 +49,7 @@ export default function Graph(context, requests, data, transport) {
     }
 
     // Load nodes
-	const promise = Promise.all(
+    const promise = Promise.all(
         graph.nodes.map((node) => node.request)
     )
     .then(function(loaders) {
@@ -67,7 +67,7 @@ export default function Graph(context, requests, data, transport) {
 
 assign(Graph.prototype, {
 
-/*
+/**
 .createNode(type, settings)
 
 Creates a new AudioNode in the Soundstage graph.
@@ -84,7 +84,7 @@ object of settings specific to that node type.
 
 The AudioNode is wrapped in an object with an id and label in the `.nodes`
 array. The wrapper object is returned.
-*/
+**/
 
     create: function() {
         console.warn('Deprecation: stage.createNode() is now stage.createNode().');
@@ -108,18 +108,18 @@ array. The wrapper object is returned.
             });
     },
 
-/*
+/**
 .createConnector(source, target)
 
 Creates a connection between two nodes in the graph. The parameters
 `source` and `target` are node ids.
-*/
+**/
 
     createConnector: function (source, target, output, input) {
         return new Connector(this, source, target, output, input);
     },
 
-/*
+/**
 .get(id)
 
 Returns the AudioNode with `id` from the graph, or undefined.
@@ -127,7 +127,7 @@ Returns the AudioNode with `id` from the graph, or undefined.
 ```js
 var node = stage.get('0');
 ```
-*/
+**/
 
     get: function(id) {
         return this.nodes.find(has('id', id)).data;

@@ -19,7 +19,7 @@ export function drawXLine(ctx, box, valueBox, x, color) {
     ctx.stroke();
 }
 
-/*
+/**
 drawY(ctx, box, y, color)
 
 Draws a line at y position.
@@ -28,7 +28,7 @@ ctx:   canvas context
 box:   array of 4 numbers describing view box
 y:     y position
 color: color
-*/
+**/
 
 export function drawY(ctx, box, y, color) {
     ctx.strokeStyle = color;
@@ -50,7 +50,7 @@ export function drawYLine(ctx, box, valueBox, y, color) {
     ctx.stroke();
 }
 
-/*
+/**
 drawYAxisAmplitude(ctx, box, color)
 
 Draws Y axis lines from -1 to 1 ready to plot waveforms.
@@ -58,7 +58,7 @@ Draws Y axis lines from -1 to 1 ready to plot waveforms.
 ctx:   canvas context
 box:   array of 4 numbers describing view box
 color: color
-*/
+**/
 
 export function drawYAxisAmplitude(ctx, box, color) {
     ctx.lineWidth   = '1';
@@ -79,7 +79,7 @@ export function drawYAxisAmplitude(ctx, box, color) {
     drawY(ctx, box, -1,       color + '66');
 }
 
-/*
+/**
 drawPoint(ctx, box, x, y, color)
 
 Draws a data point.
@@ -89,7 +89,7 @@ box:   array of 4 numbers describing view box
 x:     data points per px
 y:     array of data points
 color: color
-*/
+**/
 
 export function drawPoint(box, ctx, x, y, color) {
     ctx.strokeStyle = color;
@@ -102,7 +102,7 @@ export function drawPoint(box, ctx, x, y, color) {
     ctx.fill();
 }
 
-/*
+/**
 drawCurve(ctx, box, rate, data, color)
 
 Draws a filled automation curve.
@@ -112,7 +112,7 @@ box:   array of 4 numbers describing view box
 rate:  data points per px
 data:  array of data points
 color: base color
-*/
+**/
 
 export function drawCurve(ctx, box, rate, data, color) {
     let n = 0;
@@ -152,7 +152,7 @@ export function drawCurve(ctx, box, rate, data, color) {
     ctx.fill();
 }
 
-/*
+/**
 drawCurvePositive(ctx, box, rate, data, color)
 
 Draws a filled automation curve.
@@ -162,7 +162,7 @@ box:   array of 4 numbers describing view box
 rate:  data points per px
 data:  array of data points
 color: base color
-*/
+**/
 
 export function drawCurvePositive(ctx, box, rate, data, color) {
     let n = 0;

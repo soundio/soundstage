@@ -6,7 +6,7 @@ const worker = new Worker(config.basePath + 'modules/timer.worker.js');
 const assign = Object.assign;
 
 export const defaults = {
-	lookahead: 0.12,
+    lookahead: 0.12,
     duration:  0.24
 };
 
@@ -40,12 +40,12 @@ worker.onmessage = function frame(e) {
 };
 
 export default function Timer(now, duration = defaults.duration, lookahead = defaults.lookahead) {
-	this.now         = now;
+    this.now         = now;
     this.requests    = [];
     this.buffer      = [];
-	this.currentTime = 0;
-	this.lookahead   = lookahead;
-	this.duration    = duration;
+    this.currentTime = 0;
+    this.lookahead   = lookahead;
+    this.duration    = duration;
 }
 
 assign(Timer.prototype, {
@@ -75,7 +75,7 @@ assign(Timer.prototype, {
 
     request: function(fn) {
         if (!active) {
-			startMessage.duration = this.duration;
+            startMessage.duration = this.duration;
             worker.postMessage(startMessage);
             active = true;
         }
@@ -87,8 +87,8 @@ assign(Timer.prototype, {
 
         this.requests.push(fn);
 
-		// Return the callback for use as an identifier, because why not
-		return fn;
+        // Return the callback for use as an identifier, because why not
+        return fn;
     },
 
     cancel: function(fn) {

@@ -216,7 +216,7 @@ function automateParamEvents(param, events, time, curve, value, duration) {
     mutateEvents(curve, event1, event, events, n);
 }
 
-/*
+/**
 automate(param, time, value, curve, decay)
 
 param - AudioParam object
@@ -224,7 +224,7 @@ time  -
 value -
 curve - one of 'step', 'hold', 'linear', 'exponential' or 'target'
 decay - where curve is 'target', decay is a time constant for the decay curve
-*/
+**/
 
 export function automate(param, time, curve, value, duration, notify, context) {
     if (curve === 'target' && duration === undefined) {
@@ -276,7 +276,7 @@ export function automate(param, time, curve, value, duration, notify, context) {
 }
 
 
-/*
+/**
 automato__(node, name, time, curve, value, duration, notify)
 
 param    - AudioParam object
@@ -285,7 +285,7 @@ value    -
 curve    - one of 'step', 'hold', 'linear', 'exponential' or 'target'
 duration - where curve is 'target', decay is a time constant for the decay
 notify   - a callback function
-*/
+**/
 
 export function automato__(node, name, time, curve, value, duration, notify) {
     if (curve === 'target' && duration === undefined) {
@@ -427,14 +427,14 @@ export function getValueAtTime(param, time) {
 }
 
 
-/*
+/**
 requestAutomationData(param, rate, t0, t1)
 
 rate   - data points per second
 t0     - start time
 t1     - stop time
 events - array of automation events to render to data
-*/
+**/
 
 export function requestBufferFromEvents(rate, t0, t1, events) {
     const sampleRate  = 22050;
