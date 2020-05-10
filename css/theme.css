@@ -364,7 +364,9 @@ html {
     color: #b2bbaa;
     color: #b7b6ab;
     color: #b2b7ab;
+    color: #b7b4ab;
     background-color: #1c2726;
+    background-color: #1d2524;
 }
 
 h1 {
@@ -373,6 +375,7 @@ h1 {
 
 code {
     color: #d60a3f;
+    color: #ca8d1c;
 }
 
 pre > code {
