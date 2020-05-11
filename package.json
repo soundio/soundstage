@@ -38,6 +38,6 @@
         "build": "npm run build-module && npm run build-css && npm run build-docs",
         "build-module": "rollup module.js --o module.rolled.js --f esm",
         "build-docs": "node ../fn/build-html.js index.template.html index.html 10",
-        "build-css": "node ../fn/build-css.js package.json style.min.css"
+        "build-css": "node ../fn/build-css.js style.css style.min.css"
     }
 }
