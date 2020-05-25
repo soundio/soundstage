@@ -1,5 +1,5 @@
 <!DOCTYPE html><html lang="en" class="js"><head>
-    
+
     <meta charset="utf-8">
     <meta name="author" content="Stephen Band">
     <meta name="description" content="Documentation for Soundstage. An audio node graph, sequencing engine, MIDI controller and JSON schema for the Web Audio API.">
@@ -91,7 +91,7 @@
 
 <body class="grid 3x-grid @1-6x-grid @2-9x-grid">
     <header class="x-1 3x @1-6x @2-x-2" id="header">
-        
+
     <h1 class="doctext-01">Soundstage <span class="doctext-06">0.8.1</span></h1>
 
     <p class="doctext-08">
@@ -123,7 +123,7 @@
 following properties and methods.</p>
 </div>
 
-        
+
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
     <article class="property-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="property-label">
@@ -141,8 +141,8 @@ following properties and methods.</p>
         <!--template-->
     </section>
 
-        <h3 class="x-1 end-x doctext-04">Graph</h3>
-        
+        <h3 class="x-1 x-end doctext-04">Graph</h3>
+
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
     <article class="property-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="property-nodes">
@@ -206,8 +206,8 @@ array. The wrapper object is returned.</p>
 
     </section>
 
-        <h3 class="x-1 end-x doctext-04">Sequencer</h3>
-        
+        <h3 class="x-1 x-end doctext-04">Sequencer</h3>
+
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
     <article class="property-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="property-starttime">
@@ -399,8 +399,8 @@ array. The wrapper object is returned.</p>
 
     </section>
 
-        <h3 class="x-1 end-x doctext-04">Audio</h3>
-        
+        <h3 class="x-1 x-end doctext-04">Audio</h3>
+
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
     <article class="property-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="property-context">
@@ -463,7 +463,7 @@ array. The wrapper object is returned.</p>
         <!-- For layout only. Get rid of, if poss. -->
         <div class="x-4 3x"></div>
 
-        
+
         <article class="function-toggle-block toggle-block block 3x" toggleable="" id="input">
             <h3 class="doctext-05 dot-indent">
                 <a href="#input">
@@ -473,7 +473,7 @@ array. The wrapper object is returned.</p>
     channels<span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">]</span>    <span class="token comment">// Device channels to use as input</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
 
-            
+
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
     <article class="property-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="property-channels">
@@ -493,8 +493,8 @@ array. The wrapper object is returned.</p>
     </section>
 
         </article>
-    
-        
+
+
         <article class="function-toggle-block toggle-block block 3x" toggleable="" id="output">
             <h3 class="doctext-05 dot-indent">
                 <a href="#output">
@@ -504,7 +504,7 @@ array. The wrapper object is returned.</p>
     channels<span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">]</span>    <span class="token comment">// Device channels to send output to</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
 
-            
+
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
     <article class="property-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="property-channels">
@@ -524,8 +524,8 @@ array. The wrapper object is returned.</p>
     </section>
 
         </article>
-    
-        
+
+
         <article class="function-toggle-block toggle-block block 3x" toggleable="" id="compressor">
             <h3 class="doctext-05 dot-indent">
                 <a href="#compressor">
@@ -534,7 +534,7 @@ array. The wrapper object is returned.</p>
             </h3><pre><code><span class="token keyword">const</span> compressor <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token function">createNode</span><span class="token punctuation">(</span><span class="token string">'compressor'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre><p>Creates a standard CompressorNode.</p>
 
 
-            
+
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
     <article class="property-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="property-threshold">
@@ -568,8 +568,8 @@ array. The wrapper object is returned.</p>
     </section>
 
         </article>
-    
-        
+
+
         <article class="function-toggle-block toggle-block block 3x" toggleable="" id="delay">
             <h3 class="doctext-05 dot-indent">
                 <a href="#delay">
@@ -578,7 +578,7 @@ array. The wrapper object is returned.</p>
             </h3><pre><code><span class="token keyword">const</span> delay <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token function">createNode</span><span class="token punctuation">(</span><span class="token string">'delay'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre><p>Creates a standard DelayNode.</p>
 
 
-            
+
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
     <article class="property-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="property-delaytime">
@@ -597,8 +597,8 @@ array. The wrapper object is returned.</p>
     </section>
 
         </article>
-    
-        
+
+
         <article class="function-toggle-block toggle-block block 3x" toggleable="" id="eq">
             <h3 class="doctext-05 dot-indent">
                 <a href="#eq">
@@ -607,7 +607,7 @@ array. The wrapper object is returned.</p>
             </h3><pre><code class="language-js"><span class="token keyword">const</span> eq <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token function">createNode</span><span class="token punctuation">(</span><span class="token string">'eq'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
 
 
-            
+
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
     <article class="property-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="property-nodes">
@@ -626,8 +626,8 @@ array. The wrapper object is returned.</p>
     </section>
 
         </article>
-    
-        
+
+
         <article class="function-toggle-block toggle-block block 3x" toggleable="" id="filter">
             <h3 class="doctext-05 dot-indent">
                 <a href="#filter">
@@ -636,7 +636,7 @@ array. The wrapper object is returned.</p>
             </h3><pre><code><span class="token keyword">const</span> filter <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token function">createNode</span><span class="token punctuation">(</span><span class="token string">'filter'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre><p>Creates a filter node.</p>
 
 
-            
+
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
     <article class="property-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="property-frequency">
@@ -686,8 +686,8 @@ array. The wrapper object is returned.</p>
     </section>
 
         </article>
-    
-        
+
+
         <article class="function-toggle-block toggle-block block 3x" toggleable="" id="flanger-context-settings">
             <h3 class="doctext-05 dot-indent">
                 <a href="#flanger-context-settings">
@@ -704,7 +704,7 @@ array. The wrapper object is returned.</p>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre><p>Creates a modulation delay effect, or ‘flanger’.</p>
 
 
-            
+
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
     <article class="property-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="property-delay">
@@ -768,8 +768,8 @@ array. The wrapper object is returned.</p>
     </section>
 
         </article>
-    
-        
+
+
         <article class="function-toggle-block toggle-block block 3x" toggleable="" id="looper-context-settings">
             <h3 class="doctext-05 dot-indent">
                 <a href="#looper-context-settings">
@@ -780,7 +780,7 @@ array. The wrapper object is returned.</p>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre><p>Creates a node that records and loops audio.</p>
 
 
-            
+
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
     <article class="property-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="property-dry">
@@ -869,8 +869,8 @@ array. The wrapper object is returned.</p>
     </section>
 
         </article>
-    
-        
+
+
         <article class="function-toggle-block toggle-block block 3x" toggleable="" id="saturator-context-settings">
             <h3 class="doctext-05 dot-indent">
                 <a href="#saturator-context-settings">
@@ -880,7 +880,7 @@ array. The wrapper object is returned.</p>
 
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
 
-            
+
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
     <article class="property-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="property-drive">
@@ -938,8 +938,8 @@ array. The wrapper object is returned.</p>
     </section>
 
         </article>
-    
-        
+
+
         <article class="function-toggle-block toggle-block block 3x" toggleable="" id="meter-context">
             <h3 class="doctext-05 dot-indent">
                 <a href="#meter-context">
@@ -947,7 +947,7 @@ array. The wrapper object is returned.</p>
                 </a>
             </h3><pre><code><span class="token keyword">const</span> meter <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token function">createNode</span><span class="token punctuation">(</span><span class="token string">'meter'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
 
-            
+
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
     <article class="property-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="property-peaks">
@@ -966,8 +966,8 @@ array. The wrapper object is returned.</p>
     </section>
 
         </article>
-    
-        
+
+
         <article class="function-toggle-block toggle-block block 3x" toggleable="" id="mix-context-settings">
             <h3 class="doctext-05 dot-indent">
                 <a href="#mix-context-settings">
@@ -978,7 +978,7 @@ array. The wrapper object is returned.</p>
     pan<span class="token punctuation">:</span> <span class="token number">0</span>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
 
-            
+
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
     <article class="property-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="property-gain">
@@ -1006,8 +1006,8 @@ array. The wrapper object is returned.</p>
     </section>
 
         </article>
-    
-        
+
+
         <article class="function-toggle-block toggle-block block 3x" toggleable="" id="noise-context-settings">
             <h3 class="doctext-05 dot-indent">
                 <a href="#noise-context-settings">
@@ -1018,7 +1018,7 @@ array. The wrapper object is returned.</p>
 <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre><p>A noise object generates noise.</p>
 
 
-            
+
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
     <article class="property-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="property-type">
@@ -1038,8 +1038,8 @@ array. The wrapper object is returned.</p>
     </section>
 
         </article>
-    
-        
+
+
         <article class="function-toggle-block toggle-block block 3x" toggleable="" id="sample-context-settings">
             <h3 class="doctext-05 dot-indent">
                 <a href="#sample-context-settings">
@@ -1051,7 +1051,7 @@ array. The wrapper object is returned.</p>
 playback of pitches. Mapping is defined in a JSON file.</p>
 
 
-            
+
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
     <article class="property-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="property-src">
@@ -1097,8 +1097,8 @@ playback of pitches. Mapping is defined in a JSON file.</p>
     </section>
 
         </article>
-    
-        
+
+
         <article class="function-toggle-block toggle-block block 3x" toggleable="" id="tone-context-settings">
             <h3 class="doctext-05 dot-indent">
                 <a href="#tone-context-settings">
@@ -1115,7 +1115,7 @@ oscillator may only be started once, a tone can be started and stopped at will.<
 defining voices for instruments.</p>
 
 
-            
+
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
     <article class="property-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="property-type">
@@ -1181,8 +1181,8 @@ defining voices for instruments.</p>
     </section>
 
         </article>
-    
-        
+
+
         <article class="function-toggle-block toggle-block block 3x" toggleable="" id="tick-context-settings">
             <h3 class="doctext-05 dot-indent">
                 <a href="#tick-context-settings">
@@ -1196,7 +1196,7 @@ defining voices for instruments.</p>
 Used inside the metronome.</p>
 
 
-            
+
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
     <article class="property-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="property-resonance">
@@ -1251,8 +1251,8 @@ Used inside the metronome.</p>
     </section>
 
         </article>
-    
-        
+
+
         <article class="function-toggle-block toggle-block block 3x" toggleable="" id="envelope-context-settings">
             <h3 class="doctext-05 dot-indent">
                 <a href="#envelope-context-settings">
@@ -1278,7 +1278,7 @@ They are capable of producing DC signal.
 </p>
 
 
-            
+
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
     <article class="property-doc-toggle-block doc-toggle-block toggle-block block" toggleable="" id="property-attack">
@@ -1353,8 +1353,8 @@ should have a value <span class="token keyword">of</span> <span class="token tem
     </section>
 
         </article>
-    
-        
+
+
         <article class="function-toggle-block toggle-block block 3x" toggleable="" id="instrument-context-settings">
             <h3 class="doctext-05 dot-indent">
                 <a href="#instrument-context-settings">
@@ -1392,7 +1392,7 @@ parameter 1 (note frequency) is scaled then used to set the <code>frequency</cod
 AudioParam of the child node <code>'filter'</code>.</p>
 
 
-            
+
     <section class="x-1 2x @1-x-1 @2-x-2">
         <!--template-->
     </section>
@@ -1429,7 +1429,7 @@ instrument
     </section>
 
         </article>
-    
+
     </section>
 
     <section class="x-1 3x @1-6x @2-x-2 6x-grid grid" id="nodes">
@@ -1511,7 +1511,7 @@ events types and the data they expect are:</p>
 <li><code>denominator</code> is the duration (in beats) of a meter division</li>
 </ul>
 </article>
-    
+
         <article class="block 3x">
             <h3 class="doctext-05 ">
                 <code class="property language-js">"note"</code>
@@ -1523,7 +1523,7 @@ events types and the data they expect are:</p>
 <li><code>duration</code> is a float, in beats</li>
 </ul>
 </article>
-    
+
         <article class="block 3x">
             <h3 class="doctext-05 ">
                 <code class="property language-js">"param"</code>
@@ -1535,7 +1535,7 @@ events types and the data they expect are:</p>
 <li><code>curve</code> is <code>"step"</code>, <code>"linear"</code>, <code>"exponential"</code> or <code>"target"</code></li>
 </ul>
 </article>
-    
+
         <article class="block 3x">
             <h3 class="doctext-05 ">
                 <code class="property language-js">"rate"</code>
@@ -1546,7 +1546,7 @@ events types and the data they expect are:</p>
 <li><code>curve</code> is <code>"step"</code> or <code>"exponential"</code></li>
 </ul>
 </article>
-    
+
         <article class="block 3x">
             <h3 class="doctext-05 ">
                 <code class="property language-js">"sequence"</code>
@@ -1558,7 +1558,7 @@ events types and the data they expect are:</p>
 <li><code>duration</code> is a float, in beats</li>
 </ul>
 </article>
-    
+
     </section>
 
 
@@ -1681,7 +1681,7 @@ export default class Sample extends GainNode {
     </section-->
 
     <!-- Build document -->
-    
+
 
     <!-- Document interactivity -->
     <script type="module">
