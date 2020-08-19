@@ -11,13 +11,13 @@ export default function Connector(graph, sourceId, targetId, sourceChan, targetC
     // Get source node
     //const sourceParts = sourceId.split('.');
     const sourceNode = typeof sourceId === 'object' ?
-        graph.nodes.find((entry) => entry === sourceId || entry.data === sourceId).data :
+        graph.nodes.find((entry) => entry === sourceId || entry.node === sourceId).node :
         graph.get(sourceId) ;
 
     // Get target node or param
     //const targetParts = targetId.split('.');
     const targetNode = typeof targetId === 'object' ?
-        graph.nodes.find((entry) => entry === targetId || entry.data === targetId).data :
+        graph.nodes.find((entry) => entry === targetId || entry.node === targetId).node :
         graph.get(targetId) ;
 
     const targetParam  = targetChan
@@ -65,8 +65,8 @@ assign(Connector.prototype, {
 
     toJSON: function() {
         return {
-            source: this.graph.nodes.find((entry) => entry.data === this.source).id,
-            target: this.graph.nodes.find((entry) => entry.data === this.target).id,
+            source: this.graph.nodes.find((entry) => entry.node === this.source).id,
+            target: this.graph.nodes.find((entry) => entry.node === this.target).id,
             data:   this.data
         }
     }

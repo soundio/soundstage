@@ -1,6 +1,6 @@
 
 import { get, isDefined, noop, nothing, map, matches, Privates }   from '../../fn/module.js';
-import requestInputSplitter   from './request-input-splitter.js';
+import weakCache from '../../fn/modules/weak-cache.js';
 import { print, printGroup, printGroupEnd }     from './print.js';
 import { context, domTimeAtTime, timeAtDomTime } from './context.js';
 import constructors  from './constructors.js';
@@ -12,6 +12,7 @@ import Input         from '../nodes/input.js';
 import Output        from '../nodes/output.js';
 import Metronome     from '../nodes/metronome.js';
 import Graph         from './graph.js';
+import requestMedia  from './request-media.js';
 import requestPlugin from './request-plugin.js';
 import Timer         from './timer.js';
 import Transport     from './transport.js';
@@ -33,6 +34,19 @@ const defaultData = {
 };
 
 // Nodes
+
+// Cached so that we guarantee one splitter per context
+const createInputSplitter = weakCache(function(context) {
+    const splitter = context.createChannelSplitter(2);
+
+    requestMedia().then(function(stream) {
+        var source = context.createMediaStreamSource(stream);
+        splitter.channelCount = source.channelCount;
+        source.connect(splitter);
+    });
+
+    return splitter;
+});
 
 function createOutputMerger(context, target) {
     // Safari sets audio.destination.maxChannelCount to
@@ -64,33 +78,33 @@ function createOutputMerger(context, target) {
     return merger;
 }
 
+/*
 function rewriteURL(basePath, url) {
     // Append relative URLs, including node types, to basePath
     return /^https?:\/\/|^\//.test(url) ? url : basePath + url;
 }
+*/
 
 function requestAudioNode(type, context, settings, transport, basePath) {
-    return (
-        constructors[type] ?
-            Promise.resolve(constructors[type]) :
-            // settings.type is a URL
-            requestPlugin(rewriteURL(basePath, type))
-    )
-    .then(function(Node) {
-        // If the constructor has a preload fn, it has special things
-        // to prepare (such as loading AudioWorklets) before it can
-        // be used.
-        return Node.preload ?
-            Node.preload(basePath, context).then(() => {
-                print('Node', Node.name, 'preloaded');
-                return Node;
-            }) :
-            Node ;
-    })
-    .then(function(Node) {
-        // Create the audio node
-        return new Node(context, settings, transport);
-    });
+    if (!constructors[type]) {
+        throw new Error('Soundstage: unrecognised node type "' + type + '"');
+    }
+
+    const Constructor = constructors[type];
+
+    // If the constructor has a preload fn, it has special things
+    // to prepare (such as loading AudioWorklets) before it can
+    // be used. Todo: this is left over from async node creation... refactor this
+    // somehow
+    if (Constructor.preload) {
+        Constructor.preload(basePath, context).then(() => {
+            print('Node', Node.name, 'preloaded');
+            return Node;
+        }) ;
+    }
+
+    // Create the audio node
+    return new Constructor(context, settings, transport);
 }
 
 
@@ -245,7 +259,6 @@ export default function Soundstage(data = defaultData, settings = nothing) {
     //        return Region(context, data);
     //    });
 
-
     // Initialise soundstage as a graph. Assigns:
     //
     // nodes:          array
@@ -253,17 +266,16 @@ export default function Soundstage(data = defaultData, settings = nothing) {
 
     const requestTypes = {
         input: function(type, context, data) {
-            return requestInputSplitter(context).then(function(input) {
-                return new Input(context, data, input);
-            });
+            const splitter = createInputSplitter(context);
+            return new Input(context, data, splitter);
         },
 
         metronome: function(type, context, data) {
-            return Promise.resolve(new Metronome(context, data, transport));
+            return new Metronome(context, data, transport);
         },
 
         output: function(type, context, data) {
-            return Promise.resolve(new Output(context, data, output));
+            return new Output(context, data, output);
         },
 
         default: function(type, context, data, transport) {
@@ -277,8 +289,8 @@ export default function Soundstage(data = defaultData, settings = nothing) {
     // Initialise MIDI and keyboard controls. Assigns:
     //
     // controls:       array-like
-
-    this.__promise = this.ready(function graphReady(stage) {
+    const stage = this;
+    //this.__promise = this.ready(function graphReady(stage) {
         define(stage, {
             controls: {
                 enumerable: true,
@@ -305,10 +317,11 @@ export default function Soundstage(data = defaultData, settings = nothing) {
         notify(stage.nodes, '.');
         notify(stage.connections, '.');
         notify(stage, 'controls');
-    })
-    .then(function() {
-        return context.resume();
-    });
+    //})
+    //.then(function() {
+        context.resume();
+    //    return context.resume();
+    //});
 
 
     // Initialise soundstage as a Sequence. Assigns:

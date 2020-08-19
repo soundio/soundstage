@@ -29,19 +29,18 @@ const blacklist = {
 export default function Node(graph, type, id, label, data, context, requests, transport) {
     define(this, properties);
 
-    this.graph = graph;
+    // Define my identity in the graph
     this.id    = id;
     this.type  = type;
     this.label = label || '';
-    this.request = (requests[type] || requests.default)(type, context, data, transport)
-    .then((node) => {
-        assignSettingz__(node, data);
-        this.node = node;
-        // Legacy name??
-        this.data = node;
-        return node;
-    });
+    this.graph = graph;
 
+    // Define the audio node
+    const node = (requests[type] || requests.default)(type, context, data, transport);
+    assignSettingz__(node, data);
+    this.node = node;
+
+    // Add this node to the graph
     graph.nodes.push(this);
 }
 
@@ -67,9 +66,10 @@ assign(Node.prototype, {
         const privates = Privates(this.graph);
 
         if (this.record) {
+            const beat     = Math.floor(this.graph.beatAtTime(time));
+
             if (!privates.recordSequence) {
                 const sequence = this.graph.createSequence();
-                const beat     = Math.floor(this.graph.beatAtTime(time));
                 const event    = this.graph.createEvent(beat, 'sequence', sequence.id, this.id);
                 privates.recordSequence = sequence;
             }
