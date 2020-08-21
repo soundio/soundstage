@@ -31,7 +31,7 @@ The `nodes` array is a collection of objects defining child nodes, where `id` is
 an arbitrary string, `type` may be any Soundstage built-in node type, and `data`
 is a child node settings object. See [[[Todo: nodes]]] for details.
 
-<aside class="note">The special id <code>'this'</code> refers to the graph
+<aside class="note">The special id <code>'self'</code> refers to the graph
 object itself and cannot be used as a child node id. This is useful
 where NodeGraph is used as a mixin for a subclassed AudioNode and that node
 is connected into the graph.</aside>
@@ -100,10 +100,10 @@ function createConnector(nodes, data) {
         throw new Error('Cannot .connect() to target channel from undefined source channel.')
     }
 
-    // There is a special case when source is 'this'. NodeGraph overwrites
+    // There is a special case when source is 'self'. NodeGraph overwrites
     // the node's .connect() method, but we need the original .connect()
     // because we don't want the output of the graph, but the output of this.
-    if (srcPath[0] === 'this') {
+    if (srcPath[0] === 'self') {
         AudioNode.prototype.connect.call(source, target, srcChan, tgtChan);
     }
     else {
@@ -124,10 +124,10 @@ export default function NodeGraph(context, data) {
         nodes[data.id] = createNode(context, data.type, data.data);
         return nodes;
     }, {});
-
+console.log(data, nodes);
     // Include this in the graph if it is an audio node
     if (AudioNode.prototype.isPrototypeOf(this)) {
-        nodes['this'] = this;
+        nodes['self'] = this;
     }
 
     // Otherwise make it quack like an audio node
@@ -158,10 +158,10 @@ export default function NodeGraph(context, data) {
 
     if (data.properties) {
         Object.entries(data.properties).forEach((entry) => {
-            const prop = entry[0];
-            const path = entry[1].split('.');
-            const node = nodes[path[0]];
-            const name = path[1];
+            const prop  = entry[0];
+            const path  = entry[1].split('.');
+            const node  = nodes[path[0]];
+            const name  = path[1];
             const param = node[name];
 
             if (!(name in node)) {

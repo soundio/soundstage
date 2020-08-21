@@ -35,7 +35,67 @@ const define = Object.defineProperties;
 const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 const frequencyC4 = floatToFrequency(440, 60);
 
-export const defaults = {};
+export const defaults = {
+    nodes: [{
+        id:   'osc',
+        type: 'tone',
+        data: {
+            type: 'sine',
+            detune: 0
+        }
+    }, {
+        id:   'mix',
+        type: 'mix',
+        data: {
+            gain: 0.7,
+            pan: 0
+        }
+    }, {
+        id:   'gain-envelope',
+        type: 'envelope',
+        data: {
+            attack: [
+                [0,     "step",   0],
+                [0.012, "linear", 1],
+                [0.3,   "exponential", 0.125]
+            ],
+
+            release: [
+                [0, "target", 0, 0.1]
+            ]
+        }
+    }, {
+        id:   'gain',
+        type: 'gain',
+        data: {
+            gain: 0
+        }
+    }],
+
+    connections: [
+        { source: 'gain-envelope',   target: 'gain.gain' },
+        { source: 'osc', target: 'mix' },
+        { source: 'mix', target: 'gain' }
+    ],
+
+    __start: {
+        'gain-envelope': {
+            gain: {
+                2: { type: 'logarithmic', min: 0.00390625, max: 1 }
+            }
+        },
+
+        'osc': {
+            frequency: {
+                1: { type: 'none' }
+            }
+        }
+    },
+
+    // May be 'self' if voice is a node. It isn't. 
+    // Todo: Wot? Why have I even writen this here? Explain yourself.
+    output: 'gain'
+};
 
 export function createNode(context, type, settings) {
     const node = new constructors[type](context, settings);

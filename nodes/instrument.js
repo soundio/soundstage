@@ -121,7 +121,10 @@ export default class Instrument extends GainNode {
 
         // Properties
         define(this, properties);
-        this.voice = settings.voice;
+
+        // Todo: default voice
+        this.voice = settings && settings.voice || voiceDefaults;
+
 
         // Start constants
         this.get('pitch').start();
@@ -144,6 +147,7 @@ export default class Instrument extends GainNode {
 
         // Update settings
         assignSettingz__(this, defaults);
+
 
         if (DEBUG) { logGroupEnd(); }
     }

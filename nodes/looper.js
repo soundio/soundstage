@@ -101,7 +101,6 @@ export default class Looper extends GainNode {
         NodeGraph.call(this, context, graph);
 
         // Connect input (this) into graph
-        // Todo: move these to graph (implement 'this' in graph connections)
         GainNode.prototype.connect.call(this, this.get('dry'));
         GainNode.prototype.connect.call(this, this.get('recorder'));
 

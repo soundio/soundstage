@@ -88,6 +88,18 @@ assign(Node.prototype, {
         undefined ;
     },
 
+    cue: function(time, type, name, value, duration) {
+        if (type === 'note') {
+            const voice = this.node.start(time, name, value);
+            if (duration) {
+                voice.stop(time + duration);
+            }
+        }
+        else {
+
+        }
+    },
+
     records: function() {
         return this.data.records && this.data.records()
         .map((record) => {

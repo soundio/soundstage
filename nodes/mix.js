@@ -19,7 +19,7 @@ const graph = {
     ],
 
     connections: [
-        { source: 'this', target: 'pan' }
+        { source: 'self', target: 'pan' }
     ],
 
     properties: {

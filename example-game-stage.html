@@ -1,0 +1,17 @@
+
+<script type="module">
+	import Soundstage from './module.js';
+
+	const stage  = new Soundstage();
+	const output = stage.createNode('output');
+	const source = stage.createNode('instrument');
+
+	console.log(stage.time, source);
+
+	stage.createConnector(source, output);
+
+	// Clickety click
+	document.addEventListener('click', function(argument) {
+		source.cue(stage.time, 'note', 'C3', 1);
+	});
+</script>
