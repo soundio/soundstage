@@ -2,7 +2,7 @@
 import { get, isDefined, noop, nothing, map, matches, Privates }   from '../../fn/module.js';
 import weakCache from '../../fn/modules/weak-cache.js';
 import { print, printGroup, printGroupEnd }     from './print.js';
-import { context, domTimeAtTime, timeAtDomTime } from './context.js';
+import { context, domTimeAtTime, timeAtDomTime, getOutputLatency } from './context.js';
 import constructors  from './constructors.js';
 import { isKeyboardInputSource } from './control-sources/keyboard-input-source.js';
 import { isMIDIInputSource } from './control-sources/midi-input-source.js';
@@ -13,7 +13,6 @@ import Output        from '../nodes/output.js';
 import Metronome     from '../nodes/metronome.js';
 import Graph         from './graph.js';
 import requestMedia  from './request-media.js';
-import requestPlugin from './request-plugin.js';
 import Timer         from './timer.js';
 import Transport     from './transport.js';
 import Sequencer     from './sequencer.js';
@@ -375,6 +374,14 @@ define(Soundstage.prototype, {
     //blockDuration:  getOwnPropertyDescriptor(Transport.prototype, 'blockDuration'),
     //frameDuration:  getOwnPropertyDescriptor(Transport.prototype, 'frameDuration'),
     //frameLookahead: getOwnPropertyDescriptor(Transport.prototype, 'frameLookahead'),
+
+    outputLatency: {
+        enumerable: true,
+
+        get: function() {
+            return getOutputLatency(this.context);
+        }
+    },
 
     /**
     .metronome

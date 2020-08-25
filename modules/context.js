@@ -23,11 +23,14 @@ if (!context.baseLatency) {
     context.baseLatency = 256 / context.sampleRate;
 }
 
+/*
 if (!context.outputLatency) {
     // Just a quick guess.
     // You'll never get this on Windows, more like 0.02 - no ASIO drivers, see.
     context.outputLatency = 128 / context.sampleRate;
+    context.outputLatencyEstimated = true;
 }
+*/
 
 /*
 In Chrome (at least) contexts are suspended by default according to
@@ -105,11 +108,19 @@ function _getOutputLatency(stamps, context) {
 }
 
 export function getInputLatency(context) {
+    if (context.inputLatency) {
+        return context.inputLatency;
+    }
+
     const stamp = context.getOutputTimestamp();
     return _getOutputLatency(stamp, context);
 }
 
 export function getOutputLatency(context) {
+    if (context.outputLatency) {
+        return context.outputLatency;
+    }
+
     const stamp = context.getOutputTimestamp();
     return _getOutputLatency(stamp, context);
 }

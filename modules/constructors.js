@@ -15,7 +15,7 @@ import Tone       from '../nodes/tone.js';
 import Noise      from '../nodes/noise.js';
 import Instrument from '../nodes/instrument.js';
 
-export default {
+const constructors = {
     // https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/AnalyserNode
     'analyser': AnalyserNode,
     // https://developer.mozilla.org/en-US/docs/Web/API/AudioBufferSourceNode/AudioBufferSourceNode
@@ -73,4 +73,14 @@ export default {
     'tone': Tone,
     // ../nodes/noise.js
     'noise': Noise
-};
+}
+
+export default constructors;
+
+export function register(name, constructor) {
+    if (constructors[name]) {
+        throw new Error('Cannot register "' + name + '", it already exists');
+    }
+
+    constructors[name] = constructor;
+}

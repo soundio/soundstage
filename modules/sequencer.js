@@ -353,9 +353,10 @@ export default function Sequencer(transport, data, rateParam, timer, notify) {
 define(Sequencer.prototype, {
 
     /** .time
-    The time of audio now leaving the device output. On browsers the have not
-    yet implemented `context.getOutputTimestamp()` this value is estimated from
-    `currentTime` and a guess at the output latency.
+    The time of audio now leaving the device output. (In browsers the have not
+    yet implemented `AudioContext.getOutputTimestamp()` this value is estimated from
+    `currentTime` and a guess at the output latency. Which is a bit meh, but
+    better than nothing.)
     **/
 
     time: {

@@ -100,6 +100,12 @@ assign(Node.prototype, {
         }
     },
 
+    start: function(time, name, value, settings) {
+        const voice = this.node.start(time, name, value);
+        assignSettingz__(voice, settings);
+        return voice;
+    },
+    
     records: function() {
         return this.data.records && this.data.records()
         .map((record) => {

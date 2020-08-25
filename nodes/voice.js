@@ -172,7 +172,7 @@ define(Voice.prototype, {
 
 function setPropertyOrParam(target, key, value) {
     if (!(key in target)) {
-        console.warn('Cannot set property or param "' + key + '" in node', target);
+        throw new Error('Cannot set undefined property or param "' + key + '"');
     }
 
     if (target[key] && target[key].setValueAtTime) {

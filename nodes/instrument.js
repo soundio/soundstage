@@ -73,8 +73,8 @@ const graph = {
     connections: [
         // Params are not attached to anything by default - they wait
         // to be attached to voices. You can't automate them until they have
-        // a route to context.destination. That's just the way things work.
-        // Attach them to sink to get them nice and active.
+        // a route to context.destination. That's just the way things work, so
+        // attach them to sink to get them nice and active.
         { source: 'pitch',      target: 'sink' },
         { source: 'modulation', target: 'sink' },
         { source: 'pitch',      target: 'detune' }

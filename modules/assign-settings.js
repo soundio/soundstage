@@ -1,7 +1,7 @@
 import { log, logGroup, logGroupEnd } from './print.js';
 import { automato__, getAutomation } from './automate.js';
 
-const DEBUG = true;
+const DEBUG = false;
 
 function assignSetting(node, key, value, notify) {
     // Are we trying to get a value from an AudioParam? No no no.
