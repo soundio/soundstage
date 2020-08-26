@@ -30,11 +30,11 @@ function addConnector(graph, setting) {
     return graph;
 }
 
-export default function Graph(context, requests, data, transport) {
+export default function Graph(context, merger, data, transport) {
     const graph    = this;
     const privates = Privates(this);
 
-    privates.requests = requests;
+    privates.merger    = merger;
     privates.transport = transport;
 
     define(this, {
@@ -43,9 +43,9 @@ export default function Graph(context, requests, data, transport) {
     });
 
     if (data.nodes) {
-        data.nodes.map(function(settings) {
+        data.nodes.forEach(function(data) {
             // Nodes add themselves to the graph
-            return new Node(graph, settings.type, settings.id, settings.label, settings.data, context, requests, transport);
+            return new Node(graph, context, data.type, data.id, data.label, data.node, merger, transport);
         });
     }
 
@@ -78,13 +78,13 @@ assign(Graph.prototype, {
     **/
 
     createNode: function (type, data) {
-        const graph = this;
-        const privates = Privates(this);
-        const requests = privates.requests;
+        const graph     = this;
+        const privates  = Privates(this);
+        const merger    = privates.merger;
         const transport = privates.transport;
-        const notify = privates.notify;
-        const id = generateUnique(this.nodes.map(get('id')));
-        const node = new Node(graph, type, id, type, data, graph.context, requests, transport);
+        const notify    = privates.notify;
+        const id        = generateUnique(this.nodes.map(get('id')));
+        const node      = new Node(graph, graph.context, type, id, type, data, merger, transport);
 
         notify(graph.nodes, '.');
 
@@ -108,7 +108,7 @@ assign(Graph.prototype, {
     Returns the AudioNode with `id` from the graph, or undefined.
 
     ```js
-    var node = stage.get('0');
+    const node = stage.get('0');
     ```
     **/
 
@@ -116,7 +116,17 @@ assign(Graph.prototype, {
         return this.nodes.find(has('id', id)).node;
     },
 
-    identify: function(data) {
+    /**
+    .identify(node)
+
+    Returns the id of the graph node that wraps the AudioNode `node`.
+
+    ```js
+    const id = stage.identify(node);
+    ```
+    **/
+
+    identify: function(node) {
         return this.nodes.find(has('node', node)).id;
     }
 });

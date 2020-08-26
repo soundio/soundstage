@@ -3,6 +3,7 @@
 // or force node-graph to work with promises... I don't think so. Load em for
 // the moment.
 
+import Input      from '../nodes/input.js';
 import Meter      from '../nodes/meter.js';
 import EQ         from '../nodes/eq.js';
 import Mix        from '../nodes/mix.js';
@@ -13,8 +14,9 @@ import Sink       from '../nodes/sink.js';
 import Sample     from '../nodes/sample.js';
 import Tone       from '../nodes/tone.js';
 import Noise      from '../nodes/noise.js';
-import Instrument from '../nodes/instrument.js';
-
+//import Instrument from '../nodes/instrument.js';
+import Metronome  from '../nodes/metronome.js';
+console.log('Constructors')
 const constructors = {
     // https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/AnalyserNode
     'analyser': AnalyserNode,
@@ -51,6 +53,8 @@ const constructors = {
     // https://developer.mozilla.org/en-US/docs/Web/API/StereoPannerNode/StereoPannerNode
     'pan': StereoPannerNode,
 
+    // ../node/input.js
+    'input': Input,
     // ../nodes/meter.js
     'meter': Meter,
     // ../nodes/mix.js
@@ -66,20 +70,22 @@ const constructors = {
     // ../nodes/sink.js
     'sink': Sink,
     // ../nodes/instrument.js
-    'instrument': Instrument,
+    //'instrument': Instrument,
     // ../nodes/tone.js
     'sample': Sample,
     // ../nodes/tone.js
     'tone': Tone,
     // ../nodes/noise.js
-    'noise': Noise
+    'noise': Noise,
+    // ../nodes/metronome.js
+    'metronome': Metronome
 }
 
 export default constructors;
 
 export function register(name, constructor) {
-    if (constructors[name]) {
-        throw new Error('Cannot register "' + name + '", it already exists');
+    if (constructors[name] || name === 'output') {
+        throw new Error('Cannot register node type "' + name + '", it already exists');
     }
 
     constructors[name] = constructor;

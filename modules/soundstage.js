@@ -1,15 +1,11 @@
 
 import { get, isDefined, noop, nothing, map, matches, Privates }   from '../../fn/module.js';
-import weakCache from '../../fn/modules/weak-cache.js';
 import { print, printGroup, printGroupEnd }     from './print.js';
 import { context, domTimeAtTime, timeAtDomTime, getOutputLatency } from './context.js';
-import constructors  from './constructors.js';
 import { isKeyboardInputSource } from './control-sources/keyboard-input-source.js';
 import { isMIDIInputSource } from './control-sources/midi-input-source.js';
 import { connect, disconnect } from './connect.js';
 import Control       from './control.js';
-import Input         from '../nodes/input.js';
-import Output        from '../nodes/output.js';
 import Metronome     from '../nodes/metronome.js';
 import Graph         from './graph.js';
 import requestMedia  from './request-media.js';
@@ -32,20 +28,8 @@ const defaultData = {
     nodes: [{ id: '0', type: 'output' }]
 };
 
+
 // Nodes
-
-// Cached so that we guarantee one splitter per context
-const createInputSplitter = weakCache(function(context) {
-    const splitter = context.createChannelSplitter(2);
-
-    requestMedia().then(function(stream) {
-        var source = context.createMediaStreamSource(stream);
-        splitter.channelCount = source.channelCount;
-        source.connect(splitter);
-    });
-
-    return splitter;
-});
 
 function createOutputMerger(context, target) {
     // Safari sets audio.destination.maxChannelCount to
@@ -73,37 +57,7 @@ function createOutputMerger(context, target) {
     // Upmix/downmix incoming connections.
     merger.channelInterpretation = 'discrete';
 
-    merger.connect(target);
     return merger;
-}
-
-/*
-function rewriteURL(basePath, url) {
-    // Append relative URLs, including node types, to basePath
-    return /^https?:\/\/|^\//.test(url) ? url : basePath + url;
-}
-*/
-
-function requestAudioNode(type, context, settings, transport, basePath) {
-    if (!constructors[type]) {
-        throw new Error('Soundstage: unrecognised node type "' + type + '"');
-    }
-
-    const Constructor = constructors[type];
-
-    // If the constructor has a preload fn, it has special things
-    // to prepare (such as loading AudioWorklets) before it can
-    // be used. Todo: this is left over from async node creation... refactor this
-    // somehow
-    if (Constructor.preload) {
-        Constructor.preload(basePath, context).then(() => {
-            print('Node', Node.name, 'preloaded');
-            return Node;
-        }) ;
-    }
-
-    // Create the audio node
-    return new Constructor(context, settings, transport);
 }
 
 
@@ -196,7 +150,7 @@ following properties and methods.
 
 export default function Soundstage(data = defaultData, settings = nothing) {
     if (!Soundstage.prototype.isPrototypeOf(this)) {
-        // Soundstage has been called without the new keyword
+        // Soundstage has been called without `new`
         return new Soundstage(data, settings);
     }
 
@@ -207,14 +161,16 @@ export default function Soundstage(data = defaultData, settings = nothing) {
     if (DEBUG) { printGroup('Soundstage()'); }
 
     const context     = settings.context || defaults.context;
-    const destination = settings.destination === undefined ? context.destination : settings.destination ;
+    const destination = settings.destination || context.destination;
     const notify      = settings.notify || noop;
-    const output      = createOutputMerger(context, destination);
+    const merger      = createOutputMerger(context, destination);
     const rateNode    = new window.ConstantSourceNode(context, { offset: 2 });
     const rateParam   = rateNode.offset;
     const timer       = new Timer(() => context.currentTime);
     const transport   = new Transport(context, rateParam, timer, notify);
 
+    // Replace with stage.connect(destination) ??
+    merger.connect(destination);
     rateNode.start(0);
 
 
@@ -224,7 +180,7 @@ export default function Soundstage(data = defaultData, settings = nothing) {
 
     privates.notify = notify;
     privates.outputs = {
-        default: output,
+        default: merger,
         rate:    rateNode
     };
 
@@ -233,7 +189,7 @@ export default function Soundstage(data = defaultData, settings = nothing) {
 
     /**
     .label
-    A string name or title for this Soundstage document.
+    A string name for this Soundstage document.
     **/
 
     this.label = data.label || '';
@@ -243,8 +199,7 @@ export default function Soundstage(data = defaultData, settings = nothing) {
     **/
 
     define(this, {
-        mediaChannelCount: { value: undefined, writable: true, configurable: true },
-        // roundTripLatency:  { value: Soundstage.roundTripLatency, writable: true, configurable: true },
+        mediaChannelCount: { value: undefined, writable: true, configurable: true }
     });
 
 
@@ -262,27 +217,7 @@ export default function Soundstage(data = defaultData, settings = nothing) {
     //
     // nodes:          array
     // connectors:     array
-
-    const requestTypes = {
-        input: function(type, context, data) {
-            const splitter = createInputSplitter(context);
-            return new Input(context, data, splitter);
-        },
-
-        metronome: function(type, context, data) {
-            return new Metronome(context, data, transport);
-        },
-
-        output: function(type, context, data) {
-            return new Output(context, data, output);
-        },
-
-        default: function(type, context, data, transport) {
-            return requestAudioNode(type, context, data, transport, config.basePath + 'nodes/');
-        }
-    };
-
-    Graph.call(this, context, requestTypes, data, transport);
+    Graph.call(this, context, merger, data, transport);
 
 
     // Initialise MIDI and keyboard controls. Assigns:

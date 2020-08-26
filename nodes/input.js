@@ -9,34 +9,42 @@ const input = stage.createNode('input', {
 ```
 **/
 
-var assign   = Object.assign;
-var defaults = {
+import weakCache from '../../fn/modules/weak-cache.js';
+import requestMedia from '../modules/request-media.js';
+
+const assign   = Object.assign;
+const rautoname = /In\s\d+\/\d+/;
+const defaults = {
     channels: [0, 1]
 };
 
-var rautoname = /In\s\d+\/\d+/;
+// Cached so that we guarantee one splitter per context
+const createInputSplitter = weakCache(function(context) {
+    const splitter = context.createChannelSplitter(2);
 
-function increment(n) { return ++n; }
+    requestMedia().then(function(stream) {
+        var source = context.createMediaStreamSource(stream);
+        splitter.channelCount = source.channelCount;
+        source.connect(splitter);
+    });
+
+    return splitter;
+});
+
+function increment(n) {
+    return ++n;
+}
 
 export default class Input extends ChannelMergerNode {
-    constructor(context, settings, input) {
-        var options = assign({}, defaults, settings);
+    constructor(context, settings) {
+        const options = assign({}, defaults, settings);
         options.numberOfInputs = options.channels.length || 2;
+
         super(context, options);
 
+        const splitter = createInputSplitter(context);
         var channels = [];
         var n = 0;
-
-        function update(source, target, channels) {
-            var count = channels.length;
-
-            // Don't do this the first time
-            if (n++) { source.disconnect(target); }
-
-            while (count--) {
-                source.connect(target, channels[count], count);
-            }
-        }
 
         /**
         .channels
@@ -62,7 +70,14 @@ export default class Input extends ChannelMergerNode {
                         this.name = 'In ' + array.map(increment).join('/');
                     }
 
-                    update(input, this, channels);
+                    // Don't do this the first time, it will error
+                    if (n++) { source.disconnect(target); }
+
+                    var count = channels.length;
+
+                    while (count--) {
+                        source.connect(splitter, channels[count], count);
+                    }
                 },
                 enumerable: true,
                 configurable: true

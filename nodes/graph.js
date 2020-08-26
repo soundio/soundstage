@@ -59,7 +59,7 @@ import { Privates } from '../../fn/module.js';
 import { logGroup, logGroupEnd } from '../modules/print.js';
 import { connect, disconnect } from '../modules/connect.js';
 import constructors from '../modules/constructors.js';
-
+console.log('NodeGraph');
 const DEBUG  = false;//window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;

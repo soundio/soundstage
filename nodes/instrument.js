@@ -48,6 +48,8 @@ import Pool from '../modules/pool.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
 import { connect, disconnect } from '../modules/connect.js';
 
+console.log('Instrument');
+
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
@@ -125,6 +127,7 @@ export default class Instrument extends GainNode {
         // Todo: default voice
         this.voice = settings && settings.voice || voiceDefaults;
 
+console.log(this);
 
         // Start constants
         this.get('pitch').start();
@@ -232,6 +235,10 @@ assign(Instrument.prototype, NodeGraph.prototype, {
         privates.voices.forEach((node) => disconnect(node));
     }
 });
+
+Instrument.prototype.arse = 8;
+
+console.log('>>', Object.keys(NodeGraph.prototype), Instrument.prototype, assign({a:1}, {b:1}));
 
 // Assign defaults
 assign(Instrument, {
