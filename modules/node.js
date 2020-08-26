@@ -88,22 +88,8 @@ assign(Node.prototype, {
         undefined ;
     },
 
-    cue: function(time, type, name, value, duration) {
-        if (type === 'note') {
-            const voice = this.node.start(time, name, value);
-            if (duration) {
-                voice.stop(time + duration);
-            }
-        }
-        else {
-
-        }
-    },
-
     start: function(time, name, value, settings) {
-        const voice = this.node.start(time, name, value);
-        assignSettingz__(voice, settings);
-        return voice;
+        return assignSettingz__(this.node.start(time, name, value), settings);
     },
     
     records: function() {

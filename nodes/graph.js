@@ -124,7 +124,7 @@ export default function NodeGraph(context, data) {
         nodes[data.id] = createNode(context, data.type, data.data);
         return nodes;
     }, {});
-console.log(data, nodes);
+
     // Include this in the graph if it is an audio node
     if (AudioNode.prototype.isPrototypeOf(this)) {
         nodes['self'] = this;

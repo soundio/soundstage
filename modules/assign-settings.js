@@ -89,4 +89,6 @@ export function assignSettingz__(node, settings, ignored) {
     }
 
     if (DEBUG) { logGroupEnd(); }
+    
+    return node;
 }

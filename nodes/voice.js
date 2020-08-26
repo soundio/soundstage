@@ -190,7 +190,7 @@ assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 
     Starts nodes in the graph that have `__start` settings.
 
-    Where `note` is a number it is assumed to be a frequency, otherwise note
+    Where `note` is a number it is assumed to be a MIDI note number, otherwise note
     names in the form 'C3' or 'Ab8' are converted to frequencies before being
     transformed and set on properties of nodes in the graph (according to
     transforms in their `__start` settings).
@@ -220,6 +220,8 @@ assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 
         // Cycle through targets
         let id, entry;
+        let stopTime = 0;
+
         for (id in privates.__start) {
             entry = privates.__start[id];
 
@@ -251,6 +253,22 @@ assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
             }
 
             target.start(this.startTime);
+
+            // Keep a record of the latest envelope stopTime
+            if (target.constructor.name === 'Envelope') {
+                stopTime = target.stopTime === undefined ? Infinity :
+                    target.stopTime > stopTime ? target.stopTime : 
+                    stopTime ;
+            }
+        }
+
+        // All envelopes have given us a stopTime, so we may go ahead and set 
+        // stopTime now, even if it is to be overridden later, helping us guarantee
+        // that pooled voices are released even where .stop() is not called
+        // Not REALLY sure this is a great idea. Parhaps voices that stop themselves
+        // should be required to call .stop() on start?
+        if (stopTime) {
+            this.stopTime = stopTime;
         }
 
         return this;
@@ -266,7 +284,7 @@ assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
     Envelopes may have a tail – they can stop some time <i>after</i> they are
     told to, and this is reflected in the `.stopTime` of the voice.
 
-    Returns this.
+    Returns the voice.
     **/
 
     stop: function(time, note = 49, velocity = 1) {

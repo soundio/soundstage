@@ -25,6 +25,7 @@ They are capable of producing DC signal.
 </p>
 **/
 
+import { last } from '../../fn/module.js';
 import PlayNode from './play-node.js';
 import { automate, getValueAtTime, validateParamEvent } from '../modules/automate.js';
 import config from '../config.js';
@@ -119,25 +120,37 @@ export default class Envelope extends ConstantSourceNode {
         assignSettingz__(this, assign({}, defaults, settings));
     }
 
-    /** .start(time)
-
+    /**
+    .start(time)
     Start playback of envelope at `time`.
-
-    Returns `this`.
+    Returns envelope.
     **/
 
     start(time) {
         if (!this.attack) { return this; }
         PlayNode.prototype.start.apply(this, arguments);
         cueAutomation(this.offset, this.attack, this.startTime, this.gain, this.rate, 'ConstantSource.offset');
+
+        // If attack ends with value 0 we may set a stopTime already, even if it
+        // is to be overridden later with a call to .stop(), helping guarantee 
+        // the pooled object will be released even without release events
+        const event = last(this.attack);
+
+        if (event[2] === 0) {
+            this.stopTime = time + (
+                event[1] === 'target' ?
+                    event[0] + event[3] * targetDurationFactor :
+                    event[0]
+            );
+        }
+
         return this;
     }
 
-    /** .stop(time)
-
+    /**
+    .stop(time)
     Stop playback of envelope at `time`.
-
-    Returns `this`.
+    Returns envelope.
     **/
 
     stop(time) {
@@ -149,15 +162,16 @@ export default class Envelope extends ConstantSourceNode {
         cueAutomation(this.offset, this.release, this.stopTime, gain, this.rate, 'ConstantSource.offset');
 
         // Update stopTime to include release tail
-        const last = this.release[this.release.length - 1];
-        if (last[2] !== 0) {
+        const event = last(this.release);
+
+        if (event[2] !== 0) {
             console.warn('Envelope.release does not end with value 0. Envelope will never stop.', this);
             this.stopTime = Infinity;
         }
         else {
-            this.stopTime += last[1] === 'target' ?
-                last[0] + last[3] * targetDurationFactor :
-                last[0] ;
+            this.stopTime += event[1] === 'target' ?
+                event[0] + event[3] * targetDurationFactor :
+                event[0] ;
         }
 
         return this;
