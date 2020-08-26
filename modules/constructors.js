@@ -14,7 +14,7 @@ import Sink       from '../nodes/sink.js';
 import Sample     from '../nodes/sample.js';
 import Tone       from '../nodes/tone.js';
 import Noise      from '../nodes/noise.js';
-//import Instrument from '../nodes/instrument.js';
+import Instrument from '../nodes/instrument.js';
 import Metronome  from '../nodes/metronome.js';
 console.log('Constructors')
 const constructors = {
@@ -70,7 +70,7 @@ const constructors = {
     // ../nodes/sink.js
     'sink': Sink,
     // ../nodes/instrument.js
-    //'instrument': Instrument,
+    'instrument': Instrument,
     // ../nodes/tone.js
     'sample': Sample,
     // ../nodes/tone.js
