@@ -18,7 +18,7 @@ export const context = new window.AudioContext();
 context.destination.channelInterpretation = "discrete";
 context.destination.channelCount = context.destination.maxChannelCount;
 
-if (!context.baseLatency) {
+if (context.baseLatency === undefined) {
     // Assume 128 * 2 buffer length, as it is in Chrome on MacOS
     context.baseLatency = 256 / context.sampleRate;
 }
