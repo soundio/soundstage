@@ -224,38 +224,35 @@ export default function Soundstage(data = defaultData, settings = nothing) {
     //
     // controls:       array-like
     const stage = this;
-    //this.__promise = this.ready(function graphReady(stage) {
-        define(stage, {
-            controls: {
-                enumerable: true,
-                value: data.controls ?
-                    data.controls.reduce(function(controls, options) {
-                        // Get target graph node from target id
-                        const target  = stage.nodes.find((object) => object.id === options.target);
-                        new Control(controls, options.source, target, options, notify);
-                        return controls;
-                    }, []) :
-                    []
-            }
-        });
 
-        if (DEBUG) {
-            const sources = map(get('source'), stage.controls);
-            print('controls', sources.filter(isKeyboardInputSource).length + ' keyboard, ' + sources.filter(isMIDIInputSource).length + ' MIDI');
+    define(this, {
+        controls: {
+            enumerable: true,
+            value: data.controls ?
+                data.controls.reduce(function(controls, options) {
+                    // Get target graph node from target id
+                    const target  = stage.nodes.find((object) => object.id === options.target);
+                    new Control(controls, options.source, target, options, notify);
+                    return controls;
+                }, []) :
+                []
         }
+    });
 
-        // Notify observers that objects have mutated
-        // Todo: work out what's happening in Observer that we have to do
-        // controls differently - something to do with immutable key / frozen state,
-        // I suspect...
-        notify(stage.nodes, '.');
-        notify(stage.connections, '.');
-        notify(stage, 'controls');
-    //})
-    //.then(function() {
-        context.resume();
-    //    return context.resume();
-    //});
+    if (DEBUG) {
+        const sources = map(get('source'), stage.controls);
+        print('controls', sources.filter(isKeyboardInputSource).length + ' keyboard, ' + sources.filter(isMIDIInputSource).length + ' MIDI');
+    }
+
+    // Notify observers that objects have mutated
+    // Todo: work out what's happening in Observer that we have to do
+    // controls differently - something to do with immutable key / frozen state,
+    // I suspect...
+    notify(stage.nodes, '.');
+    notify(stage.connections, '.');
+    notify(stage, 'controls');
+
+    context.resume();
 
 
     // Initialise soundstage as a Sequence. Assigns:
@@ -394,7 +391,7 @@ assign(Soundstage.prototype, Sequence.prototype, Sequencer.prototype, Graph.prot
     /**
     .timeAtDomTime(domTime)
     Returns audio context time at the given `domTime`, where `domTime` is a
-    time in seconds relative to window.performance.now().
+    time in milliseconds relative to window.performance.now().
     **/
 
     timeAtDomTime: function(domTime) {
