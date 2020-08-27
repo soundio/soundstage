@@ -105,11 +105,11 @@ const graph = {
 };
 
 export default class Flanger extends GainNode {
-    constructor(context, options) {
+    constructor(context, options, transport) {
         super(context, options);
 
         // Set up the graph
-        NodeGraph.call(this, context, graph);
+        NodeGraph.call(this, context, graph, transport);
 
         // Connect input (this) into graph
         GainNode.prototype.connect.call(this, this.get('splitter'));

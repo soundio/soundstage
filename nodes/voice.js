@@ -28,7 +28,7 @@ import { Privates, denormalise } from '../../fn/module.js';
 import NodeGraph from './graph.js';
 import PlayNode from './play-node.js';
 import { floatToFrequency, toNoteNumber } from '../../midi/module.js';
-import constructors from '../modules/constructors.js';
+import { create } from '../modules/constructors.js';
 
 const assign = Object.assign;
 const define = Object.defineProperties;
@@ -107,12 +107,12 @@ const properties = {
 };
 
 
-function Voice(context, data) {
+function Voice(context, data, transport) {
     const settings = data || defaults;
     const privates = Privates(this);
 
     // Set up the node graph
-	NodeGraph.call(this, context, settings);
+	NodeGraph.call(this, context, settings, transport);
 
 	// Define .start(), .stop(), .startTime and .stopTime
 	PlayNode.call(this, context);
@@ -130,7 +130,7 @@ function Voice(context, data) {
     AudioParam Todo: description
     **/
 
-    const detune = createNode(context, 'constant', {
+    const detune = create('constant', context, {
         offset: 0
     });
 

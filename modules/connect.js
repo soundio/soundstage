@@ -3,7 +3,7 @@ import { isDefined } from '../../fn/module.js';
 import { print, log } from './print.js';
 import { isAudioParam } from './automate.js';
 
-const DEBUG = true;//window.DEBUG;
+const DEBUG = false;//window.DEBUG;
 
 function sourceToString(node) {
     return node.constructor.name.replace(/Node$/, '')

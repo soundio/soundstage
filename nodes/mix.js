@@ -39,12 +39,12 @@ const graph = {
 };
 
 export default class Mix extends GainNode {
-    constructor(context, options) {
+    constructor(context, options, transport) {
         // Init gain node
         super(context, options);
 
         // Set up the node graph
-        NodeGraph.call(this, context, graph);
+        NodeGraph.call(this, context, graph, transport);
     }
 
     // Inherit from NodeGraph. We don't seem able to do this with Object.assign

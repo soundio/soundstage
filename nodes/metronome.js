@@ -145,7 +145,7 @@ export default function Metronome(context, settings, transport) {
     if (!transport.sequence) { throw new Error('Metronome requires access to transport.'); }
 
     // Graph
-    NodeGraph.call(this, context, graph);
+    NodeGraph.call(this, context, graph, transport);
     const voice = this.get('output');
 
     // Private

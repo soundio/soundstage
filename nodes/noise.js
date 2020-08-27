@@ -144,9 +144,9 @@ const generators = {
     }
 };
 
-export default function Noise(context, options) {
+export default function Noise(context, options, transport) {
     // Set up the node graph
-    NodeGraph.call(this, context, graph);
+    NodeGraph.call(this, context, graph, transport);
 
     // Define .startTime and .stopTime
     PlayNode.call(this, context);

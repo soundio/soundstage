@@ -53,7 +53,7 @@ export default class Track extends GainNode {
         privates.transport = transport;
 
         // Set up the graph
-        NodeGraph.call(this, context, graph);
+        NodeGraph.call(this, context, graph, transport);
 
         // Connect input (this) into graph
         GainNode.prototype.connect.call(this, this.get('dry'));

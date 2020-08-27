@@ -72,7 +72,7 @@ export default class EQ extends GainNode {
         super(context, options);
 
         // Set up the graph
-        NodeGraph.call(this, context, graph);
+        NodeGraph.call(this, context, graph, transport);
 
         this.output = this.get('output').gain;
 

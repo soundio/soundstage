@@ -1,8 +1,5 @@
 
-// Todo: decide what to do with simple constructors like envelope... load em,
-// or force node-graph to work with promises... I don't think so. Load em for
-// the moment.
-
+/*
 import Input      from '../nodes/input.js';
 import Meter      from '../nodes/meter.js';
 import EQ         from '../nodes/eq.js';
@@ -16,7 +13,8 @@ import Tone       from '../nodes/tone.js';
 import Noise      from '../nodes/noise.js';
 import Instrument from '../nodes/instrument.js';
 import Metronome  from '../nodes/metronome.js';
-console.log('Constructors')
+*/
+
 const constructors = {
     // https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/AnalyserNode
     'analyser': AnalyserNode,
@@ -52,7 +50,7 @@ const constructors = {
     'waveshaper': WaveShaperNode,
     // https://developer.mozilla.org/en-US/docs/Web/API/StereoPannerNode/StereoPannerNode
     'pan': StereoPannerNode,
-
+/*
     // ../node/input.js
     'input': Input,
     // ../nodes/meter.js
@@ -79,9 +77,8 @@ const constructors = {
     'noise': Noise,
     // ../nodes/metronome.js
     'metronome': Metronome
+*/
 }
-
-export default constructors;
 
 export function register(name, constructor) {
     if (constructors[name] || name === 'output') {
@@ -89,4 +86,26 @@ export function register(name, constructor) {
     }
 
     constructors[name] = constructor;
+}
+
+export function create(type, context, settings, transport) {
+    const Constructor = constructors[type];
+
+    if (!Constructor) {
+        throw new Error('Soundstage: cannot create node of unregistered type "' + type + '"');
+    }
+
+    // Todo: Legacy from async nodes... warn if we encounter one of these
+    // If the constructor has a preload fn, it has special things
+    // to prepare (such as loading AudioWorklets) before it can
+    // be used.
+    if (Constructor.preload) {
+        console.warn('Soundstage: node contructor for "' + type + '" has a preload function, which is Todo, because not properly implemented yet');
+        Constructor.preload(basePath, context).then(() => {
+            print('Node', Node.name, 'preloaded');
+            return Node;
+        }) ;
+    }
+
+    return new Constructor(context, settings, transport);
 }

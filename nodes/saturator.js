@@ -196,10 +196,10 @@ const defaults = {
 };
 
 export default class Saturator extends GainNode {
-    constructor(context, options) {
+    constructor(context, options, transport) {
         super(context);
 
-        NodeGraph.call(this, graph);
+        NodeGraph.call(this, context, graph, transport);
 
         // Shape
 

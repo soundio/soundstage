@@ -58,17 +58,13 @@ output by the `.connect()` and `.disconnect()` methods.
 import { Privates } from '../../fn/module.js';
 import { logGroup, logGroupEnd } from '../modules/print.js';
 import { connect, disconnect } from '../modules/connect.js';
-import constructors from '../modules/constructors.js';
-console.log('NodeGraph');
+import { create } from '../modules/constructors.js';
 const DEBUG  = false;//window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
 const seal   = Object.seal;
 
-export function createNode(context, type, settings) {
-    const node = new constructors[type](context, settings);
-    return node;
-}
+
 
 function createConnector(nodes, data) {
     // Split paths such as env.gain.0 to ['env', 'gain', 0]
@@ -113,7 +109,7 @@ function createConnector(nodes, data) {
     return nodes;
 }
 
-export default function NodeGraph(context, data) {
+export default function NodeGraph(context, data, transport) {
     if (DEBUG) { logGroup('mixin ', 'GraphNode', data.nodes && data.nodes.map((n) => n.type).join(', ')); }
 
     const privates = Privates(this);
@@ -121,7 +117,7 @@ export default function NodeGraph(context, data) {
 
     // Create nodes
     const nodes = privates.nodes = data.nodes && data.nodes.reduce(function(nodes, data) {
-        nodes[data.id] = createNode(context, data.type, data.data);
+        nodes[data.id] = create(data.type, context, data.data, transport);
         return nodes;
     }, {});
 

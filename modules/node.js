@@ -3,7 +3,7 @@ import { Privates, remove, invoke, nothing, matches } from '../../fn/module.js';
 import { automato__, isAudioParam } from './automate.js';
 import { matchesId } from './utilities.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
-import constructors from './constructors.js';
+import { create } from './constructors.js';
 import Output from '../nodes/output.js';
 
 const assign = Object.assign;
@@ -34,28 +34,11 @@ export default function Node(graph, context, type, id, label, data, merger, tran
         recordCount:       { writable: true, value: 0 }
     });
 
-    const Constructor = type === 'output' ?
-        Output :
-        constructors[type] ;
-
-    if (!Constructor) {
-        throw new Error('Soundstage: cannot create node of unregistered type "' + type + '"');
-    }
-
-    // Todo: Legacy from async nodes... warn if we encounter one of these
-    // If the constructor has a preload fn, it has special things
-    // to prepare (such as loading AudioWorklets) before it can
-    // be used.
-    if (Constructor.preload) {
-        console.warn('Soundstage: node contructor has a preload function, which is Todo, because not properly implemented yet');
-        Constructor.preload(basePath, context).then(() => {
-            print('Node', Node.name, 'preloaded');
-            return Node;
-        }) ;
-    }
-
-    // Define the audio node, special casing 'output', which must connect itself to merger
-    this.node = new Constructor(context, data, type === 'output' ? merger : transport) ;
+    // Define the audio node, special casing 'output', which must connect itself to 
+    // the stage's output merger
+    this.node = type === 'output' ?
+        new Output(context, data, merger) :
+        create(type, context, data, transport) ;
 
     // This should not be necessary, we pass data into the constructor...
     assignSettingz__(this.node, data);

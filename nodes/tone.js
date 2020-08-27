@@ -79,9 +79,9 @@ const properties = {
     }
 };
 
-export default function Tone(context, options) {
+export default function Tone(context, options, transport) {
     // Set up the node graph
-    NodeGraph.call(this, context, graph);
+    NodeGraph.call(this, context, graph, transport);
 
     // Define .startTime and .stopTime
     PlayNode.call(this, context);

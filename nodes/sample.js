@@ -260,11 +260,11 @@ function stopSources(sources, time) {
 
 
 
-export default function Sample(context, settings) {
+export default function Sample(context, settings, transport) {
     const privates = Privates(this);
 
     // Set up .connect(), .disconnect(), .start, .stop()
-    NodeGraph.call(this, context, graph);
+    NodeGraph.call(this, context, graph, transport);
     PlayNode.call(this, context);
 
     // Privates

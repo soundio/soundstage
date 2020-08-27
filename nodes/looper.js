@@ -98,7 +98,7 @@ export default class Looper extends GainNode {
         PlayNode.call(this, context, graph);
 
         // Set up the graph
-        NodeGraph.call(this, context, graph);
+        NodeGraph.call(this, context, graph, transport);
 
         // Connect input (this) into graph
         GainNode.prototype.connect.call(this, this.get('dry'));

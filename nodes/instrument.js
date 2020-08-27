@@ -48,8 +48,6 @@ import Pool from '../modules/pool.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
 import { connect, disconnect } from '../modules/connect.js';
 
-console.log('Instrument');
-
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
@@ -105,7 +103,7 @@ function isIdle(node) {
 }
 
 export default class Instrument extends GainNode {
-    constructor(context, settings) {
+    constructor(context, settings, transport) {
         if (DEBUG) { logGroup(new.target === Instrument ? 'Node' : 'mixin ', 'Instrument'); }
 
         // Init gain node
@@ -116,7 +114,7 @@ export default class Instrument extends GainNode {
         // .connect()
         // .disconnect()
         // .get()
-        NodeGraph.call(this, context, graph);
+        NodeGraph.call(this, context, graph, transport);
 
         // Privates
         const privates = Privates(this);
@@ -126,8 +124,6 @@ export default class Instrument extends GainNode {
 
         // Todo: default voice
         this.voice = settings && settings.voice || voiceDefaults;
-
-console.log(this);
 
         // Start constants
         this.get('pitch').start();
@@ -235,10 +231,6 @@ assign(Instrument.prototype, NodeGraph.prototype, {
         privates.voices.forEach((node) => disconnect(node));
     }
 });
-
-Instrument.prototype.arse = 8;
-
-console.log('>>', Object.keys(NodeGraph.prototype), Instrument.prototype, assign({a:1}, {b:1}));
 
 // Assign defaults
 assign(Instrument, {

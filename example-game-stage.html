@@ -125,7 +125,8 @@
     // Clickety click
     document.addEventListener('click', function(e) {
         const now = window.performance.now();
-        source.cue(stage.time + stage.outputLatency, 'note', Math.random() * 20 + 40, 1, 0.9);
-        //source.cue(stage.time + stage.outputLatency, 'note', 59, 1, 0.8);
+        source
+        .start(stage.time + stage.outputLatency, 'note', Math.random() * 20 + 40, 1)
+        .stop(stage.time + stage.outputLatency + 0.9);
     });
 </script>
