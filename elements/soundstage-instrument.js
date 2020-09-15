@@ -33,7 +33,12 @@ import './sparky/param.js';
 
 import Privates from '../../fn/modules/privates.js';
 import element  from '../../dom/modules/element.js';
-import Sparky   from '../../sparky/module.js';
+import Sparky, { config } from '../../sparky/module.js';
+
+config.parse['range-control'] = {
+    attributes: ["name", "min", "max", "step"],
+    booleans: ["disabled", "required"]
+};
 
 export default element('soundstage-instrument', {
     template: '/soundstage/elements/soundstage-instrument.html#soundstage-instrument',

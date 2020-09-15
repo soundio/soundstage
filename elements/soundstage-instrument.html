@@ -4,8 +4,10 @@
 <template id="source-select-button">
     <label class="source-select-button select-button button">
         <select id="source-select" :value="{[type]}">
-            <option selected value="tone">Tone</option>
+            <option value="tone">Gain</option>
+            <option value="tone">Mix</option>
             <option value="noise">Noise</option>
+            <option value="tone">Tone</option>
         </select>
     </label>
 </template>
@@ -22,21 +24,15 @@
         <label title="Sawtooth" class="sawtooth-radio-button radio-button button" for="tone-synth-source-{[0]}-type-sawtooth"></label>
     </div>
 
-    <range-control :value="{[data.detune]}" unit="semitone" min="-1200" max="2400" transform="linear" ticks="-1200 -700 0 700 1200 1600 1900 2200 2400">
-        <span class="text-10">Tune</span>
-    </range-control>
-
-    <range-control :value="{[data.pan]}" unit="pan" min="-1" max="1" transform="linear" ticks="-1 0 1">
-        <span class="text-10">Pan</span>
-    </range-control>
-    
-    <range-control :value="{[data.mix]}" unit="dB" min="-36dB" max="0dB" transform="linear-logarithmic" ticks="0 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
-        <span class="text-10">Mix</span>
+    <range-control fn="get:data" :value="{[detune]}" value="0" unit="semitone" min="0" max="7200" law="linear" ticks="0 1200 2400 3600 4800 6000 7200">
+        <span class="text-10">Detune</span>
     </range-control>
 </template>
 
 <template id="gain-source">
-    <p>GAIN</p>
+    <range-control :value="{[data.gain]}" unit="dB" min="-36dB" max="0dB" transform="linear-logarithmic" ticks="0 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
+        <span class="text-10">Gain</span>
+    </range-control>
 </template>
 
 <template id="envelope-source">
@@ -44,7 +40,13 @@
 </template>
 
 <template id="mix-source">
-    <p>MIX</p>
+    <range-control :value="{[data.pan]}" value="0" unit="pan" min="-1" max="1" transform="linear" ticks="-1 0 1">
+        <span class="text-10">Pan</span>
+    </range-control>
+
+    <range-control :value="{[data.gain]}" unit="dB" min="-36dB" max="0dB" transform="linear-logarithmic" ticks="0 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
+        <span class="text-10">Gain</span>
+    </range-control>
 </template>
 
 <template id="noise-source">
@@ -97,16 +99,19 @@
 </template>
 
 <template id="soundstage-instrument">
+    <link rel="stylesheet" href="/bolt/css/html.css" />
+    <link rel="stylesheet" href="/bolt/css/input.css" />
+    <link rel="stylesheet" href="/bolt/components/check-button.css" />
+    <link rel="stylesheet" href="/soundstage/elements/soundstage-instrument.css" />
     <section class="modules-block block">
-        <article fn="get:voice.nodes each">
-            {[data]}
+        <form fn="get:voice.nodes each">
             <!--range-control unit="" min="0" max="7200" ticks="0 1200 2400 3600 4800 6000 7200" value="{[data.detune]}">
                 <span class="text-10">Harmonic</span>
             </range-control>
             <input type="range" min="0" max="7200" :value="{[data.detune]}" /-->
-            <template src="/soundstage/elements/soundstage-instrument.html#source-select-button"></template>
+            <!--template src="/soundstage/elements/soundstage-instrument.html#source-select-button"></template-->
             <template src="/soundstage/elements/soundstage-instrument.html#{[type]}-source"></template>
-        </article>
+        </form>
     </section>
 
     <!--div class="envelopes-block block">
