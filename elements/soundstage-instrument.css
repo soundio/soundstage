@@ -1,0 +1,136 @@
+@import '/bolt/css/button.css';
+@import '/bolt/components/select-button.css';
+
+.modules-block {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px 15px;
+    padding: 9px;
+    font-size: 9px;
+    max-width: 376px;
+    background-image: linear-gradient(to bottom, #555555 0%, #333333 100%);
+}
+
+.modules-block > * {
+    width: 100%;
+}
+
+
+
+/* from soundio */
+
+.radios-block {
+    display: flex;
+    justify-items: stretch;
+    justify-content: stretch;
+    align-items: center;
+    flex-direction: row;
+
+    border: 0.125rem solid #02161e;
+    border-radius: 0.3125rem;
+    margin-left: -0.125rem;
+    margin-right: -0.125rem;
+}
+
+.radios-block > .button {
+    margin: 0;
+    flex: 1 0 auto;
+}
+
+.radios-block > .source-select-button {
+    width: auto;
+}
+
+.radios-block > .button:first-child,
+.radios-block > .masked:first-child + .button {
+    border-top-right-radius: 0;
+	border-bottom-right-radius: 0;
+}
+
+.radios-block > .button + .masked + .button {
+    border-radius: 0;
+    /* margin-left: 1px; */
+    border-left: 1px solid hsla(198, 39%, 14%, 0.25);
+    background-clip: border-box;
+    background-origin: border-box;
+    /* border-right: 3px solid #0000; */
+}
+
+.radios-block > .button + .masked + .button:last-child {
+    border-top-right-radius: 3px;
+	border-bottom-right-radius: 3px;
+}
+
+.radios-block + range-control {
+    margin-top: 18px;
+}
+
+.button + .radios-block {
+    margin-top: 6px;
+}
+
+
+.sine-radio-button,
+.square-radio-button,
+.triangle-radio-button,
+.sawtooth-radio-button,
+.white-radio-button {
+    background-image:
+        url(../images/waveforms.svg),
+        linear-gradient(#858d90, #5c676c);
+    background-size:
+        30px auto,
+        100% 100%;
+    max-width: 45px;
+}
+
+.masked:checked + .sine-radio-button,
+.masked:checked + .square-radio-button,
+.masked:checked + .triangle-radio-button,
+.masked:checked + .sawtooth-radio-button,
+.masked:checked + .white-radio-button {
+    background-image:
+        url('../images/waveforms.svg'),
+        linear-gradient(#182d34, #12272d);
+}
+
+.sine-radio-button     { background-position: center 0, 0 0; }
+.square-radio-button   { background-position: center -122.2px, 0 0; }
+.triangle-radio-button { background-position: center -40.5px, 0 0; }
+.sawtooth-radio-button { background-position: center -81.2px, 0 0; }
+.white-radio-button    { background-position: center -162px, 0 0; }
+
+.masked:checked + .sine-radio-button     { background-position: center -20px, 0 0; }
+.masked:checked + .square-radio-button   {background-position: center -142.6px, 0 0;}
+.masked:checked + .triangle-radio-button {background-position: center -61.3px, 0 0;}
+.masked:checked + .sawtooth-radio-button {background-position: center -102px, 0 0;}
+.masked:checked + .white-radio-button    {background-position: center -182px, 0 0;}
+
+
+
+.source-select-button {
+    color: #01171e;
+    background-image: linear-gradient(#858d90, #5c676c);
+    font-size: 14px;
+	line-height: 23px;
+    max-height: 20px;
+	border: 2px solid black;
+	margin-left: -2px;
+	margin-right: -2px;
+	min-height: 27px;
+	max-width: calc(100% + 4px);
+	border-radius: 5px;
+}
+
+.source-select-button::before {
+	content: none;
+}
+
+.source-select-button::after {
+	right: 6px;
+}
+
+.source-select-button > select {
+    padding-left: 6px;
+    padding-right: 6px;
+}
