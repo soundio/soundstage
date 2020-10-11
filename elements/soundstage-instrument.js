@@ -29,6 +29,8 @@ render the API for creating custom elements a little more... sane.
 */
 
 import '../../bolt/elements/range-control.js';
+import '../../bolt/elements/rotary-control.js';
+import '../../bolt/elements/envelope-control.js';
 import './sparky/param.js';
 
 import Privates from '../../fn/modules/privates.js';

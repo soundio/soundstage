@@ -19,37 +19,65 @@
 
 <template id="tone-source">
     <div class="radios-block block">
-        <input class="masked" type="radio" name="tone-synth-source-{[0]}-type" :value="{[data.type]}" value="square" id="tone-synth-source-{[0]}-type-square">
-        <label title="Square" class="square-radio-button radio-button button" for="tone-synth-source-{[0]}-type-square"></label>
-        <input class="masked" type="radio" name="tone-synth-source-{[0]}-type" :value="{[data.type]}" value="sine" id="tone-synth-source-{[0]}-type-sine">
-        <label title="Sine" class="sine-radio-button radio-button button" for="tone-synth-source-{[0]}-type-sine"></label>
-        <input class="masked" type="radio" name="tone-synth-source-{[0]}-type" :value="{[data.type]}" value="triangle" id="tone-synth-source-{[0]}-type-triangle">
-        <label title="Triangle" class="triangle-radio-button radio-button button" for="tone-synth-source-{[0]}-type-triangle"></label>
-        <input class="masked" type="radio" name="tone-synth-source-{[0]}-type" :value="{[data.type]}" value="sawtooth" id="tone-synth-source-{[0]}-type-sawtooth">
-        <label title="Sawtooth" class="sawtooth-radio-button radio-button button" for="tone-synth-source-{[0]}-type-sawtooth"></label>
+        <input class="masked" type="radio" name="tone-synth-source-{[id]}-type" :value="{[data.type]}" value="square" id="tone-synth-source-{[id]}-type-square">
+        <label title="Square" class="square-radio-button radio-button button" for="tone-synth-source-{[id]}-type-square"></label>
+        <input class="masked" type="radio" name="tone-synth-source-{[id]}-type" :value="{[data.type]}" value="sine" id="tone-synth-source-{[id]}-type-sine">
+        <label title="Sine" class="sine-radio-button radio-button button" for="tone-synth-source-{[id]}-type-sine"></label>
+        <input class="masked" type="radio" name="tone-synth-source-{[id]}-type" :value="{[data.type]}" value="triangle" id="tone-synth-source-{[id]}-type-triangle">
+        <label title="Triangle" class="triangle-radio-button radio-button button" for="tone-synth-source-{[id]}-type-triangle"></label>
+        <input class="masked" type="radio" name="tone-synth-source-{[id]}-type" :value="{[data.type]}" value="sawtooth" id="tone-synth-source-{[id]}-type-sawtooth">
+        <label title="Sawtooth" class="sawtooth-radio-button radio-button button" for="tone-synth-source-{[id]}-type-sawtooth"></label>
     </div>
 
-    <range-control :value="{[data.detune]}" value="0" unit="semitone" min="0" max="7200" scale="linear" ticks="0 1200 2400 3600 4800 6000 7200">
+    <range-control :value="{[data.detune]}" value="0" unit="semitone" min="0" max="6000" law="linear" ticks="0 1200 2400 3600 4800 6000">
         <span class="text-10">Detune</span>
     </range-control>
 </template>
 
 <template id="gain-source">
-    <range-control :value="{[data.gain]}" unit="dB" min="-24dB" max="0dB" scale="linear-logarithmic" ticks="0 -24dB -18dB -12dB -6dB 0dB">
+    <range-control :value="{[data.gain]}" unit="dB" min="-24dB" max="0dB" law="linear-logarithmic" ticks="0 -24dB -18dB -12dB -6dB 0dB">
         <span class="text-10">Gain</span>
     </range-control>
 </template>
 
 <template id="envelope-source">
-    <p>ENVELOPE</p>
+    <div class="envelopes-block block">
+        <envelope-control min="0" max="2" law="linear" value="{[data.attack]}">Attack</envelope-control>
+        <envelope-control min="0" max="2" law="linear" value="{[data.release]}">Release</envelope-control>
+    </div>
+
+    <div class="3x-grid grid" style="column-gap: 0.75rem;">
+        <h3 class="text-10 x-1 y-center normal-text">Gain</h3>
+        <rotary-control class="x-2" min="-6" max="6" value="0" ticks="-6 -3 0 3 6">dB/oct</rotary-control>
+        <rotary-control class="x-3" min="-2" max="2" ticks="-2 -1 0 1 2">dB/dB</rotary-control>
+        <h3 class="text-10 x-1 y-center">Rate</h3>
+        <rotary-control class="x-2" min="-2" max="2" value="0" ticks="-2 -1 0 1 2">Rate r/oct</rotary-control>
+        <rotary-control class="x-3" min="-2" max="2" ticks="-2 -1 0 1 2">Gain</rotary-control>
+    </div>
+</template>
+
+<template id="sample-source">
+    <p>SAMPLE</p>
+</template>
+
+<template id="filter-source">
+    <p>FILTER</p>
+</template>
+
+<template id="delay-source">
+    <p>DELAY</p>
+</template>
+
+<template id="delay-source">
+    <p>COMPRESSOR</p>
 </template>
 
 <template id="mix-source">
-    <range-control :value="{[data.pan]}" value="0" unit="pan" min="-1" max="1" transform="linear" ticks="-1 0 1">
+    <range-control :value="{[data.pan]}" value="0" unit="pan" min="-1" max="1" law="linear" ticks="-1 0 1">
         <span class="text-10">Pan</span>
     </range-control>
 
-    <range-control :value="{[data.gain]}" unit="dB" min="-24dB" max="1" scale="linear-logarithmic" ticks="0 -24dB -18dB -12dB -6dB 0dB">
+    <range-control :value="{[data.gain]}" unit="dB" min="-24dB" max="1" law="linear-logarithmic" ticks="0 -24dB -18dB -12dB -6dB 0dB">
         <span class="text-10">Gain</span>
     </range-control>
 </template>
@@ -109,10 +137,10 @@
     <link rel="stylesheet" href="/bolt/components/check-button.css" />
     <link rel="stylesheet" href="/soundstage/elements/soundstage-instrument.css" />
 
-    <h1 class="text-01">Instrument</h1>
+    <h1 class="text-01">Voice</h1>
 
-    <section class="modules-block block">
-        <form fn="get:voice.nodes each">
+    <section class="nodes-block block">
+        <form fn="get:voice.nodes each" class="{[type|append:-node]} node">
             <!--range-control unit="" min="0" max="7200" ticks="0 1200 2400 3600 4800 6000 7200" value="{[data.detune]}">
                 <span class="text-10">Harmonic</span>
             </range-control>
@@ -122,34 +150,6 @@
         </form>
     </section>
 
-    <!--div class="envelopes-block block">
-        <div fn="get:data.gainEnvelope entries each">
-            <h3 class="text-10">{[0]}</h3>
-            <div fn="get:1">
-                <svg fn="envelope-control" class="envelope-svg" viewBox="0 -1.125 2 1.125" y-transform="linear-logarithmic" y-min="-36dB" y-max="1.125" y-ticks="0dB -6dB -12dB -18dB -24dB -30dB -36dB -42dB -48dB" preserveAspectRatio="xMinYMid slice">
-                    <text text-anchor="end" x="-0.05" y="-0.965" style="font-size: 0.07; fill: #01181e;">0</text>
-                    <text text-anchor="end" x="-0.05" y="0.035" style="font-size: 0.07; fill: #01181e;">-∞</text>
-                    <use fn="each" include="#{[1]}-db-control"></use>
-                </svg>
-            </div>
-        </div>
-    </div>
-
-    <template fn="get:data.data.velocity.gain" include="#tone-synth-gain-block"></template>
-    <template fn="get:data.data.frequency.gain" include="#tone-synth-octave-block"></template>
-
-    <div class="envelopes-block block">
-        <div fn="get:data.frequencyEnvelope entries each">
-            <h3 class="text-10">{[0]}</h3>
-            <div fn="get:1">
-                <svg fn="envelope-control" class="envelope-svg" viewBox="0 -1 2 1" y-transform="logarithmic" y-min="16" y-max="16384" y-ticks="22.5 55 110 220 440 880 1760 3520 7040 14080" preserveAspectRatio="xMinYMax slice">
-                    <text text-anchor="end" x="-0.05" y="-0.965" style="font-size: 0.07; fill: #01181e;">16k</text>
-                    <text text-anchor="end" x="-0.05" y="0.035" style="font-size: 0.07; fill: #01181e;">16</text>
-                    <use fn="each" include="#{[1]}-hz-control"></use>
-                </svg>
-            </div>
-        </div>
-    </div-->
 
     <!--template fn="get:data.data.velocity.frequency" include="#tone-synth-gain-block"></template>
     <template fn="get:data.data.frequency.frequency" include="#tone-synth-octave-block"></templat->
@@ -164,11 +164,13 @@
         <a class="midi-thumb thumb" href="#node-{[id]}-Q-toggle" slot="plugs"></a>
     </range-control-->
 
+    <h1 class="text-01">Params</h1>
+
     <range-control fn="param:pitch" unit="" min="-2" max="2" ticks="-2 -1 0 1 2">
         <span class="text-10">Pitch</span>
     </range-control>
 
-    <range-control fn="param:output" unit="dB" min="-48dB" max="0dB" transform="linear-logarithmic" ticks="0 -48dB -42dB -36dB -30dB -24dB -18dB -12dB -6dB 0dB">
+    <range-control fn="param:output" unit="dB" min="-48dB" max="0dB" law="linear-logarithmic" ticks="0 -48dB -42dB -36dB -30dB -24dB -18dB -12dB -6dB 0dB" value="0dB">
         <span class="text-10">Output</span>
     </range-control>
 </template>
