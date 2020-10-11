@@ -83,16 +83,14 @@
 </template>
 
 <template id="noise-source">
-    <div class="radios-block block">
-        <input class="masked" type="radio" name="noise-source-{[0]}-type" :value="{[1.data.type]}" value="white" id="noise-source-{[0]}-type-white">
-        <label title="White" class="white-radio-button radio-button button" for="noise-source-{[0]}-type-white"></label>
-        <input class="masked" type="radio" name="noise-source-{[0]}-type" :value="{[1.data.type]}" value="pink" id="noise-source-{[0]}-type-pink">
-        <label title="Pink" class="white-radio-button radio-button button" for="noise-source-{[0]}-type-pink"></label>
-        <input class="masked" type="radio" name="noise-source-{[0]}-type" :value="{[1.data.type]}" value="brown" id="noise-source-{[0]}-type-brown">
-        <label title="Brown" class="brown-radio-button radio-button button" for="noise-source-{[0]}-type-brown"></label>
+    <div class="radios-block block" style="width:75%;">
+        <input class="masked" type="radio" name="noise-source-{[id]}-type" :value="{[1.data.type]}" value="white" id="noise-source-{[id]}-type-white">
+        <label title="White" class="white-radio-button radio-button button" for="noise-source-{[id]}-type-white"></label>
+        <input class="masked" type="radio" name="noise-source-{[id]}-type" :value="{[1.data.type]}" value="pink" id="noise-source-{[id]}-type-pink">
+        <label title="Pink" class="white-radio-button radio-button button" for="noise-source-{[id]}-type-pink"></label>
+        <input class="masked" type="radio" name="noise-source-{[id]}-type" :value="{[1.data.type]}" value="brown" id="noise-source-{[id]}-type-brown">
+        <label title="Brown" class="brown-radio-button radio-button button" for="noise-source-{[id]}-type-brown"></label>
     </div>
-    <range-control :value="{[1.data.pan]}" unit="pan" min="-1" max="1" transform="linear" ticks="-1 0 1"><span class="text-10">Pan</span></range-control>
-    <range-control :value="{[1.data.mix]}" unit="dB" min="-36dB" max="0dB" transform="linear-logarithmic" ticks="0 0.015625 0.03125 0.0625 0.125 0.25 0.5 1"><span class="text-10">Mix</span></range-control>
 </template>
 
 <template id="tone-synth-gain-block">

@@ -105,6 +105,11 @@ rotary-control:focus {
     width: 100%;
 }
 
+.nodes-block > .node > .source-select-button {
+    /* source-select-button bleeds 2px on left and right so + 4px */
+    width: calc(100% + 4px);
+}
+
 .nodes-block > .envelope-node {
     grid-column-end: span 2;
 }
@@ -246,7 +251,9 @@ rotary-control:focus {
 .square-radio-button,
 .triangle-radio-button,
 .sawtooth-radio-button,
-.white-radio-button {
+.white-radio-button,
+.pink-radio-button,
+.brown-radio-button {
     background-image:
         url(./images/waveforms.svg),
         linear-gradient(#858d90, #5c676c);
@@ -260,7 +267,9 @@ rotary-control:focus {
 .masked:checked + .square-radio-button,
 .masked:checked + .triangle-radio-button,
 .masked:checked + .sawtooth-radio-button,
-.masked:checked + .white-radio-button {
+.masked:checked + .white-radio-button,
+.masked:checked + .pink-radio-button,
+.masked:checked + .brown-radio-button {
     background-image:
         url('./images/waveforms.svg'),
         linear-gradient(#182d34, #12272d);
@@ -271,12 +280,16 @@ rotary-control:focus {
 .triangle-radio-button { background-position: center -40.5px, 0 0; }
 .sawtooth-radio-button { background-position: center -81.2px, 0 0; }
 .white-radio-button    { background-position: center -162px, 0 0; }
+.pink-radio-button     { background-position: center -162px, 0 0; }
+.brown-radio-button    { background-position: center -162px, 0 0; }
 
 .masked:checked + .sine-radio-button     { background-position: center -20px, 0 0; }
-.masked:checked + .square-radio-button   {background-position: center -142.6px, 0 0;}
-.masked:checked + .triangle-radio-button {background-position: center -61.3px, 0 0;}
-.masked:checked + .sawtooth-radio-button {background-position: center -102px, 0 0;}
-.masked:checked + .white-radio-button    {background-position: center -182px, 0 0;}
+.masked:checked + .square-radio-button   { background-position: center -142.6px, 0 0; }
+.masked:checked + .triangle-radio-button { background-position: center -61.3px, 0 0; }
+.masked:checked + .sawtooth-radio-button { background-position: center -102px, 0 0; }
+.masked:checked + .white-radio-button    { background-position: center -182px, 0 0; }
+.masked:checked + .pink-radio-button     { background-position: center -182px, 0 0; }
+.masked:checked + .brown-radio-button    { background-position: center -182px, 0 0; }
 
 
 
