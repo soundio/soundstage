@@ -4,9 +4,14 @@
 <template id="source-select-button">
     <label class="source-select-button select-button button">
         <select id="source-select" :value="{[type]}">
-            <option value="tone">Gain</option>
-            <option value="tone">Mix</option>
+            <option value="comnpressor">Compressor</option>
+            <option value="delay">Delay</option>
+            <option value="envelope">Envelope</option>
+            <option value="filter">Filter</option>
+            <option value="gain">Gain</option>
+            <option value="mix">Mix</option>
             <option value="noise">Noise</option>
+            <option value="sample">Sample</option>
             <option value="tone">Tone</option>
         </select>
     </label>
@@ -24,13 +29,13 @@
         <label title="Sawtooth" class="sawtooth-radio-button radio-button button" for="tone-synth-source-{[0]}-type-sawtooth"></label>
     </div>
 
-    <range-control fn="get:data" :value="{[detune]}" value="0" unit="semitone" min="0" max="7200" law="linear" ticks="0 1200 2400 3600 4800 6000 7200">
+    <range-control :value="{[data.detune]}" value="0" unit="semitone" min="0" max="7200" scale="linear" ticks="0 1200 2400 3600 4800 6000 7200">
         <span class="text-10">Detune</span>
     </range-control>
 </template>
 
 <template id="gain-source">
-    <range-control :value="{[data.gain]}" unit="dB" min="-36dB" max="0dB" transform="linear-logarithmic" ticks="0 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
+    <range-control :value="{[data.gain]}" unit="dB" min="-24dB" max="0dB" scale="linear-logarithmic" ticks="0 -24dB -18dB -12dB -6dB 0dB">
         <span class="text-10">Gain</span>
     </range-control>
 </template>
@@ -44,7 +49,7 @@
         <span class="text-10">Pan</span>
     </range-control>
 
-    <range-control :value="{[data.gain]}" unit="dB" min="-36dB" max="0dB" transform="linear-logarithmic" ticks="0 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
+    <range-control :value="{[data.gain]}" unit="dB" min="-24dB" max="1" scale="linear-logarithmic" ticks="0 -24dB -18dB -12dB -6dB 0dB">
         <span class="text-10">Gain</span>
     </range-control>
 </template>
@@ -103,13 +108,16 @@
     <link rel="stylesheet" href="/bolt/css/input.css" />
     <link rel="stylesheet" href="/bolt/components/check-button.css" />
     <link rel="stylesheet" href="/soundstage/elements/soundstage-instrument.css" />
+
+    <h1 class="text-01">Instrument</h1>
+
     <section class="modules-block block">
         <form fn="get:voice.nodes each">
             <!--range-control unit="" min="0" max="7200" ticks="0 1200 2400 3600 4800 6000 7200" value="{[data.detune]}">
                 <span class="text-10">Harmonic</span>
             </range-control>
             <input type="range" min="0" max="7200" :value="{[data.detune]}" /-->
-            <!--template src="/soundstage/elements/soundstage-instrument.html#source-select-button"></template-->
+            <template src="/soundstage/elements/soundstage-instrument.html#source-select-button"></template>
             <template src="/soundstage/elements/soundstage-instrument.html#{[type]}-source"></template>
         </form>
     </section>
@@ -160,7 +168,7 @@
         <span class="text-10">Pitch</span>
     </range-control>
 
-    <range-control fn="param:output" unit="dB" min="-48dB" max="1" transform="linear-logarithmic" ticks="0 0.0078125 0.015625 0.03125 0.0625 0.125 0.25 0.5 1">
+    <range-control fn="param:output" unit="dB" min="-48dB" max="0dB" transform="linear-logarithmic" ticks="0 -48dB -42dB -36dB -30dB -24dB -18dB -12dB -6dB 0dB">
         <span class="text-10">Output</span>
     </range-control>
 </template>

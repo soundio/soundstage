@@ -1,3 +1,4 @@
+
 import { log, logGroup, logGroupEnd } from './print.js';
 import { automato__, getAutomation } from './automate.js';
 
@@ -83,12 +84,12 @@ export function assignSettingz__(node, settings, ignored) {
 
         // We want to assign only when a property has been declared, as we may
         // pass composite options (options for more than one node) into this.
-        if (node.hasOwnProperty(key) && settings[key] !== undefined) {
+        if ((node[key] || node.hasOwnProperty(key)) && settings[key] !== undefined) {
             assignSetting(node, key, settings[key]);
         }
     }
 
     if (DEBUG) { logGroupEnd(); }
-    
+
     return node;
 }

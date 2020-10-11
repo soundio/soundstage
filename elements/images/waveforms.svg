@@ -1,0 +1,48 @@
+<svg viewBox="0 0 5.890486 32" xmlns="http://www.w3.org/2000/svg">
+    <style>
+        .icon-stroke {
+            fill: none;
+            stroke: #00181f;
+            stroke-width: 1.6;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .off-stroke {
+            stroke: #00181f;
+        }
+
+        .on-stroke {
+            stroke: #859494;
+            stroke: #889696;
+            stroke: #588ba7;
+        }
+
+        .icon-fill {
+            fill: #00181f;
+            stroke: none;
+        }
+
+        svg {overflow: visible;}
+    </style>
+
+    <defs>
+        <path id="sine-wave" vector-effect="non-scaling-stroke" d="M0 0 C0.512287 -0.512287 1.002314 -1 1.570796 -1 C2.139279 -1 2.629306 -0.512287 3.141593 0 C3.653879 0.512287 4.143906 1 4.712389 1 C5.280872 1 5.770899 0.512287 6.283185 0"></path>
+        <path id="triangle-wave" vector-effect="non-scaling-stroke" d="M0,0 L1.570796,-1 L4.712389,1 L6.283185,0"></path>
+        <path id="sawtooth-wave" vector-effect="non-scaling-stroke" d="M0,0 L3.141593,-1 L3.141593,1 L6.283185,0"></path>
+        <path id="square-wave" vector-effect="non-scaling-stroke" d="M0,0 L0,-1 L3.141593,-1 L3.141593,1 L6.283185,1 L6.283185,0"></path>
+    </defs>
+
+    <use href="#sine-wave"     class="off-stroke icon-stroke" x="2.945243" y="2" transform="scale(0.5,1)"></use>
+    <use href="#sine-wave"     class="on-stroke icon-stroke"  x="2.945243" y="6" transform="scale(0.5,1)"></use>
+    <use href="#triangle-wave" class="off-stroke icon-stroke" x="2.945243" y="10" transform="scale(0.5,1)"></use>
+    <use href="#triangle-wave" class="on-stroke icon-stroke"  x="2.945243" y="14" transform="scale(0.5,1)"></use>
+    <use href="#sawtooth-wave" class="off-stroke icon-stroke" x="2.945243" y="18" transform="scale(0.5,1)"></use>
+    <use href="#sawtooth-wave" class="on-stroke icon-stroke"  x="2.945243" y="22" transform="scale(0.5,1)"></use>
+    <use href="#square-wave"   class="off-stroke icon-stroke" x="2.945243" y="26" transform="scale(0.5,1)"></use>
+    <use href="#square-wave"   class="on-stroke icon-stroke"  x="2.945243" y="30" transform="scale(0.5,1)"></use>
+    <!--path id="lowpass-filter" vector-effect="non-scaling-stroke" d="M0,-1 L0.625,-1 C0.875,-1 0.9375,-0.125 1,0"></path>
+    <path id="highpass-filter" vector-effect="non-scaling-stroke" d="M0,0 C0.0625,-0.125 0.125,-1 0.375,-1 L1,-1 "></path>
+    <path id="bandpass-filter" vector-effect="non-scaling-stroke" d="M0,0 C0.5,0 0.375,-1 0.5,-1 C0.625,-1 0.5,0 1,0"></path>
+    <path id="notch-filter" vector-effect="non-scaling-stroke" d="M0,-1 C0.5,-1 0.375,0 0.5,0 C0.625,0 0.5,-1 1,-1"></path-->
+</svg>

@@ -42,6 +42,7 @@ config.parse['range-control'] = {
 
 export default element('soundstage-instrument', {
     template: '/soundstage/elements/soundstage-instrument.html#soundstage-instrument',
+    mode: 'closed',
 
     properties: {
         audioNode: {

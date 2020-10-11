@@ -24,9 +24,12 @@ but may also be useful for game sound or interface hits where monophony is
 enough.
 **/
 
-import { Privates, denormalise } from '../../fn/module.js';
+import { clamp } from '../../fn/modules/maths/clamp.js';
+import overload from '../../fn/modules/overload.js';
+import { Privates, denormalise, toType } from '../../fn/module.js';
 import NodeGraph from './graph.js';
 import PlayNode from './play-node.js';
+import { assignSettingz__ } from '../modules/assign-settings.js';
 import { floatToFrequency, toNoteNumber } from '../../midi/module.js';
 import { create } from '../modules/constructors.js';
 
@@ -155,12 +158,13 @@ Voice.reset = function(voice, args) {
     PlayNode.reset(voice);
 
     //const context = args[0];
-    //const graph   = args[1];
+    const settings = args[1];
+    var n = settings.nodes.length;
 
-    //voice.nodes.reduce((entry) => {
-    //    const data = graph.nodes.find((data) => data.id === entry.id);
-    //    assignSettingz__(entry.node, data, ['context']);
-    //});
+    while (n--) {
+        const node = voice.get(settings.nodes[n].id);
+        assignSettingz__(node, settings.nodes[n].data, ['context']);
+    }
 
     return voice;
 };
@@ -182,6 +186,23 @@ function setPropertyOrParam(target, key, value) {
         target[key] = value;
     }
 }
+
+const noteToFrequency = overload(toType, {
+    string: function (note) {
+        return /Hz$/.test(note) ?
+            /kHz$/.test(note) ?
+                // String is a frequency in kHz
+                parseFloat(note) * 1000 :
+            // String is a frequency in Hz
+            parseFloat(note) :
+            // String is a MIDI note name
+            floatToFrequency(440, toNoteNumber(note)) ;
+    },
+
+    number: function(note) {
+        return floatToFrequency(440, note);
+    }
+});
 
 assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 
@@ -206,13 +227,10 @@ assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 
         const privates = Privates(this);
 
-        // Note number
-        note = typeof note === 'string' ?
-            toNoteNumber(note) :
-            note ;
-
         // Frequency of note
-        const frequency = floatToFrequency(440, note) ;
+        const frequency = noteToFrequency(note);
+
+        //console.log(note, frequency);
 
         // Frequency relative to C4, middle C
         // Todo: should we choose A440 as a reference instead?
@@ -234,11 +252,16 @@ assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
             let key, transform;
             for (key in entry) {
                 transform = entry[key];
+                if (transform[1] && transform[1].type !== 'none' && transform[1].scale === undefined) {
+                    throw new Error('transform[1] must have .scale ' + JSON.stringify(transform[1]));
+                }
+                //transform[1] && transform[1].type !== 'none' && console.log(frequencyRatio, transform[1].scale / 6, Math.pow(frequencyRatio, transform[1].scale / 6))
                 const value = (
                     transform[1] ?
                         transform[1].type === 'none' ?
                             frequency :
-                            Math.pow(frequencyRatio, transform[1].scale) :
+                            // transform[1].scale is in dB/octave
+                            clamp(transform[1].min, transform[1].max, Math.pow(frequencyRatio, transform[1].scale / 6)) :
                         1
                 )
                 * (

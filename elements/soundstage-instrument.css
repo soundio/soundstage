@@ -1,18 +1,51 @@
 @import '/bolt/css/button.css';
 @import '/bolt/components/select-button.css';
+@import 'range-control.css';
+
+:host {
+    --background: linear-gradient(to bottom, #555555 0%, #333333 100%);
+    font-size: 12px;
+    max-width: 376px;
+    padding: 9px;
+    background: var(--background);
+    border-radius: 0.3125rem;
+}
+
+.text-01 {
+    font-size: 9px;
+    line-height: 0.9375rem;
+    color: #a0a8ab;
+    text-transform: uppercase;
+    margin: 0;
+}
 
 .modules-block {
     display: grid;
     grid-template-columns: 1fr 1fr;
+    align-items: end;
     gap: 15px 15px;
-    padding: 9px;
-    font-size: 9px;
-    max-width: 376px;
-    background-image: linear-gradient(to bottom, #555555 0%, #333333 100%);
 }
 
 .modules-block > * {
     width: 100%;
+}
+
+.text-01 + .modules-block {
+    margin-top: 0.9375rem;
+}
+
+
+
+
+
+.radio-button::before,
+.radio-button::after {
+    content: none;
+}
+
+.radio-button {
+    padding-top: 0.5625rem;
+    padding-bottom: 0.625rem;
 }
 
 
@@ -24,17 +57,28 @@
     justify-items: stretch;
     justify-content: stretch;
     align-items: center;
+    align-content: stretch;
     flex-direction: row;
 
-    border: 0.125rem solid #02161e;
+    border: 0.0625rem solid #02161e;
     border-radius: 0.3125rem;
     margin-left: -0.125rem;
     margin-right: -0.125rem;
 }
 
+.radios-block > .masked {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
 .radios-block > .button {
     margin: 0;
     flex: 1 0 auto;
+    min-height: 21px;
+    background-clip: border-box;
+    background-origin: border-box;
+    border-radius: 0.25rem;
 }
 
 .radios-block > .source-select-button {
@@ -50,10 +94,10 @@
 .radios-block > .button + .masked + .button {
     border-radius: 0;
     /* margin-left: 1px; */
-    border-left: 1px solid hsla(198, 39%, 14%, 0.25);
-    background-clip: border-box;
-    background-origin: border-box;
-    /* border-right: 3px solid #0000; */
+}
+
+.radios-block > .button + .masked:not(:focus) + .button {
+    border-left-color: hsla(198, 39%, 14%, 0.25);
 }
 
 .radios-block > .button + .masked + .button:last-child {
@@ -62,7 +106,7 @@
 }
 
 .radios-block + range-control {
-    margin-top: 18px;
+    margin-top: 0.75rem;
 }
 
 .button + .radios-block {
@@ -76,7 +120,7 @@
 .sawtooth-radio-button,
 .white-radio-button {
     background-image:
-        url(../images/waveforms.svg),
+        url(./images/waveforms.svg),
         linear-gradient(#858d90, #5c676c);
     background-size:
         30px auto,
@@ -90,7 +134,7 @@
 .masked:checked + .sawtooth-radio-button,
 .masked:checked + .white-radio-button {
     background-image:
-        url('../images/waveforms.svg'),
+        url('./images/waveforms.svg'),
         linear-gradient(#182d34, #12272d);
 }
 
