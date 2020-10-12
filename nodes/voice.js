@@ -6,15 +6,14 @@ Voice(context, settings)
 const voice = new Voice(context, {
     nodes: [...],
     connections: [...],
-    properties: {...},
-    output: 'id',
-    __start: {
-        filter: {
-            frequency: {
-                1: { type: 'scale', scale: 1 }
-            }
+    commands: [{
+        target: 'node-id',
+        data: {
+            property: [transforms...]
         }
-    }
+    }],
+    properties: {...},
+    output: 'id'
 });
 ```
 
@@ -25,6 +24,7 @@ enough.
 **/
 
 import { clamp } from '../../fn/modules/maths/clamp.js';
+import get from '../../fn/modules/get.js';
 import overload from '../../fn/modules/overload.js';
 import { Privates, denormalise, toType } from '../../fn/module.js';
 import NodeGraph from './graph.js';
@@ -81,19 +81,16 @@ export const defaults = {
         { source: 'mix', target: 'gain' }
     ],
 
-    __start: {
-        'gain-envelope': {
+    commands: [{
+        target: 'gain-envelope',
+        data: {
             gain: {
-                2: { type: 'logarithmic', min: 0.00390625, max: 1 }
-            }
-        },
-
-        'osc': {
-            frequency: {
-                1: { type: 'none' }
+                1: { type: 'logarithmic', min: 0.00390625, max: 1 }
             }
         }
-    },
+    }, {
+        target: 'osc'
+    }],
 
     // May be 'self' if voice is a node. It isn't. 
     // Todo: Wot? Why have I even writen this here? Explain yourself.
@@ -123,7 +120,7 @@ function Voice(context, data, transport) {
 	// Properties
     define(this, properties);
 
-    privates.__start = settings.__start;
+    privates.commands = settings.commands;
 
     // Create detune
 
@@ -187,6 +184,42 @@ function setPropertyOrParam(target, key, value) {
     }
 }
 
+function setPropertiesAndParams(target, entry, frequencyRatio, velocityRatio) {
+    const args = arguments;
+
+    // Cycle through frequency/gain transforms
+    let key;
+    for (key in entry) {
+        const value = entry[key].reduce(function(output, trans, i) {
+            if (!trans) { return output; }
+            const value = args[i + 2];
+            return output * transform(trans, value);
+        }, 1);
+        setPropertyOrParam(target, key, value);
+    }
+}
+
+// Todo field these transforms into denormalise or whatever.. sort out transforms
+
+const transform = overload(get('type'), {
+    'linear': (transform, value) => denormalise(transform.type, transform.min, transform.max, value),
+
+    'scale': (transform, value) => clamp(transform.min, transform.max, Math.pow(value, transform.scale / 6)),
+
+    // Todo: implement tanh with min max scaling or gradient and crossover 
+    // centering or one or two of these others
+    // https://en.wikipedia.org/wiki/Sigmoid_function#/media/File:Gjl-t(x).svg
+    //'tanh': (transform, value) => clamp(transform.min, transform.max, Math.pow(value, transform.scale / 6)),
+
+    // No transform
+    'none': () => 1,
+
+    'default': function(transform, value) {
+        return denormalise(transform.type, transform.min, transform.max, value);
+        throw new Error('Transform type "' + transform.type + '" not supported ' + JSON.stringify(transform));
+    }
+});
+
 const noteToFrequency = overload(toType, {
     string: function (note) {
         return /Hz$/.test(note) ?
@@ -209,15 +242,15 @@ assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
     /**
     .start(time, note, velocity)
 
-    Starts nodes in the graph that have `__start` settings.
+    Starts nodes defined in `.commands`.
 
     Where `note` is a number it is assumed to be a MIDI note number, otherwise note
     names in the form 'C3' or 'Ab8' are converted to frequencies before being
     transformed and set on properties of nodes in the graph (according to
-    transforms in their `__start` settings).
+    transforms in their `.commands` settings).
 
     Similarly, velocity is transformed and set on properties of nodes (according
-    to transforms in their `__start` settings).
+    to transforms in their `.commands` settings).
 
     Returns this.
     **/
@@ -236,45 +269,27 @@ assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
         // Todo: should we choose A440 as a reference instead?
         const frequencyRatio = frequency / frequencyC4;
 
-        // Cycle through targets
-        let id, entry;
+        // Todo: turn velocity into gain
+        const velocityRatio = velocity;
+
+        // Start command target
+        const commands = privates.commands;
+
+        // Quick out
+        if (!commands) { return this; }
+
+        // Loop forward through commands
+        let n = -1;
         let stopTime = 0;
-
-        for (id in privates.__start) {
-            entry = privates.__start[id];
-
+        while(commands[++n]) {
+            const id     = commands[n].target;
             const target = this.get(id);
+
             if (!target) {
-                throw new Error('Node "' + id + '" not found in nodes');
+                throw new Error('Command target "' + id + '" not found in nodes');
             }
 
-            // Cycle through frequency/gain transforms
-            let key, transform;
-            for (key in entry) {
-                transform = entry[key];
-                if (transform[1] && transform[1].type !== 'none' && transform[1].scale === undefined) {
-                    throw new Error('transform[1] must have .scale ' + JSON.stringify(transform[1]));
-                }
-                //transform[1] && transform[1].type !== 'none' && console.log(frequencyRatio, transform[1].scale / 6, Math.pow(frequencyRatio, transform[1].scale / 6))
-                const value = (
-                    transform[1] ?
-                        transform[1].type === 'none' ?
-                            frequency :
-                            // transform[1].scale is in dB/octave
-                            clamp(transform[1].min, transform[1].max, Math.pow(frequencyRatio, transform[1].scale / 6)) :
-                        1
-                )
-                * (
-                    transform[2] ?
-                        transform[2].type === 'none' ?
-                            velocity :
-                            denormalise(transform[2].type, transform[2].min, transform[2].max, velocity) :
-                        1
-                );
-
-                setPropertyOrParam(target, key, value);
-            }
-
+            setPropertiesAndParams(target, commands[n].data, frequencyRatio, velocityRatio);
             target.start(this.startTime);
 
             // Keep a record of the latest envelope stopTime
@@ -300,7 +315,7 @@ assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
     /**
     .stop(time)
 
-    Stops nodes in the graph that have `__start` settings.
+    Stops nodes defined in `.commands`.
 
     Note that where there are nodes such as envelopes in the graph,
     `voice.stopTime` may not be equal `time` after calling `.stop()`.
@@ -315,19 +330,21 @@ assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
 
         const privates = Privates(this);
 
-        // Dodgy.
-        // Process stopTime in a node type order. Tone generators need to wait
-        // until envelopes have ended, so process Envelopes first to grab their
-        // stopTimes. It's a bit pants, this mechanism, but it'll do for now.
-        const second = [];
-        let id;
-        for (id in privates.__start) {
+        // Start command target
+        const commands = privates.commands;
+
+        // Quick out
+        if (!commands) { return this; }
+
+        // Loop backward through commands, we stop them in reverse order, 
+        // augmenting the stopTime to the latest stopTime
+        let n = commands.length;
+        while(n--) {
+            const id     = commands[n].target;
             const target = this.get(id);
 
-            // Process envelopes first
-            if (target.constructor.name !== 'Envelope') {
-                second.push(target);
-                continue;
+            if (!target) {
+                throw new Error('Command target "' + id + '" not found in nodes');
             }
 
             target.stop(this.stopTime);
@@ -336,17 +353,6 @@ assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
             this.stopTime = target.stopTime > this.stopTime ?
                 target.stopTime :
                 this.stopTime ;
-        }
-
-        // Cycle through second priority, nodes that should continue until
-        // others have stopped
-        var n = -1;
-        var target;
-        while ((target = second[++n])) {
-            target.stop(this.stopTime);
-
-            // Todo: Prevent filter feedbacks from ringing past note end?
-            // Nah...
         }
 
         return this;

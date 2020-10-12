@@ -7,18 +7,14 @@ const instrument = stage.createNode('instrument', {
     voice: {
         // Inherited from NodeGraph
         nodes: [...],
-        connections: [...],
-        properties: {...},
-        output: 'id',
 
-        // Start parameters
-        __start: {
-            filter: {
-                frequency: {
-                    1: { type: 'scale', scale: 1 }
-                }
-            }
-        },
+        connections: [...],
+
+        commands: [...],
+
+        properties: {...},
+
+        output: 'id',
     }
 });
 ```
@@ -34,7 +30,7 @@ they are idle behind the scenes.</aside>
 The voice settings `nodes`, `connections`, `properties` and `output` are
 inherited from NodeGraph (see below).
 
-The `__start` object defines transforms that determine how `.start()` parameters
+The `.commands` array defines transforms that determine how `.start()` parameters
 map to property and param values of the voice. In the example above start
 parameter 1 (note frequency) is scaled then used to set the `frequency`
 AudioParam of the child node `'filter'`.
@@ -171,13 +167,11 @@ assign(Instrument.prototype, NodeGraph.prototype, {
 
     start: function(time, note, velocity = 1) {
         if (!isDefined(note)) {
-            throw new Error('Attempt to .start() a note without passing a note value.')
+            throw new Error('Attempt to .start() a note without passing a note name.')
         }
 
         const privates = Privates(this);
 
-        // Use this as the settings object
-        // Todo: is this wise? Dont we want the settings object?
         return privates.voices
         .create(this.context, this.voice)
         .start(time, note, velocity);
