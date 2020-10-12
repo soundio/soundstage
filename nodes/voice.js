@@ -206,11 +206,6 @@ const transform = overload(get('type'), {
 
     'scale': (transform, value) => clamp(transform.min, transform.max, Math.pow(value, transform.scale / 6)),
 
-    // Todo: implement tanh with min max scaling or gradient and crossover 
-    // centering or one or two of these others
-    // https://en.wikipedia.org/wiki/Sigmoid_function#/media/File:Gjl-t(x).svg
-    //'tanh': (transform, value) => clamp(transform.min, transform.max, Math.pow(value, transform.scale / 6)),
-
     // No transform
     'none': () => 1,
 
