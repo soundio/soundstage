@@ -32,9 +32,9 @@ through a selectable transform function to a target stream.
 
 import { getContextTime, timeAtDomTime } from './context.js';
 import { noop, Privates, remove }     from '../../fn/module.js';
-import { floatToFrequency }     from '../../midi/module.js';
+import { floatToFrequency }     from '../../midi/modules/data.js';
 import KeyboardInputSource from './control-sources/keyboard-input-source.js';
-import MIDIInputSource from './control-sources/midi-input-source.js';
+//import MIDIInputSource from './control-sources/midi-input-source.js';
 import { Distribute } from './distribute.js';
 
 const DEBUG  = window.DEBUG;
@@ -43,7 +43,7 @@ const assign = Object.assign;
 const seal   = Object.seal;
 
 const sources = {
-    'midi':     MIDIInputSource,
+    //'midi':     MIDIInputSource,
     'keyboard': KeyboardInputSource
 };
 

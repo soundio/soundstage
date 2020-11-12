@@ -39,8 +39,7 @@ import { Privates } from '../../fn/module.js';
 import NodeGraph   from './graph.js';
 import PlayNode from './play-node.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
-import { frequencyToFloat } from '../../midi/module.js';
-
+import { frequencyToFloat } from '../../midi/modules/data.js';
 
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;
