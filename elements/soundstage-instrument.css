@@ -90,7 +90,7 @@ rotary-control {
 }
 
 rotary-control::part(output) {
-    color: #46789a;
+    color: #214d63;
     font-size: 0.9375em;
     letter-spacing: -0.04em;
 }
