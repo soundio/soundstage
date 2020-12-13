@@ -1,0 +1,75 @@
+{% import nodes from-comments [
+    "nodes/input.js",
+    "nodes/output.js",
+    "nodes/compressor.js",
+    "nodes/delay.js",
+    "nodes/eq.js",
+    "nodes/filter.js",
+    "nodes/flanger.js",
+    "nodes/looper.js",
+    "nodes/saturator.js",
+    "nodes/meter.js",
+    "nodes/mix.js",
+    "nodes/noise.js",
+    "nodes/sample.js",
+    "nodes/tone.js",
+    "nodes/tick.js",
+    "nodes/envelope.js",
+    "nodes/instrument.js"
+] %}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include ../bolt/templates/head.html import package.json %}
+
+    {% if DEBUG %}<script title="debug">
+        window.DEBUG = true;
+    </script>{% end %}
+
+    <style>
+        /* Render some elements visible, just in this styleguide */
+        button:not([type]),
+        [type="button"],
+        .button {
+            background-color: rgba(127, 127, 127, 0.15);
+        }
+
+        button:not([type]) {
+            font-size: 0.875rem;
+        }
+
+        /* Colour swatch thumbs */
+        .thumb[class$="bg"] {
+            box-shadow: inset 0 0 0 1px currentcolor;
+        }
+    </style>
+
+    <!--link rel="stylesheet" href="../style.min.css" /-->
+    <link rel="stylesheet" href="module.css" />
+    {% include ../bolt/templates/style.html %}
+
+    <script title="config">
+        window.customElementStylesheetPath = './bolt/elements/';
+    </script>
+</head>
+
+<body class="docs-grid grid 3x-grid @1-6x-grid @2-9x-grid">
+    <header class="x-1 3x @1-x-3 @1-4x @2-x-4">
+        {% include ../bolt/templates/header.html import package.json %}
+    </header>
+
+    <img class="x-1 x-end y-1 @2-x-1 @2-3x" src="bolt/images/logo.svg" width="800" height="800" style="width: 10.625rem; margin-top: -1.125rem; margin-right: -0.9375rem; max-width: none;" />
+
+    <!-- Nodes -->
+
+    {% include ../bolt/templates/constructors.html with title="Nodes" docs=nodes %}
+
+    <footer class="x-1 3x @1-x-3 @1-4x @2-x-4">
+        {% include ../bolt/templates/footer.html import package.json %}
+    </footer>
+
+    {% include ../bolt/templates/scripts.html %}
+    <script type="module" src="module.js"></script>
+</body>

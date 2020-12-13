@@ -27,17 +27,30 @@
         "soundstage",
         "sequence"
     ],
-    "devDependencies": {
-        "rollup": "^1.27.9",
-        "eslint": "^6.5.1"
-    },
     "module": "module.js",
     "main": "index.js",
+    "devDependencies": {
+        "babel-minify": "^0.5.1",
+        "clean-css": "^4.2.3",
+        "clean-css-cli": "^4.3.0",
+        "eslint": "^6.5.0",
+        "findit": "^2.0.0",
+        "madge": "^3.9.2",
+        "rollup": "^2.21.0",
+        "sass": "^1.29.0"
+    },
     "scripts": {
-        "lint": "eslint components/*.js && eslint modules/*.js && eslint nodes/*.js",
-        "build": "npm run build-module && npm run build-css && npm run build-docs",
-        "build-module": "rollup module.js --o module.rolled.js --f esm",
-        "build-docs": "node ../fn/build-html.js index.template.html index.html 10",
-        "build-css": "node ../fn/build-css.js style.css style.min.css"
-    }
+        "build": "npm run build-sass && npm run build-css && npm run build-module & npm run build-elements && npm run build-html",
+        "build-sass": "sass css/grid.scss:css/grid.css css/respond.scss:css/respond.css",
+        "build-module": "rollup ./module.js --o ./soundstage.min.js --f esm",
+        "build-css": "node ../bolt/build-css.js ./module.css ./soundstage.css",
+        "build-html": "node ../bolt/build-html.js ./ ./",
+        "build-watch": "node ../bolt/build-watch.js",
+        "graph": "madge --image ./module.svg ./module.js"
+    },
+    "builderExcludes": [
+        ".git",
+        "node_modules",
+        "archive"
+    ]
 }
