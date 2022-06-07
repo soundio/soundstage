@@ -25,7 +25,7 @@ They are capable of producing DC signal.
 </p>
 **/
 
-import { last } from '../../fn/module.js';
+import last     from '../../fn/modules/last.js';
 import PlayNode from './play-node.js';
 import { automate, getValueAtTime, validateParamEvent } from '../modules/automate.js';
 import config from '../config.js';
@@ -132,7 +132,7 @@ export default class Envelope extends ConstantSourceNode {
         cueAutomation(this.offset, this.attack, this.startTime, this.gain, this.rate, 'ConstantSource.offset');
 
         // If attack ends with value 0 we may set a stopTime already, even if it
-        // is to be overridden later with a call to .stop(), helping guarantee 
+        // is to be overridden later with a call to .stop(), helping guarantee
         // the pooled object will be released even without release events
         const event = last(this.attack);
 

@@ -1,5 +1,10 @@
 
-import { choose, get, id, last, overload } from '../../fn/module.js';
+import choose   from '../../fn/modules/choose.js';
+import get      from '../../fn/modules/get.js';
+import id       from '../../fn/modules/id.js';
+import last     from '../../fn/modules/last.js';
+import overload from '../../fn/modules/overload.js';
+
 import { timeAtDomTime } from './context.js';
 import config from '../config.js';
 
