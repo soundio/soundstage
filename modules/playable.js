@@ -18,8 +18,8 @@ const json = JSON.stringify(playable);     // {}
 Playable is designed to be assigned as a mixin in other constructors.
 
 ```js
+// Call the Playable constructor inside your constructor
 function MyObject(context) {
-    // Call the Playable constructor inside your constructor
     Playable.call(this, context);
 }
 

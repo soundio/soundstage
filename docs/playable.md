@@ -9,8 +9,8 @@ may be started and stopped repeatedly.</p>
 <p>Playable properties are non-enumerable, so they do not stringify to JSON.</p>
 <pre><code class="language-js"><span class="token keyword">const</span> json <span class="token operator">=</span> <span class="token constant">JSON</span><span class="token punctuation">.</span><span class="token function">stringify</span><span class="token punctuation">(</span>playable<span class="token punctuation">)</span><span class="token punctuation">;</span>     <span class="token comment">// {}</span></code></pre>
 <p>Playable is designed to be assigned as a mixin in other constructors.</p>
-<pre><code class="language-js"><span class="token keyword">function</span> <span class="token function">MyObject</span><span class="token punctuation">(</span><span class="token parameter">context</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-    <span class="token comment">// Call the Playable constructor inside your constructor</span>
+<pre><code class="language-js"><span class="token comment">// Call the Playable constructor inside your constructor</span>
+<span class="token keyword">function</span> <span class="token function">MyObject</span><span class="token punctuation">(</span><span class="token parameter">context</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token function">Playable</span><span class="token punctuation">.</span><span class="token function">call</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">,</span> context<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
 
