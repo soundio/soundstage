@@ -1,6 +1,6 @@
 
 
-#Sequence
+# Sequence
 
 <p>A sequence is an object with an <code>.events</code> array. A stage itself is a
 sequence: it has an <code>.events</code> array. Events may be created in the stage
@@ -27,10 +27,10 @@ events array by calling <code>stage.createEvent()</code>:</p>
 
 
 
-##Properties
+## Properties
 
 
-###`.label`
+### `.label`
 
 <p>A string.</p>
 
@@ -38,7 +38,7 @@ events array by calling <code>stage.createEvent()</code>:</p>
 
 
 
-###`.events`
+### `.events`
 
 <p>An array of events that are played on <code>.start(time)</code>.
 See <a href="#events">Events</a>.</p>
@@ -47,7 +47,7 @@ See <a href="#events">Events</a>.</p>
 
 
 
-###`.sequences`
+### `.sequences`
 
 <p>An array of sequences that may be triggered by <code>&#39;sequence&#39;</code> events
 stored in <code>.events</code>. See <a href="#sequences">Sequences</a>.</p>
@@ -57,24 +57,24 @@ stored in <code>.events</code>. See <a href="#sequences">Sequences</a>.</p>
 
 
 
-##Methods
+## Methods
 
 
-###`.createEvent(_beat_, _type_, _…_`
-
-
-
-
-
-
-###`.createSequence(__`
+### `.createEvent(_beat_, _type_, _…_`
 
 
 
 
 
 
-###`.beatAtTime(_time_`
+### `.createSequence(__`
+
+
+
+
+
+
+### `.beatAtTime(_time_`
 
 <p>Returns the beat at a given <code>time</code>.</p>
 
@@ -82,7 +82,7 @@ stored in <code>.events</code>. See <a href="#sequences">Sequences</a>.</p>
 
 
 
-###`.timeAtBeat(_beat_`
+### `.timeAtBeat(_beat_`
 
 <p>Returns the time at a given <code>beat</code>.</p>
 

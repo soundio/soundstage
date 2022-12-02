@@ -1,6 +1,6 @@
 
 
-#Control
+# Control
 
 <p>Constructor for muteable objects that represent a route from a source stream
 through a selectable transform function to a target stream.</p>

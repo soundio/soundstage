@@ -1,6 +1,6 @@
 
 
-#MIDIInputSource
+# MIDIInputSource
 
 <p>Constructor of muteable objects representing MIDI Input bindings. Sources have
 the properties:</p>

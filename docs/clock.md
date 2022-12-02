@@ -1,6 +1,6 @@
 
 
-#context
+# context
 
 <p>The AudioContext.</p>
 
@@ -15,10 +15,10 @@
 
 
 
-##Properties
+## Properties
 
 
-###`.context`
+### `.context`
 
 <p>The AudioContext.</p>
 
@@ -26,7 +26,7 @@
 
 
 
-###`.startTime`
+### `.startTime`
 
 <p>The time at which the clock was scheduled to start.</p>
 
@@ -34,14 +34,14 @@
 
 
 
-###`.startLocation`
+### `.startLocation`
 
 
 
 
 
 
-###`.stopTime`
+### `.stopTime`
 
 <p>The time at which the clock has been scheduled to stop.</p>
 

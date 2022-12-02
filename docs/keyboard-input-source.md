@@ -1,6 +1,6 @@
 
 
-#KeyboardInputSource
+# KeyboardInputSource
 
 <p>Constructor of muteable objects representing keyboard input bindings. Sources
 have the properties:</p>

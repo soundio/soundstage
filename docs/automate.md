@@ -1,6 +1,6 @@
 
 
-#automate
+# automate
 
 <p>param - AudioParam object
 time  -

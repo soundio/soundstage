@@ -1,6 +1,6 @@
 
 
-#Playable
+# Playable
 
 <p>A mixin that sets up an object to be playable.</p>
 <pre><code><span class="token comment">// Call the mixin constructor inside your constructor</span>
@@ -26,10 +26,10 @@ Object<span class="token punctuation">.</span><span class="token function">defin
 
 
 
-##Properties
+## Properties
 
 
-###`.startTime`
+### `.startTime`
 
 <p>The time at which playback is scheduled to start.</p>
 
@@ -37,7 +37,7 @@ Object<span class="token punctuation">.</span><span class="token function">defin
 
 
 
-###`.stopTime`
+### `.stopTime`
 
 <p>The time at which playback is scheduled to stop.</p>
 
@@ -45,7 +45,7 @@ Object<span class="token punctuation">.</span><span class="token function">defin
 
 
 
-###`.playing`
+### `.playing`
 
 <p>A boolean indicating whether the node is started and playing (<code>true</code>) or
 stopped and idle (<code>false</code>).</p>
@@ -55,10 +55,10 @@ stopped and idle (<code>false</code>).</p>
 
 
 
-##Methods
+## Methods
 
 
-###`.start(_time_`
+### `.start(_time_`
 
 <p>Sets <code>.startTime</code> to <code>time</code>, or where <code>time</code> is undefined, to
 <code>context.currentTime</code>.</p>
@@ -68,7 +68,7 @@ stopped and idle (<code>false</code>).</p>
 
 
 
-###`.stop(_time_`
+### `.stop(_time_`
 
 <p>Sets <code>.stopTime</code> to <code>time</code> or where <code>time</code> is undefined, to
 <code>context.currentTime</code>, this time is before <code>.startTime</code>, in which case

@@ -1,6 +1,6 @@
 
 
-#drawY
+# drawY
 
 <p>Draws a line at y position.</p>
 <p>ctx:   canvas context

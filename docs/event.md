@@ -1,6 +1,6 @@
 
 
-#Event
+# Event
 
 <p>An event requires a <code>beat</code>, <code>type</code> and some <code>data</code>.</p>
 <pre><code class="language-js">stage<span class="token punctuation">.</span><span class="token function">createEvent</span><span class="token punctuation">(</span>beat<span class="token punctuation">,</span> type<span class="token punctuation">,</span> data<span class="token operator">...</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>

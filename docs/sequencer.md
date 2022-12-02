@@ -1,6 +1,6 @@
 
 
-#rate
+# rate
 
 <p>An AudioParam representing the rate of the transport clock in
 beats per second.</p>
@@ -16,10 +16,10 @@ beats per second.</p>
 
 
 
-##Properties
+## Properties
 
 
-###`.rate`
+### `.rate`
 
 <p>An AudioParam representing the rate of the transport clock in
 beats per second.</p>
@@ -28,7 +28,7 @@ beats per second.</p>
 
 
 
-###`.time`
+### `.time`
 
 <p>The time of audio now leaving the device output. (In browsers the have not
 yet implemented <code>AudioContext.getOutputTimestamp()</code> this value is estimated from
@@ -39,7 +39,7 @@ better than nothing.)</p>
 
 
 
-###`.rate`
+### `.rate`
 
 <p>The rate of the transport clock in beats per second.</p>
 
@@ -47,7 +47,7 @@ better than nothing.)</p>
 
 
 
-###`.tempo`
+### `.tempo`
 
 <p>The rate of the transport clock, expressed in bpm.</p>
 
@@ -55,7 +55,7 @@ better than nothing.)</p>
 
 
 
-###`.meter`
+### `.meter`
 
 <p>The current meter.</p>
 
@@ -63,7 +63,7 @@ better than nothing.)</p>
 
 
 
-###`.beat`
+### `.beat`
 
 <p>The current beat count.</p>
 
@@ -71,7 +71,7 @@ better than nothing.)</p>
 
 
 
-###`.bar`
+### `.bar`
 
 <p>The current bar count.</p>
 
@@ -80,10 +80,10 @@ better than nothing.)</p>
 
 
 
-##Methods
+## Methods
 
 
-###`.start(_time_`
+### `.start(_time_`
 
 <p>Starts the sequencer at <code>time</code>.</p>
 
@@ -91,7 +91,7 @@ better than nothing.)</p>
 
 
 
-###`.stop(_time_`
+### `.stop(_time_`
 
 <p>Stops the sequencer at <code>time</code>.</p>
 
