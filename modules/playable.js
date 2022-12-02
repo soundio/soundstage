@@ -1,19 +1,33 @@
 /**
-Playable()
+Playable(context)
 
-A mixin that sets up an object to be playable.
+Takes a `context` object with a `.currentTime` property and constructs an object
+with `.start()` and `.stop()` methods and a `.playing` property. A playable
+may be started and stopped repeatedly.
 
+```js
+const playable = new Playable(context);
 ```
-// Call the mixin constructor inside your constructor
-MyNode() {
-    Playable.call(this);
+
+Playable properties are non-enumerable, so they do not stringify to JSON.
+
+```js
+const json = JSON.stringify(playable);     // {}
+```
+
+Playable is designed to be assigned as a mixin in other constructors.
+
+```js
+function MyObject(context) {
+    // Call the Playable constructor inside your constructor
+    Playable.call(this, context);
 }
 
-// Assign its' prototype properties to your object's prototype
-Object.assign(MyNode.prototype, Playable.prototype);
+// Assign its prototype to your object's prototype
+Object.assign(MyObject.prototype, Playable.prototype);
 
-// Define its' defined properties on your object's prototype
-Object.defineProperties(MyNode.prototype, {
+// Define its properties on your object's prototype
+Object.defineProperties(MyObject.prototype, {
     playing: Object.getOwnPropertyDescriptor(Playable.prototype, 'playing')
 });
 ```
@@ -28,14 +42,19 @@ const define = Object.defineProperties;
 const properties = {
     /**
     .startTime
-    The time at which playback is scheduled to start.
+
+    The time at which playback was last scheduled to start, or `undefined`.
     **/
 
     startTime: { writable: true },
 
     /**
     .stopTime
-    The time at which playback is scheduled to stop.
+
+    The time at which playback was last scheduled to stop, or `undefined`.
+
+    Only a playable that has been started may be stopped. Attempting to `.stop()`
+    a playable that has not started throws an error.
     **/
 
     stopTime:  { writable: true }
@@ -57,36 +76,40 @@ Playable.reset = function(node) {
 assign(Playable.prototype, {
     /**
     .start(time)
+
     Sets `.startTime` to `time`, or where `time` is undefined, to
     `context.currentTime`.
 
-    Returns `this`.
+    Attempting to start a playable that has already been started throws an error.
+
+    Returns the playable.
     **/
 
-    start: function(time) {
-        if (DEBUG && this.startTime !== undefined) {
+    start: function(time = this.context.currentTime) {
+        if (DEBUG && this.startTime !== undefined && (this.stopTime === undefined || time < this.stopTime)) {
             throw new Error('Attempt to start a node that is already started');
         }
 
-        this.startTime = time || this.context.currentTime;
         return this;
     },
 
     /**
     .stop(time)
-    Sets `.stopTime` to `time` or where `time` is undefined, to
-    `context.currentTime`, this time is before `.startTime`, in which case
+
+    Sets `.stopTime` to `time`, or where `time` is undefined, to `context.currentTime`.
+
+    Attempting to stop a stopped playable throws an error.
+
+     this time is before `.startTime`, in which case
     `.stopTime` is set equal to `.startTime`.
 
-    Returns `this`.
+    Returns the playable.
     **/
 
-    stop: function(time) {
+    stop: function(time = this.context.currentTime) {
         if (DEBUG && this.startTime === undefined) {
             throw new Error('Attempt to stop a node that has not been started');
         }
-
-        time = time || this.context.currentTime;
 
         // Clamp stopTime to startTime
         this.stopTime = (this.startTime === undefined || time > this.startTime) ?
@@ -100,8 +123,14 @@ assign(Playable.prototype, {
 define(Playable.prototype, {
     /**
     .playing
-    A boolean indicating whether the node is started and playing (`true`) or
-    stopped and idle (`false`).
+
+    A boolean indicating whether the node is started and playing. A playable is
+    playing where both:
+
+    - `.startTime` is a number less than or equal to `context.currentTime`
+    - `.stopTime` is undefined or a number greater than `context.currentTime`
+
+    Under all other conditions `.playing` is `false`.
     **/
 
     playing: {
