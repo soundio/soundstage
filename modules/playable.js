@@ -23,6 +23,7 @@ function MyObject(context) {
     Playable.call(this, context);
 }
 
+
 // Assign its prototype to your object's prototype
 Object.assign(MyObject.prototype, Playable.prototype);
 

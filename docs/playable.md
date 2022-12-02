@@ -14,6 +14,7 @@ may be started and stopped repeatedly.</p>
     <span class="token function">Playable</span><span class="token punctuation">.</span><span class="token function">call</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">,</span> context<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
 
+
 <span class="token comment">// Assign its prototype to your object's prototype</span>
 Object<span class="token punctuation">.</span><span class="token function">assign</span><span class="token punctuation">(</span><span class="token class-name">MyObject</span><span class="token punctuation">.</span>prototype<span class="token punctuation">,</span> <span class="token class-name">Playable</span><span class="token punctuation">.</span>prototype<span class="token punctuation">)</span><span class="token punctuation">;</span>
 
