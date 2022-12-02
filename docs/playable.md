@@ -76,8 +76,8 @@ playing where both:</p>
 #### `.start(time)`
 
 <p>Sets <code>.startTime</code> to <code>time</code>, or where <code>time</code> is undefined, to
-<code>context.currentTime</code>.</p>
-<p>Attempting to start a playable that has already been started throws an error.</p>
+<code>context.currentTime</code>. Attempting to start a playable that has already been
+started throws an error.</p>
 <p>Returns the playable.</p>
 
 
@@ -86,10 +86,9 @@ playing where both:</p>
 
 #### `.stop(time)`
 
-<p>Sets <code>.stopTime</code> to <code>time</code>, or where <code>time</code> is undefined, to <code>context.currentTime</code>.</p>
-<p>Attempting to stop a stopped playable throws an error.</p>
-<p> this time is before <code>.startTime</code>, in which case
-<code>.stopTime</code> is set equal to <code>.startTime</code>.</p>
+<p>Sets <code>.stopTime</code> to <code>time</code>, or where <code>time</code> is undefined, to
+<code>context.currentTime</code>. Attempting to stop a stopped playable throws an
+error.</p>
 <p>Returns the playable.</p>
 
 
