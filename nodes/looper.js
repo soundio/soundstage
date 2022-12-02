@@ -14,7 +14,7 @@ Creates a node that records and loops audio.
 import { print, logGroup, logGroupEnd } from './print.js';
 import { Privates } from '../../fn/module.js';
 import NodeGraph from './graph.js';
-import PlayNode from './play-node.js';
+import Playable from './play-node.js';
 import Recorder from './recorder.js';
 import Sample from './sample.js';
 import { assignSettings } from '../modules/assign-settings.js';
@@ -95,7 +95,7 @@ export default class Looper extends GainNode {
         privates.transport = transport;
 
         // Set up .start() and .stop()
-        PlayNode.call(this, context, graph);
+        Playable.call(this, context, graph);
 
         // Set up the graph
         NodeGraph.call(this, context, graph, transport);
@@ -129,11 +129,11 @@ export default class Looper extends GainNode {
 
 // Mix in property definitions
 define(Looper.prototype, {
-    playing: getOwnPropertyDescriptor(PlayNode.prototype, 'playing')
+    playing: getOwnPropertyDescriptor(Playable.prototype, 'playing')
 });
 
 // Mix AudioObject prototype into MyObject prototype
-assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {
+assign(Looper.prototype, Playable.prototype, NodeGraph.prototype, {
     /** .start(time)
 
     Start playback of loops at `time`. If Soundstage's transport is not running,
@@ -156,7 +156,7 @@ assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {
         const privates  = Privates(this);
         const transport = privates.transport;
 
-        PlayNode.prototype.start.apply(this, arguments);
+        Playable.prototype.start.apply(this, arguments);
 
         // Is transport not running? Then run it
         if (transport.startTime === undefined || time < transport.startTime || time >= transport.stopTime) {
@@ -192,7 +192,7 @@ assign(Looper.prototype, PlayNode.prototype, NodeGraph.prototype, {
     **/
 
     stop: function(time) {
-        PlayNode.prototype.stop.apply(this, arguments);
+        Playable.prototype.stop.apply(this, arguments);
         this.sources.forEach((source) => source.stop(this.stopTime));
         return this;
     },

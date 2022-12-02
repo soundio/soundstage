@@ -13,7 +13,7 @@ A noise object generates noise.
 
 import { Privates } from '../../fn/module.js';
 import NodeGraph from './graph.js';
-import PlayNode from './play-node.js';
+import Playable from '../modules/playable.js';
 
 import { assignSettingz__ } from '../modules/assign-settings.js';
 
@@ -149,7 +149,7 @@ export default function Noise(context, options, transport) {
     NodeGraph.call(this, context, graph, transport);
 
     // Define .startTime and .stopTime
-    PlayNode.call(this, context);
+    Playable.call(this, context);
 
     // Define .type and .channelCount
     define(this, properties);
@@ -175,25 +175,25 @@ export default function Noise(context, options, transport) {
 
 // Mix in property definitions
 define(Noise.prototype, {
-    playing: getOwnPropertyDescriptor(PlayNode.prototype, 'playing')
+    playing: getOwnPropertyDescriptor(Playable.prototype, 'playing')
 });
 
-assign(Noise.prototype, NodeGraph.prototype, PlayNode.prototype, {
+assign(Noise.prototype, NodeGraph.prototype, Playable.prototype, {
     reset: function(context, options) {
-        PlayNode.reset(this, arguments);
+        Playable.reset(this, arguments);
         // Here type is assigned and the buffer is filled with noise
         assignSettingz__(this, assign({}, defaults, options));
     },
 
     start: function(time) {
         // Frequency is unused
-        PlayNode.prototype.start.apply(this, arguments);
+        Playable.prototype.start.apply(this, arguments);
         this.get('gain').gain.setValueAtTime(this.gain, this.startTime);
         return this;
     },
 
     stop: function(time) {
-        PlayNode.prototype.stop.apply(this, arguments);
+        Playable.prototype.stop.apply(this, arguments);
         this.get('gain').gain.setValueAtTime(0, this.stopTime);
         return this;
     }

@@ -26,7 +26,7 @@ They are capable of producing DC signal.
 **/
 
 import last     from '../../fn/modules/last.js';
-import PlayNode from './play-node.js';
+import Playable from '../modules/playable.js';
 import { automate, getValueAtTime, validateParamEvent } from '../modules/automate.js';
 import config from '../config.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
@@ -111,7 +111,7 @@ export default class Envelope extends ConstantSourceNode {
         super.start.call(this, context.currentTime);
 
         // Define .start(), .stop(), .startTime and .stopTime
-        PlayNode.call(this, context);
+        Playable.call(this, context);
 
         // Properties
         define(this, properties);
@@ -131,7 +131,7 @@ export default class Envelope extends ConstantSourceNode {
             return this;
         }
 
-        PlayNode.prototype.start.apply(this, arguments);
+        Playable.prototype.start.apply(this, arguments);
         cueAutomation(this.offset, this.attack, this.startTime, this.gain, this.rate, 'ConstantSource.offset');
 
         // If attack ends with value 0 we may set a stopTime already, even if it
@@ -161,7 +161,7 @@ export default class Envelope extends ConstantSourceNode {
             return this;
         }
 
-        PlayNode.prototype.stop.apply(this, arguments);
+        Playable.prototype.stop.apply(this, arguments);
 
         // Use the current signal as the start gain of the release
         const gain = getValueAtTime(this.offset, this.stopTime);
@@ -185,5 +185,5 @@ export default class Envelope extends ConstantSourceNode {
 }
 
 define(Envelope.prototype, {
-    playing: getDefinition(PlayNode.prototype, 'playing')
+    playing: getDefinition(Playable.prototype, 'playing')
 });

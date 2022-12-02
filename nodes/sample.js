@@ -37,7 +37,7 @@ import { requestBuffer } from '../modules/request-buffer.js';
 import { requestData } from '../modules/request-data.js';
 import { Privates } from '../../fn/module.js';
 import NodeGraph   from './graph.js';
-import PlayNode from './play-node.js';
+import Playable from '../modules/playable.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
 import { frequencyToFloat } from '../../midi/modules/data.js';
 
@@ -264,7 +264,7 @@ export default function Sample(context, settings, transport) {
 
     // Set up .connect(), .disconnect(), .start, .stop()
     NodeGraph.call(this, context, graph, transport);
-    PlayNode.call(this, context);
+    Playable.call(this, context);
 
     // Privates
     privates.sources = { length: 0 };
@@ -277,12 +277,12 @@ export default function Sample(context, settings, transport) {
 }
 
 Sample.reset = function reset(node, args) {
-    PlayNode.reset(node);
+    Playable.reset(node);
     assignSettingz__(node, assign({}, defaults, args[1]));
     return node;
 };
 
-assign(Sample.prototype, PlayNode.prototype, NodeGraph.prototype, {
+assign(Sample.prototype, Playable.prototype, NodeGraph.prototype, {
     start: function(time) {
         // Wait for src to load
         if (this.promise) {
@@ -293,7 +293,7 @@ assign(Sample.prototype, PlayNode.prototype, NodeGraph.prototype, {
             return this;
         }
 
-        PlayNode.prototype.start.call(this, time);
+        Playable.prototype.start.call(this, time);
 
         // Get regions from map
         const privates   = Privates(this);
@@ -311,7 +311,7 @@ assign(Sample.prototype, PlayNode.prototype, NodeGraph.prototype, {
 
     stop: function(time) {
         // Clamp stopTime to startTime
-        PlayNode.prototype.stop.call(this, time);
+        Playable.prototype.stop.call(this, time);
 
         // Stop sources and update stopTime to include stopTime
         // of longest sample
@@ -324,5 +324,5 @@ assign(Sample.prototype, PlayNode.prototype, NodeGraph.prototype, {
 
 // Mix in property definitions
 define(Sample.prototype, {
-    playing: getOwnPropertyDescriptor(PlayNode.prototype, 'playing')
+    playing: getOwnPropertyDescriptor(Playable.prototype, 'playing')
 });

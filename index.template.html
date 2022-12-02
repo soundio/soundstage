@@ -239,9 +239,9 @@
 
 
 
-        <h2 class="x-1 6x @2-x-2 @2-6x doctext-03"><code class="language-js">PlayNode()</code></h2>
+        <h2 class="x-1 6x @2-x-2 @2-6x doctext-03"><code class="language-js">Playable()</code></h2>
 
-        <div class="x-1 7x @2-x-2 @3-6x @4-5x @5-3x" build-fn="docs:'./nodes/play-node.js?PlayNode' each append:body"></div>
+        <div class="x-1 7x @2-x-2 @3-6x @4-5x @5-3x" build-fn="docs:'./nodes/play-node.js?Playable' each append:body"></div>
 
         <section class="x-1 7x @1-x-1 @1-3x @2-x-2 @5-x-5 @5-2x">
             <h3 class="doctext-04">Methods</h3>
@@ -274,7 +274,7 @@ export default class Sample extends GainNode {
         super(context, gainOptions);
 
         // Define .startTime and .stopTime
-        PlayNode.call(this);
+        Playable.call(this);
 
         // Define sample properties
         define(this, properties);

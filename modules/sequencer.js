@@ -3,7 +3,7 @@ import { matches, Privates, Stream } from '../../fn/module.js';
 import { isRateEvent, getDuration, isValidEvent, eventValidationHint } from './event.js';
 import { automate, getValueAtTime } from './automate.js';
 import { SSSequencer } from './sequence.js';
-import PlayNode from '../nodes/play-node.js';
+import Playable from './playable.js';
 import { timeAtBeatOfEvents } from './location.js';
 import Meter from './meter.js';
 import { distribute } from './distribute.js';
@@ -301,13 +301,13 @@ function automateRate(privates, event) {
 
 export default function Sequencer(transport, data, rateParam, timer, notify) {
 
-    // PlayNode provides the properties:
+    // Playable provides the properties:
     //
     // startTime:  number || undefined
     // stopTime:   number || undefined
     // playing:    boolean
 
-    PlayNode.call(this);
+    Playable.call(this);
 
 
     // SSSequencer provides the properties:
@@ -453,7 +453,7 @@ define(Sequencer.prototype, {
         }
     },
 
-    playing: getOwnPropertyDescriptor(PlayNode.prototype, 'playing')
+    playing: getOwnPropertyDescriptor(Playable.prototype, 'playing')
 });
 
 assign(Sequencer.prototype, Meter.prototype, {

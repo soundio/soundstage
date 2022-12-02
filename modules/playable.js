@@ -1,25 +1,25 @@
 /**
-PlayNode()
+Playable()
 
 A mixin that sets up an object to be playable.
 
 ```
 // Call the mixin constructor inside your constructor
 MyNode() {
-    PlayNode.call(this);
+    Playable.call(this);
 }
 
 // Assign its' prototype properties to your object's prototype
-Object.assign(MyNode.prototype, PlayNode.prototype);
+Object.assign(MyNode.prototype, Playable.prototype);
 
 // Define its' defined properties on your object's prototype
 Object.defineProperties(MyNode.prototype, {
-    playing: Object.getOwnPropertyDescriptor(PlayNode.prototype, 'playing')
+    playing: Object.getOwnPropertyDescriptor(Playable.prototype, 'playing')
 });
 ```
 **/
 
-import { logGroup, logGroupEnd } from '../modules/print.js';
+import { logGroup, logGroupEnd } from './print.js';
 
 const DEBUG  = false;//window.DEBUG;
 const assign = Object.assign;
@@ -41,19 +41,20 @@ const properties = {
     stopTime:  { writable: true }
 };
 
-export default function PlayNode() {
-    if (DEBUG) { logGroup('mixin ', 'PlayNode'); }
+export default function Playable(context) {
+    if (DEBUG) { logGroup('mixin ', 'Playable'); }
     define(this, properties);
+    this.context = context;
     if (DEBUG) { logGroupEnd(); }
 }
 
-PlayNode.reset = function(node) {
+Playable.reset = function(node) {
     node.startTime = undefined;
     node.stopTime  = undefined;
     return node;
 };
 
-assign(PlayNode.prototype, {
+assign(Playable.prototype, {
     /**
     .start(time)
     Sets `.startTime` to `time`, or where `time` is undefined, to
@@ -96,7 +97,7 @@ assign(PlayNode.prototype, {
     }
 });
 
-define(PlayNode.prototype, {
+define(Playable.prototype, {
     /**
     .playing
     A boolean indicating whether the node is started and playing (`true`) or

@@ -28,7 +28,7 @@ import get from '../../fn/modules/get.js';
 import overload from '../../fn/modules/overload.js';
 import { Privates, denormalise, toType } from '../../fn/module.js';
 import NodeGraph from './graph.js';
-import PlayNode from './play-node.js';
+import Playable  from '../modules/playable.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
 import { floatToFrequency, toNoteNumber } from '../../midi/modules/data.js';
 import { create } from '../modules/constructors.js';
@@ -92,7 +92,7 @@ export const defaults = {
         target: 'osc'
     }],
 
-    // May be 'self' if voice is a node. It isn't. 
+    // May be 'self' if voice is a node. It isn't.
     // Todo: Wot? Why have I even writen this here? Explain yourself.
     output: 'gain'
 };
@@ -115,7 +115,7 @@ function Voice(context, data, transport) {
 	NodeGraph.call(this, context, settings, transport);
 
 	// Define .start(), .stop(), .startTime and .stopTime
-	PlayNode.call(this, context);
+	Playable.call(this, context);
 
 	// Properties
     define(this, properties);
@@ -152,7 +152,7 @@ function Voice(context, data, transport) {
 
 // Support pooling via reset function on the constructor
 Voice.reset = function(voice, args) {
-    PlayNode.reset(voice);
+    Playable.reset(voice);
 
     //const context = args[0];
     const settings = args[1];
@@ -168,7 +168,7 @@ Voice.reset = function(voice, args) {
 
 // Mix in property definitions
 define(Voice.prototype, {
-    playing: getOwnPropertyDescriptor(PlayNode.prototype, 'playing')
+    playing: getOwnPropertyDescriptor(Playable.prototype, 'playing')
 });
 
 function setPropertyOrParam(target, key, value) {
@@ -232,7 +232,7 @@ const noteToFrequency = overload(toType, {
     }
 });
 
-assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
+assign(Voice.prototype, Playable.prototype, NodeGraph.prototype, {
 
     /**
     .start(time, note, velocity)
@@ -251,7 +251,7 @@ assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
     **/
 
     start: function(time, note = 49, velocity = 1) {
-        PlayNode.prototype.start.apply(this, arguments);
+        Playable.prototype.start.apply(this, arguments);
 
         const privates = Privates(this);
 
@@ -290,12 +290,12 @@ assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
             // Keep a record of the latest envelope stopTime
             if (target.constructor.name === 'Envelope') {
                 stopTime = target.stopTime === undefined ? Infinity :
-                    target.stopTime > stopTime ? target.stopTime : 
+                    target.stopTime > stopTime ? target.stopTime :
                     stopTime ;
             }
         }
 
-        // All envelopes have given us a stopTime, so we may go ahead and set 
+        // All envelopes have given us a stopTime, so we may go ahead and set
         // stopTime now, even if it is to be overridden later, helping us guarantee
         // that pooled voices are released even where .stop() is not called
         // Not REALLY sure this is a great idea. Parhaps voices that stop themselves
@@ -321,7 +321,7 @@ assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
     **/
 
     stop: function(time, note = 49, velocity = 1) {
-        PlayNode.prototype.stop.apply(this, arguments);
+        Playable.prototype.stop.apply(this, arguments);
 
         const privates = Privates(this);
 
@@ -331,7 +331,7 @@ assign(Voice.prototype, PlayNode.prototype, NodeGraph.prototype, {
         // Quick out
         if (!commands) { return this; }
 
-        // Loop backward through commands, we stop them in reverse order, 
+        // Loop backward through commands, we stop them in reverse order,
         // augmenting the stopTime to the latest stopTime
         let n = commands.length;
         while(n--) {

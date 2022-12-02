@@ -1,6 +1,6 @@
 
 import { noop, nothing, Privates } from '../../fn/module.js';
-import PlayNode from './play-node.js';
+import Playable from '../modules/playable.js';
 
 const define = Object.defineProperties;
 const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
@@ -35,7 +35,7 @@ export default class Recorder extends AudioWorkletNode {
     }
 
     start(time) {
-        PlayNode.prototype.start.apply(this, arguments);
+        Playable.prototype.start.apply(this, arguments);
 
         this.port.postMessage({
             type: 'start',
@@ -52,7 +52,7 @@ export default class Recorder extends AudioWorkletNode {
         // stopTime is equivalent to an integer number of sample frames
         time = this.startTime + Math.round((time - this.startTime) * this.context.sampleRate) / this.context.sampleRate;
 
-        PlayNode.prototype.stop.call(this, time);
+        Playable.prototype.stop.call(this, time);
 
         // Tell the worklet to stop recording
         this.port.postMessage({
@@ -78,7 +78,7 @@ export default class Recorder extends AudioWorkletNode {
 
 // Mix in property definitions
 define(Recorder.prototype, {
-    playing: getOwnPropertyDescriptor(PlayNode.prototype, 'playing')
+    playing: getOwnPropertyDescriptor(Playable.prototype, 'playing')
 });
 
 Recorder.preload = function(base, context) {

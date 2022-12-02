@@ -1,6 +1,6 @@
 
 import { Privates } from '../../fn/module.js';
-import PlayNode from '../nodes/play-node.js';
+import Playable from './playable.js';
 
 const DEBUG  = false;//window.DEBUG;
 
@@ -47,7 +47,7 @@ export default function Clock(context, notify) {
 }
 
 assign(Clock.prototype, {
-    // Todo: Inherit start/stop from PlayNode
+    // Todo: Inherit start/stop from Playable
 
     start: function(time) {
         // If clock is running, don't start it again
@@ -92,5 +92,5 @@ assign(Clock.prototype, {
 
 // Mix in property definitions
 define(Clock.prototype, {
-    playing: getOwnPropertyDescriptor(PlayNode.prototype, 'playing')
+    playing: getOwnPropertyDescriptor(Playable.prototype, 'playing')
 });

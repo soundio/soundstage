@@ -3,7 +3,7 @@
 import { printGroup, printGroupEnd, log } from './print.js';
 import { Privates } from '../../fn/module.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
-import PlayNode  from './play-node.js';
+import Playable  from './play-node.js';
 import NodeGraph from './graph.js';
 
 if (!NodeGraph.prototype.get) {
@@ -165,7 +165,7 @@ export default function Metronome(context, settings, transport) {
     if (DEBUG) { printGroupEnd(); }
 }
 
-assign(Metronome.prototype, PlayNode.prototype, NodeGraph.prototype, {
+assign(Metronome.prototype, Playable.prototype, NodeGraph.prototype, {
     start: function(time) {
         const privates  = Privates(this);
         const transport = privates.transport;
@@ -173,7 +173,7 @@ assign(Metronome.prototype, PlayNode.prototype, NodeGraph.prototype, {
         const voice     = this.get('output');
         const buffer    = [];
 
-        PlayNode.prototype.start.apply(this, arguments);
+        Playable.prototype.start.apply(this, arguments);
 
         privates.sequence = transport
         .sequence((data) => fillEventsBuffer(transport, this.events, buffer, data))
@@ -188,7 +188,7 @@ assign(Metronome.prototype, PlayNode.prototype, NodeGraph.prototype, {
 
     stop: function(time) {
         const privates = Privates(this);
-        PlayNode.prototype.stop.apply(this, arguments);
+        Playable.prototype.stop.apply(this, arguments);
         privates.sequence.stop(this.stopTime);
         return this;
     }
@@ -196,7 +196,7 @@ assign(Metronome.prototype, PlayNode.prototype, NodeGraph.prototype, {
 
 // Mix in property definitions
 define(Metronome.prototype, {
-    playing: getOwnPropertyDescriptor(PlayNode.prototype, 'playing')
+    playing: getOwnPropertyDescriptor(Playable.prototype, 'playing')
 });
 
 Metronome.defaults  = {

@@ -19,7 +19,7 @@ defining voices for instruments.
 **/
 
 import NodeGraph from './graph.js';
-import PlayNode from './play-node.js';
+import Playable  from '../modules/playable.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
 
 const assign = Object.assign;
@@ -84,7 +84,7 @@ export default function Tone(context, options, transport) {
     NodeGraph.call(this, context, graph, transport);
 
     // Define .startTime and .stopTime
-    PlayNode.call(this, context);
+    Playable.call(this, context);
 
     // Define type
     define(this, properties);
@@ -96,11 +96,11 @@ export default function Tone(context, options, transport) {
 
 Tone.reset = function(node, args) {
     const settings = args[1];
-    PlayNode.reset(node, args);
+    Playable.reset(node, args);
     assignSettingz__(node, assign({}, defaults, settings));
 };
 
-assign(Tone.prototype, NodeGraph.prototype, PlayNode.prototype, {
+assign(Tone.prototype, NodeGraph.prototype, Playable.prototype, {
 
     /**
     .start(time)
@@ -108,7 +108,7 @@ assign(Tone.prototype, NodeGraph.prototype, PlayNode.prototype, {
     **/
 
     start: function(time) {
-        PlayNode.prototype.start.apply(this, arguments);
+        Playable.prototype.start.apply(this, arguments);
         this.get('gain').gain.setValueAtTime(this.gain, this.startTime);
         return this;
     },
@@ -119,7 +119,7 @@ assign(Tone.prototype, NodeGraph.prototype, PlayNode.prototype, {
     **/
 
     stop: function(time, frequency, gain) {
-        PlayNode.prototype.stop.apply(this, arguments);
+        Playable.prototype.stop.apply(this, arguments);
         this.get('gain').gain.setValueAtTime(0, this.stopTime);
         return this;
     }
@@ -127,5 +127,5 @@ assign(Tone.prototype, NodeGraph.prototype, PlayNode.prototype, {
 
 // Mixin property definitions
 define(Tone.prototype, {
-    playing: getOwnPropertyDescriptor(PlayNode.prototype, 'playing')
+    playing: getOwnPropertyDescriptor(Playable.prototype, 'playing')
 });
