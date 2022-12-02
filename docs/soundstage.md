@@ -23,7 +23,7 @@ following properties and methods.</p>
 ## Properties
 
 
-### `.label`
+#### `.label`
 
 <p>A string name for this Soundstage document.</p>
 
@@ -31,14 +31,14 @@ following properties and methods.</p>
 
 
 
-### `.mediaChannelCount`
+#### `.mediaChannelCount`
 
 
 
 
 
 
-### `.metronome`
+#### `.metronome`
 
 <p>A boolean property that is a shortcut control the first metronome node in
 the graph. Indicates whether a metronome is playing at the current time.
@@ -53,7 +53,7 @@ not already one in the graph, and then start it.</p>
 ## Methods
 
 
-### `.timeAtDomTime(_domTime_`
+#### `.timeAtDomTime(domTime)`
 
 <p>Returns audio context time at the given <code>domTime</code>, where <code>domTime</code> is a
 time in milliseconds relative to window.performance.now().</p>
@@ -62,7 +62,7 @@ time in milliseconds relative to window.performance.now().</p>
 
 
 
-### `.domTimeAtTime(_time_`
+#### `.domTimeAtTime(time)`
 
 <p>Returns DOM performance time at the given context <code>time</code>.</p>
 
@@ -70,7 +70,7 @@ time in milliseconds relative to window.performance.now().</p>
 
 
 
-### `.records(__`
+#### `.records()`
 
 <p>Returns an array of record objects containing unsaved data.</p>
 

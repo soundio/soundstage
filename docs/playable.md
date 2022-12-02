@@ -36,7 +36,7 @@ Object<span class="token punctuation">.</span><span class="token function">defin
 ## Properties
 
 
-### `.startTime`
+#### `.startTime`
 
 <p>The time at which playback was last scheduled to start, or <code>undefined</code>.</p>
 
@@ -44,7 +44,7 @@ Object<span class="token punctuation">.</span><span class="token function">defin
 
 
 
-### `.stopTime`
+#### `.stopTime`
 
 <p>The time at which playback was last scheduled to stop, or <code>undefined</code>.</p>
 <p>Only a playable that has been started may be stopped. Attempting to <code>.stop()</code>
@@ -54,7 +54,7 @@ a playable that has not started throws an error.</p>
 
 
 
-### `.playing`
+#### `.playing`
 
 <p>A boolean indicating whether the node is started and playing. A playable is
 playing where both:</p>
@@ -72,7 +72,7 @@ playing where both:</p>
 ## Methods
 
 
-### `.start(_time_`
+#### `.start(time)`
 
 <p>Sets <code>.startTime</code> to <code>time</code>, or where <code>time</code> is undefined, to
 <code>context.currentTime</code>.</p>
@@ -83,7 +83,7 @@ playing where both:</p>
 
 
 
-### `.stop(_time_`
+#### `.stop(time)`
 
 <p>Sets <code>.stopTime</code> to <code>time</code>, or where <code>time</code> is undefined, to <code>context.currentTime</code>.</p>
 <p>Attempting to stop a stopped playable throws an error.</p>

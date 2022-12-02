@@ -22,7 +22,7 @@
 ## Methods
 
 
-### `.locationAtBeat(_beat_`
+#### `.locationAtBeat(beat)`
 
 <p>Returns the location of a given <code>beat</code>.</p>
 
@@ -30,7 +30,7 @@
 
 
 
-### `.beatAtLocation(_location_`
+#### `.beatAtLocation(location)`
 
 <p>Returns the beat at a given <code>location</code>.</p>
 

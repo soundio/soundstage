@@ -18,7 +18,7 @@
 ## Properties
 
 
-### `.nodes`
+#### `.nodes`
 
 <p>An array of objects defining graph nodes. See <a href="#nodes-and-connections">Nodes and Connectors</a>.</p>
 
@@ -26,7 +26,7 @@
 
 
 
-### `.connections`
+#### `.connections`
 
 <p>An array of objects defining connections. See <a href="#nodes-and-connections">Nodes and Connectors</a>.</p>
 
@@ -38,7 +38,7 @@
 ## Methods
 
 
-### `.createNode(_type_, _settings_`
+#### `.createNode(type, settings)`
 
 <p>Creates a new AudioNode in the Soundstage graph.</p>
 <pre><code class="language-js"><span class="token keyword">var</span> wrap <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token function">createNode</span><span class="token punctuation">(</span><span class="token string">'delay'</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
@@ -54,7 +54,7 @@ array. The wrapper object is returned.</p>
 
 
 
-### `.createConnector(_source_, _target_`
+#### `.createConnector(source, target)`
 
 <p>Creates a connection between two nodes in the graph. The parameters
 <code>source</code> and <code>target</code> are node ids.</p>
@@ -63,7 +63,7 @@ array. The wrapper object is returned.</p>
 
 
 
-### `.get(_id_`
+#### `.get(id)`
 
 <p>Returns the AudioNode with <code>id</code> from the graph, or undefined.</p>
 <pre><code class="language-js"><span class="token keyword">const</span> node <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token string">'0'</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
@@ -72,7 +72,7 @@ array. The wrapper object is returned.</p>
 
 
 
-### `.identify(_node_`
+#### `.identify(node)`
 
 <p>Returns the id of the graph node that wraps the AudioNode <code>node</code>.</p>
 <pre><code class="language-js"><span class="token keyword">const</span> id <span class="token operator">=</span> stage<span class="token punctuation">.</span><span class="token function">identify</span><span class="token punctuation">(</span>node<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
