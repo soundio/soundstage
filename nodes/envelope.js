@@ -127,7 +127,10 @@ export default class Envelope extends ConstantSourceNode {
     **/
 
     start(time) {
-        if (!this.attack) { return this; }
+        if (!this.attack || this.attack.length === 0) {
+            return this;
+        }
+
         PlayNode.prototype.start.apply(this, arguments);
         cueAutomation(this.offset, this.attack, this.startTime, this.gain, this.rate, 'ConstantSource.offset');
 
@@ -154,7 +157,10 @@ export default class Envelope extends ConstantSourceNode {
     **/
 
     stop(time) {
-        if (!this.release) { return this; }
+        if (!this.release || this.release.length === 0) {
+            return this;
+        }
+
         PlayNode.prototype.stop.apply(this, arguments);
 
         // Use the current signal as the start gain of the release
