@@ -1,7 +1,5 @@
 
 
-
-
 <header class="@0-x1 @0-3x @1-x3 @1-4x @2-x3 @0-x-stretch">
     <h1 class="docs-text-01" id="playable"><code>&lt;Playable&gt;</code></h1>
 </header>
@@ -36,9 +34,9 @@ Object<span class="token punctuation">.</span><span class="token function">defin
     <h3 class="doctext-03">Properties</h3>
     
 
-<div class="property-doc-to ggle-block doc-tog gle-block tog gle-block block" data-tog gleable id="property|selector-starttime">
+<div class="property-doc-to ggle-block doc-tog gle-block tog gle-block block" data-tog gleable id="property|selector-starttime-1">
 <h3 class="property-docs-text-05 docs-text-05">
-    <a href="#property|selector-starttime">
+    <a href="#property|selector-starttime-1">
         <code class="property language-js">.startTime</code>
     </a>
 </h3>
@@ -49,9 +47,9 @@ Object<span class="token punctuation">.</span><span class="token function">defin
 
 
 
-<div class="property-doc-to ggle-block doc-tog gle-block tog gle-block block" data-tog gleable id="property|selector-stoptime">
+<div class="property-doc-to ggle-block doc-tog gle-block tog gle-block block" data-tog gleable id="property|selector-stoptime-1">
 <h3 class="property-docs-text-05 docs-text-05">
-    <a href="#property|selector-stoptime">
+    <a href="#property|selector-stoptime-1">
         <code class="property language-js">.stopTime</code>
     </a>
 </h3>
@@ -125,4 +123,3 @@ stopped and idle (<code>false</code>).</p>
     
     
 </div>
-

@@ -1,0 +1,16 @@
+{
+  "excludes": [
+    "assets/",
+    "archive/",
+    "deno/",
+    "libs/",
+    "includes/",
+    "test/",
+    "docs/",
+    "sample-maps/",
+    "nodes/",
+    "elements/",
+    "nuttin/",
+    "node_modules/"
+  ]
+}
