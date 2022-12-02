@@ -79,7 +79,8 @@ sequence
 
 
 import { compose, get, overload, remove } from '../../fn/module.js';
-import { bytesToSignedFloat, toType } from '../../midi/module.js';
+import { bytesToSignedFloat } from '../../midi/modules/maths.js';
+import { toType } from '../../midi/modules/data.js';
 
 const assign           = Object.assign;
 const getData          = get('data');

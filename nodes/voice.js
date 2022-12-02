@@ -30,7 +30,7 @@ import { Privates, denormalise, toType } from '../../fn/module.js';
 import NodeGraph from './graph.js';
 import PlayNode from './play-node.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
-import { floatToFrequency, toNoteNumber } from '../../midi/module.js';
+import { floatToFrequency, toNoteNumber } from '../../midi/modules/data.js';
 import { create } from '../modules/constructors.js';
 
 const assign = Object.assign;

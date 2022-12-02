@@ -30,7 +30,7 @@ An AudioParam representing output gain.
 **/
 
 import { noop } from '../../fn/module.js';
-import { floatToFrequency, toNoteNumber } from '../../midi/module.js';
+import { floatToFrequency, toNoteNumber } from '../../midi/modules/data.js';
 import { dB48 } from '../modules/constants.js';
 
 var assign      = Object.assign;

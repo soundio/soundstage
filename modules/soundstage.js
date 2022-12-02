@@ -3,7 +3,7 @@ import { get, isDefined, noop, nothing, map, matches, Privates }   from '../../f
 import { print, printGroup, printGroupEnd }     from './print.js';
 import { context, domTimeAtTime, timeAtDomTime, getOutputLatency } from './context.js';
 import { isKeyboardInputSource } from './control-sources/keyboard-input-source.js';
-import { isMIDIInputSource } from './control-sources/midi-input-source.js';
+//import { isMIDIInputSource } from './control-sources/midi-input-source.js';
 import { connect, disconnect } from './connect.js';
 import Control       from './control.js';
 import Metronome     from '../nodes/metronome.js';
@@ -241,7 +241,7 @@ export default function Soundstage(data = defaultData, settings = nothing) {
 
     if (DEBUG) {
         const sources = map(get('source'), stage.controls);
-        print('controls', sources.filter(isKeyboardInputSource).length + ' keyboard, ' + sources.filter(isMIDIInputSource).length + ' MIDI');
+        print('controls', sources.filter(isKeyboardInputSource).length + ' keyboard, ' /*+ sources.filter(isMIDIInputSource).length + ' MIDI'*/);
     }
 
     // Notify observers that objects have mutated
