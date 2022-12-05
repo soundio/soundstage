@@ -36,8 +36,7 @@ Build the Soundstage module to the `build/` directory:
 make modules
 ```
 
-The built version can be imported into an html document (the built version does
-not include any DEBUG messages):
+The built version can be imported into an html document:
 
 ```html
 <script type="module">
@@ -45,6 +44,8 @@ not include any DEBUG messages):
     // Do something with Soundstage ...
 </script>
 ```
+
+The built version does not include any DEBUG messages.
 
 ### Build documentation
 
