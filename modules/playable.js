@@ -2,9 +2,9 @@
 /**
 Playable(context)
 
-Takes a `context` object with a `.currentTime` property and constructs an object
-that implements the playable API, with `.start()` and `.stop()` methods and a
-`.status` property.
+Takes a `context` object (an object with a `.currentTime` property) and
+constructs an object that implements the playable API: `.start()` and `.stop()`
+methods and a `.status` property.
 
 A playable may be started and stopped repeatedly, but may not be started when
 already started, nor stopped when already stopped.
@@ -30,7 +30,9 @@ const define = Object.defineProperties;
 const properties = {
     /**
     .context
+
     An AudioContext or similar object that must have a `.currentTime` property.
+
     This property is not enumerable.
     **/
 
@@ -38,16 +40,20 @@ const properties = {
 
     /**
     .startTime
-    The time at which playback was last scheduled to start, or `undefined`. This
-    property is not enumerable.
+
+    The time at which playback was last scheduled to start, or `undefined`.
+
+    This property is not enumerable.
     **/
 
     startTime: { writable: true },
 
     /**
     .stopTime
-    The time at which playback was last scheduled to stop, or `undefined`. This
-    property is not enumerable.
+
+    The time at which playback was last scheduled to stop, or `undefined`.
+
+    This property is not enumerable.
     **/
 
     stopTime:  { writable: true }
@@ -131,6 +137,8 @@ define(Playable.prototype, {
 
     - `.startTime` is a number less than or equal to `context.currentTime`
     - `.stopTime` is `undefined` or a number greater than `context.currentTime`
+
+    This property is not enumerable.
     **/
 
     status: {
