@@ -55,10 +55,10 @@ already started, nor stopped when already stopped.</p>
 #### `.status`
 
 <p>A string indicating whether the playable is started and playing.</p>
-<p>The status is <code>&#39;idle&#39;</code> when:</p>
+<p>The status is <code>&#39;idle&#39;</code> when either:</p>
 <ul>
-<li><code>.startTime</code> is <code>undefined</code>, or <code>.stopTime</code> is less than or equal to
-<code>context.currentTime</code></li>
+<li><code>.startTime</code> is <code>undefined</code></li>
+<li><code>.stopTime</code> is less than or equal to <code>context.currentTime</code></li>
 </ul>
 <p>The status is <code>&#39;cued&#39;</code> when both:</p>
 <ul>
