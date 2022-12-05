@@ -18,7 +18,7 @@ cd soundstage
 Build the Soundstage module to the `build/` directory.
 
 ```cli
-make docs
+make modules
 ```
 
 Build documentation found in code comments to markdown files in `docs/`.
