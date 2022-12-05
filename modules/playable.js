@@ -1,9 +1,13 @@
+
 /**
 Playable(context)
 
 Takes a `context` object with a `.currentTime` property and constructs an object
-with `.start()` and `.stop()` methods and a `.playing` property. A playable
-may be started and stopped repeatedly.
+that implements the playable API, with `.start()` and `.stop()` methods and a
+`.status` property.
+
+A playable may be started and stopped repeatedly, but may not be started when
+already started, nor stopped when already stopped.
 
 ```js
 const playable = new Playable(context);
@@ -12,29 +16,12 @@ const playable = new Playable(context);
 Playable properties are non-enumerable, so they do not stringify to JSON.
 
 ```js
-const json = JSON.stringify(playable);     // {}
-```
-
-Playable is designed to be assigned as a mixin in other constructors.
-
-```js
-// Call the Playable constructor inside your constructor
-function MyObject(context) {
-    Playable.call(this, context);
-}
-
-
-// Assign its prototype to your object's prototype
-Object.assign(MyObject.prototype, Playable.prototype);
-
-// Define its properties on your object's prototype
-Object.defineProperties(MyObject.prototype, {
-    playing: Object.getOwnPropertyDescriptor(Playable.prototype, 'playing')
-});
+const json = JSON.stringify(playable);   // {}
 ```
 **/
 
-import { logGroup, logGroupEnd } from './print.js';
+import { logGroup, logGroupEnd }  from './print.js';
+import { IDLE, CUED, PLAYING } from './statuses.js';
 
 const DEBUG  = false;//window.DEBUG;
 const assign = Object.assign;
@@ -42,20 +29,25 @@ const define = Object.defineProperties;
 
 const properties = {
     /**
-    .startTime
+    .context
+    An AudioContext or similar object that must have a `.currentTime` property.
+    This property is not enumerable.
+    **/
 
-    The time at which playback was last scheduled to start, or `undefined`.
+    context: { writable: true },
+
+    /**
+    .startTime
+    The time at which playback was last scheduled to start, or `undefined`. This
+    property is not enumerable.
     **/
 
     startTime: { writable: true },
 
     /**
     .stopTime
-
-    The time at which playback was last scheduled to stop, or `undefined`.
-
-    Only a playable that has been started may be stopped. Attempting to `.stop()`
-    a playable that has not started throws an error.
+    The time at which playback was last scheduled to stop, or `undefined`. This
+    property is not enumerable.
     **/
 
     stopTime:  { writable: true }
@@ -78,7 +70,7 @@ assign(Playable.prototype, {
     /**
     .start(time)
 
-    Sets `.startTime` to `time`, or where `time` is undefined, to
+    Sets `.startTime` to `time`, or where `time` is `undefined`, to
     `context.currentTime`. Attempting to start a playable that has already been
     started throws an error.
 
@@ -90,13 +82,15 @@ assign(Playable.prototype, {
             throw new Error('Attempt to start a node that is already started');
         }
 
+        this.stopTime = undefined;
+
         return this;
     },
 
     /**
     .stop(time)
 
-    Sets `.stopTime` to `time`, or where `time` is undefined, to
+    Sets `.stopTime` to `time`, or where `time` is `undefined`, to
     `context.currentTime`. Attempting to stop a stopped playable throws an
     error.
 
@@ -119,25 +113,56 @@ assign(Playable.prototype, {
 
 define(Playable.prototype, {
     /**
-    .playing
+    .status
 
-    A boolean indicating whether the node is started and playing. A playable is
-    playing where both:
+    A string indicating whether the playable is started and playing.
+
+    The status is `'idle'` when:
+
+    - `.startTime` is `undefined`, or `.stopTime` is less than or equal to
+    `context.currentTime`
+
+    The status is `'cued'` when both:
+
+    - `.startTime` is a number greater than `context.currentTime`
+    - `.stopTime` is `undefined`, or a number greater than `context.currentTime`
+
+    The status is `'playing'` when both:
 
     - `.startTime` is a number less than or equal to `context.currentTime`
-    - `.stopTime` is undefined or a number greater than `context.currentTime`
-
-    Under all other conditions `.playing` is `false`.
+    - `.stopTime` is `undefined` or a number greater than `context.currentTime`
     **/
 
-    playing: {
+    status: {
         get: function() {
-            return this.startTime !== undefined
-            && (this.startTime <= this.context.currentTime)
-            && (this.stopTime === undefined
-                || this.startTime > this.stopTime
-                || this.context.currentTime < this.stopTime
-            );
+            return this.startTime !== undefined ?
+                this.startTime <= this.context.currentTime ?
+                    this.stopTime === undefined || this.stopTime > this.context.currentTime ?
+                        PLAYING :
+                    IDLE :
+                CUED :
+            IDLE ;
         }
     }
 });
+
+/**
+Mixin
+
+Playable is designed to be assigned as a mixin in other constructors.
+
+```js
+// Call the Playable constructor inside your constructor
+function MyObject(context) {
+    Playable.call(this, context);
+}
+
+// Assign its prototype to your object's prototype
+Object.assign(MyObject.prototype, Playable.prototype);
+
+// Define its properties on your object's prototype
+Object.defineProperties(MyObject.prototype, {
+    playing: Object.getOwnPropertyDescriptor(Playable.prototype, 'playing')
+});
+```
+**/
