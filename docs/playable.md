@@ -5,9 +5,9 @@
 <p>Takes a <code>context</code> object (an object with a <code>.currentTime</code> property) and
 constructs an object that implements the playable API: <code>.start()</code> and <code>.stop()</code>
 methods and a <code>.status</code> property.</p>
+<pre><code class="language-js"><span class="token keyword">const</span> playable <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Playable</span><span class="token punctuation">(</span>context<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
 <p>A playable may be started and stopped repeatedly, but may not be started when
 already started, nor stopped when already stopped.</p>
-<pre><code class="language-js"><span class="token keyword">const</span> playable <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Playable</span><span class="token punctuation">(</span>context<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
 <p>Playable properties are non-enumerable, so they do not stringify to JSON.</p>
 <pre><code class="language-js"><span class="token keyword">const</span> json <span class="token operator">=</span> <span class="token constant">JSON</span><span class="token punctuation">.</span><span class="token function">stringify</span><span class="token punctuation">(</span>playable<span class="token punctuation">)</span><span class="token punctuation">;</span>   <span class="token comment">// {}</span></code></pre>
 
