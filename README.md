@@ -28,6 +28,8 @@ html document. Import it with DEBUG messages turned on:
 </script>
 ```
 
+### Build Soundstage
+
 Build the Soundstage module to the `build/` directory:
 
 ```cli
@@ -42,6 +44,8 @@ The built version can be imported into an html document:
     // Do something with Soundstage ...
 </script>
 ```
+
+### Build documentation
 
 Build documentation found in code comments to markdown files in `docs/`:
 
