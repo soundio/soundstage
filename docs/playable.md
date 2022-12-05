@@ -82,7 +82,7 @@ already started, nor stopped when already stopped.</p>
 
 #### `.start(time)`
 
-<p>Sets <code>.startTime</code> to <code>time</code>, or where <code>time</code> is <code>undefined</code>, to
+<p>Sets <code>.startTime</code> to <code>time</code>, or where <code>time</code> is <code>undefined</code> to
 <code>context.currentTime</code>. Attempting to start a playable that has already been
 started throws an error.</p>
 <p>Returns the playable.</p>
@@ -93,7 +93,7 @@ started throws an error.</p>
 
 #### `.stop(time)`
 
-<p>Sets <code>.stopTime</code> to <code>time</code>, or where <code>time</code> is <code>undefined</code>, to
+<p>Sets <code>.stopTime</code> to <code>time</code>, or where <code>time</code> is <code>undefined</code> to
 <code>context.currentTime</code>. Attempting to stop a stopped playable throws an
 error.</p>
 <p>Returns the playable.</p>

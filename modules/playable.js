@@ -76,7 +76,7 @@ assign(Playable.prototype, {
     /**
     .start(time)
 
-    Sets `.startTime` to `time`, or where `time` is `undefined`, to
+    Sets `.startTime` to `time`, or where `time` is `undefined` to
     `context.currentTime`. Attempting to start a playable that has already been
     started throws an error.
 
@@ -96,7 +96,7 @@ assign(Playable.prototype, {
     /**
     .stop(time)
 
-    Sets `.stopTime` to `time`, or where `time` is `undefined`, to
+    Sets `.stopTime` to `time`, or where `time` is `undefined` to
     `context.currentTime`. Attempting to stop a stopped playable throws an
     error.
 
