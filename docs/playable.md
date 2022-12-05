@@ -2,9 +2,9 @@
 
 # Playable
 
-<p>Takes a <code>context</code> object with a <code>.currentTime</code> property and constructs an object
-that implements the playable API, with <code>.start()</code> and <code>.stop()</code> methods and a
-<code>.status</code> property.</p>
+<p>Takes a <code>context</code> object (an object with a <code>.currentTime</code> property) and
+constructs an object that implements the playable API: <code>.start()</code> and <code>.stop()</code>
+methods and a <code>.status</code> property.</p>
 <p>A playable may be started and stopped repeatedly, but may not be started when
 already started, nor stopped when already stopped.</p>
 <pre><code class="language-js"><span class="token keyword">const</span> playable <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Playable</span><span class="token punctuation">(</span>context<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
@@ -27,8 +27,8 @@ already started, nor stopped when already stopped.</p>
 
 #### `.context`
 
-<p>An AudioContext or similar object that must have a <code>.currentTime</code> property.
-This property is not enumerable.</p>
+<p>An AudioContext or similar object that must have a <code>.currentTime</code> property.</p>
+<p>This property is not enumerable.</p>
 
 
 
@@ -36,8 +36,8 @@ This property is not enumerable.</p>
 
 #### `.startTime`
 
-<p>The time at which playback was last scheduled to start, or <code>undefined</code>. This
-property is not enumerable.</p>
+<p>The time at which playback was last scheduled to start, or <code>undefined</code>.</p>
+<p>This property is not enumerable.</p>
 
 
 
@@ -45,8 +45,8 @@ property is not enumerable.</p>
 
 #### `.stopTime`
 
-<p>The time at which playback was last scheduled to stop, or <code>undefined</code>. This
-property is not enumerable.</p>
+<p>The time at which playback was last scheduled to stop, or <code>undefined</code>.</p>
+<p>This property is not enumerable.</p>
 
 
 
@@ -70,6 +70,7 @@ property is not enumerable.</p>
 <li><code>.startTime</code> is a number less than or equal to <code>context.currentTime</code></li>
 <li><code>.stopTime</code> is <code>undefined</code> or a number greater than <code>context.currentTime</code></li>
 </ul>
+<p>This property is not enumerable.</p>
 
 
 
