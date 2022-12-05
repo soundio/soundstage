@@ -12,16 +12,38 @@ Clone the Soundstage repo and its dependency repos into one location.
 git clone git@github.com:soundio/soundstage.git
 git clone git@github.com:stephband/fn.git
 git clone git@github.com:stephband/midi.git
-cd soundstage
 ```
 
-Build the Soundstage module to the `build/` directory.
+That location may now be served. Soundstage can be imported (unbuilt) into an
+html document. Import it with DEBUG messages turned on:
+
+```html
+<script>
+    window.DEBUG = true;
+</script>
+
+<script type="module">
+    import Soundstage from './soundstage/module.js'
+    // Do something with Soundstage ...
+</script>
+```
+
+Build the Soundstage module to the `build/` directory:
 
 ```cli
 make modules
 ```
 
-Build documentation found in code comments to markdown files in `docs/`.
+The built version can be imported into an html document:
+
+```html
+<script type="module">
+    import Soundstage from './soundstage/build/soundstage.js'
+    // Do something with Soundstage ...
+</script>
+```
+
+Build documentation found in code comments to markdown files in `docs/`:
 
 ```cli
 make docs
