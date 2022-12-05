@@ -6,12 +6,12 @@ Takes a `context` object (an object with a `.currentTime` property) and
 constructs an object that implements the playable API: `.start()` and `.stop()`
 methods and a `.status` property.
 
-A playable may be started and stopped repeatedly, but may not be started when
-already started, nor stopped when already stopped.
-
 ```js
 const playable = new Playable(context);
 ```
+
+A playable may be started and stopped repeatedly, but may not be started when
+already started, nor stopped when already stopped.
 
 Playable properties are non-enumerable, so they do not stringify to JSON.
 
