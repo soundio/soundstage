@@ -23,7 +23,7 @@ const json = JSON.stringify(playable);   // {}
 import { logGroup, logGroupEnd }  from './print.js';
 import { IDLE, CUED, PLAYING } from './statuses.js';
 
-const DEBUG  = false;//window.DEBUG;
+const DEBUG  = window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
 
@@ -123,10 +123,10 @@ define(Playable.prototype, {
 
     A string indicating whether the playable is started and playing.
 
-    The status is `'idle'` when:
+    The status is `'idle'` when either:
 
-    - `.startTime` is `undefined`, or `.stopTime` is less than or equal to
-    `context.currentTime`
+    - `.startTime` is `undefined`
+    - `.stopTime` is less than or equal to `context.currentTime`
 
     The status is `'cued'` when both:
 
