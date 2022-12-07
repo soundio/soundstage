@@ -16,6 +16,7 @@ jobs:
 #        safaridriver --enable
     - name: Install dependencies
       run: |
+        sudo safaridriver --enable
         npm install selenium-webdriver
     - name: Run tests
       run: |
