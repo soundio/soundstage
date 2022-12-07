@@ -17,7 +17,7 @@ jobs:
     - name: Install dependencies
       run: |
         npm install selenium-webdriver
-        npm install http-server
+        npm install http-server -g
     - name: Run tests
       run: |
         cd /Users/runner/work/soundstage/
