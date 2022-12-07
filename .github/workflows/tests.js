@@ -4,6 +4,7 @@ const { suite }       = require('selenium-webdriver/testing');
 const assert          = require("assert");
 
 async function run(browser, url) {
+    console.log('Launching ' + browser);
     const driver = await new Builder().forBrowser(browser).build();
 
     await driver.get(url);
@@ -25,8 +26,6 @@ async function run(browser, url) {
 */
     await driver.quit();
 }
-
-console.log('tests.js');
 
 run('chrome', 'http://127.0.0.1:8000/soundstage/test.html');
 run('safari', 'http://127.0.0.1:8000/soundstage/test.html');
