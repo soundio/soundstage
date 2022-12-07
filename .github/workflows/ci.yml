@@ -19,8 +19,6 @@ jobs:
         npm install selenium-webdriver
     - name: Run tests
       run: |
-        cd /Users/runner/
-        ls -l
-        find ./ -name test.js
-#        npm run ./test.js
+        cd /Users/runner/work/soundstage/
+        npm run ./test.js
 #        npx selenium-webdriver
