@@ -22,5 +22,5 @@ jobs:
         cd /Users/runner/
         ls -l
         find / -name test.js
-        npm run ./test.js
+#        npm run ./test.js
 #        npx selenium-webdriver
