@@ -19,7 +19,11 @@ jobs:
         npm install selenium-webdriver
     - name: Run tests
       run: |
-        cd /Users/runner/work/soundstage/soundstage/
+        cd /Users/runner/work/soundstage/
+        git clone git@github.com:stephband/fn
+        git clone git@github.com:stephband/dom
+        git clone git@github.com:stephband/midi
+        cd soundstage/
         ls -l
         node ./test.js
 #        npx selenium-webdriver
