@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v3
+#    - name: Set up OS
+#      run: |
+#        safaridriver --enable
+    - name: Install dependencies
+      run: |
+        npm install selenium-webdriver
+    - name: Run tests
+      run: |
+        cd /Users/runner/work/soundstage/
+        python -m SimpleHTTPServer 8000 &
+        cd soundstage/
+        node ./.github/workflows/tests.js
+#        npx selenium-webdriver
