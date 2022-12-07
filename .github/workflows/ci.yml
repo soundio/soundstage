@@ -11,9 +11,9 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Set up OS
-      run: |
-        safaridriver --enable
+#    - name: Set up OS
+#      run: |
+#        safaridriver --enable
     - name: Install dependencies
       run: |
         npm install selenium-webdriver
