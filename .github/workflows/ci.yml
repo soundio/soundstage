@@ -21,7 +21,7 @@ jobs:
     - name: Run tests
       run: |
         cd /Users/runner/work/soundstage/
-        http-server -a localhost -p 80
+        http-server -a localhost -p 8000
         cd soundstage/
         node ./test.js
 #        npx selenium-webdriver
