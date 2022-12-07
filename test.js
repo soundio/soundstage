@@ -6,7 +6,7 @@ const { suite }       = require('selenium-webdriver/testing');
 const assert          = require("assert");
 
 
-async function test(browser, url) {
+/*async function run(browser, url) {
     const driver = await new Builder().forBrowser(browser).build();
 
     await driver.get(url);
@@ -29,39 +29,30 @@ async function test(browser, url) {
     await driver.quit();
 }
 
-test('chrome', 'https://www.selenium.dev/selenium/web/web-form.html');
-
-
-
-/*
-suite(function(env) {
-    describe('First script', function() {
-        let driver;
-
-        before(async function() {
-            driver = await new Builder().forBrowser('chrome').build();
-        });
-
-        after(async () => await driver.quit());
-
-        it('First Selenium script', async function() {
-            await driver.get('https://www.selenium.dev/selenium/web/web-form.html');
-
-            let title = await driver.getTitle();
-            assert.equal("Web form", title);
-
-            await driver.manage().setTimeouts({ implicit: 500 });
-
-            let textBox = await driver.findElement(By.name('my-text'));
-            let submitButton = await driver.findElement(By.css('button'));
-
-            await textBox.sendKeys('Selenium');
-            await submitButton.click();
-
-            let message = await driver.findElement(By.id('message'));
-            let value = await message.getText();
-            assert.equal("Received!", value);
-        });
-    });
-});
+run('chrome', 'https://www.selenium.dev/selenium/web/web-form.html');
 */
+
+async function run(browser, url) {
+    const driver = await new Builder().forBrowser(browser).build();
+
+    await driver.get(url);
+
+    let title        = await driver.getTitle();
+    assert.equal("Tests", title);
+
+    await driver.manage().setTimeouts({ implicit: 500 });
+/*
+    let textBox      = await driver.findElement(By.name('my-text'));
+    let submitButton = await driver.findElement(By.css('button'));
+
+    await textBox.sendKeys('Selenium');
+    await submitButton.click();
+
+    let message      = await driver.findElement(By.id('message'));
+    let value        = await message.getText();
+    assert.equal("Received!", value);
+*/
+    await driver.quit();
+}
+
+run('chrome', 'http://127.0.0.1:8000/test.html');
