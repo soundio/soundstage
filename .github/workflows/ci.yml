@@ -20,5 +20,5 @@ jobs:
     - name: Run tests
       run: |
         cd /Users/runner/work/soundstage/
-        npm run ./test.js
+        node ./test.js
 #        npx selenium-webdriver

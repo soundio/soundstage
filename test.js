@@ -1,5 +1,5 @@
 
-console.log('LOGGGGAS');
+console.log('TESTING TESTING 1 2 3');
 
 const { By, Builder } = require('selenium-webdriver');
 const { suite }       = require('selenium-webdriver/testing');
