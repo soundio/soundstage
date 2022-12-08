@@ -23,7 +23,7 @@ const Driver = (fns => browser => {
 
     firefox: async () => {
         const options = new firefox.Options();
-        options.addArgument('--remote-debugging-port');
+        options.addArguments('--remote-debugging-port');
         options.setPreference('fission.bfcacheInParent', false);
         options.setPreference('fission.webContentIsolationStrategy', 0);
 
