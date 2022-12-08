@@ -3,6 +3,7 @@ const { By, Builder } = require('selenium-webdriver');
 const chrome          = require('selenium-webdriver/chrome');
 const firefox         = require('selenium-webdriver/firefox');
 const safari          = require('selenium-webdriver/safari');
+const assert          = require("assert");
 
 /** Driver
 
