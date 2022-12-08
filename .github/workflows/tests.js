@@ -29,7 +29,7 @@ async function run(browser, url) {
         await driver.executeScript('console.log("YOYOYO here")');*/
     }
     catch (e) {
-        console.log('tests.js - Cannot monitor console.log', e);
+        console.log('tests.js - ' + browser + ' - Cannot monitor console.log\n', e);
     }
 
 
