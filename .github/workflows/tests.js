@@ -18,7 +18,7 @@ async function run(browser, url) {
     try {
         const cdpConnection = await driver.createCDPConnection('page');
 
-        await driver.onLogEvent(cdpConnection, function (event) {
+        /*await driver.onLogEvent(cdpConnection, function (event) {
           console.log(event.args[0].value);
         });
 
@@ -26,7 +26,7 @@ async function run(browser, url) {
           console.log(event.exceptionDetails);
         });
 
-        await driver.executeScript('console.log("YOYOYO here")');
+        await driver.executeScript('console.log("YOYOYO here")');*/
     }
     catch (e) {
         console.log('tests.js - Cannot monitor console.log', e);
