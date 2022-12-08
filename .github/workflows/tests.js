@@ -5,6 +5,8 @@ const firefox         = require('selenium-webdriver/firefox');
 const safari          = require('selenium-webdriver/safari');
 const assert          = require("assert");
 
+console.log(Object.keys(new firefox.Options()));
+
 /** Driver
 
 ```js
@@ -12,10 +14,10 @@ const driver = Driver('chrome')
 ```
 **/
 
-const Driver = ((fns) =>
-    (browser) =>
-        (fns[browser] || fns.default)()
-)({
+const Driver = (fns => browser => {
+    console.log('Launching ' + browser);
+    return (fns[browser] || fns.default)();
+})({
     chrome: async () => new Builder()
         .setChromeOptions(new chrome.Options())
         .forBrowser('chrome')
@@ -33,8 +35,6 @@ const Driver = ((fns) =>
 });
 
 async function run(browser, url) {
-    console.log('Launching ' + browser);
-
     const driver = await Driver(browser);
 
     await driver.get(url);
