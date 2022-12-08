@@ -5,7 +5,7 @@ const firefox         = require('selenium-webdriver/firefox');
 const safari          = require('selenium-webdriver/safari');
 const assert          = require("assert");
 
-console.log(Object.keys(new firefox.Options()));
+console.log(Object.keys(firefox.Options.prototype));
 
 /** Driver
 
