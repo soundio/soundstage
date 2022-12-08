@@ -15,19 +15,19 @@ const Driver = ((fns) =>
     (browser) =>
         (fns[browser] || fns.default)()
 )({
-    chrome: () => new Builder()
+    chrome: async () => new Builder()
         .setChromeOptions(new chrome.Options())
         .forBrowser('chrome')
         .build();
     },
 
-    firefox: () => new Builder()
+    firefox: async () => new Builder()
         .setFirefoxOptions(new firefox.Options())
         .forBrowser('firefox')
         .build();
     },
 
-    safari: () => new Builder()
+    safari: async () => new Builder()
         .setSafariOptions(new safari.Options())
         .forBrowser('safari')
         .build();
