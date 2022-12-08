@@ -23,10 +23,8 @@ const Driver = (fns => browser => {
 
     firefox: async () => {
         const options = new firefox.Options();
-        options.addArgument('fission.bfcacheInParent');
-        options.addArgument(false);
-        options.addArgument('fission.webContentIsolationStrategy');
-        options.addArgument(0);
+        options.setPreference('fission.bfcacheInParent', false);
+        options.setPreference('fission.webContentIsolationStrategy', 0);
 
         return new Builder()
         .setFirefoxOptions(options)
