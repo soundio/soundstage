@@ -1,12 +1,43 @@
 
 const { By, Builder } = require('selenium-webdriver');
-const { suite }       = require('selenium-webdriver/testing');
-const assert          = require("assert");
+const chrome          = require('selenium-webdriver/chrome');
+const firefox         = require('selenium-webdriver/firefox');
+const safari          = require('selenium-webdriver/safari');
+
+/** Driver
+
+```js
+const driver = Driver('chrome')
+```
+**/
+
+const Driver = ((fns) =>
+    (browser) =>
+        (fns[browser] || fns.default)()
+)({
+    chrome: () => new Builder()
+        .setChromeOptions(new chrome.Options())
+        .forBrowser('chrome')
+        .build();
+    },
+
+    firefox: () => new Builder()
+        .setFirefoxOptions(new firefox.Options())
+        .forBrowser('firefox')
+        .build();
+    },
+
+    safari: () => new Builder()
+        .setSafariOptions(new safari.Options())
+        .forBrowser('safari')
+        .build();
+    }
+});
 
 async function run(browser, url) {
     console.log('Launching ' + browser);
 
-    const driver = await new Builder().forBrowser(browser).build();
+    const driver = await Driver(browser);
 
     await driver.get(url);
 
