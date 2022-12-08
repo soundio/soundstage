@@ -19,6 +19,7 @@ jobs:
         npm install selenium-webdriver
     - name: Run tests
       run: |
+        ls -l
         cd /Users/runner/work/soundstage/
         python -m SimpleHTTPServer 8000 &
         cd soundstage/
