@@ -18,20 +18,17 @@ const Driver = ((fns) =>
     chrome: async () => new Builder()
         .setChromeOptions(new chrome.Options())
         .forBrowser('chrome')
-        .build();
-    },
+        .build(),
 
     firefox: async () => new Builder()
         .setFirefoxOptions(new firefox.Options())
         .forBrowser('firefox')
-        .build();
-    },
+        .build(),
 
     safari: async () => new Builder()
         .setSafariOptions(new safari.Options())
         .forBrowser('safari')
-        .build();
-    }
+        .build()
 });
 
 async function run(browser, url) {
