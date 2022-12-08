@@ -17,24 +17,25 @@ const Driver = (fns => browser => {
     return (fns[browser] || fns.default)();
 })({
     chrome: async () => new Builder()
-        .setChromeOptions(new chrome.Options())
         .forBrowser('chrome')
+        .setChromeOptions(new chrome.Options())
         .build(),
 
     firefox: async () => {
         const options = new firefox.Options();
+        options.addArgument('--remote-debugging-port');
         options.setPreference('fission.bfcacheInParent', false);
         options.setPreference('fission.webContentIsolationStrategy', 0);
 
         return new Builder()
-        .setFirefoxOptions(options)
         .forBrowser('firefox')
+        .setFirefoxOptions(options)
         .build();
     },
 
     safari: async () => new Builder()
-        .setSafariOptions(new safari.Options())
         .forBrowser('safari')
+        .setSafariOptions(new safari.Options())
         .build()
 });
 
