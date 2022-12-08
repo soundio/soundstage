@@ -5,8 +5,6 @@ const firefox         = require('selenium-webdriver/firefox');
 const safari          = require('selenium-webdriver/safari');
 const assert          = require("assert");
 
-console.log(Object.keys(firefox.Options.prototype));
-
 /** Driver
 
 ```js
@@ -23,10 +21,18 @@ const Driver = (fns => browser => {
         .forBrowser('chrome')
         .build(),
 
-    firefox: async () => new Builder()
-        .setFirefoxOptions(new firefox.Options())
+    firefox: async () => {
+        const options = new firefox.Options();
+        options.addArgument('fission.bfcacheInParent');
+        options.addArgument(false);
+        options.addArgument('fission.webContentIsolationStrategy');
+        options.addArgument(0);
+
+        return new Builder()
+        .setFirefoxOptions(options)
         .forBrowser('firefox')
-        .build(),
+        .build();
+    },
 
     safari: async () => new Builder()
         .setSafariOptions(new safari.Options())
