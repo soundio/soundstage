@@ -57,8 +57,7 @@ async function run(browser, url) {
             clearInterval(interval);
             console.log('--- ' + browser + ' ---');
             console.log(await driver.findElement(By.id('console')).getText());
-            console.log(result);
-            console.log('----------------');
+            console.log(await driver.findElement(By.id('result')).getText());
             await driver.quit();
         }
     }, 600);

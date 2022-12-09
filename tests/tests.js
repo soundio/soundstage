@@ -14,7 +14,7 @@ window.console.log = function() {
 const resultPre = document.getElementById('result');
 
 window.onerror = function() {
-    resultPre.hidden = false;
     resultPre.classList.add('fail-result-pre');
     resultPre.innerHTML = 'FAIL';
+    resultPre.hidden = false;
 };
