@@ -41,13 +41,7 @@ const Driver = (fns => browser => {
 
 async function run(browser, url) {
     const driver = await Driver(browser);
-
     await driver.get(url);
-
-    let title = await driver.getTitle();
-    assert.equal("Tests", title);
-
-    await driver.manage().setTimeouts({ implicit: 500 });
 
     const consolepre = await driver.findElement(By.id('console'));
     const passpre    = await driver.findElement(By.id('pass'));
@@ -59,14 +53,14 @@ async function run(browser, url) {
         if (await passpre.isDisplayed()) {
             clearInterval(interval);
             console.log('--- ' + browser + ' ---');
-            console.log(await consolepre.getText());
+            console.log(await driver.findElement(By.id('console')).getText());
             console.log('--- ' + browser + ' PASS ---');
             await driver.quit();
         }
         else if (await failpre.isDisplayed()) {
             clearInterval(interval);
             console.log('--- ' + browser + ' ---');
-            console.log(await consolepre.getText());
+            console.log(await driver.findElement(By.id('console')).getText());
             console.log('--- ' + browser + ' FAIL ---');
             await driver.quit();
         }
