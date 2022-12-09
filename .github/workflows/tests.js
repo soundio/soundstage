@@ -43,21 +43,20 @@ async function run(browser, url) {
     const driver = await Driver(browser);
     await driver.get(url);
 
-    const consolepre = await driver.findElement(By.id('console'));
-    const passpre    = await driver.findElement(By.id('pass'));
-    const failpre    = await driver.findElement(By.id('fail'));
+    //const passpre    = await driver.findElement(By.id('pass'));
+    //const failpre    = await driver.findElement(By.id('fail'));
 
     // Not brilliant – we should be using a CDP connection, but it's not
     // reliable – poll the DOM for pass or fail
     const interval = setInterval(async () => {
-        if (await passpre.isDisplayed()) {
+        if (await driver.findElement(By.id('pass')).isDisplayed()) {
             clearInterval(interval);
             console.log('--- ' + browser + ' ---');
             console.log(await driver.findElement(By.id('console')).getText());
             console.log('--- ' + browser + ' PASS ---');
             await driver.quit();
         }
-        else if (await failpre.isDisplayed()) {
+        else if (await driver.findElement(By.id('fail')).isDisplayed()) {
             clearInterval(interval);
             console.log('--- ' + browser + ' ---');
             console.log(await driver.findElement(By.id('console')).getText());
