@@ -63,7 +63,7 @@ console.log('check', ++n, result);
             console.log('--- ' + browser + ' ---');
             await driver.quit();
         }
-    }, 8000);
+    }, 600);
 }
 
 run('chrome', 'http://127.0.0.1:8000/soundstage/test.html');
