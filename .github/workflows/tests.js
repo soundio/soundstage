@@ -56,7 +56,7 @@ async function run(browser, url) {
             // If a result is displayed grab the contents of #console and
             // #result and log them to the console
             const logs = await driver.findElement(By.id('console')).getText();
-            logs.split(/\n/).forEach((log) => console.log('> ' + log.replace(/\n/, '')));
+            logs.split(/\n/).forEach((log) => console.log('| ' + log.replace(/\n/, '')));
 
             const text = await driver.findElement(By.id('result')).getText();
             if (text.slice(0, 4) === 'FAIL') {
