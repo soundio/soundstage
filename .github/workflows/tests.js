@@ -61,7 +61,7 @@ async function run(browser, url) {
 
             clearInterval(interval);
 
-            console.log('> ' + browser + ' --------');
+            console.log('--- ' + browser + ' ---');
             console.log('> ' + logs);
             console.log('> ' + text);
 
