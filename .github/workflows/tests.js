@@ -48,7 +48,10 @@ async function run(browser, url) {
 
     // Not brilliant – we should be using a CDP connection, but it's not
     // reliable – poll the DOM for pass or fail
+    let n = 0;
     const interval = setInterval(async () => {
+        console.log('check', ++n);
+
         if (await driver.findElement(By.id('pass')).isDisplayed()) {
             clearInterval(interval);
             console.log('--- ' + browser + ' ---');
