@@ -6,7 +6,7 @@ const log = window.console.log;
 
 window.console.log = function() {
     log.apply(this, arguments);
-    consolePre.append.apply(consolePre, arguments);
+    consolePre.append(Array.from(arguments).join(' ') + '\n');
 };
 
 // Result

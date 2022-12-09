@@ -63,7 +63,7 @@ async function run(browser, url) {
 
             console.log('--- ' + browser + ' ---');
             logs.split(/\n/).forEach((log) => console.log('> ' + log));
-            console.log('> ' + text);
+            //console.log('> ' + text);
 
             if (text.slice(0, 4) === 'FAIL') {
                 throw new Error(text);
