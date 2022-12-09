@@ -1,4 +1,5 @@
 .DS_Store
+.nova/*
 archive/*
 node_modules/*
 edit/*

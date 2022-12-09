@@ -3,6 +3,7 @@
 
 const consolePre = document.getElementById('console');
 const log = window.console.log;
+const trace = window.console.trace;
 
 let n = 0;
 
@@ -25,8 +26,15 @@ function stripCSS(output, string) {
 window.console.log = function() {
     log.apply(this, arguments);
     const strings = Array.from(arguments).reduce(stripCSS, []);
-    consolePre.append(strings.join(' ') + '\n');
+    consolePre.append(strings.join('') + '\n');
 };
+
+window.console.trace = function() {
+    trace.apply(this, arguments);
+    const strings = Array.from(arguments).reduce(stripCSS, []);
+    consolePre.append(strings.join('') + '\n');
+};
+
 
 // Result
 
@@ -34,7 +42,7 @@ const resultPre = document.getElementById('result');
 
 export function fail(message) {
     resultPre.classList.add('fail-result-pre');
-    resultPre.innerHTML = 'FAIL\n\n' + message;
+    resultPre.innerHTML = 'FAIL' + (message ? '\n\n' + message : '');
     resultPre.hidden = false;
 }
 

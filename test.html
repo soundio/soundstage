@@ -16,6 +16,6 @@
     import './tests/example-test.js';
 
     // Report results
-    done(pass);
+    done((totals) => (totals.fail > 0 ? fail() : pass()));
     window.onerror = fail;
 </script>
