@@ -54,13 +54,16 @@ async function run(browser, url) {
         const result = await driver.findElement(By.id('result')).isDisplayed();
 
         if (result) {
+            const logs = await driver.findElement(By.id('console')).getText();
             const text = await driver.findElement(By.id('result')).getText();
 
             clearInterval(interval);
-            console.log('--- ' + browser + ' ---');
-            console.log(await driver.findElement(By.id('console')).getText());
-            console.log(await driver.findElement(By.id('result')).getText());
-            assert.equal('PASS', text);
+
+            console.log('> ' + browser + ' --------');
+            console.log('> ' + logs.replace(/\n/, '\n> '));
+            console.log(text);
+
+            assert.equal('PASS', text.slice(0, 4));
             await driver.quit();
         }
     }, 600);
