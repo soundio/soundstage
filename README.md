@@ -41,8 +41,9 @@ cd soundstage/
 make modules
 ```
 
-The built version can be imported into an html document. DEBUG messages are
-disabled.
+The built version includes dependencies and does not require dependency repos to
+be served. Also, DEBUG messages are disabled. It can be imported into an html
+document:
 
 ```html
 <script type="module">
@@ -61,10 +62,10 @@ make docs
 
 ### Running tests
 
-Tests run in a browser, simply navigate to `soundstage/test.html`.
+Tests run in a browser. Navigate to `soundstage/test.html`.
 
 > **Note**<br/>
-> Most tests are run against unbuilt files. A local server must be serving the
+> Many tests are run against unbuilt files. A server must be serving the
 > dependency repos and the soundstage repo from the same location.
 
 The `soundstage/test.html` page is also used to run tests in Chrome, FireFox and
