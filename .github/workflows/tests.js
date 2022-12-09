@@ -51,19 +51,14 @@ async function run(browser, url) {
     let n = 0;
     const interval = setInterval(async () => {
         console.log('check', ++n);
+        const result = await driver.findElement(By.id('result')).getText();
 
-        if (await driver.findElement(By.id('pass')).getText()) {
+        if (result) {
             clearInterval(interval);
             console.log('--- ' + browser + ' ---');
             console.log(await driver.findElement(By.id('console')).getText());
-            console.log('--- ' + browser + ' PASS ---');
-            await driver.quit();
-        }
-        else if (await driver.findElement(By.id('fail')).getText()) {
-            clearInterval(interval);
+            console.log(result);
             console.log('--- ' + browser + ' ---');
-            console.log(await driver.findElement(By.id('console')).getText());
-            console.log('--- ' + browser + ' FAIL ---');
             await driver.quit();
         }
     }, 600);
