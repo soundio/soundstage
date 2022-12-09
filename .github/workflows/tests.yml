@@ -10,6 +10,7 @@ jobs:
   build:
     runs-on: macos-latest
     steps:
+    # Import repositories
     - uses: actions/checkout@v3
       with:
         repository: stephband/fn
@@ -29,6 +30,6 @@ jobs:
         npm install selenium-webdriver
     - name: Run tests
       run: |
-        ls -l
         python -m SimpleHTTPServer 8000 &
-        node ./soundstage/.github/workflows/tests.js
+        cd ./soundstage/
+        node .github/workflows/tests.js
