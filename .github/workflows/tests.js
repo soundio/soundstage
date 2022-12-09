@@ -51,8 +51,10 @@ async function run(browser, url) {
     // but that's not reliable.
     let n = 0;
     const interval = setInterval(async () => {
-        const result = await driver.findElement(By.id('result')).getText();
+        const result = await driver.findElement(By.id('result')).isDisplayed();
+
 console.log('check', ++n, result);
+
         if (result) {
             clearInterval(interval);
             console.log('--- ' + browser + ' ---');
