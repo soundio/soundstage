@@ -56,7 +56,7 @@ Build documentation found in code comments to markdown files in `docs/`:
 make docs
 ```
 
-### Add tests
+### View tests
 
 Tests run in a browser, simply navigate to `soundstage/test.html`.
 
@@ -64,9 +64,11 @@ Tests run in a browser, simply navigate to `soundstage/test.html`.
 > Most tests are run against unbuilt files. A local server must be serving the
 > dependency repos and the soundstage repo from the same location.
 
-The `soundstage/test.html` document is also used to run tests in Selenium via
-Github Actions. Test results are seen at
+The `soundstage/test.html` page is also used to run tests in via Github Actions
+and Selenium. Test results are seen at
 [github.com/soundio/soundstage/actions/](https://github.com/soundio/soundstage/actions/).
+
+### Add a test
 
 To add a test:
 
