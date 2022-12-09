@@ -51,17 +51,17 @@ async function run(browser, url) {
     // but that's not reliable.
     let n = 0;
     const interval = setInterval(async () => {
-        const result = await driver.findElement(By.id('result')).getAttribute("innerHTML");
+        const result = await driver.findElement(By.id('result')).getAttribute("hidden");
 console.log('check', ++n, result);
         if (result) {
             clearInterval(interval);
             console.log('--- ' + browser + ' ---');
-            console.log(await driver.findElement(By.id('console')).getAttribute("innerHTML"));
+            console.log(await driver.findElement(By.id('console')).getAttribute("hidden"));
             console.log(result);
             console.log('--- ' + browser + ' ---');
             await driver.quit();
         }
-    }, 600);
+    }, 8000);
 }
 
 run('chrome', 'http://127.0.0.1:8000/soundstage/test.html');
