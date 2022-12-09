@@ -53,21 +53,11 @@ async function run(browser, url) {
     const pass    = await driver.findElement(By.id('pass'));
     const fail    = await driver.findElement(By.id('fail'));
 
-/*
-    let textBox      = await driver.findElement(By.name('my-text'));
-    let submitButton = await driver.findElement(By.css('button'));
-
-    await textBox.sendKeys('Selenium');
-    await submitButton.click();
-
-    let message      = await driver.findElement(By.id('message'));
-    let value        = await message.getText();
-    assert.equal("Received!", value);
-*/
-
     // Not brilliant – we should be using a CDP connection, but it's not
     // reliable – poll the DOM for pass or fail
     const interval = setInterval(async () => {
+        console.log('CHECK', window.performance.now() / 1000);
+
         if (await pass.isDisplayed()) {
             clearInterval(interval);
             console.log(console.getText());
