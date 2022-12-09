@@ -13,10 +13,9 @@ jobs:
     - uses: actions/checkout@v3
       with:
         repository: stephband/fn
+        #ref: refs/heads/release
         #path: resources/docs/2.x
         #ref: 2.x
-      with:
-        repository: stephband/dom
     - name: Set up OS
       run: |
         sudo safaridriver --enable
