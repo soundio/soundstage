@@ -15,6 +15,8 @@ jobs:
         repository: stephband/fn
         #path: resources/docs/2.x
         #ref: 2.x
+      with:
+        repository: stephband/dom
     - name: Set up OS
       run: |
         sudo safaridriver --enable
@@ -23,8 +25,8 @@ jobs:
         npm install selenium-webdriver
     - name: Run tests
       run: |
+        ls -l
         cd ../
         python -m SimpleHTTPServer 8000 &
         cd soundstage/
         node ./.github/workflows/tests.js
-#        npx selenium-webdriver
