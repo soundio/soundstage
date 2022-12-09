@@ -26,6 +26,12 @@ jobs:
         repository: stephband/dom
         path: dom/
 
+    - name: Clone midi
+      uses: actions/checkout@v3
+      with:
+        repository: stephband/midi
+        path: midi/
+
     - name: Clone soundstage
       uses: actions/checkout@v3
       with:
