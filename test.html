@@ -1,6 +1,30 @@
 
 <title>Tests</title>
 
+<pre id="console"></pre>
+<pre hidden id="pass"></pre>
+<pre hidden id="fail"></pre>
+
+<script>
+    const consolePre = document.getElementById('console');
+    const log = console.log;
+
+    console.log = function() {
+        log.apply(this, arguments);
+        consolePre.append.apply(consolePre, arguments);
+    };
+
+    const failPre = document.getElementById('fail');
+
+    window.onerror = function() {
+        failPre.hidden = false;
+    };
+</script>
+
 <script type="module">
     console.log('HHOOOOOOWEEEE I sure do like it here');
+
+    setTimeout(() => {
+        throw new Error('ARSE');
+    }, 4000);
 </script>

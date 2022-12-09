@@ -23,7 +23,7 @@ const Driver = (fns => browser => {
 
     firefox: async () => {
         const options = new firefox.Options();
-        options.addArguments('--remote-debugging-port');
+        //options.addArguments('--remote-debugging-port');
         options.setPreference('fission.bfcacheInParent', false);
         options.setPreference('fission.webContentIsolationStrategy', 0);
 
@@ -49,23 +49,9 @@ async function run(browser, url) {
 
     await driver.manage().setTimeouts({ implicit: 500 });
 
-    try {
-        const cdpConnection = await driver.createCDPConnection('page');
-
-        /*await driver.onLogEvent(cdpConnection, function (event) {
-          console.log(event.args[0].value);
-        });
-
-        await driver.onLogException(cdpConnection, function (event) {
-          console.log(event.exceptionDetails);
-        });
-
-        await driver.executeScript('console.log("YOYOYO here")');*/
-    }
-    catch (e) {
-        console.log('tests.js - ' + browser + ' - Cannot monitor console.log\n', e);
-    }
-
+    const console = await driver.findElement(By.id('console'));
+    const pass    = await driver.findElement(By.id('pass'));
+    const fail    = await driver.findElement(By.id('fail'));
 
 /*
     let textBox      = await driver.findElement(By.name('my-text'));
@@ -78,7 +64,23 @@ async function run(browser, url) {
     let value        = await message.getText();
     assert.equal("Received!", value);
 */
-    await driver.quit();
+
+    // Not brilliant – we should be using a CDP connection, but it's not
+    // reliable – poll the DOM for pass or fail
+    const interval = setInterval(() => {
+        if (await pass.isDisplayed()) {
+            clearInterval(interval);
+            console.log(console.getText());
+            console.log('tests.js - ' + browser + ' PASS');
+            await driver.quit();
+        }
+        else if (await fail.isDisplayed()) {
+            clearInterval(interval);
+            console.log(console.getText());
+            console.log('tests.js - ' + browser + ' FAIL');
+            await driver.quit();
+        }
+    }, 600);
 }
 
 run('chrome', 'http://127.0.0.1:8000/soundstage/test.html');
