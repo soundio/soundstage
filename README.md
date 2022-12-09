@@ -16,7 +16,7 @@ git clone git@github.com:stephband/midi.git
 ```
 
 That location may now be served. Soundstage can be imported unbuilt into an
-html document. Import it with DEBUG messages turned on:
+html document for testing. Import it with DEBUG messages turned on:
 
 ```html
 <script>
@@ -40,7 +40,8 @@ Build the Soundstage module to the `build/` directory:
 make modules
 ```
 
-The built version can be imported into an html document:
+The built version can be imported into an html document. DEBUG messages are
+disabled.
 
 ```html
 <script type="module">
@@ -48,8 +49,6 @@ The built version can be imported into an html document:
     // Do something with Soundstage ...
 </script>
 ```
-
-The built version does not include any DEBUG messages.
 
 ### Build documentation
 
