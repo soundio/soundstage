@@ -46,8 +46,9 @@ async function run(browser, url) {
     //const passpre    = await driver.findElement(By.id('pass'));
     //const failpre    = await driver.findElement(By.id('fail'));
 
-    // Not brilliant – we should be using a CDP connection, but it's not
-    // reliable – poll the DOM for pass or fail
+    // Poll the DOM to see if id="result" has been filled with text. This is not
+    // brilliant – we should be using a CDP connection to monitor the console,
+    // but that's not reliable.
     let n = 0;
     const interval = setInterval(async () => {
         console.log('check', ++n);
