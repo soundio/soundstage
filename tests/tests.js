@@ -13,8 +13,8 @@ window.console.log = function() {
 
 const resultPre = document.getElementById('result');
 
-window.onerror = function() {
+window.onerror = function(e) {
     resultPre.classList.add('fail-result-pre');
-    resultPre.innerHTML = 'FAIL';
+    resultPre.innerHTML = 'FAIL ' + e.message;
     resultPre.hidden = false;
 };
