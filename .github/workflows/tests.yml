@@ -13,11 +13,11 @@ jobs:
     - uses: actions/checkout@v3
       with:
         repository: stephband/fn
-        path: ../fn
+        path: ../fn/
     - uses: actions/checkout@v3
       with:
         repository: stephband/dom
-        path: ../dom
+        path: ../dom/
     - uses: actions/checkout@v3
     - name: Set up OS
       run: |
