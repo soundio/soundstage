@@ -51,17 +51,14 @@ async function run(browser, url) {
         const result = await driver.findElement(By.id('result')).isDisplayed();
 
         if (result) {
+            clearInterval(interval);
+
             // If a result is displayed grab the contents of #console and
             // #result and log them to the console
             const logs = await driver.findElement(By.id('console')).getText();
-            const text = await driver.findElement(By.id('result')).getText();
-
-            clearInterval(interval);
-
-            console.log('--- ' + browser + ' ---');
             logs.split(/\n/).forEach((log) => console.log('> ' + log.replace(/\n/, '')));
-            //console.log('> ' + text);
 
+            const text = await driver.findElement(By.id('result')).getText();
             if (text.slice(0, 4) === 'FAIL') {
                 throw new Error(text);
             }
