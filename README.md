@@ -37,6 +37,7 @@ to be installed.
 Build the Soundstage module to the `build/` directory:
 
 ```console
+cd soundstage/
 make modules
 ```
 
