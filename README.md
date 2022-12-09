@@ -15,7 +15,7 @@ git clone git@github.com:stephband/fn.git
 git clone git@github.com:stephband/midi.git
 ```
 
-That location may now be served. Soundstage can be imported (unbuilt) into an
+That location may now be served. Soundstage can be imported unbuilt into an
 html document. Import it with DEBUG messages turned on:
 
 ```html
@@ -55,3 +55,22 @@ Build documentation found in code comments to markdown files in `docs/`:
 ```cli
 make docs
 ```
+
+### Add tests
+
+Tests run in a browser, simply navigate to `soundstage/test.html`.
+
+> **Note**
+> Most tests are run against unbuilt files. The server must be serving the
+> dependency repos and the soundstage repo as siblings in the same location.
+
+The `soundstage/test.html` document is also used to run tests in Selenium via
+Github Actions (test results are at (github.com/soundio/soundstage/actions/)[https://github.com/soundio/soundstage/actions/]).
+
+To add a test:
+
+- Create a JS module in `tests/`
+- Import that module in `test.html`
+
+Please refer to existing tests for examples. Tests are currently run using a
+minimal runner function with the signature `test(name, expectedValues, fn)`.
