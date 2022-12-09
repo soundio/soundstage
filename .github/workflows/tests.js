@@ -14,7 +14,7 @@ const driver = Driver('chrome')
 **/
 
 const Driver = (fns => browser => {
-    console.log('Launching ' + browser);
+    //console.log('Launching ' + browser);
     return (fns[browser] || fns.default)();
 })({
     chrome: async () => new Builder()

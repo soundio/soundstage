@@ -10,9 +10,9 @@ jobs:
   build:
     runs-on: macos-latest
     steps:
-    #- name: Set up OS
-    #  run: |
-    #    sudo safaridriver --enable
+    - name: Set up OS
+      run: |
+        sudo safaridriver --enable
 
     - name: Clone fn
       uses: actions/checkout@v3
