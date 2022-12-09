@@ -9,7 +9,7 @@ Soundstage projects.
 
 Clone the Soundstage repo and its dependency repos into one location.
 
-```cli
+```console
 git clone git@github.com:soundio/soundstage.git
 git clone git@github.com:stephband/fn.git
 git clone git@github.com:stephband/midi.git
@@ -33,7 +33,7 @@ html document. Import it with DEBUG messages turned on:
 
 Build the Soundstage module to the `build/` directory:
 
-```cli
+```console
 make modules
 ```
 
@@ -52,11 +52,11 @@ The built version does not include any DEBUG messages.
 
 Build documentation found in code comments to markdown files in `docs/`:
 
-```cli
+```console
 make docs
 ```
 
-### View tests
+### Running tests
 
 Tests run in a browser, simply navigate to `soundstage/test.html`.
 
