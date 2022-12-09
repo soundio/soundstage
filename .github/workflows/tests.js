@@ -53,14 +53,12 @@ async function run(browser, url) {
     const interval = setInterval(async () => {
         const result = await driver.findElement(By.id('result')).isDisplayed();
 
-console.log('check', ++n, result);
-
         if (result) {
             clearInterval(interval);
             console.log('--- ' + browser + ' ---');
             console.log(await driver.findElement(By.id('console')).getText());
             console.log(result);
-            console.log('--- ' + browser + ' ---');
+            console.log('----------------');
             await driver.quit();
         }
     }, 600);
