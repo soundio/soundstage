@@ -61,11 +61,13 @@ make docs
 Tests run in a browser, simply navigate to `soundstage/test.html`.
 
 > **Note**
+>
 > Most tests are run against unbuilt files. The server must be serving the
 > dependency repos and the soundstage repo as siblings in the same location.
 
 The `soundstage/test.html` document is also used to run tests in Selenium via
-Github Actions (test results are at (github.com/soundio/soundstage/actions/)[https://github.com/soundio/soundstage/actions/]).
+Github Actions (test results are seen at
+(github.com/soundio/soundstage/actions/)[https://github.com/soundio/soundstage/actions/]).
 
 To add a test:
 
