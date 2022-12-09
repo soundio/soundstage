@@ -3,7 +3,6 @@ const { By, Builder } = require('selenium-webdriver');
 const chrome          = require('selenium-webdriver/chrome');
 const firefox         = require('selenium-webdriver/firefox');
 const safari          = require('selenium-webdriver/safari');
-const assert          = require("assert");
 
 /** Driver
 
@@ -43,13 +42,9 @@ async function run(browser, url) {
     const driver = await Driver(browser);
     await driver.get(url);
 
-    //const passpre    = await driver.findElement(By.id('pass'));
-    //const failpre    = await driver.findElement(By.id('fail'));
-
-    // Poll the DOM to see if id="result" has been filled with text. This is not
-    // brilliant – we should be using a CDP connection to monitor the console,
-    // but that's not reliable.
-    let n = 0;
+    // Poll the DOM to see if id="result" is visible. This is not brilliant –
+    // we should be using a CDP connection to monitor the console, but it will
+    // not connect to Firefox. Don't know why.
     const interval = setInterval(async () => {
         const result = await driver.findElement(By.id('result')).isDisplayed();
 
@@ -62,14 +57,13 @@ async function run(browser, url) {
             clearInterval(interval);
 
             console.log('--- ' + browser + ' ---');
-            logs.split(/\n/).forEach((log) => console.log('> ' + log));
+            logs.split(/\n/).forEach((log) => console.log('> ' + log.replace(/\n/, '')));
             //console.log('> ' + text);
 
             if (text.slice(0, 4) === 'FAIL') {
                 throw new Error(text);
             }
 
-            //assert.equal('PASS', text.slice(0, 4));
             await driver.quit();
         }
     }, 600);

@@ -15,6 +15,10 @@ jobs:
       run: |
         sudo safaridriver --enable
     - name: Install dependencies
+      with:
+        repository: stephband/fn
+        #path: resources/docs/2.x
+        #ref: 2.x
       run: |
         npm install selenium-webdriver
     - name: Run tests
