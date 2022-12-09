@@ -62,7 +62,7 @@ async function run(browser, url) {
             clearInterval(interval);
 
             console.log('--- ' + browser + ' ---');
-            console.log('> ' + logs);
+            logs.split(/\n/).forEach((log) => console.log('> ' + log));
             console.log('> ' + text);
 
             if (text.slice(0, 4) === 'FAIL') {
