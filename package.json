@@ -3,7 +3,7 @@
     "title": "Soundstage",
     "version": "0.8.1",
     "homepage": "http://sound.io",
-    "description": "An audio node graph, sequencing engine, MIDI controller and JSON schema for the Web Audio API.",
+    "description": "Soundstage is an object model for Web Audio processing graphs. It provides an API for creating, manipulating and observing graphs, a sequencing engine for event record and playback, and a JSONify-able structure for import and export of Soundstage projects.",
     "repository": {
         "type": "git",
         "url": "https://github.com/soundio/soundstage.git"
@@ -28,26 +28,7 @@
         "sequence"
     ],
     "module": "module.js",
-    "main": "index.js",
-    "devDependencies": {
-        "babel-minify": "^0.5.1",
-        "clean-css": "^4.2.3",
-        "clean-css-cli": "^4.3.0",
-        "eslint": "^6.5.0",
-        "findit": "^2.0.0",
-        "madge": "^3.9.2",
-        "rollup": "^2.21.0",
-        "sass": "^1.29.0"
-    },
-    "scripts": {
-        "build": "npm run build-sass && npm run build-css && npm run build-module & npm run build-elements && npm run build-html",
-        "build-sass": "sass css/grid.scss:css/grid.css css/respond.scss:css/respond.css",
-        "build-module": "rollup ./module.js --o ./soundstage.min.js --f esm",
-        "build-css": "node ../bolt/build-css.js ./module.css ./soundstage.css",
-        "build-html": "node ../bolt/build-html.js ./ ./",
-        "build-watch": "node ../bolt/build-watch.js",
-        "graph": "madge --image ./module.svg ./module.js"
-    },
+    "main": "build/module.js",
     "builderExcludes": [
         ".git",
         "node_modules",

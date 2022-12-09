@@ -31,6 +31,9 @@ html document. Import it with DEBUG messages turned on:
 
 ### Build Soundstage
 
+The build process requires [Deno](https://deno.land/manual/getting_started/installation)
+to be installed.
+
 Build the Soundstage module to the `build/` directory:
 
 ```console
