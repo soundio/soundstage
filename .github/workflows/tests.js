@@ -67,7 +67,7 @@ async function run(browser, url) {
 
     // Not brilliant – we should be using a CDP connection, but it's not
     // reliable – poll the DOM for pass or fail
-    const interval = setInterval(() => {
+    const interval = setInterval(async () => {
         if (await pass.isDisplayed()) {
             clearInterval(interval);
             console.log(console.getText());
