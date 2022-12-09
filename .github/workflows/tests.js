@@ -56,20 +56,20 @@ async function run(browser, url) {
     // Not brilliant – we should be using a CDP connection, but it's not
     // reliable – poll the DOM for pass or fail
     const interval = setInterval(async () => {
-        console.log('CHECK');
+        //console.log('CHECK');
 
         if (await passpre.isDisplayed()) {
             clearInterval(interval);
             console.log('--- ' + browser + ' ---');
-            console.log(consolepre.getText());
-            console.log('tests.js - ' + browser + ' PASS');
+            console.log(await consolepre.getText());
+            console.log('--- ' + browser + ' PASS ---');
             await driver.quit();
         }
         else if (await failpre.isDisplayed()) {
             clearInterval(interval);
             console.log('--- ' + browser + ' ---');
-            console.log(consolepre.getText());
-            console.log('tests.js - ' + browser + ' FAIL');
+            console.log(await consolepre.getText());
+            console.log('--- ' + browser + ' FAIL ---');
             await driver.quit();
         }
     }, 600);

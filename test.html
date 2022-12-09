@@ -1,57 +1,14 @@
 
 <title>Tests</title>
 
-<style>
-    body {
-        padding: 0 0 2.5rem 0;
-    }
-
-    .console-pre {
-        padding: 0 1.25rem 0 1.25rem;
-        border-left: 2px solid #eeeeee;
-    }
-
-    .result-pre {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        margin: 0;
-        padding: 1.25rem;
-    }
-
-    .pass-result-pre {
-        color: black;
-        background-color: greenyellow;
-    }
-
-    .fail-result-pre {
-        color: white;
-        background-color: orangered;
-    }
-</style>
+<link rel="stylesheet" href="./tests/tests.css" />
 
 <pre id="console" class="console-pre"></pre>
 <pre hidden id="pass" class="pass-result-pre result-pre">PASS</pre>
 <pre hidden id="fail" class="fail-result-pre result-pre">FAIL</pre>
 
-<script>
-    const consolePre = document.getElementById('console');
-    const log = console.log;
-
-    console.log = function() {
-        log.apply(this, arguments);
-        consolePre.append.apply(consolePre, arguments);
-    };
-
-    const failPre = document.getElementById('fail');
-
-    window.onerror = function() {
-        failPre.hidden = false;
-    };
-</script>
-
 <script type="module">
+    import './tests/tests.js';
     console.log('HHOOOOOOWEEEE I sure do like it here');
 
     setTimeout(() => {
