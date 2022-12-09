@@ -60,7 +60,7 @@ make docs
 
 Tests run in a browser, simply navigate to `soundstage/test.html`.
 
-> **Note**
+> **Note**<br/>
 > Most tests are run against unbuilt files. A local server must be serving the
 > dependency repos and the soundstage repo from the same location.
 
