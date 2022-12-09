@@ -31,9 +31,18 @@ jobs:
       run: |
         cd soundstage/
         npm install selenium-webdriver
-    - name: Run tests
+    - name: Serve
       run: |
-        ls -l
         python -m SimpleHTTPServer 8000 &
+    - name: Test Chrome
+      run: |
         cd soundstage/
-        node .github/workflows/tests.js chrome
+        node .github/workflows/tests.js chrome http://127.0.0.1:8000/soundstage/test.html
+    - name: Test FireFox
+      run: |
+        cd soundstage/
+        node .github/workflows/tests.js firefox http://127.0.0.1:8000/soundstage/test.html
+#    - name: Test Safari
+#      run: |
+#        cd soundstage/
+#        node .github/workflows/tests.js safari http://127.0.0.1:8000/soundstage/test.html
