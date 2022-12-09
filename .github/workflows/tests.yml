@@ -11,12 +11,14 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v3
-    - uses: actions/checkout@v3
       with:
         repository: stephband/fn
-        #ref: refs/heads/release
-        #path: resources/docs/2.x
-        #ref: 2.x
+        path: fn/
+    - uses: actions/checkout@v3
+      with:
+        repository: stephband/dom
+        path: dom/
+    - uses: actions/checkout@v3
     - name: Set up OS
       run: |
         sudo safaridriver --enable
