@@ -54,6 +54,8 @@ async function run(browser, url) {
         const result = await driver.findElement(By.id('result')).isDisplayed();
 
         if (result) {
+            // If a result is displayed grab the contents of #console and
+            // #result and log them to the console
             const logs = await driver.findElement(By.id('console')).getText();
             const text = await driver.findElement(By.id('result')).getText();
 
@@ -63,7 +65,11 @@ async function run(browser, url) {
             console.log('> ' + logs.replace(/\n/, '\n> '));
             console.log(text);
 
-            assert.equal('PASS', text.slice(0, 4));
+            if (text.slice(0, 4) === 'FAIL') {
+                throw new Error(text);
+            }
+
+            //assert.equal('PASS', text.slice(0, 4));
             await driver.quit();
         }
     }, 600);
