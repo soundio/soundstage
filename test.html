@@ -1,4 +1,5 @@
 
+<meta charset="utf-8" />
 <title>Tests</title>
 
 <link rel="stylesheet" href="./tests/tests.css" />
@@ -8,19 +9,13 @@
 <pre class="result-pre" id="result" hidden></pre>
 
 <script type="module">
-    import './tests/tests.js';
-    import clamp from '../fn/modules/clamp.js';
+    import { pass, fail } from './tests/tests.js';
+    import { done }       from '../fn/modules/test.js';
 
-    console.log(clamp);
-    console.log('HHOOOOOOWEEEE I sure do like it here');
+    // Import test files here
+    import './tests/example-test.js';
 
-    setTimeout(() => {
-        console.log('YESSSIRRREEEE');
-        console.log('That be right', 'hell yeah');
-        //throw new Error('ARSE');
-        const resultPre = document.getElementById('result');
-        resultPre.innerHTML = 'PASS';
-        resultPre.classList.add('pass-result-pre');
-        resultPre.hidden = false;
-    }, 4000);
+    // Report results
+    done(pass);
+    window.onerror = fail;
 </script>

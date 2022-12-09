@@ -48,7 +48,7 @@ jobs:
         cd soundstage/
         node .github/workflows/tests.js firefox http://127.0.0.1:8000/soundstage/test.html
 
-    # - name: Test Safari
-    #   run: |
-    #     cd soundstage/
-    #     node .github/workflows/tests.js safari http://127.0.0.1:8000/soundstage/test.html
+    - name: Test Safari
+      run: |
+        cd soundstage/
+        node .github/workflows/tests.js safari http://127.0.0.1:8000/soundstage/test.html
