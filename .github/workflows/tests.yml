@@ -10,6 +10,9 @@ jobs:
   build:
     runs-on: macos-latest
     steps:
+    - name: Set up OS
+      run: |
+        sudo safaridriver --enable
     - name: Clone fn
       uses: actions/checkout@v3
       with:
@@ -24,17 +27,13 @@ jobs:
       uses: actions/checkout@v3
       with:
         path: soundstage/
-    - name: Set up OS
-      run: |
-        sudo safaridriver --enable
     - name: Install Selenium
       run: |
         cd soundstage/
         npm install selenium-webdriver
-        cd ../
     - name: Run tests
       run: |
         ls -l
         python -m SimpleHTTPServer 8000 &
-        cd ./soundstage/
-        node .github/workflows/tests.js
+        cd soundstage/
+        node .github/workflows/tests.js chrome
