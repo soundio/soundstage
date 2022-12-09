@@ -64,8 +64,8 @@ Tests run in a browser, simply navigate to `soundstage/test.html`.
 > Most tests are run against unbuilt files. A local server must be serving the
 > dependency repos and the soundstage repo from the same location.
 
-The `soundstage/test.html` page is also used to run tests in via Github Actions
-and Selenium. Test results are seen at
+The `soundstage/test.html` page is also used to run tests in Chrome, FireFox and
+Safari via Github Actions / Selenium. Test results can be seen at
 [github.com/soundio/soundstage/actions/](https://github.com/soundio/soundstage/actions/).
 
 ### Add a test
