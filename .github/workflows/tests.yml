@@ -13,35 +13,41 @@ jobs:
     #- name: Set up OS
     #  run: |
     #    sudo safaridriver --enable
+
     - name: Clone fn
       uses: actions/checkout@v3
       with:
         repository: stephband/fn
         path: fn/
+
     - name: Clone dom
       uses: actions/checkout@v3
       with:
         repository: stephband/dom
         path: dom/
+
     - name: Clone soundstage
       uses: actions/checkout@v3
       with:
         path: soundstage/
-    - name: Install Selenium
+
+    - name: Install Selenium and launch server
       run: |
         cd soundstage/
         npm install selenium-webdriver
-    - name: Serve
-      run: |
+        cd ../
         python -m SimpleHTTPServer 8000 &
+
     - name: Test Chrome
       run: |
         cd soundstage/
         node .github/workflows/tests.js chrome http://127.0.0.1:8000/soundstage/test.html
+
     - name: Test FireFox
       run: |
         cd soundstage/
         node .github/workflows/tests.js firefox http://127.0.0.1:8000/soundstage/test.html
+
     # - name: Test Safari
     #   run: |
     #     cd soundstage/
