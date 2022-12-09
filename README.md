@@ -5,6 +5,11 @@ for creating, manipulating and observing graphs, a sequencing engine for event
 record and playback, and a JSONify-able structure for import and export of
 Soundstage projects.
 
+> **Warning**<br/>
+> Soundstage is currently undergoing a reworking after a bit of a hiatus. It
+> likely will frustrate you. The aim on this pass is to write a full test suite
+> and documentation, then it will be less frustrating.
+
 ## Developing Soundstage
 
 Clone the Soundstage repo and its dependency repos into one location.
