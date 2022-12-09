@@ -42,8 +42,8 @@ make modules
 ```
 
 The built version includes dependencies and does not require dependency repos to
-be served. Also, DEBUG messages are disabled. It can be imported into an html
-document:
+be served alongside the Soundstage repo. Also, DEBUG messages are disabled. It
+can be imported into an html document:
 
 ```html
 <script type="module">
