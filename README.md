@@ -61,8 +61,8 @@ make docs
 Tests run in a browser, simply navigate to `soundstage/test.html`.
 
 > **Note**
-> Most tests are run against unbuilt files. The server must be serving the
-> dependency repos and the soundstage repo as siblings in the same location.
+> Most tests are run against unbuilt files. A local server must be serving the
+> dependency repos and the soundstage repo from the same location.
 
 The `soundstage/test.html` document is also used to run tests in Selenium via
 Github Actions (test results are seen at
