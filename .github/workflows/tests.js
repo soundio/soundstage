@@ -52,14 +52,14 @@ async function run(browser, url) {
     const interval = setInterval(async () => {
         console.log('check', ++n);
 
-        if (await driver.findElement(By.id('pass')).isDisplayed()) {
+        if (await driver.findElement(By.id('pass')).getText()) {
             clearInterval(interval);
             console.log('--- ' + browser + ' ---');
             console.log(await driver.findElement(By.id('console')).getText());
             console.log('--- ' + browser + ' PASS ---');
             await driver.quit();
         }
-        else if (await driver.findElement(By.id('fail')).isDisplayed()) {
+        else if (await driver.findElement(By.id('fail')).getText()) {
             clearInterval(interval);
             console.log('--- ' + browser + ' ---');
             console.log(await driver.findElement(By.id('console')).getText());
