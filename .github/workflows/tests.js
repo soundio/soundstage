@@ -56,8 +56,6 @@ async function run(browser, url) {
     // Not brilliant – we should be using a CDP connection, but it's not
     // reliable – poll the DOM for pass or fail
     const interval = setInterval(async () => {
-        //console.log('CHECK');
-
         if (await passpre.isDisplayed()) {
             clearInterval(interval);
             console.log('--- ' + browser + ' ---');
