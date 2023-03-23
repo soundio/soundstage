@@ -185,5 +185,5 @@ export default class Envelope extends ConstantSourceNode {
 }
 
 define(Envelope.prototype, {
-    playing: getDefinition(Playable.prototype, 'playing')
+    playing: getDefinition(Playable.prototype, 'status')
 });

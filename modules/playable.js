@@ -85,10 +85,11 @@ assign(Playable.prototype, {
 
     start: function(time = this.context.currentTime) {
         if (DEBUG && this.startTime !== undefined && (this.stopTime === undefined || time < this.stopTime)) {
-            throw new Error('Attempt to start a node that is already started');
+            throw new Error('Attempt to start a node that is already playing');
         }
 
-        this.stopTime = undefined;
+        this.startTime = time;
+        this.stopTime  = undefined;
 
         return this;
     },

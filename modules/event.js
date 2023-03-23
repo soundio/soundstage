@@ -1,19 +1,24 @@
 
 /**
-Event()
+Event(time, type, data...)
 
-An event requires a `beat`, `type` and some `data`.
+An event requires a `beat` and `type` and data arguments dependent on `type`.
 
 ```js
-stage.createEvent(beat, type, data...);
+const event = new Event(0, 'note', 'C3', 0.5, 0.1);
 ```
 
-- `beat` is a number representing the time in beats from the start of a
-sequence at which to play the event
+- `beat` is a number representing the time in beats from the start of the
+sequence in which the event is recording or playing
 - `type` is a string
 
-Data parameters are dependent on the event type. The built-in
-events types and the data they expect are:
+An event stringifies to an array:
+
+```js
+JSON.stringify(event);    // '[0,"note","C3",0.5,0.1]'
+```
+
+The built-in events types are listed below.
 **/
 
 /**
@@ -128,8 +133,13 @@ function pitchToFloat(message) {
 //	idle:       { writable: true }
 //}));
 
-export function Event(time, type, name, value, duration) {
+export function Event(time, type) {
 	assign(this, arguments);
+	this.length = arguments.length;
+
+	// Clear out additional parameters (if this is pooled)
+	let n = this.length - 1;
+	while(this[++n]) { delete this[n]; }
 }
 
 export default Event;
@@ -146,11 +156,7 @@ assign(Event.prototype, {
 	},
 
 	toJSON: function() {
-		// Event has no length by default, we cant loop over it
-		var array = [];
-		var n = -1;
-		while (this[++n] !== undefined) { array[n] = this[n]; }
-		return array;
+		return Array.from(this);
 	}
 });
 
@@ -163,7 +169,7 @@ Event.of = function() {
 };
 
 Event.from = function(data) {
-	return Event.of(data[0], data[1], data[2], data[3], data[4], data[5], data[6]) ;
+	return Event.of.apply(data[0], data[1], data[2], data[3], data[4], data[5], data[6]) ;
 };
 
 export function isNoteEvent(event) {

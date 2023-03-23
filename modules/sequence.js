@@ -76,7 +76,6 @@ function round(n) {
 
 
 export function Sequence(events, sequences, label, id) {
-
     this.id = id;
 
     /**
