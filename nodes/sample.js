@@ -33,13 +33,13 @@ An AudioParam that modifies the frequency in cents.
 **/
 
 
-import { requestBuffer } from '../modules/request-buffer.js';
-import { requestData } from '../modules/request-data.js';
-import { Privates } from '../../fn/module.js';
-import NodeGraph   from './graph.js';
-import Playable from '../modules/playable.js';
-import { assignSettingz__ } from '../modules/assign-settings.js';
+import Privates             from '../../fn/modules/privates.js';
 import { frequencyToFloat } from '../../midi/modules/data.js';
+import { requestBuffer }    from '../modules/request-buffer.js';
+import { requestData }      from '../modules/request-data.js';
+import { assignSettingz__ } from '../modules/assign-settings.js';
+import NodeGraph from './graph.js';
+import Playable  from '../modules/playable.js';
 
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;
@@ -262,7 +262,7 @@ function stopSources(sources, time) {
 export default function Sample(context, settings, transport) {
     const privates = Privates(this);
 
-    // Set up .connect(), .disconnect(), .start, .stop()
+    // Mix in .connect(), .disconnect(), .start, .stop(), .status
     NodeGraph.call(this, context, graph, transport);
     Playable.call(this, context);
 
@@ -324,5 +324,5 @@ assign(Sample.prototype, Playable.prototype, NodeGraph.prototype, {
 
 // Mix in property definitions
 define(Sample.prototype, {
-    playing: getOwnPropertyDescriptor(Playable.prototype, 'playing')
+    status: getOwnPropertyDescriptor(Playable.prototype, 'status')
 });

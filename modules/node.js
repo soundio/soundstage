@@ -1,5 +1,9 @@
 
-import { Privates, remove, invoke, nothing, matches } from '../../fn/module.js';
+import Privates from '../../fn/modules/privates.js';
+import remove   from '../../fn/modules/remove.js';
+import invoke   from '../../fn/modules/invoke.js';
+import nothing  from '../../fn/modules/nothing.js';
+import matches  from '../../fn/modules/matches.js';
 import { automato__, isAudioParam } from './automate.js';
 import { matchesId } from './utilities.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
@@ -34,7 +38,7 @@ export default function Node(graph, context, type, id, label, data, merger, tran
         recordCount:       { writable: true, value: 0 }
     });
 
-    // Define the audio node, special casing 'output', which must connect itself to 
+    // Define the audio node, special casing 'output', which must connect itself to
     // the stage's output merger
     this.node = type === 'output' ?
         new Output(context, data, merger) :
@@ -94,7 +98,7 @@ assign(Node.prototype, {
     start: function(time, name, value, settings) {
         return assignSettingz__(this.node.start(time, name, value), settings);
     },
-    
+
     records: function() {
         return this.data.records && this.data.records()
         .map((record) => {

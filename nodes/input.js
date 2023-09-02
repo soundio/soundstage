@@ -9,7 +9,7 @@ const input = stage.createNode('input', {
 ```
 **/
 
-import weakCache from '../../fn/modules/weak-cache.js';
+import weakCache    from '../../fn/modules/weak-cache.js';
 import requestMedia from '../modules/request-media.js';
 
 const assign   = Object.assign;

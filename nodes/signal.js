@@ -1,5 +1,6 @@
 
-import { noop, nothing } from '../../fn/module.js';
+import noop    from '../../fn/modules/noop.js';
+import nothing from '../../fn/modules/nothing.js';
 
 export default class SignalDetector extends AudioWorkletNode {
     constructor(context, settings, stage = nothing, notify = noop) {

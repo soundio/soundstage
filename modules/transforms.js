@@ -1,4 +1,6 @@
-import { capture, id, toLevel } from '../../fn/module.js';
+import capture from '../../fn/modules/capture.js';
+import id      from '../../fn/modules/id.js';
+import toLevel from '../../fn/modules/to-level.js';
 import * as normalise from '../../fn/modules/normalisers.js';
 import * as denormalise from '../../fn/modules/denormalisers.js';
 import { floatToFrequency } from '../../midi/modules/data.js';

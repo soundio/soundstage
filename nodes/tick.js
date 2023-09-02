@@ -29,7 +29,7 @@ A float?? Todo.
 An AudioParam representing output gain.
 **/
 
-import { noop } from '../../fn/module.js';
+import noop from '../../fn/modules/noop.js';
 import { floatToFrequency, toNoteNumber } from '../../midi/modules/data.js';
 import { dB48 } from '../modules/constants.js';
 

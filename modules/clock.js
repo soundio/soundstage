@@ -1,5 +1,5 @@
 
-import { Privates } from '../../fn/module.js';
+import privates from '../../fn/modules/privates.js';
 import Playable from './playable.js';
 
 const DEBUG  = false;//window.DEBUG;
@@ -92,5 +92,5 @@ assign(Clock.prototype, {
 
 // Mix in property definitions
 define(Clock.prototype, {
-    playing: getOwnPropertyDescriptor(Playable.prototype, 'playing')
+    status: getOwnPropertyDescriptor(Playable.prototype, 'status')
 });

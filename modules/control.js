@@ -30,8 +30,10 @@ through a selectable transform function to a target stream.
 
 **/
 
+import noop     from '../../fn/modules/noop.js';
+import privates from '../../fn/modules/privates.js';
+import remove   from '../../fn/modules/remove.js';
 import { getContextTime, timeAtDomTime } from './context.js';
-import { noop, Privates, remove }     from '../../fn/module.js';
 import { floatToFrequency }     from '../../midi/modules/data.js';
 import KeyboardInputSource from './control-sources/keyboard-input-source.js';
 //import MIDIInputSource from './control-sources/midi-input-source.js';

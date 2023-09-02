@@ -1,5 +1,8 @@
 
-import { matches, Privates, Stream } from '../../fn/module.js';
+import matches  from '../../fn/modules/matches.js';
+import Privates from '../../fn/modules/privates.js';
+import Stream   from '../../fn/modules/stream.js';
+
 import { isRateEvent, getDuration, isValidEvent, eventValidationHint } from './event.js';
 import { automate, getValueAtTime } from './automate.js';
 import { SSSequencer } from './sequence.js';
@@ -453,11 +456,10 @@ define(Sequencer.prototype, {
         }
     },
 
-    playing: getOwnPropertyDescriptor(Playable.prototype, 'playing')
+    status: getOwnPropertyDescriptor(Playable.prototype, 'status')
 });
 
 assign(Sequencer.prototype, Meter.prototype, {
-
     beatAtTime: function(time) {
         const transport     = Privates(this).transport;
         const startLocation = this.startLocation

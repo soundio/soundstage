@@ -14,7 +14,7 @@ An array of biquad-filter nodes.
 **/
 
 import NodeGraph from './graph.js';
-import Chain from './chain.js';
+import Chain     from './chain.js';
 import { assignSettings } from '../modules/assign-settings.js';
 
 const assign = Object.assign;

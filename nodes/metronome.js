@@ -1,7 +1,7 @@
 
 //import AudioObject from '../../context-object/modules/context-object.js';
 import { printGroup, printGroupEnd, log } from './print.js';
-import { Privates } from '../../fn/module.js';
+import Privates  from '../../fn/modules/privates.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
 import Playable  from './play-node.js';
 import NodeGraph from './graph.js';
@@ -196,7 +196,7 @@ assign(Metronome.prototype, Playable.prototype, NodeGraph.prototype, {
 
 // Mix in property definitions
 define(Metronome.prototype, {
-    playing: getOwnPropertyDescriptor(Playable.prototype, 'playing')
+    status: getOwnPropertyDescriptor(Playable.prototype, 'status')
 });
 
 Metronome.defaults  = {

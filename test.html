@@ -13,7 +13,18 @@
     import { done }       from '../fn/modules/test.js';
 
     // Import test files here
-    import './tests/example-test.js';
+    //import './tests/example-test.js';
+
+    // Nodes
+    import './nodes/test/graph-test.js';
+    //import './nodes/test/sample-test.js';
+    import './nodes/test/tick-test.js';
+    //import './nodes/test/voice-test.js';
+
+    // Modules
+    import './modules/test/location-test.js';
+    import './modules/test/meter-test.js';
+    import './modules/test/transport-test.js';
 
     // Report results
     done((totals) => (totals.fail > 0 ? fail() : pass()));

@@ -1,6 +1,7 @@
 
-import { curry, get, insert } from '../../fn/module.js';
-
+import curry  from '../../fn/modules/curry.js';
+import get    from '../../fn/modules/get.js';
+import insert from '../../fn/modules/lists/insert.js';
 
 // Generate unique numbers from keys of objects in an array
 

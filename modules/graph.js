@@ -16,7 +16,10 @@ An array of objects defining graph nodes. See <a href="#nodes-and-connections">N
 An array of objects defining connections. See <a href="#nodes-and-connections">Nodes and Connectors</a>.
 **/
 
-import { has, get, Privates }  from '../../fn/module.js';
+
+import get      from '../../fn/modules/get.js';
+import has      from '../../fn/modules/has.js';
+import privates from '../../fn/modules/privates.js';
 import { print }  from './print.js';
 import { generateUnique }  from './utilities.js';
 import Node       from './node.js';

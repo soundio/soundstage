@@ -1,5 +1,8 @@
 
-import { id, Stream, Privates } from '../../fn/module.js';
+import id       from '../../fn/modules/id.js';
+import Privates from '../../fn/modules/privates.js';
+import Stream   from '../../fn/modules/stream.js';
+
 import { roundBeat } from './utilities.js';
 import { automate, getValueAtTime, getAutomation } from './automate.js';
 import { barAtBeat, beatAtBar } from './meter.js';
@@ -145,7 +148,7 @@ assign(Transport.prototype, Clock.prototype, {
 });
 
 define(Transport.prototype, {
-    playing: getOwnPropertyDescriptor(Clock.prototype, 'playing'),
+    status: getOwnPropertyDescriptor(Clock.prototype, 'status'),
 
     beat: {
         get: function() {

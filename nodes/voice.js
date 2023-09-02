@@ -23,12 +23,16 @@ but may also be useful for game sound or interface hits where monophony is
 enough.
 **/
 
-import { clamp } from '../../fn/modules/maths/clamp.js';
-import get from '../../fn/modules/get.js';
-import overload from '../../fn/modules/overload.js';
-import { Privates, denormalise, toType } from '../../fn/module.js';
-import NodeGraph from './graph.js';
-import Playable  from '../modules/playable.js';
+import { clamp }   from '../../fn/modules/clamp.js';
+import get         from '../../fn/modules/get.js';
+import overload    from '../../fn/modules/overload.js';
+import Privates    from '../../fn/modules/privates.js';
+// Ooops not the right denormalise! Look up old version of Fn /module.js to see
+// where this was originally imported from
+import denormalise from '../../fn/modules/denormalise.js';
+import toType      from '../../fn/modules/to-type.js';
+import NodeGraph   from './graph.js';
+import Playable    from '../modules/playable.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
 import { floatToFrequency, toNoteNumber } from '../../midi/modules/data.js';
 import { create } from '../modules/constructors.js';
@@ -126,7 +130,6 @@ function Voice(context, data, transport) {
 
     /**
     .detune
-
     AudioParam Todo: description
     **/
 
@@ -168,7 +171,7 @@ Voice.reset = function(voice, args) {
 
 // Mix in property definitions
 define(Voice.prototype, {
-    playing: getOwnPropertyDescriptor(Playable.prototype, 'playing')
+    status: getOwnPropertyDescriptor(Playable.prototype, 'status')
 });
 
 function setPropertyOrParam(target, key, value) {

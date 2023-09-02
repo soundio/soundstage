@@ -15,7 +15,7 @@ instance.
 **/
 
 
-const $sink = Symbol('sink');
+const $sink = Symbol('soundstage-sink');
 
 export default function Sink(context) {
     if (!context[$sink]) {

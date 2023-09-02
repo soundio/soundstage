@@ -1,5 +1,5 @@
 
-import { remove } from '../../fn/module.js';
+import remove from '../../fn/modules/remove.js';
 import config from '../config.js';
 
 const worker = new Worker(config.basePath + 'modules/timer.worker.js');

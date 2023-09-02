@@ -83,7 +83,10 @@ sequence
 
 
 
-import { compose, get, overload, remove } from '../../fn/module.js';
+import compose  from '../../fn/modules/compose.js';
+import get      from '../../fn/modules/get.js';
+import overload from '../../fn/modules/overload.js';
+import remove   from '../../fn/modules/remove.js';
 import { bytesToSignedFloat } from '../../midi/modules/maths.js';
 import { toType } from '../../midi/modules/data.js';
 

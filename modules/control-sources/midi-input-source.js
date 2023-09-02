@@ -16,7 +16,10 @@ and the methods:
 - `stop()`: stops the stream of input messages
 **/
 
-import { choose, noop, nothing } from '../../../fn/module.js';
+
+import choose from '../../../fn/modules/choose.js';
+import noop   from '../../../fn/modules/noop.js';
+import remove from '../../../fn/modules/remove.js';
 import { on, off, toChannel, toType, bytesToWeightedFloat, int7ToFloat, int7ToWeightedFloat } from '../../../midi/module.js';
 
 const assign = Object.assign;

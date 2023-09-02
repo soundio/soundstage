@@ -11,9 +11,9 @@ const noise = stage.createNode('noise', {
 A noise object generates noise.
 **/
 
-import { Privates } from '../../fn/module.js';
+import Privates  from '../../fn/modules/privates.js';
+import Playable  from '../modules/playable.js';
 import NodeGraph from './graph.js';
-import Playable from '../modules/playable.js';
 
 import { assignSettingz__ } from '../modules/assign-settings.js';
 
@@ -175,7 +175,7 @@ export default function Noise(context, options, transport) {
 
 // Mix in property definitions
 define(Noise.prototype, {
-    playing: getOwnPropertyDescriptor(Playable.prototype, 'playing')
+    status: getOwnPropertyDescriptor(Playable.prototype, 'status')
 });
 
 assign(Noise.prototype, NodeGraph.prototype, Playable.prototype, {

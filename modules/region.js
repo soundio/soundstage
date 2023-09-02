@@ -1,5 +1,7 @@
 
-import { Pool, noop, nothing } from '../../fn/module.js';
+import Pool    from '../../fn/modules/pool.js';
+import noop    from '../../fn/modules/noop.js';
+import nothing from '../../fn/modules/nothing.js';
 import { fetchBuffer } from './utilities.js';
 
 var assign      = Object.assign;

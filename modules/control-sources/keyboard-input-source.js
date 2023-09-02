@@ -12,7 +12,8 @@ and the methods:
 - `stop()`: stops the stream of input messages
 **/
 
-import { noop, remove } from '../../../fn/module.js';
+import noop   from '../../../fn/modules/noop.js';
+import remove from '../../../fn/modules/remove.js';
 import { toKeyString, toKeyCode } from '../../../dom/module.js';
 
 const assign    = Object.assign;

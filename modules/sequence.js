@@ -1,5 +1,4 @@
 
-
 /**
 Sequence()
 
@@ -57,9 +56,9 @@ const stage = new Soundstage({
 ```
 **/
 
-
-import Clock from './clock.js';
-import { Privates, nothing } from '../../fn/module.js';
+import nothing  from '../../fn/modules/nothing.js';
+import Privates from '../../fn/modules/privates.js';
+import Clock    from './clock.js';
 import { insertBy0, createId, matchesId } from './utilities.js';
 import { beatAtLocation, locationAtBeat } from './location.js';
 import { Event, isRateEvent, isValidEvent } from './event.js';

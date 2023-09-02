@@ -1,0 +1,7 @@
+[{
+    "src":       "/soundstage/audio/gretsch-kit/bassdrum.wav",
+    "frequency": 440,
+    "gain":      1,
+    "attack":    0,
+    "mute":      0.08
+}]

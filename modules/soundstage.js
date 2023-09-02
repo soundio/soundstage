@@ -1,5 +1,11 @@
 
-import { get, isDefined, noop, nothing, map, matches, Privates }   from '../../fn/module.js';
+import get       from '../../fn/modules/get.js';
+import isDefined from '../../fn/modules/is-defined.js';
+import noop      from '../../fn/modules/noop.js';
+import nothing   from '../../fn/modules/nothing.js';
+import map       from '../../fn/modules/map.js';
+import matches   from '../../fn/modules/matches.js';
+import Privates  from '../../fn/modules/privates.js';
 import { print, printGroup, printGroupEnd }     from './print.js';
 import { context, domTimeAtTime, timeAtDomTime, getOutputLatency } from './context.js';
 import { isKeyboardInputSource } from './control-sources/keyboard-input-source.js';
@@ -302,7 +308,7 @@ define(Soundstage.prototype, {
     meter:          getOwnPropertyDescriptor(Sequencer.prototype, 'meter'),
     beat:           getOwnPropertyDescriptor(Sequencer.prototype, 'beat'),
     bar:            getOwnPropertyDescriptor(Sequencer.prototype, 'bar'),
-    playing:        getOwnPropertyDescriptor(Sequencer.prototype, 'playing'),
+    status:         getOwnPropertyDescriptor(Sequencer.prototype, 'status'),
     //blockDuration:  getOwnPropertyDescriptor(Transport.prototype, 'blockDuration'),
     //frameDuration:  getOwnPropertyDescriptor(Transport.prototype, 'frameDuration'),
     //frameLookahead: getOwnPropertyDescriptor(Transport.prototype, 'frameLookahead'),

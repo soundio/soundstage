@@ -1,5 +1,5 @@
 
-import { nothing } from '../../fn/module.js';
+import nothing from '../../fn/modules/nothing.js';
 import { isMeterEvent } from './event.js';
 
 var assign = Object.assign;

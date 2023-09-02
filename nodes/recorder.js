@@ -1,5 +1,7 @@
 
-import { noop, nothing, Privates } from '../../fn/module.js';
+import noop     from '../../fn/modules/noop.js';
+import nothing  from '../../fn/modules/nothing.js';
+import Privates from '../../fn/modules/privates.js';
 import Playable from '../modules/playable.js';
 
 const define = Object.defineProperties;
@@ -78,7 +80,7 @@ export default class Recorder extends AudioWorkletNode {
 
 // Mix in property definitions
 define(Recorder.prototype, {
-    playing: getOwnPropertyDescriptor(Playable.prototype, 'playing')
+    status: getOwnPropertyDescriptor(Playable.prototype, 'status')
 });
 
 Recorder.preload = function(base, context) {

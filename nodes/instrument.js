@@ -36,8 +36,9 @@ parameter 1 (note frequency) is scaled then used to set the `frequency`
 AudioParam of the child node `'filter'`.
 **/
 
+import isDefined from '../../fn/modules/is-defined.js';
+import Privates  from '../../fn/modules/privates.js';
 import { logGroup, logGroupEnd } from './print.js';
-import { isDefined, Privates } from '../../fn/module.js';
 import Voice, { defaults as voiceDefaults } from './voice.js';
 import NodeGraph from './graph.js';
 import Pool from '../modules/pool.js';

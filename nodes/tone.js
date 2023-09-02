@@ -127,5 +127,5 @@ assign(Tone.prototype, NodeGraph.prototype, Playable.prototype, {
 
 // Mixin property definitions
 define(Tone.prototype, {
-    playing: getOwnPropertyDescriptor(Playable.prototype, 'playing')
+    status: getOwnPropertyDescriptor(Playable.prototype, 'status')
 });

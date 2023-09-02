@@ -55,10 +55,10 @@ Finally, the `output` property is the id of a child node that is used as an
 output by the `.connect()` and `.disconnect()` methods.
 **/
 
-import { Privates } from '../../fn/module.js';
+import Privates from '../../fn/modules/privates.js';
 import { logGroup, logGroupEnd } from '../modules/print.js';
-import { connect, disconnect } from '../modules/connect.js';
-import { create } from '../modules/constructors.js';
+import { connect, disconnect }   from '../modules/connect.js';
+import { create }                from '../modules/constructors.js';
 const DEBUG  = false;//window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;

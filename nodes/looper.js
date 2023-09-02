@@ -12,7 +12,7 @@ Creates a node that records and loops audio.
 **/
 
 import { print, logGroup, logGroupEnd } from './print.js';
-import { Privates } from '../../fn/module.js';
+import Privates from '../../fn/modules/privates.js';
 import NodeGraph from './graph.js';
 import Playable from './play-node.js';
 import Recorder from './recorder.js';
@@ -129,7 +129,7 @@ export default class Looper extends GainNode {
 
 // Mix in property definitions
 define(Looper.prototype, {
-    playing: getOwnPropertyDescriptor(Playable.prototype, 'playing')
+    status: getOwnPropertyDescriptor(Playable.prototype, 'status')
 });
 
 // Mix AudioObject prototype into MyObject prototype

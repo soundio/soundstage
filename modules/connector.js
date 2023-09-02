@@ -1,5 +1,6 @@
 
-import { Privates, remove }    from '../../fn/module.js';
+import privates from '../../fn/modules/privates.js';
+import remove   from '../../fn/modules/remove.js';
 import { connect, disconnect } from './connect.js';
 
 const assign = Object.assign;

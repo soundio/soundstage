@@ -1,5 +1,5 @@
 
-import { isDefined } from '../../fn/module.js';
+import isDefined from '../../fn/modules/is-defined.js';
 import { create, append, style, events } from '../../dom/module.js';
 
 

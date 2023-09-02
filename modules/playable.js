@@ -21,28 +21,27 @@ const json = JSON.stringify(playable);   // {}
 **/
 
 import { logGroup, logGroupEnd }  from './print.js';
-import { IDLE, CUED, PLAYING } from './statuses.js';
 
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
 
+const IDLE    = 'idle';
+const CUED    = 'cued';
+const PLAYING = 'playing';
+
 const properties = {
     /**
     .context
-
     An AudioContext or similar object that must have a `.currentTime` property.
-
     This property is not enumerable.
     **/
 
-    context: { writable: true },
+    //context: { writable: true },
 
     /**
     .startTime
-
     The time at which playback was last scheduled to start, or `undefined`.
-
     This property is not enumerable.
     **/
 
@@ -50,9 +49,7 @@ const properties = {
 
     /**
     .stopTime
-
     The time at which playback was last scheduled to stop, or `undefined`.
-
     This property is not enumerable.
     **/
 
@@ -61,8 +58,14 @@ const properties = {
 
 export default function Playable(context) {
     if (DEBUG) { logGroup('mixin ', 'Playable'); }
+
+    // Define this.context
+    if (!this.context) {
+        define(this, { context: { value: context } });
+    }
+
     define(this, properties);
-    this.context = context;
+
     if (DEBUG) { logGroupEnd(); }
 }
 
@@ -155,6 +158,8 @@ define(Playable.prototype, {
     }
 });
 
+export { IDLE, CUED, PLAYING };
+
 /**
 Mixin
 
@@ -171,7 +176,7 @@ Object.assign(MyObject.prototype, Playable.prototype);
 
 // Define its properties on your object's prototype
 Object.defineProperties(MyObject.prototype, {
-    playing: Object.getOwnPropertyDescriptor(Playable.prototype, 'playing')
+    status: Object.getOwnPropertyDescriptor(Playable.prototype, 'status')
 });
 ```
 **/
