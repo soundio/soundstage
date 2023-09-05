@@ -22,7 +22,7 @@ function round(n) {
 // [time, "chord", root, mode, duration]
 // [time, "sequence", name || events, target, duration, transforms...]
 
-run('location beatAtLocation() locationAtBeat() - []', [0,4,0,2], function(test, done) {
+run('location { beatAtLocation, locationAtBeat } - []', [0,4,0,2], function(test, done) {
 	var events = [];
 	var seed   = [0, "rate", 2];
 
@@ -34,7 +34,7 @@ run('location beatAtLocation() locationAtBeat() - []', [0,4,0,2], function(test,
 	done();
 });
 
-run('location beatAtLocation() locationAtBeat() - [...](1)', [0,16,0,1], function(test, done) {
+run('location { beatAtLocation, locationAtBeat } - [...](1)', [0,16,0,1], function(test, done) {
 	var events = [[0, "rate", 4]];
 	var seed   = [0, "rate", 2];
 
@@ -46,7 +46,7 @@ run('location beatAtLocation() locationAtBeat() - [...](1)', [0,16,0,1], functio
 	done();
 });
 
-run('location beatAtLocation() locationAtBeat() - [...](2)', [0,16,20,0,1,5], function(test, done) {
+run('location { beatAtLocation, locationAtBeat } - [...](2)', [0,16,20,0,1,5], function(test, done) {
 	var events = [[0, "rate", 4, "step"], [16, "rate", 2, "step"]];
 	var seed   = [0, "rate", 2];
 
@@ -61,7 +61,7 @@ run('location beatAtLocation() locationAtBeat() - [...](2)', [0,16,20,0,1,5], fu
 }, 6);
 
 run(
-	'location beatAtLocation() locationAtBeat() - [...](2)',
+	'location { beatAtLocation, locationAtBeat } - [...](2)',
 	[0, true, true, true, 0, true, true],
 	function(test, done) {
 		var events = [[0, "rate", 4, "step"], [16, "rate", 2, "exponential"]];
@@ -84,7 +84,7 @@ run(
 
 // For automation
 
-run('location beatAtTimeExponential()',
+run('location { beatAtTimeExponential }',
 	[0, true, true, 4, 8],
 	function(test, done) {
 		const beat0 = beatAtTimeExponential(2, 4, 8, 0);
@@ -101,7 +101,7 @@ run('location beatAtTimeExponential()',
 		done();
 	});
 
-run('location timeAtBeatExponential()',
+run('location { timeAtBeatExponential }',
 	[0, true, true, 4, 8],
 	function(test, done) {
 		const time0 = timeAtBeatExponential(2, 4, 8, 0);
@@ -118,7 +118,7 @@ run('location timeAtBeatExponential()',
 		done();
 	});
 
-run('location beatAtTimeOfAutomation() timeAtBeatOfAutomation() - []', [0,4,0,2], function(test, done) {
+run('location { beatAtTimeOfAutomation, timeAtBeatOfAutomation } - []', [0,4,0,2], function(test, done) {
 	var events = [];
 	var seed   = { time: 0, value: 2, curve: 'step' };
 
@@ -130,7 +130,7 @@ run('location beatAtTimeOfAutomation() timeAtBeatOfAutomation() - []', [0,4,0,2]
 	done();
 });
 
-run('location beatAtTimeOfAutomation() timeAtBeatOfAutomation() - [...](1)', [0,16,0,1], function(test, done) {
+run('location { beatAtTimeOfAutomation, timeAtBeatOfAutomation } - [...](1)', [0,16,0,1], function(test, done) {
 	var events = [{ time: 0, value: 4, curve: 'step' }];
 	var seed   = { time: 0, value: 2, curve: 'step' };
 
@@ -142,7 +142,7 @@ run('location beatAtTimeOfAutomation() timeAtBeatOfAutomation() - [...](1)', [0,
 	done();
 });
 
-run('location beatAtTimeOfAutomation() timeAtBeatOfAutomation() - [...](2)',
+run('location { beatAtTimeOfAutomation, timeAtBeatOfAutomation } - [...](2)',
 	[0, 16, 20, 0, 1, 5],
 	function(test, done) {
 		var events = [{ time: 0, value: 4, curve: 'step' }, { time: 4, value: 2, curve: 'step' }];
@@ -161,7 +161,7 @@ run('location beatAtTimeOfAutomation() timeAtBeatOfAutomation() - [...](2)',
 		done();
 	});
 
-run('location beatAtTimeOfAutomation() timeAtBeatOfAutomation() - [...](2)',
+run('location { beatAtTimeOfAutomation, timeAtBeatOfAutomation } - [...](2)',
 	[0, true, true, true, 0, true, true],
 	function(test, done) {
 		var events = [{ time: 0, value: 4, curve: 'step' }, { time: 4, value: 2, curve: 'exponential' }];

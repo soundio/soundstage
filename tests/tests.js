@@ -22,7 +22,7 @@ function stripCSS(output, string) {
     output.push(text);
     return output;
 }
-
+/*
 window.console.log = function() {
     log.apply(this, arguments);
     const strings = Array.from(arguments).reduce(stripCSS, []);
@@ -34,7 +34,7 @@ window.console.trace = function() {
     const strings = Array.from(arguments).reduce(stripCSS, []);
     consolePre.append(strings.join('') + '\n');
 };
-
+*/
 
 // Result
 

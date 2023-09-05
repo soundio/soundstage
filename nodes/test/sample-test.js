@@ -13,18 +13,26 @@ run('Sample(context, settings)', [], (test, done) => {
 
     setTimeout(function() {
         sample.connect(context.destination);
+        const now = context.currentTime;
+        const duration = 0.08;
 
-        sample.start(context.currentTime + 0.6, 440, 1);
-        sample.stop(context.currentTime + 0.64);
+        // Sample does not return a new object per note, it is monotonal
+        sample.start(now + 0.3, 220, 2);
+        sample.stop(now + 0.3 + duration);
 
-        sample.start(context.currentTime + 0.7, 440, 1);
-        sample.stop(context.currentTime + 0.74);
-
-        sample.start(context.currentTime + 0.8, 440, 1);
-        sample.stop(context.currentTime + 0.84);
-
-        sample.start(context.currentTime + 0.9, 440, 1);
-        sample.stop(context.currentTime + 4);
+        // It should return itself, though
+        sample
+        .start(now + 0.6, 440, 1)
+        .stop(now + 0.6 + duration);
+        sample
+        .start(now + 0.9, 880, 0.5)
+        .stop(now + 0.9 + duration);
+        sample
+        .start(now + 1.2, 1760, 0.25)
+        .stop(now + 1.2 + duration);
+        sample
+        .start(now + 1.5, 3520, 0.125)
+        .stop(now + 4);
     }, 1000);
 
     setTimeout(done, 5000);

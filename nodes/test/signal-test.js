@@ -6,7 +6,8 @@ import SignalDetector from '../signal.js';
 run('Signal(context, settings)',
     [null, null, null, null, null, true, true, 2, null, null, null, false, false, 0],
     function(test, done) {
-        context.audioWorklet
+        context
+        .audioWorklet
         .addModule('/soundstage/nodes/signal.worklet.js?3')
         .then(function() {
             // Set up an oscillator into a signal detector and check it responds
@@ -14,7 +15,6 @@ run('Signal(context, settings)',
 
             var osc  = new OscillatorNode(context);
             var gain = new GainNode(context, { channelCountMode: 'explicit', channelCount: 2, channelInterpretation: 'speakers' })
-            // context, settings, stage = nothing, notify = noop
             var node = new SignalDetector(context, {}, {}, function notify(node, name) {
                 // Increment the number of tests
                 test(null);
@@ -37,7 +37,7 @@ run('Signal(context, settings)',
                     test(!!node[0])
                     test(!!node[1])
 
-                    // There is always at least 1 channel, apparently
+                    // There is always at least 1 channel in Chrome, 0 in Safari apparently
                     test(node.connectedChannelCount)
 
                     done();

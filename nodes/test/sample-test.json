@@ -2,6 +2,16 @@
     "src":       "/soundstage/audio/gretsch-kit/bassdrum.wav",
     "frequency": 440,
     "gain":      1,
+    "attack":    0.04,
+    "release":   0.4,
+    "mute":      0,
+    "noteRange": [0, 82]
+}, {
+    "src":       "/soundstage/audio/gretsch-kit/snare.wav",
+    "frequency": 880,
+    "gain":      1,
     "attack":    0,
-    "mute":      0.08
+    "release":   0.4,
+    "mute":      0,
+    "noteRange": [72,100,127,127]
 }]
