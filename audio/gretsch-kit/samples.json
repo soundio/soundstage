@@ -1,0 +1,53 @@
+[{
+    "src":       "/soundstage/audio/gretsch-kit/samples/bassdrum.wav",
+    "frequency": 65.40639132514966,
+    "gain":      1,
+    "attack":    0.016,
+    "release":   0.8,
+    "mute":      0,
+    "noteRange": [0, 38]
+}, {
+    "src":       "/soundstage/audio/gretsch-kit/samples/snare.wav",
+    "frequency": 73.41619197935188,
+    "gain":      1,
+    "attack":    0,
+    "release":   0.4,
+    "mute":      0,
+    "noteRange": [38,42]
+}, {
+    "src":       "/soundstage/audio/gretsch-kit/samples/hihat-01.wav",
+    "frequency": 92.4986056779086,
+    "gain":      1,
+    "attack":    0,
+    "release":   0.4,
+    "mute":      0,
+    "noteRange": [42,127],
+    "gainRange": [0,0,0.25,0.3]
+}, {
+    "src":       "/soundstage/audio/gretsch-kit/samples/hihat-02.wav",
+    "frequency": 92.4986056779086,
+    "gain":      1,
+    "attack":    0,
+    "release":   0.4,
+    "mute":      0,
+    "noteRange": [42,127],
+    "gainRange": [0.25,0.3,0.4,0.5]
+}, {
+    "src":       "/soundstage/audio/gretsch-kit/samples/hihat-03.wav",
+    "frequency": 92.4986056779086,
+    "gain":      1,
+    "attack":    0,
+    "release":   0.4,
+    "mute":      0,
+    "noteRange": [42,127],
+    "gainRange": [0.4,0.5,0.63,0.7]
+}, {
+    "src":       "/soundstage/audio/gretsch-kit/samples/hihat-04.wav",
+    "frequency": 92.4986056779086,
+    "gain":      1,
+    "attack":    0,
+    "release":   0.4,
+    "mute":      0,
+    "noteRange": [42,127],
+    "gainRange": [0.63,0.7,1,1]
+}]

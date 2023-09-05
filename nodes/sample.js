@@ -43,6 +43,7 @@ import { dB24, dB30, dB60 }    from '../modules/constants.js';
 import { requestBuffer }    from '../modules/request-buffer.js';
 import { requestData }      from '../modules/request-data.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
+import { fadeInFromTime, fadeOutToTime, releaseAtTime } from '../modules/param.js';
 import NodeGraph from './graph.js';
 import Playable  from '../modules/playable.js';
 
@@ -78,6 +79,7 @@ const properties = {
         },
 
         set: function(src) {
+            const context  = this.context;
             const privates = Privates(this);
 
             // Import JSON
@@ -87,10 +89,15 @@ const properties = {
                 this.promise = undefined;
                 privates.src = src;
                 privates.map = data;
-                return this;
+
+                // Populate buffer cache with buffer data
+                return Promise.all(data.map((region) =>
+                    requestBuffer(context, region.src)
+                    .then((buffer) => cache[region.src] = buffer)
+                ));
             })
             .catch((e) => {
-                throw new Error('Sample src "' + src + '" not found');
+                throw new Error('Sample src "' + src + '" not found. ' + e.message);
             });
         }
     },
@@ -129,28 +136,15 @@ function regionGain(region, note, gain) {
     return gain * noteGain * gainGain;
 }
 
-function start(time, node) {
-    // For nodes that accept a offset as a parameter to .start(time, offset),
-    // this function starts them 'in the past', as it were, if time is less
-    // than currentTime
-    const currentTime = node.context.currentTime;
-
-    if (time > currentTime) {
-        node.start(time);
-    }
-    else {
-        // Todo: do we need to work out offset in buffer sample rate timeframe? Experiment!
-        node.start(currentTime, currentTime - time);
-    }
-
-    return node;
-}
-
 function setupGainNode(context, destination, gainNode, time, region, note, level) {
     // Create gain for source that does not yet exist
     if (!gainNode) {
         gainNode = context.createGain();
         gainNode.connect(destination);
+    }
+    else if (gainNode.stopTime > time) {
+        // Cut gain from a playing source
+        fadeOutToTime(context, gainNode.gain, time);
     }
 
     const gain = regionGain(region, note, level);
@@ -174,15 +168,45 @@ function setupBufferNode(context, destination, detuneNode, region, buffer, time,
     bufferNode.loopEnd   = region.loopEnd || 0;
     bufferNode.loop      = !!region.loop;
 
-    const rate = regionRate(region, frequency);
-    bufferNode.playbackRate.setValueAtTime(rate, time);
-
     // TODO: Are bufferNodes automatically disconnected from the graph when done
     // playing? Did I read that somewhere? If not, disconnect these somewhere
     detuneNode.connect(bufferNode.detune);
     bufferNode.connect(destination);
 
-    return start(time, bufferNode);
+    // Set playback rate from region
+    const rate = regionRate(region, frequency);
+    bufferNode.playbackRate.setValueAtTime(rate, time);
+
+    return bufferNode;
+}
+
+function startSource(context, gainNode, bufferNode, attack, startTime) {
+    // For nodes that accept an offset as a parameter to .start(time, offset),
+    // this function starts them 'in the past', as it were, if time is less
+    // than currentTime
+    const currentTime = context.currentTime;
+
+    if (startTime >= currentTime) {
+        bufferNode.start(startTime);
+        return;
+    }
+
+    if (currentTime - attack > startTime) {
+        // Fade in to guard against audible clicks
+        fadeInFromTime(context, gainNode.gain, 0.004, currentTime);
+    }
+    else {
+        // We are in the attack phase, we can update the value currently and
+        // the linear ramp event after it should still arrive at the right
+        // time. Attack will end up faster, but then catches up with the
+        // buffer play position at attack end.
+        gainNode.gain.setValueAtTime(0, currentTime);
+    }
+
+    // Todo: do we need to work out offset in buffer playback rate. Experiment!
+    //const playbackRate = bufferNode.playbackRate.value;
+    //console.log(playbackRate, bufferNode.playbackRate);
+    bufferNode.start(currentTime, currentTime - startTime);
 }
 
 function startSources(sources, destination, detuneNode, map, time, frequency = 440, note = 69, gain = 1) {
@@ -200,57 +224,30 @@ function startSources(sources, destination, detuneNode, map, time, frequency = 4
         && region.gainRange[region.gainRange.length - 1] >= gain))
     ))
     .reduce((sources, region, i) => {
-        sources[i] = setupGainNode(context, destination, sources[i], time, region, note, gain);
-        sources[i].region = region;
+        // If a buffer is not available, we can't play it
+        const buffer = cache[region.src];
+        if (!buffer) { return sources; }
 
-        if (sources[i].bufferNode) {
-            sources[i].bufferNode.stop(time);
+        const source = sources[i] = setupGainNode(context, destination, sources[i], time, region, note, gain);
+
+        if (source.stopTime > time) {
+            // Stop any playing buffer
+            source.bufferNode.stop(time);
+
+            // Update stopTime
+            source.stopTime = time;
         }
 
-        // Handle cached buffers synchronously
-        if (cache[region.src]) {
-            // If a buffer is playing we need to kill it at startTime at the latest
-            sources[i].bufferNode.stop(time);
-            sources[i].bufferNode = setupBufferNode(context, sources[i], detuneNode, region, cache[region.src], time, frequency, note, gain);
-        }
-        else {
-            sources[i].bufferPromise = requestBuffer(context, region.src)
-            .then((buffer) => {
-                cache[region.src] = buffer;
-                sources[i].bufferPromise = undefined;
-
-                // If a buffer is playing we need to kill it at startTime at the latest
-                if (sources[i].bufferNode) {
-                    sources[i].bufferNode.stop(time);
-                }
-
-                return sources[i].bufferNode = setupBufferNode(context, sources[i], detuneNode, region, cache[region.src], time, frequency, note, gain);
-            });
-        }
+        source.region     = region;
+        source.bufferNode = setupBufferNode(context, source, detuneNode, region, buffer, time, frequency);
+        startSource(context, source, source.bufferNode, region.attack, time);
 
         sources.length = i + 1;
         return sources;
     }, sources) ;
 }
 
-function stopGain(gainNode, region, time) {
-    gainNode.gain.cancelAndHoldAtTime(time);
-
-    // Schedule release
-    if (region.release) {
-        gainNode.gain.exponentialRampToValueAtTime(dB30, time + region.release);
-        gainNode.gain.linearRampToValueAtTime(0, time + region.release * 1.1);
-    }
-    else {
-        gainNode.gain.setValueAtTime(0, time);
-    }
-}
-
-function stopBuffer(bufferNode, region, time) {
-    bufferNode.stop(time + (region.release ? 1.1 * region.release : 0));
-}
-
-function stopSources(sources, time) {
+function releaseSourcesAtTime(sources, time) {
     let n = -1;
     let stopTime = time;
 
@@ -258,22 +255,12 @@ function stopSources(sources, time) {
         const source = sources[n];
         const region = source.region;
 
-        stopGain(source, region, time);
-
-        // BufferNode may not yet have arrived, so store stopTime and it gets
-        // cued in the promise in startSources
-        if (source.bufferPromise) {
-            source.bufferPromise.then((node) => stopBuffer(node, region, time));
-        }
-        else {
-            stopBuffer(source.bufferNode, region, time);
-        }
+        // Schedule release to -30dB of gain node
+        const t = source.stopTime = releaseAtTime(source.context, source.gain, dB30, region.release, time);
+        source.bufferNode.stop(t);
 
         // Advance stopTime to include source tails
-        source.stopTime = time + (region.release ? region.release * 1.1 : 0);
-        stopTime = source.stopTime > stopTime ?
-            source.stopTime :
-            stopTime ;
+        stopTime = t > stopTime ? t : stopTime ;
     }
 
     return stopTime;
@@ -306,12 +293,9 @@ Sample.reset = function reset(node, args) {
 
 assign(Sample.prototype, Playable.prototype, NodeGraph.prototype, {
     start: function(time, frequency = defaults.frequency, gain = defaults.gain) {
-        // Wait for src to load
+        // Wait for src and buffers to load
         if (this.promise) {
-            this.promise.then(() => {
-                this.start(time);
-            });
-
+            this.promise.then(() => this.start(time, frequency, gain));
             return this;
         }
 
@@ -332,14 +316,20 @@ assign(Sample.prototype, Playable.prototype, NodeGraph.prototype, {
     },
 
     stop: function(time) {
+        // Wait for src and buffers to load
+        if (this.promise) {
+            this.promise.then(() => this.stop(time));
+            return this;
+        }
+
+        const { sources } = Privates(this);
+
         // Clamp stopTime to startTime
         Playable.prototype.stop.call(this, time);
 
-        // Stop sources and update stopTime to include stopTime
-        // of longest sample
-        const privates = Privates(this);
-        this.stopTime = stopSources(privates.sources, this.stopTime);
-
+        // Stop sources and update stopTime to include stopTime of
+        // longest release
+        this.stopTime = releaseSourcesAtTime(sources, this.stopTime);
         return this;
     }
 });

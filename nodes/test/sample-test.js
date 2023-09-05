@@ -1,39 +1,70 @@
 import run     from '../../../fn/modules/test.js';
+import toGain  from '../../../fn/modules/to-gain.js';
 import context from '../../modules/context.js';
 import Sample  from '../sample.js';
 
+import { floatToFrequency } from '../../../midi/module.js';
+window.toGain = toGain;
 run('Sample(context, settings)', [], (test, done) => {
     var sample = new Sample(context, {
-        src: '/soundstage/nodes/test/sample-test.json',
+        src: '/soundstage/audio/gretsch-kit/samples.json',
         nominalFrequency: 440,
         //loop: true,
         //loopStart: 0,
         //loopEnd: 0.2
     });
 
-    setTimeout(function() {
-        sample.connect(context.destination);
+    sample.connect(context.destination);
+    const now = context.currentTime;
+    const duration = 0.1;
+
+    // Samples may not have loaded yet, what will it do?
+    sample.start(now, 33, 2);
+    sample.stop(now + duration);
+
+    // Sample does not return a new object per note, it is monotonal
+    sample.start(now + 0.3, 65, 2);
+    sample.stop(now + 0.3 + duration);
+
+    setTimeout(() => {
         const now = context.currentTime;
-        const duration = 0.08;
 
-        // Sample does not return a new object per note, it is monotonal
-        sample.start(now + 0.3, 220, 2);
-        sample.stop(now + 0.3 + duration);
+        // It should play things that are started before currentTime
+        sample
+        .start(now - 0.01, 33, 2)
+        .stop(now + duration);
 
-        // It should return itself, though
+        // This should cut playback of the last sample - it should fade it,
+        // so no clicks. Clicks bad.
         sample
-        .start(now + 0.6, 440, 1)
-        .stop(now + 0.6 + duration);
+        .start(now + 0.16, 33, 2)
+        .stop(now + 0.2 + duration);
+
+        // .stop() Should be rescheduleable
         sample
-        .start(now + 0.9, 880, 0.5)
-        .stop(now + 0.9 + duration);
+        .start(now + 0.6, 74, 1)
+        .stop(now + 10)
+        .stop(now + 0.6 + 0.01);
+
+        // Pitch
         sample
-        .start(now + 1.2, 1760, 0.25)
-        .stop(now + 1.2 + duration);
+        .start(now + 1.3, 93, 1)
+        .stop(now + 1.3 + duration);
         sample
-        .start(now + 1.5, 3520, 0.125)
-        .stop(now + 4);
-    }, 1000);
+        .start(now + 1.6, 186, 1)
+        .stop(now + 1.6 + duration);
+        sample
+        .start(now + 1.9, 372, 1)
+        .stop(now + 1.9 + duration);
+
+        // Gains 16 notes, 16 gains
+        var n = 0;
+        while (++n < 17) {
+            sample
+            .start(now + 2 + (0.2 * n), 93, toGain(n - 16))
+            .stop(now + 2 + (0.2 * n) + duration);
+        }
+    }, 2000);
 
     setTimeout(done, 5000);
 }, 0);
