@@ -19,7 +19,7 @@ An array of objects defining connections. See <a href="#nodes-and-connections">N
 
 import get      from '../../fn/modules/get.js';
 import has      from '../../fn/modules/has.js';
-import privates from '../../fn/modules/privates.js';
+import Privates from '../../fn/modules/privates.js';
 import { print }  from './print.js';
 import { generateUnique }  from './utilities.js';
 import Node       from './node.js';

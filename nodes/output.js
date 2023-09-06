@@ -23,14 +23,14 @@ function increment(n) { return n + 1; }
 export default class OutputSplitter extends GainNode {
     constructor(context, settings, output) {
 		var options = assign({}, defaults, settings);
-		options.numberOfOutputs = options.channels.length || 2;
+		options.numberOfOutputs  = options.channels.length || 2;
 		options.channelCountMode = 'explicit';
-		options.channelCount = options.numberOfOutputs;
+		options.channelCount     = options.numberOfOutputs;
 
 		super(context, {
 			gain:                  1,
-			channelCountMode:      'explicit',
-			channelCount:          options.numberOfOutputs,
+			channelCountMode:      options.channelCountMode,
+			channelCount:          options.channelCount,
 			channelInterpretation: 'speakers'
 		});
 
@@ -41,7 +41,6 @@ export default class OutputSplitter extends GainNode {
 
 		/**
 		.channels
-
 		An array of channel numbers. For stereo output this would typically be
 		`[1, 2]`.
 		**/
@@ -72,6 +71,7 @@ export default class OutputSplitter extends GainNode {
 					}
 				},
 				enumerable: true,
+				// Oooo, why?
 				configurable: true
 			}
 		});

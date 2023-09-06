@@ -1,5 +1,5 @@
 
-import privates from '../../fn/modules/privates.js';
+import Privates from '../../fn/modules/privates.js';
 import Playable from './playable.js';
 
 const DEBUG  = false;//window.DEBUG;

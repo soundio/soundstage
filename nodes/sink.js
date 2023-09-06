@@ -15,14 +15,14 @@ instance.
 **/
 
 
-const $sink = Symbol('soundstage-sink');
+const $sink = Symbol('Soundstage sink');
 
 export default function Sink(context) {
     if (!context[$sink]) {
-        context[$sink] = context.createGain();
-        context[$sink].gain.value = 0;
-        context[$sink].gain.setValueAtTime(0, 0);
-        context[$sink].connect(context.destination);
+        const sink = context[$sink] = context.createGain();
+        sink.gain.value = 0;
+        sink.gain.setValueAtTime(0, 0);
+        sink.connect(context.destination);
     }
 
     return context[$sink];

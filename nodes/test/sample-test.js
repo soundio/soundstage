@@ -4,10 +4,10 @@ import context from '../../modules/context.js';
 import Sample  from '../sample.js';
 
 import { floatToFrequency } from '../../../midi/module.js';
-window.toGain = toGain;
+
 run('Sample(context, settings)', [], (test, done) => {
     var sample = new Sample(context, {
-        src: '/soundstage/audio/gretsch-kit/samples.json',
+        src: '/soundstage/audio/gretsch-kit/samples.js',
         nominalFrequency: 440,
         //loop: true,
         //loopStart: 0,
@@ -15,6 +15,7 @@ run('Sample(context, settings)', [], (test, done) => {
     });
 
     sample.connect(context.destination);
+
     const now = context.currentTime;
     const duration = 0.1;
 
@@ -64,7 +65,7 @@ run('Sample(context, settings)', [], (test, done) => {
             .start(now + 2 + (0.2 * n), 93, toGain(n - 16))
             .stop(now + 2 + (0.2 * n) + duration);
         }
-    }, 2000);
+    }, 1000);
 
-    setTimeout(done, 5000);
+    setTimeout(done, 7000);
 }, 0);

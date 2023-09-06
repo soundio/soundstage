@@ -3,16 +3,50 @@
 import Input      from '../nodes/input.js';
 import Meter      from '../nodes/meter.js';
 import EQ         from '../nodes/eq.js';
-import Mix        from '../nodes/mix.js';
 import Envelope   from '../nodes/envelope.js';
 import Tick       from '../nodes/tick.js';
 import Recorder   from '../nodes/recorder.js';
 import Sink       from '../nodes/sink.js';
-import Sample     from '../nodes/sample.js';
 import Tone       from '../nodes/tone.js';
 import Noise      from '../nodes/noise.js';
 import Instrument from '../nodes/instrument.js';
 import Metronome  from '../nodes/metronome.js';
+
+import MixNode    from '../nodes/mix.js';
+import SampleNode from '../nodes/sample.js';
+*/
+
+/*
+    // ../node/input.js
+    'input': Input,
+    // ../nodes/meter.js
+    'meter': Meter,
+    // ../nodes/mix.js
+    'eq': EQ,
+    // ../nodes/envelope.js
+    'envelope': Envelope,
+    // ../nodes/tick.js
+    'tick': Tick,
+    // ../nodes/recorder.js
+    'recorder': Recorder,
+    // ../nodes/sink.js
+    'sink': Sink,
+    // ../nodes/instrument.js
+    'instrument': Instrument,
+    // ../nodes/tone.js
+    'sample': Sample,
+    // ../nodes/tone.js
+    'tone': Tone,
+    // ../nodes/noise.js
+    'noise': Noise,
+    // ../nodes/metronome.js
+    'metronome': Metronome
+
+
+    // ../nodes/mix.js
+    'mix': MixNode,
+    // ../nodes/sample.js
+    'sample': SampleNode
 */
 
 const constructors = {
@@ -49,36 +83,10 @@ const constructors = {
     // https://developer.mozilla.org/en-US/docs/Web/API/WaveShaperNode/WaveShaperNode
     'waveshaper': WaveShaperNode,
     // https://developer.mozilla.org/en-US/docs/Web/API/StereoPannerNode/StereoPannerNode
-    'pan': StereoPannerNode,
-/*
-    // ../node/input.js
-    'input': Input,
-    // ../nodes/meter.js
-    'meter': Meter,
-    // ../nodes/mix.js
-    'eq': EQ,
-    // ../nodes/mix.js
-    'mix': Mix,
-    // ../nodes/envelope.js
-    'envelope': Envelope,
-    // ../nodes/tick.js
-    'tick': Tick,
-    // ../nodes/recorder.js
-    'recorder': Recorder,
-    // ../nodes/sink.js
-    'sink': Sink,
-    // ../nodes/instrument.js
-    'instrument': Instrument,
-    // ../nodes/tone.js
-    'sample': Sample,
-    // ../nodes/tone.js
-    'tone': Tone,
-    // ../nodes/noise.js
-    'noise': Noise,
-    // ../nodes/metronome.js
-    'metronome': Metronome
-*/
+    'pan': StereoPannerNode
 }
+
+export default constructors;
 
 export function register(name, constructor) {
     if (constructors[name] || name === 'output') {

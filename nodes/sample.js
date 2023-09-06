@@ -193,7 +193,7 @@ function startSource(context, gainNode, bufferNode, attack, startTime) {
 
     if (currentTime - attack > startTime) {
         // Fade in to guard against audible clicks
-        fadeInFromTime(context, gainNode.gain, 0.004, currentTime);
+        fadeInFromTime(context, gainNode.gain, 1, 0.004, currentTime);
     }
     else {
         // We are in the attack phase, we can update the value currently and

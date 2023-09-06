@@ -7,7 +7,9 @@ const tone = stage.createNode('tone', {
     type: 'sine',      // String 'sine', 'square', 'sawtooth', 'triangle'
     frequency: 440,    // Frequency in Hz
     detune: 0,         // Deviation from frequency in cents
-    gain: 1            // A float nominally in the range 0-1
+    gain: 1,           // A float nominally in the range 0-1
+    attack: 0,         // Attack duration on `.start()`
+    release: 0         // Release duration, the time to fade -60dB, on `.stop()`
 });
 ```
 
@@ -18,9 +20,11 @@ It is unusual to create tones directly, but they are an essential component for
 defining voices for instruments.
 **/
 
-import NodeGraph from './graph.js';
-import Playable  from '../modules/playable.js';
+import NodeGraph            from './graph.js';
+import Playable             from '../modules/playable.js';
+import { attackAtTime, releaseAtTime } from '../modules/param.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
+import { dB60 }             from '../modules/constants.js';
 
 const assign = Object.assign;
 const define = Object.defineProperties;
@@ -28,12 +32,12 @@ const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
 const graph = {
     nodes: [
-        { id: 'osc',  type: 'oscillator', data: { type: 'sine', frequency: 440, detune: 0 }},
-        { id: 'gain', type: 'gain',       data: { gain: 0 }}
+        { id: 'osc',    type: 'oscillator', data: { type: 'sine', frequency: 440, detune: 0 }},
+        { id: 'output', type: 'gain',       data: { gain: 0 }}
     ],
 
     connections: [
-        { source: 'osc',  target: 'gain' },
+        { source: 'osc',  target: 'output' },
     ],
 
     properties: {
@@ -56,13 +60,16 @@ const graph = {
         detune:    'osc.detune'
     },
 
-    output: 'gain'
+    output: 'output'
 };
 
 const defaults = {
     type:      'sine',
     frequency: 440,
-    detune:    0
+    detune:    0,
+    //gain:      1,
+    attack:    0,
+    release:   0
 };
 
 const properties = {
@@ -72,9 +79,27 @@ const properties = {
     to set the gain of the tone. Changes to `.gain` during playback have no
     effect.
     **/
-
+/*
     gain: {
-        value:    1,
+        value:    defaults.gain,
+        writable: true
+    },
+*/
+    /**
+    .attack
+    **/
+
+    attack: {
+        value:    defaults.attack,
+        writable: true
+    },
+
+    /**
+    .release
+    **/
+
+    release: {
+        value:    defaults.release,
         writable: true
     }
 };
@@ -101,15 +126,15 @@ Tone.reset = function(node, args) {
 };
 
 assign(Tone.prototype, NodeGraph.prototype, Playable.prototype, {
-
     /**
-    .start(time)
+    .start(time, frequency, gain)
     Start the tone at `time`.
     **/
 
-    start: function(time) {
+    start: function(time, frequency = defaults.frequency, gain = defaults.gain) {
         Playable.prototype.start.apply(this, arguments);
-        this.get('gain').gain.setValueAtTime(this.gain, this.startTime);
+        this.get('osc').frequency.setValueAtTime(frequency, this.startTime);
+        attackAtTime(this.context, this.get('output').gain, gain, this.attack, time);
         return this;
     },
 
@@ -118,9 +143,9 @@ assign(Tone.prototype, NodeGraph.prototype, Playable.prototype, {
     Stop the tone at `time`.
     **/
 
-    stop: function(time, frequency, gain) {
+    stop: function(time) {
         Playable.prototype.stop.apply(this, arguments);
-        this.get('gain').gain.setValueAtTime(0, this.stopTime);
+        this.stopTime = releaseAtTime(this.context, this.get('output').gain, dB60, this.release, time);
         return this;
     }
 });

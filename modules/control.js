@@ -31,7 +31,7 @@ through a selectable transform function to a target stream.
 **/
 
 import noop     from '../../fn/modules/noop.js';
-import privates from '../../fn/modules/privates.js';
+import Privates from '../../fn/modules/privates.js';
 import remove   from '../../fn/modules/remove.js';
 import { getContextTime, timeAtDomTime } from './context.js';
 import { floatToFrequency }     from '../../midi/modules/data.js';

@@ -40,7 +40,7 @@ import isDefined from '../../fn/modules/is-defined.js';
 import Privates  from '../../fn/modules/privates.js';
 import { logGroup, logGroupEnd } from './print.js';
 import Voice, { defaults as voiceDefaults } from './voice.js';
-import NodeGraph from './graph.js';
+import NodeGraph, { constructors } from './graph.js';
 import Pool from '../modules/pool.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
 import { connect, disconnect } from '../modules/connect.js';
@@ -48,6 +48,11 @@ import { connect, disconnect } from '../modules/connect.js';
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
+
+import Sink from './sink';
+assign(constructors, {
+    sink: Sink
+});
 
 export const config = {
     tuning: 440
@@ -89,8 +94,8 @@ var defaults = assign({
     gain:       1,
     pitch:      0,
     modulation: 1,
-    output:     0.5,
-    voice:      voiceDefaults
+    output:     1,
+    //voice:      voiceDefaults
 });
 
 const properties = {};
@@ -142,8 +147,8 @@ export default class Instrument extends GainNode {
         });
 
         // Update settings
+        // TODO: if this includes voice property, this.voice is overridden, not good
         assignSettingz__(this, defaults);
-
 
         if (DEBUG) { logGroupEnd(); }
     }
@@ -216,6 +221,7 @@ assign(Instrument.prototype, NodeGraph.prototype, {
     },
 
     destroy: function() {
+        console.log('DEESTROY');
         // Privates
         const privates = Privates(this);
 

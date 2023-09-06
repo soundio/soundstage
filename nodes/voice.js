@@ -132,7 +132,6 @@ function Voice(context, data, transport) {
     .detune
     AudioParam Todo: description
     **/
-
     const detune = create('constant', context, {
         offset: 0
     });
@@ -149,6 +148,17 @@ function Voice(context, data, transport) {
 
 	// Start constant
 	detune.start(context.currentTime);
+
+    /**
+    .modulation
+    AudioParam Todo: description
+    **/
+    const modulation = create('constant', context, {
+        offset: 0
+    });
+
+    this.modulation = modulation.offset;
+    modulation.start(context.currentTime);
 
     Voice.reset(this, arguments);
 }
@@ -265,10 +275,10 @@ assign(Voice.prototype, Playable.prototype, NodeGraph.prototype, {
 
         // Frequency relative to C4, middle C
         // Todo: should we choose A440 as a reference instead?
-        const frequencyRatio = frequency / frequencyC4;
+        //const frequencyRatio = frequency / frequencyC4;
 
         // Todo: turn velocity into gain
-        const velocityRatio = velocity;
+        //const velocityRatio = velocity;
 
         // Start command target
         const commands = privates.commands;
@@ -287,8 +297,8 @@ assign(Voice.prototype, Playable.prototype, NodeGraph.prototype, {
                 throw new Error('Command target "' + id + '" not found in nodes');
             }
 
-            setPropertiesAndParams(target, commands[n].data, frequencyRatio, velocityRatio);
-            target.start(this.startTime);
+            setPropertiesAndParams(target, commands[n].data/*, frequencyRatio, velocityRatio*/);
+            target.start(this.startTime, frequency, velocity);
 
             // Keep a record of the latest envelope stopTime
             if (target.constructor.name === 'Envelope') {

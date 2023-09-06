@@ -7,14 +7,14 @@ Linearly fades param to `1` from `time` over `duration` seconds. Returns the end
 time, `time + duration`.
 **/
 
-export function fadeInFromTime(context, param, duration, time) {
+export function fadeInFromTime(context, param, gain, duration, time) {
     if (!duration) {
-        param.setValueAtTime(1, time);
+        param.setValueAtTime(gain, time);
         return time;
     }
 
     param.setValueAtTime(0, time);
-    param.linearRampToValueAtTime(1, time + duration);
+    param.linearRampToValueAtTime(gain, time + duration);
     return time + duration;
 }
 
@@ -92,7 +92,7 @@ time at which param reaches 0.
 export function attackAtTime(context, param, gain, duration, time) {
     if (!duration) {
         // Protect against clicks by fading out
-        return fadeInToTime(context, param, time);
+        return fadeInFromTime(context, param, gain, fadeDuration, time);
     }
 
     const t1 = time + duration;
@@ -100,7 +100,7 @@ export function attackAtTime(context, param, gain, duration, time) {
     param.setValueAtTime(0, time);
     param.linearRampToValueAtTime(gain, t1);
 
-    return t2;
+    return t1;
 }
 
 /**
@@ -110,9 +110,14 @@ time at which param reaches 0.
 **/
 
 export function releaseAtTime(context, param, gain, duration, time) {
-    if (!duration) {
+    if (duration === undefined) {
         // Protect against clicks by fading out
         return fadeOutToTime(context, param, time);
+    }
+
+    if (duration === 0) {
+        param.setValueAtTime(0, time);
+        return time;
     }
 
     const t1 = time + duration;

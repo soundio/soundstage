@@ -58,13 +58,35 @@ output by the `.connect()` and `.disconnect()` methods.
 import Privates from '../../fn/modules/privates.js';
 import { logGroup, logGroupEnd } from '../modules/print.js';
 import { connect, disconnect }   from '../modules/connect.js';
-import { create }                from '../modules/constructors.js';
+import nativeConstructors        from '../modules/constructors.js';
 const DEBUG  = false;//window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
 const seal   = Object.seal;
 
+export const constructors = assign({}, nativeConstructors);
 
+function create(type, context, settings, transport) {
+    const Constructor = constructors[type];
+
+    if (!Constructor) {
+        throw new Error('Soundstage: NodeGraph cannot create node of unregistered type "' + type + '"');
+    }
+
+    // Todo: Legacy from async nodes... warn if we encounter one of these
+    // If the constructor has a preload fn, it has special things
+    // to prepare (such as loading AudioWorklets) before it can
+    // be used.
+    if (Constructor.preload) {
+        console.warn('Soundstage: node contructor for "' + type + '" has a preload function, which is Todo, because not properly implemented yet');
+        Constructor.preload(basePath, context).then(() => {
+            print('Node', Node.name, 'preloaded');
+            return Node;
+        }) ;
+    }
+
+    return new Constructor(context, settings, transport);
+}
 
 function createConnector(nodes, data) {
     // Split paths such as env.gain.0 to ['env', 'gain', 0]
@@ -184,7 +206,6 @@ export default function NodeGraph(context, data, transport) {
 }
 
 assign(NodeGraph.prototype, {
-
     /**
     .connect(target)
     Connect node to target. In Soundstage calling this method directly is

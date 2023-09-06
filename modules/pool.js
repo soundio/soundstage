@@ -1,6 +1,7 @@
 
 const DEBUG  = true;
 const printGroup = DEBUG && console.groupCollapsed.bind(console, '%cPool %c%s', 'color: #b5002f; font-weight: 600;', 'color: #8e9e9d; font-weight: 300;');
+const log = DEBUG && console.log.bind(console, '%cPool %c%s', 'color: #b5002f; font-weight: 600;', 'color: #8e9e9d; font-weight: 300;');
 const assign = Object.assign;
 
 export default function Pool(constructor, isIdle, setup) {
@@ -12,7 +13,7 @@ export default function Pool(constructor, isIdle, setup) {
         if (object) {
             // Support reset() in the instance
             return object.reset ?
-                (console.warn('Pool reset fn should be stored on the constructor', constructor, object), object.reset.apply(object, arguments)) :
+                (console.warn('Pool .reset() should be stored on the constructor', constructor, object), object.reset.apply(object, arguments)) :
             // Support reset() on the constructor
             constructor.reset ?
                 constructor.reset(object, arguments) :
