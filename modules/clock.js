@@ -9,7 +9,6 @@ const define = Object.defineProperties;
 const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
 const properties = {
-
     /**
     .context
     The AudioContext.
@@ -42,7 +41,6 @@ export default function Clock(context, notify) {
     // Properties
     define(this, properties);
     this.context = context;
-
     Privates(this).notify = notify;
 }
 

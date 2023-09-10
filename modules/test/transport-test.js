@@ -1,14 +1,12 @@
 import run       from '../../../fn/modules/test.js';
 import context   from '../context.js';
 import Transport from '../transport.js';
-import Timer     from '../timer.js';
 
 // Transports default rate is 2!!
 
 run('transport.start()', [true, true, true, 0, 2], function(test, done) {
     const rateNode    = new ConstantSourceNode(context, { offset: 2 });
-    const timer       = new Timer(function now() { return context.currentTime; });
-    const transport   = new Transport(context, rateNode.offset, timer);
+    const transport   = new Transport(context, rateNode.offset);
 
     // Let audio clock settle
     setTimeout(function() {
@@ -28,8 +26,7 @@ run('transport.start()', [true, true, true, 0, 2], function(test, done) {
 
 run('transport.start(time)', [1, 1, 1.5, 0, 2], function(test, done) {
     const rateNode    = new ConstantSourceNode(context, { offset: 2 });
-    const timer       = new Timer(function now() { return context.currentTime; });
-    const transport   = new Transport(context, rateNode.offset, timer);
+    const transport   = new Transport(context, rateNode.offset);
 
     // Let audio clock settle
     setTimeout(function() {
@@ -49,8 +46,7 @@ run('transport.start(time).stop(time) ...start(time).stop(time)',
     [true, true, true, true, 0, 2, 4, true, true, true, true, 0, 2, 4],
     function(test, done) {
         const rateNode    = new ConstantSourceNode(context, { offset: 2 });
-        const timer       = new Timer(function now() { return context.currentTime; });
-        const transport   = new Transport(context, rateNode.offset, timer);
+        const transport   = new Transport(context, rateNode.offset);
 
         // Let audio clock settle
         setTimeout(function() {

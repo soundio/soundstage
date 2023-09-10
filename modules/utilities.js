@@ -22,47 +22,12 @@ export function createId(objects) {
     return generateUnique(ids);
 }
 
-
-export const insertBy0 = insert(get('0'));
-
 export function roundBeat(n) {
     // Mitigate floating-point rounding errors by rounding to the nearest
     // trillionth
     return Math.round(1000000000000 * n) / 1000000000000;
 }
 
-export function isWaiting(object) {
-    return object.startTime === undefined;
-}
-
-export function isPlaying(object) {
-    return object.startTime !== undefined
-        && (object.stopTime === undefined || object.stopTime < object.context.currentTime);
-}
-
-export function isStopped(object) {
-    return object.startTime === undefined
-        || (object.stopTime !== undefined && object.stopTime <= object.context.currentTime);
-}
-
-
-// Fetch audio buffer from a URL and decode it
-
-var bufferRequests = {};
-
-export function fetchBuffer(context, url) {
-    return bufferRequests[url] || (bufferRequests[url] = new Promise(function(accept, reject) {
-        var request = new XMLHttpRequest();
-        request.open('GET', url, true);
-        request.responseType = 'arraybuffer';
-
-        request.onload = function() {
-            context.decodeAudioData(request.response, accept, reject);
-        }
-
-        request.send();
-    }));
-}
 
 
 // Information about events and collections of events
@@ -78,13 +43,7 @@ var eventTypes = {
     "end": true
 };
 
-export function isEvent(object) {
-    // Duck typing to detect sequence events
-    return object &&
-        object.length > 2 &&
-        typeof object[0] === "number" &&
-        eventTypes[object[1]] ;
-}
+
 
 export function toEventDuration(event, find) {
     // find - a function for finding sequences referred

@@ -80,20 +80,20 @@ sequence
 **/
 
 
-
-
-
-import compose  from '../../fn/modules/compose.js';
-import get      from '../../fn/modules/get.js';
-import overload from '../../fn/modules/overload.js';
-import remove   from '../../fn/modules/remove.js';
+import compose    from '../../fn/modules/compose.js';
+import get        from '../../fn/modules/get.js';
+import overload   from '../../fn/modules/overload.js';
+import remove     from '../../fn/modules/remove.js';
 import { bytesToSignedFloat } from '../../midi/modules/maths.js';
 import { toType } from '../../midi/modules/data.js';
 
-const assign           = Object.assign;
-const getData          = get('data');
+const assign  = Object.assign;
+const define  = Object.defineProperties;
+const getData = get('data');
 
-const pitchBendRange   = 2;
+// ---
+
+const pitchBendRange = 2;
 
 function pitchToFloat(message) {
 	return bytesToSignedFloat(message[1], message[2]) * pitchBendRange;
@@ -101,7 +101,7 @@ function pitchToFloat(message) {
 
 // Event
 //
-// A constructor for pooled event objects, for internal use only. Internal
+// A constructor for pooled event objects, for internal use. Internal
 // events are for flows of data (rather than storage), and have extra data
 // assigned.
 
@@ -136,16 +136,63 @@ function pitchToFloat(message) {
 //	idle:       { writable: true }
 //}));
 
-export function Event(time, type) {
+export default function Event(time, type) {
+	if (window.DEBUG && !isValidEvent(arguments)) {
+		throw new Error('Soundstage new Event() called with invalid arguments [' + Array.from(arguments).join(', ') + ']. ' + eventValidationHint(arguments));
+	}
+
 	assign(this, arguments);
 	this.length = arguments.length;
-
-	// Clear out additional parameters (if this is pooled)
-	let n = this.length - 1;
-	while(this[++n]) { delete this[n]; }
 }
 
-export default Event;
+assign(Event, {
+	of: function() {
+		return new Event(...arguments);
+	},
+
+	from: function(data) {
+		const event = new Event(...data);
+		event.originalEvent = data;
+		return event;
+	},
+
+	fromMIDI: overload(compose(toType, getData), {
+		pitch: function(e) {
+			return Event.of(e.timeStamp, 'pitch', pitchToFloat(e.data));
+		},
+
+		pc: function(e) {
+			return Event.of(e.timeStamp, 'program', e.data[1]);
+		},
+
+		channeltouch: function(e) {
+			return Event.of(e.timeStamp, 'touch', 'all', e.data[1] / 127);
+		},
+
+		polytouch: function(e) {
+			return Event.of(e.timeStamp, 'touch', e.data[1], e.data[2] / 127);
+		},
+
+		default: function(e) {
+			return Event.of(e.timeStamp, toType(e.data), e.data[1], e.data[2] / 127) ;
+		}
+	}),
+
+	// For pooled events
+	reset: function(time, type) {
+		Event.apply(this, argumnents);
+
+		// Clear out additional parameters (if this is pooled)
+		let n = this.length - 1;
+		while(this[++n]) { delete this[n]; }
+
+		// Reset other references
+		this.target        = undefined;
+		this.originalEvent = undefined;
+		this.onEvent       = undefined;
+		this.offEvent      = undefined;
+	}
+});
 
 assign(Event.prototype, {
 	remove: function() {
@@ -163,17 +210,65 @@ assign(Event.prototype, {
 	}
 });
 
-Event.of = function() {
-	return arguments[6] !== undefined ? new Event(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4], arguments[5], arguments[6]) :
-		arguments[5] !== undefined ? new Event(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4], arguments[5]) :
-		arguments[4] !== undefined ? new Event(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4]) :
-		arguments[3] !== undefined ? new Event(arguments[0], arguments[1], arguments[2], arguments[3]) :
-		new Event(arguments[0], arguments[1], arguments[2]) ;
-};
+define(Event.prototype, {
+	/**
+	.beat
+	The event beat. An alias for `event[0]`.
+	**/
 
-Event.from = function(data) {
-	return Event.of.apply(data[0], data[1], data[2], data[3], data[4], data[5], data[6]) ;
-};
+	beat: {
+		get: function() { return this[0]; },
+		set: function(beat) { this[0] = beat; }
+	},
+
+	/**
+	.type
+	The event type. An alias for `event[1]`.
+	**/
+
+	type: {
+		get: function() { return this[1]; },
+		set: function(type) { this[1] = type; }
+	},
+
+	/**
+	.length
+	Event length.
+	**/
+
+	length:   { value: 0,    writable: true },
+
+	/**
+	.target
+	Event may have a target assigned if it is being distributed by a sequencer.
+	**/
+
+	target:   { value: null, writable: true },
+
+	/**
+	.originalEvent
+	Original event this event was cloned from, if cloned via Event.from().
+	**/
+
+	originalEvent: { value: undefined, writable: true },
+
+	/**
+	.onEvent
+	If this is an `off` event, onEvent is its mirror `on` event.
+	**/
+
+	onEvent:  { value: undefined, writable: true },
+
+	/**
+	.offEvent
+	If this is an `on` event, offEvent is its mirror `off` event.
+	**/
+
+	offEvent: { value: undefined, writable: true }
+});
+
+
+// Type checkers
 
 export function isNoteEvent(event) {
 	return event[1] === 'note';
@@ -198,33 +293,13 @@ export function isMeterEvent(event) {
 
 
 
-Event.fromMIDI = overload(compose(toType, getData), {
-	pitch: function(e) {
-		return Event.of(e.timeStamp, 'pitch', pitchToFloat(e.data));
-	},
 
-	pc: function(e) {
-		return Event.of(e.timeStamp, 'program', e.data[1]);
-	},
-
-	channeltouch: function(e) {
-		return Event.of(e.timeStamp, 'touch', 'all', e.data[1] / 127);
-	},
-
-	polytouch: function(e) {
-		return Event.of(e.timeStamp, 'touch', e.data[1], e.data[2] / 127);
-	},
-
-	default: function(e) {
-		return Event.of(e.timeStamp, toType(e.data), e.data[1], e.data[2] / 127) ;
-	}
-});
-
+/*
 export function release(event) {
 	event.idle = true;
 	return event;
 }
-
+*/
 
 export const getBeat = get(0);
 export const getType = get(1);
@@ -234,6 +309,13 @@ export function getDuration(e)  {
 		e[1] === 'sequence' ? e[4] :
 		undefined ;
 }
+
+
+/**
+isValidEvent(event)
+Checks event for type and length to make sure it conforms to an event
+type signature.
+**/
 
 // Event types
 //
@@ -248,73 +330,22 @@ export function getDuration(e)  {
 // [time, "sequence", name || events, target, duration, transforms...]
 
 export const isValidEvent = overload(get(1), {
-	note: (event) => {
-		return event[4] !== undefined;
-	},
-
-	noteon: (event) => {
-		return event[3] !== undefined;
-	},
-
-	noteoff: (event) => {
-		return event[3] !== undefined;
-	},
-
-	sequence: (event) => {
-		return event[4] !== undefined;
-	},
-
-	meter: (event) => {
-		return event[3] !== undefined;
-	},
-
-	rate: (event) => {
-		return event[2] !== undefined;
-	},
-
-	default: function() {
-		return false;
-	}
+	note:     (event) => event[4] !== undefined,
+	noteon:   (event) => event[3] !== undefined,
+	noteoff:  (event) => event[3] !== undefined,
+	sequence: (event) => event[4] !== undefined,
+	meter:    (event) => event[3] !== undefined,
+	rate:     (event) => event[2] !== undefined,
+	param:    (event) => event[4] !== undefined,
+	default:  (event) => false
 });
 
-// Event types
-//
-// [time, "rate", number, curve]
-// [time, "meter", numerator, denominator]
-// [time, "note", number, velocity, duration]
-// [time, "noteon", number, velocity]
-// [time, "noteoff", number]
-// [time, "param", name, value, curve]
-// [time, "pitch", semitones]
-// [time, "chord", root, mode, duration]
-// [time, "sequence", name || events, target, duration, transforms...]
-
 export const eventValidationHint = overload(get(1), {
-	note: (event) => {
-		return 'Should be of the form [time, "note", number, velocity, duration]';
-	},
-
-	noteon: (event) => {
-		return 'Should be of the form [time, "noteon", number, velocity]';
-	},
-
-	noteoff: (event) => {
-		return 'Should be of the form [time, "noteoff", number]';
-	},
-
-	sequence: (event) => {
-		return 'Should be of the form [time, "sequence", id, target, duration]';
-	},
-
-	meter: (event) => {
-		return 'Should be of the form [time, "meter", numerator, denominator]';
-	},
-
-	rate: (event) => {
-		return 'Should be of the form [time, "rate", number, curve]';
-	},
-
-	default: function() {
-		return 'Probably should be of the form [time, "param", name, value, curve]';
-	}
+	note:     (event) => 'Should be of the form [time, "note", number, velocity, duration]',
+	noteon:   (event) => 'Should be of the form [time, "noteon", number, velocity]',
+	noteoff:  (event) => 'Should be of the form [time, "noteoff", number]',
+	sequence: (event) => 'Should be of the form [time, "sequence", id, target, duration]',
+	meter:    (event) => 'Should be of the form [time, "meter", numerator, denominator]',
+	rate:     (event) => 'Should be of the form [time, "rate", number, curve]',
+	default:  (event) => 'Probably should be of the form [time, "param", name, value, curve]'
 });

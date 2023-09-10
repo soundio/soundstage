@@ -1,15 +1,15 @@
 
 import matches  from '../../fn/modules/matches.js';
 import Privates from '../../fn/modules/privates.js';
-import Stream   from '../../fn/modules/stream.js';
 
+import Frames                 from './frames.js';
+import Playable, { PLAYING }  from './playable.js';
+import Meter                  from './meter.js';
+import { SSSequencer }        from './sequence.js';
 import { isRateEvent, getDuration, isValidEvent, eventValidationHint } from './event.js';
 import { automate, getValueAtTime } from './automate.js';
-import { SSSequencer } from './sequence.js';
-import Playable from './playable.js';
 import { timeAtBeatOfEvents } from './location.js';
-import Meter from './meter.js';
-import { distribute } from './distribute.js';
+import { distribute }         from './distribute.js';
 
 const DEBUG = window.DEBUG;
 
@@ -28,6 +28,8 @@ function byBeat(a, b) {
 
 
 // Command constructor and pool
+//
+// I SEE NO REASON NOT TO USE THE Event() OBJECT FOR COMMANDS
 
 function Command(beat, type, event) {
     // If there is a command in the pool use that
@@ -54,11 +56,17 @@ Command.reset = function(command, beat, type, event) {
     return command;
 }
 
+// -------------------
+
+
+
+
 function updateFrame(sequence, frame) {
     // This assumes rateParam is already populated, or is
     // populated dynamically
     frame.b1 = sequence.beatAtTime(frame.t1);
     frame.b2 = sequence.beatAtTime(frame.t2);
+    return frame;
 }
 
 function advanceToB1(events, frame) {
@@ -211,7 +219,8 @@ function addSequenceData(data, command) {
         throw new Error('Sequence "' + sequenceId + '" not found')
     }
 
-    const node = target.get(nodeId);
+    // TEMP: target? check only here so test will run
+    const node = target && target.get ? target.get(nodeId) : {} ;
 
     if (!node) {
         throw new Error('Node "' + nodeId + '" not found')
@@ -302,25 +311,30 @@ function automateRate(privates, event) {
     return privates;
 }
 
-export default function Sequencer(transport, data, rateParam, timer, notify) {
+export default function Sequencer(transport, data, rateParam, notify) {
 
     // Playable provides the properties:
     //
     // startTime:  number || undefined
     // stopTime:   number || undefined
-    // playing:    boolean
-
-    Playable.call(this);
+    // status:     idle || playing || done
+    //
+    // There is no point in calling this here as .startTime and .stopTime are
+    // defined in SSSequencer and .status in define(Sequencer) below.
+    // Playable.call(this);
 
 
     // SSSequencer provides the properties:
     //
     // startTime:  number || undefined
     // stopTime:   number || undefined
-    // playing:    boolean
+    // status:     idle || playing || done
+    // transport:  object
 
     SSSequencer.call(this, transport, this);
 
+    this.events    = data.events;
+    this.sequences = data.sequences;
 
     // Mix in Meter
     //
@@ -335,7 +349,6 @@ export default function Sequencer(transport, data, rateParam, timer, notify) {
 
     const privates = Privates(this);
 
-    privates.timer     = timer;
     privates.rateParam = rateParam;
     privates.beat      = 0;
     privates.notify    = notify;
@@ -354,17 +367,73 @@ export default function Sequencer(transport, data, rateParam, timer, notify) {
 }
 
 define(Sequencer.prototype, {
+    /**
+    .bar
+    The current bar count.
+    **/
+
+    bar: {
+        get: function() {
+            return this.barAtBeat(this.beat) ;
+        }
+    },
+
+    /** .beat
+    The current beat count.
+    **/
+
+    beat: {
+        get: function() {
+            const privates = Privates(this);
+
+            if (this.startTime === undefined || this.startTime >= this.context.currentTime || this.stopTime < this.context.currentTime) {
+                return privates.beat;
+            }
+
+            return this.beatAtTime(this.time);
+        },
+
+        set: function(value) {
+            const privates = Privates(this);
+
+            if (this.startTime === undefined || this.stopTime < this.context.currentTime) {
+                privates.beat = value;
+                // Todo: update state of entire graph with evented settings for
+                // this beat
+            }
+            else {
+                // Sequence is started - can we move the beat? Ummm... I don't thunk so...
+                throw new Error('Beat cannot be moved while sequencer is running');
+            }
+        }
+    },
 
     /** .time
     The time of audio now leaving the device output. (In browsers the have not
-    yet implemented `AudioContext.getOutputTimestamp()` this value is estimated from
-    `currentTime` and a guess at the output latency. Which is a bit meh, but
-    better than nothing.)
+    yet implemented `AudioContext.getOutputTimestamp()` this value is estimated
+    from `currentTime` and a guess at the output latency. Which is a bit meh,
+    but better than nothing.)
     **/
 
     time: {
         get: function() {
             return this.context.getOutputTimestamp().contextTime;
+        }
+    },
+
+    /** .meter
+    The current meter.
+    **/
+
+    meter: {
+        get: function() {
+            const { transport } = Privates(this);
+            return transport.getMeterAtTime(this.context.currentTime);
+        },
+
+        set: function(meter) {
+            const { transport } = Privates(this);
+            transport.setMeterAtTime(meter, this.context.currentTime)
         }
     },
 
@@ -399,64 +468,7 @@ define(Sequencer.prototype, {
         }
     },
 
-    /** .meter
-    The current meter.
-    **/
-
-    meter: {
-        get: function() {
-            const transport = Privates(this).transport;
-            return transport.getMeterAtTime(transport.currentTime);
-        },
-
-        set: function(meter) {
-            const transport = Privates(this).transport;
-            transport.setMeterAtTime(meter, transport.currentTime)
-        }
-    },
-
-    /** .beat
-    The current beat count.
-    **/
-
-    beat: {
-        get: function() {
-            const privates = Privates(this);
-
-            if (this.startTime === undefined || this.startTime >= this.context.currentTime || this.stopTime < this.context.currentTime) {
-                return privates.beat;
-            }
-
-            return this.beatAtTime(this.time);
-        },
-
-        set: function(value) {
-            const privates = Privates(this);
-
-            if (this.startTime === undefined || this.stopTime < this.context.currentTime) {
-                privates.beat = value;
-                // Todo: update state of entire graph with evented settings for
-                // this beat
-            }
-            else {
-                // Sequence is started - can we move the beat? Ummm... I don't thunk so...
-                throw new Error('Beat cannot be moved while sequencer is running');
-            }
-        }
-    },
-
-    /**
-    .bar
-    The current bar count.
-    **/
-
-    bar: {
-        get: function() {
-            return this.barAtBeat(this.beat) ;
-        }
-    },
-
-    status: getOwnPropertyDescriptor(Playable.prototype, 'status')
+//    status: getOwnPropertyDescriptor(Playable.prototype, 'status')
 });
 
 assign(Sequencer.prototype, Meter.prototype, {
@@ -483,21 +495,21 @@ assign(Sequencer.prototype, Meter.prototype, {
 
     start: function(time, beat) {
         const privates  = Privates(this);
+        const transport = privates.transport;
 
         time = time || this.context.currentTime;
         beat = beat === undefined ? privates.beat : beat ;
 
-        // Run transport, if it is not already - Todo: .playing uses currentTIme
+        // Run transport, if it is not already - Todo: .playing uses currentTime
         // write some logic that uses time (kind of like what .playing does)
-        if (this.transport.playing) {
-            time = this.transport.timeAtBeat(Math.ceil(this.transport.beatAtTime(time)));
+        if (transport.status === PLAYING) {
+            time = transport.timeAtBeat(Math.ceil(transport.beatAtTime(time)));
         }
         else {
-            this.transport.start(time, beat);
+            transport.start(time, beat);
         }
 
         const stream    = privates.stream;
-        const transport = privates.transport;
         const events    = this.events;
         const rateParam = privates.rateParam;
 
@@ -530,9 +542,9 @@ assign(Sequencer.prototype, Meter.prototype, {
             target:       this
         };
 
-        privates.stream = Stream
-        .fromTimer(privates.timer)
-        .tap((frame) => {
+        return privates.stream = Frames
+        .from(this.context)
+        .map((frame) => {
             updateFrame(this, frame);
 
             // Event index
@@ -547,12 +559,12 @@ assign(Sequencer.prototype, Meter.prototype, {
                     transport.setMeterAtBeat(events[m][0] + transport.beatAtTime(this.startTime), events[m][2], events[m][3]);
                 }
             }
+
+            return frame;
         })
         .scan(processFrame, data)
         .each(distributeData)
         .start(time);
-
-        return this;
     },
 
     /**
@@ -563,8 +575,8 @@ assign(Sequencer.prototype, Meter.prototype, {
     stop: function(time) {
         time = time || this.context.currentTime;
 
-        const privates = Privates(this);
-        const stream   = privates.stream;
+        const privates  = Privates(this);
+        const stream    = privates.stream;
         const rateParam = privates.rateParam;
 
         // Set this.stopTime

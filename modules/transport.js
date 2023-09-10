@@ -11,6 +11,11 @@ import { connect, disconnect } from './connect.js';
 import { beatAtTimeOfAutomation, timeAtBeatOfAutomation } from './location.js';
 import Clock from './clock.js';
 
+/**
+Transport(context, rateParam, notify)
+TODO: Why is timer here? it doesnt appear to do anything transport-y
+**/
+
 const assign = Object.assign;
 const define = Object.defineProperties;
 const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
@@ -18,14 +23,13 @@ const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 const defaultRateEvent  = Object.freeze({ time: 0, value: 2, curve: 'step', beat: 0 });
 const defaultMeterEvent = Object.freeze({ 0: 0, 1: 'meter', 2: 4, 3: 1 });
 
-export default function Transport(context, rateParam, timer, notify) {
+export default function Transport(context, rateParam, notify) {
     Clock.call(this, context, notify);
 
     // Private
     const privates = Privates(this);
     privates.rateParam = rateParam;
     privates.meters = [defaultMeterEvent];
-    privates.timer  = timer;
     privates.notify = notify;
     privates.sequenceCount = 0;
 }
@@ -34,8 +38,8 @@ assign(Transport.prototype, Clock.prototype, {
     beatAtTime: function(time) {
         if (time < 0) { throw new Error('Location: beatAtLoc(loc) does not accept -ve values.'); }
 
-        const privates  = Privates(this);
-        const events    = getAutomation(privates.rateParam);
+        const { rateParam } = Privates(this);
+        const events    = getAutomation(rateParam);
         // Cache startLocation as it is highly likely to be needed again
         //console.log('transport.beatAtTime', this.startTime, defaultRateEvent, events);
         const startBeat = this.startLocation || (this.startLocation = beatAtTimeOfAutomation(events, defaultRateEvent, this.startTime));
@@ -88,10 +92,22 @@ assign(Transport.prototype, Clock.prototype, {
         return true;
     },
 
+    getMeterAtTime: function(time) {
+        const { meters } = Privates(this);
+        const beat = this.beatAtTime(time);
+
+        let n = -1;
+        while(++n < meters.length && meters[n][0] <= beat);
+        console.log(time, beat, n, meters[n]);
+        return meters[n - 1];
+    },
+
     sequence: function(toEventsBuffer) {
         const privates = Privates(this);
-        const stream = Stream
-        .fromTimer(privates.timer)
+        ++privates.sequenceCount;
+
+        return Frames
+        .from(this.context)
         .map((frame) => {
             // Filter out frames before startTime
             if (frame.t2 <= this.startTime) {
@@ -111,25 +127,13 @@ assign(Transport.prototype, Clock.prototype, {
 
             return frame;
         })
-        .map(toEventsBuffer);
-
-        const output = stream
-        .chain(id)
-        .tap((event) => event.time = this.timeAtBeat(event[0]));
-
-        output.start = (time) => {
-            stream.start(time || privates.timer.now());
-            privates.sequenceCount++;
-            return stream;
-        };
-
-        output.stop = (time) => {
-            stream.stop(time || privates.timer.now());
-            privates.sequenceCount--;
-            return stream;
-        };
-
-        return output;
+        .map(toEventsBuffer)
+        .flatMap(id)
+        .map((event) => {
+            event.time = this.timeAtBeat(event[0]);
+            return event;
+        })
+        .done(() => --privates.sequenceCount);
     },
 
     // Todo: work out how stages are going to .connect(), and
@@ -191,13 +195,15 @@ define(Transport.prototype, {
 
     frameDuration: {
         get: function() {
-            return Privates(this).timer.duration;
+                console.log('TODO: REPAIR frameDuration');
+    //        return Privates(this).timer.duration;
         }
     },
 
     frameLookahead: {
         get: function() {
-            return Privates(this).timer.lookahead;
+            console.log('TODO: REPAIR frameLookahead');
+    //        return Privates(this).timer.lookahead;
         }
     }
 });

@@ -56,18 +56,21 @@ const stage = new Soundstage({
 ```
 **/
 
+
+import insert   from '../../fn/modules/lists/insert.js';
 import nothing  from '../../fn/modules/nothing.js';
 import Privates from '../../fn/modules/privates.js';
 import Clock    from './clock.js';
-import { insertBy0, createId, matchesId } from './utilities.js';
+import { createId, matchesId } from './utilities.js';
 import { beatAtLocation, locationAtBeat } from './location.js';
-import { Event, isRateEvent, isValidEvent } from './event.js';
+import Event, { isRateEvent, isValidEvent } from './event.js';
 
 const A      = Array.prototype;
 const assign = Object.assign;
 const freeze = Object.freeze;
 
-const rate0  = freeze({ 0: 0, 1: 'rate', 2: 1, location: 0 });
+const insertByBeat = insert(get('0'));
+const rate0        = freeze({ 0: 0, 1: 'rate', 2: 1, location: 0 });
 
 function round(n) {
     return Math.round(n * 1000000000000) / 1000000000000;
@@ -127,7 +130,7 @@ assign(Sequence.prototype, {
             }
         }
 
-        insertBy0(this.events, event);
+        insertByBeat(this.events, event);
         return event;
     },
 
@@ -209,7 +212,7 @@ assign(SSSequencer.prototype, Clock.prototype, {
             throw new Error('Sequence cant .record(...) invalid event ' + JSON.stringify(event));
         }
 
-        insertBy0(this.events, event);
+        insertByBeat(this.events, event);
         return this;
     }
 });

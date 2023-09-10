@@ -26,9 +26,9 @@ const DEBUG  = window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
 
-const IDLE    = 'idle';
-const CUED    = 'cued';
-const PLAYING = 'playing';
+export const IDLE    = 'idle';
+export const CUED    = 'cued';
+export const PLAYING = 'playing';
 
 const properties = {
     /**
@@ -146,37 +146,23 @@ define(Playable.prototype, {
     **/
 
     status: {
+        /* Experimental allow Stream to overwrite .status */
+        set: function(value) {
+            this.statusOverride = value;
+        },
+
         get: function() {
-            return this.startTime !== undefined ?
-                this.startTime <= this.context.currentTime ?
-                    this.stopTime === undefined || this.stopTime > this.context.currentTime ?
-                        PLAYING :
-                    IDLE :
-                CUED :
-            IDLE ;
+            return
+                /* Experimental allow Stream to overwrite .status */
+                this.statusOverride ? this.statusOverride :
+                this.startTime !== undefined ?
+                    this.startTime <= this.context.currentTime ?
+                        this.stopTime === undefined || this.stopTime > this.context.currentTime ?
+                            PLAYING :
+                        IDLE :
+                    CUED :
+                IDLE ;
         }
     }
 });
 
-export { IDLE, CUED, PLAYING };
-
-/**
-Mixin
-
-Playable is designed to be assigned as a mixin in other constructors.
-
-```js
-// Call the Playable constructor inside your constructor
-function MyObject(context) {
-    Playable.call(this, context);
-}
-
-// Assign its prototype to your object's prototype
-Object.assign(MyObject.prototype, Playable.prototype);
-
-// Define its properties on your object's prototype
-Object.defineProperties(MyObject.prototype, {
-    status: Object.getOwnPropertyDescriptor(Playable.prototype, 'status')
-});
-```
-**/

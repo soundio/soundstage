@@ -1,148 +1,99 @@
 
-import Stream     from '../../../fn/modules/stream.js';
-import run        from '../../../fn/modules/test.js';
-import context    from '../context.js';
-import Timer      from '../timer.js';
+import run     from '../../../fn/modules/test.js';
+import Stream  from '../../../fn/modules/stream.js';
+import context from '../context.js';
+import Frames  from '../frames.js';
 
-function now() { return context.currentTime; }
 
-run('Timer().request()', [true], function(test, done) {
-    const t = new Timer(now);
-
-    t.request(function(time) {
-        test(t.currentTime === time);
-        done();
-    });
-}, 1);
-
-run('Timer().cancel()', [], function(test, done) {
-    const t = new Timer(now);
-
-    t.request(test);
-    t.cancel(test);
-
-    done();
-}, 0);
-
-run('Stream.fromTimer(timer).start(1).stop(2) - events emitted', [true, true, true, true], function(test, done) {
-    const t = new Timer(now);
-
+run('Frames.from(context).start(1).stop(2) - events emitted', [true, true, true, true, true, true, true, true, true, true, true, true, true, true, true], function(test, done) {
     const startTime = context.currentTime + 1;
+
     let t1 = 0;
     let t2 = 0;
     let n  = 0;
 
-    Stream
-    .fromTimer(t)
+    Frames
+    .from(context)
     .start(startTime)
     .stop(startTime + 1)
     .each(function(e) {
-        ++n;
-
         test(startTime === e.startTime);
-
         test(e.t1 > t1);
-        t1 = e.t1;
-
         test(e.t2 > t2);
+        t1 = e.t1;
         t2 = e.t2;
-    });
-
-    setTimeout(function() {
-        // Crude test... we've had at least 4 frames?
-        test(n > 4);
-        done();
-    }, 3000);
+    })
+    .done(done);
 });
 
-run('Stream.fromTimer(timer).start(-1).stop(-0.5) – nothing emitted', [], function(test, done) {
-    const t = new Timer(now);
 
+run('Frames.from(context).start(-1).stop(-0.5)', [], function(test, done) {
     const startTime = context.currentTime - 1;
+
     let t1 = 0;
     let t2 = 0;
 
-    Stream
-    .fromTimer(t)
+    Frames
+    .from(context)
     .start(startTime)
+    // TODO: done() fires here but...
+    .done(() => test('never'))
     .stop(startTime + 0.5)
+    // Stream is determined stopped before it is even piped to each, so nothing
+    // is emitted.
     .each(test);
 
-    setTimeout(function() {
-        done();
-    }, 1500);
-}, 0);
+    done();
+});
 
-run('Stream.fromTimer(timer).start(1).stop(1) – nothing emitted', [], function(test, done) {
-    const t = new Timer(now);
 
-    const startTime = context.currentTime + 1;
+run('Frames.from(context).start(1).stop(1)', [], function(test, done) {
+    const startTime = context.currentTime + 0.4;
+
     let t1 = 0;
     let t2 = 0;
 
-    Stream
-    .fromTimer(t)
+    Frames
+    .from(context)
     .start(startTime)
     .stop(startTime)
     .each(test);
 
-    setTimeout(function() {
-        done();
-    }, 1500);
-}, 0);
+    setTimeout(done, 600);
+});
 
-run('Stream.fromTimer(timer).start().stop() – nothing emitted', [], function(test, done) {
-    const t = new Timer(now);
 
+run('Frames.from(context).start(1)...stop(1.5)', [true,true,true,true,true,true,true,true,true,'done'], function(test, done) {
     const startTime = context.currentTime + 1;
-    let t1 = 0;
-    let t2 = 0;
 
-    Stream
-    .fromTimer(t)
-    .start(startTime)
-    .stop(startTime)
-    .each(test);
-
-    setTimeout(function() {
-        done();
-    }, 1500);
-}, 0);
-
-run('Stream.fromTimer(timer).start(1) ...stop(1.5) – events emitted', [true,true,true,true], function(test, done) {
-    const t = new Timer(now);
-
-    const startTime = context.currentTime + 1;
     let t1 = 0;
     let t2 = 0;
     let n  = 0;
 
-    var s = Stream
-    .fromTimer(t)
+    const frames = Frames.from(context);
+
+    // We can't chain the stream for just now. The stop() method only behaves
+    // on the original stream object. TODO: review Stream and try and pass the
+    // stop message back up the chain so the head can decide what to do with it.
+
+    frames
     .start(startTime)
     .each(function(e) {
-        ++n;
-
         test(startTime === e.startTime);
-
         test(e.t1 > t1);
-        t1 = e.t1;
-
         test(e.t2 > t2);
+        t1 = e.t1;
         t2 = e.t2;
+    })
+    .done(() => {
+        test('done');
+        done();
     });
 
-    setTimeout(function() {
-        s.stop(startTime + 0.5);
-    }, 500);
-
-    setTimeout(function() {
-        // Crude test... we've had at least 3 frames?
-        test(n >= 3);
-        done();
-    }, 2000);
+    setTimeout(() => frames.stop(startTime + 0.5), 1100);
 });
 
+/*
 run('Stream.fromTimer(timer).start(1) ...stop(1) – nothing emitted', [], function(test, done) {
     const t = new Timer(now);
 
@@ -165,8 +116,6 @@ run('Stream.fromTimer(timer).start(1) ...stop(1) – nothing emitted', [], funct
 });
 
 run('Stream.fromTimer(timer).start(-1) ...stop(-0.5) – events emitted', [true, true, true, true], function(test, done) {
-    const t = new Timer(now);
-
     const startTime = context.currentTime - 1;
     let t1 = 0;
     let t2 = 0;
@@ -179,11 +128,9 @@ run('Stream.fromTimer(timer).start(-1) ...stop(-0.5) – events emitted', [true,
         ++n;
 
         test(startTime === e.startTime);
-
         test(e.t1 > t1);
-        t1 = e.t1;
-
         test(e.t2 > t2);
+        t1 = e.t1;
         t2 = e.t2;
     });
 
@@ -218,3 +165,4 @@ run('Stream.fromTimer(timer).stop(1) – throws an error', [], function(test, do
         done();
     }, 1500);
 }, 1);
+*/

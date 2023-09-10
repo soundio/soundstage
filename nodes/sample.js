@@ -50,7 +50,6 @@ import Playable  from '../modules/playable.js';
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
-const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
 const cache = {};
 
@@ -336,5 +335,5 @@ assign(Sample.prototype, Playable.prototype, NodeGraph.prototype, {
 
 // Mix in property definitions
 define(Sample.prototype, {
-    status: getOwnPropertyDescriptor(Playable.prototype, 'status')
+    status: Object.getOwnPropertyDescriptor(Playable.prototype, 'status')
 });

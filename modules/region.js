@@ -2,7 +2,7 @@
 import Pool    from '../../fn/modules/pool.js';
 import noop    from '../../fn/modules/noop.js';
 import nothing from '../../fn/modules/nothing.js';
-import { fetchBuffer } from './utilities.js';
+import { requestBuffer } from './request-buffer.js';
 
 var assign      = Object.assign;
 
@@ -85,7 +85,8 @@ export default function Region(audio, buffer, settings) {
     // Initialise buffer
 
     if (typeof buffer === 'string') {
-        fetchBuffer(audio, buffer).then(function(buffer) {
+        requestBuffer(audio, buffer)
+        .then(function(buffer) {
             buffer = buffer;
             region.loaded = true;
         });

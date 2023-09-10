@@ -15,7 +15,6 @@ import Control       from './control.js';
 import Metronome     from '../nodes/metronome.js';
 import Graph         from './graph.js';
 import requestMedia  from './request-media.js';
-import Timer         from './timer.js';
 import Transport     from './transport.js';
 import Sequencer     from './sequencer.js';
 import Sequence      from './sequence.js';
@@ -172,8 +171,8 @@ export default function Soundstage(data = defaultData, settings = nothing) {
     const merger      = createOutputMerger(context, destination);
     const rateNode    = new window.ConstantSourceNode(context, { offset: 2 });
     const rateParam   = rateNode.offset;
-    const timer       = new Timer(() => context.currentTime);
-    const transport   = new Transport(context, rateParam, timer, notify);
+    //const timer       = new Timer(() => context.currentTime);
+    const transport   = new Transport(context, rateParam, notify);
 
     // Replace with stage.connect(destination) ??
     merger.connect(destination);
@@ -281,7 +280,7 @@ export default function Soundstage(data = defaultData, settings = nothing) {
     // barAtBeat:      fn
     // cue:            fn
 
-    Sequencer.call(this, transport, data, rateParam, timer, notify);
+    Sequencer.call(this, transport, data, rateParam, null, notify);
 
 
     // Initialise as a recorder...

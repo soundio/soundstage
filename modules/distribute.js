@@ -37,8 +37,7 @@ export const distributors = {
 
     'noteoff': function(target, time, type, name, value, duration, notify) {
         const number = typeof name === 'number' ? name : toNoteNumber(name) ;
-        target.stop(time, number, value);
-        return target;
+        return target.stop(time, number, value);
     },
 
     'sequence': function(target, time, type, sequenceId, rate, nodeId, notify) {
@@ -48,7 +47,8 @@ export const distributors = {
             throw new Error('Sequence "' + sequenceId + '" not found')
         }
 
-        const node = target.get(nodeId);
+        // This target? guard here so that tests will run without passing in target
+        const node = target ? target.get(nodeId) : {} ;
 
         if (!node) {
             throw new Error('Node "' + nodeId + '" not found')
@@ -85,6 +85,11 @@ export const distributors = {
     'invoke': function(target, time, type, name, value) {
         target[name](time, value);
         return target;
+    },
+
+    'log': function(target, time, type, string) {
+        print('Event ' + string);
+        return;
     },
 
     'default': function(target, time, type, name, value, duration, notify) {
