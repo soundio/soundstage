@@ -3,18 +3,14 @@ import id       from '../../fn/modules/id.js';
 import Privates from '../../fn/modules/privates.js';
 import Stream   from '../../fn/modules/stream.js';
 
-import { roundBeat } from './utilities.js';
+import Clock    from './clock.js';
+
+import { roundBeat }            from './utilities.js';
 import { automate, getValueAtTime, getAutomation } from './automate.js';
 import { barAtBeat, beatAtBar } from './meter.js';
-//import { isRateEvent } from './event.js';
-import { connect, disconnect } from './connect.js';
+import { connect, disconnect }  from './connect.js';
 import { beatAtTimeOfAutomation, timeAtBeatOfAutomation } from './location.js';
-import Clock from './clock.js';
 
-/**
-Transport(context, rateParam, notify)
-TODO: Why is timer here? it doesnt appear to do anything transport-y
-**/
 
 const assign = Object.assign;
 const define = Object.defineProperties;
@@ -23,23 +19,75 @@ const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 const defaultRateEvent  = Object.freeze({ time: 0, value: 2, curve: 'step', beat: 0 });
 const defaultMeterEvent = Object.freeze({ 0: 0, 1: 'meter', 2: 4, 3: 1 });
 
-export default function Transport(context, rateParam, notify) {
-    Clock.call(this, context, notify);
+
+function invertNodeFromNode(inputNode) {
+    // Divide input by 8 to give us a bit of headroom. For rate, we're looking
+    // at a rate of 8 = 480bpm. Surely we don't need the beat to go faster than
+    // that? Divide by 8...
+    const invertGain = new GainNode(inputNode.context, {
+        gain: 0.125,
+        channelCount: 1,
+        channelCountMode: 'explicit',
+        channelInterpretation: 'discrete'
+    });
+
+    const invertNode = new WaveShaperNode(inputNode.context, {
+        curve: Float32Array.from({ length: 2401 }, (n, i) => {
+            // ...then ramp should have the range [-8, 8]
+            const ramp = (8 * 2 * i / 2400) - 8;
+            // Nix 1/0, waveshaper does not like Infinity, make it 0
+            return ramp === 0 ? 0 : 1 / ramp ;
+        }),
+        channelCount: 1,
+        channelCountMode: 'explicit',
+        channelInterpretation: 'discrete'
+    });
+
+    inputNode.connect(invertGain);
+    invertGain.connect(invertNode);
+    return invertNode;
+}
+
+
+/**
+Transport(context)
+**/
+
+export default function Transport(context) {
+    // Clock
+    // .context
+    // .startTime
+    // .startLocation
+    // .stopTime
+    // .start()
+    // .stop()
+    Clock.call(this, context);
 
     // Private
     const privates = Privates(this);
-    privates.rateParam = rateParam;
-    privates.meters = [defaultMeterEvent];
-    privates.notify = notify;
+    privates.meters        = [defaultMeterEvent];
     privates.sequenceCount = 0;
+
+    // A rate of 2 = 120bpm
+    const rateNode = new window.ConstantSourceNode(context, { offset: 2 });
+    const beatNode = invertNodeFromNode(rateNode);
+
+    // .rate - AudioParam
+    this.rate = rateNode.offset;
+    rateNode.start(0);
+
+    // .outputs – Object - This may be moved/renamed/done something with
+    this.outputs = {
+        rate: rateNode,
+        beat: beatNode
+    };
 }
 
 assign(Transport.prototype, Clock.prototype, {
     beatAtTime: function(time) {
         if (time < 0) { throw new Error('Location: beatAtLoc(loc) does not accept -ve values.'); }
 
-        const { rateParam } = Privates(this);
-        const events    = getAutomation(rateParam);
+        const events    = getAutomation(this.rate);
         // Cache startLocation as it is highly likely to be needed again
         //console.log('transport.beatAtTime', this.startTime, defaultRateEvent, events);
         const startBeat = this.startLocation || (this.startLocation = beatAtTimeOfAutomation(events, defaultRateEvent, this.startTime));
@@ -51,8 +99,7 @@ assign(Transport.prototype, Clock.prototype, {
     timeAtBeat: function(beat) {
         if (beat < 0) { throw new Error('Location: locAtBeat(beat) does not accept -ve values.'); }
 
-        const privates  = Privates(this);
-        const events    = getAutomation(privates.rateParam);
+        const events    = getAutomation(this.rate);
         // Cache startLocation as it is highly likely to be needed again
         const startBeat = this.startLocation || (this.startLocation = beatAtTimeOfAutomation(events, defaultRateEvent, this.startTime));
 
@@ -72,7 +119,7 @@ assign(Transport.prototype, Clock.prototype, {
     },
 
     rateAtTime: function(time) {
-        return getValueAtTime(Privates(this).rateParam);
+        return getValueAtTime(this.rate);
     },
 
     setMeterAtBeat: function(beat, bar, div) {
@@ -137,17 +184,17 @@ assign(Transport.prototype, Clock.prototype, {
     },
 
     // Todo: work out how stages are going to .connect(), and
-    // sort out how to access rateParam (which comes from Transport(), BTW)
+    // sort out how to access rate (which comes from Transport(), BTW)
     connect: function(target, outputName, targetChan) {
         return outputName === 'rate' ?
-            connect(Privates(this).rateParam, target, 0, targetChan) :
+            connect(this.rate, target, 0, targetChan) :
             connect() ;
     },
 
     disconnect: function(outputName, target, outputChan, targetChan) {
         if (outputName !== 'rate') { return; }
         if (!target) { return; }
-        disconnect(Privates(this).rateParam, target, 0, targetChan);
+        disconnect(this.rate, target, 0, targetChan);
     }
 });
 

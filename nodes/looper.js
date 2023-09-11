@@ -48,14 +48,12 @@ const graph = {
         .dry
         An AudioParam controlling the direct signal ('dry') gain.
         **/
-
         dry: 'dray.gain',
 
         /**
         .wet
         An AudioParam controlling the looper signal ('wet') gain.
         **/
-
         wet: 'wet.gain'
     },
 
@@ -78,7 +76,6 @@ const properties = {
     .beats
     The beat duration of the base loop.
     **/
-
     "beats":           { enumerable: true, writable: true },
     "recordStartTime": { enumerable: true, writable: true }
 };
@@ -184,29 +181,23 @@ assign(Looper.prototype, Playable.prototype, NodeGraph.prototype, {
         return this;
     },
 
-    /** .stop(time)
-
-    Stop playback of loops at `time`.
-
-    Returns `this`.
+    /**
+    .stop(time)
+    Stop playback of loops at `time`. Returns `this`.
     **/
-
     stop: function(time) {
         Playable.prototype.stop.apply(this, arguments);
         this.sources.forEach((source) => source.stop(this.stopTime));
         return this;
     },
 
-    /** .startRecord(time)
-
+    /**
+    .startRecord(time)
     Starts recording at `time`. The looper is continually buffering a signal,
     so `time` may be before `context.currentTime` (by up to 0.6s @44.1kHz or
     0.3s @96kHz). This means recorded loops may be started in syncrounisation
-    with audio already leaving the system's output.
-
-    Returns `this`.
+    with audio already leaving the system's output. Returns `this`.
     **/
-
     startRecord: function(time) {
         const privates  = Privates(this);
         const recorder  = this.get('recorder');
@@ -285,14 +276,11 @@ assign(Looper.prototype, Playable.prototype, NodeGraph.prototype, {
         return this;
     },
 
-    /** .stopRecord(time)
-
+    /**
+    .stopRecord(time)
     Stop recording at `time`. If the looper is not already playing, playback
-    is started at the same time.
-
-    Returns `this`.
+    is started at the same time. Returns `this`.
     **/
-
     stopRecord: function(time) {
         const privates  = Privates(this);
         const recorder  = this.get('recorder');
@@ -314,13 +302,12 @@ assign(Looper.prototype, Playable.prototype, NodeGraph.prototype, {
         return this;
     },
 
-    /** .records()
-
+    /**
+    .records()
     Returns an array of records, objects containing unsaved buffers. This
     method is called by `Soundstage.records()` when gathering records from all
     nodes.
     **/
-
     records: function() {
         return this.sources.reduce((list, source) => {
             const data = source.records && source.records();

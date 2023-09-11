@@ -20,10 +20,12 @@ An array of objects defining connections. See <a href="#nodes-and-connections">N
 import get      from '../../fn/modules/get.js';
 import has      from '../../fn/modules/has.js';
 import Privates from '../../fn/modules/privates.js';
-import { print }  from './print.js';
-import { generateUnique }  from './utilities.js';
-import Node       from './node.js';
-import Connector from './connector.js';
+
+import Node               from './graph/node.js';
+import Connector          from './graph/connector.js';
+
+import { print }          from './print.js';
+import { generateUnique } from './utilities.js';
 
 const assign    = Object.assign;
 const define    = Object.defineProperties;

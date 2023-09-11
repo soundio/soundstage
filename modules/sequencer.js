@@ -2,10 +2,10 @@
 import matches  from '../../fn/modules/matches.js';
 import Privates from '../../fn/modules/privates.js';
 
-import Frames                 from './frames.js';
+import Frames                 from './sequencer/frames.js';
 import Playable, { PLAYING }  from './playable.js';
 import Meter                  from './meter.js';
-import { SSSequencer }        from './sequence.js';
+import { SSSequencer }        from './sssequencer.js';
 import { isRateEvent, getDuration, isValidEvent, eventValidationHint } from './event.js';
 import { automate, getValueAtTime } from './automate.js';
 import { timeAtBeatOfEvents } from './location.js';
@@ -25,7 +25,6 @@ function byBeat(a, b) {
         a[0] > b[0] ? 1 :
         -1 ;
 }
-
 
 // Command constructor and pool
 //
@@ -373,9 +372,7 @@ define(Sequencer.prototype, {
     **/
 
     bar: {
-        get: function() {
-            return this.barAtBeat(this.beat) ;
-        }
+        get: function() { return this.barAtBeat(this.beat) ; }
     },
 
     /** .beat
@@ -457,15 +454,9 @@ define(Sequencer.prototype, {
     /** .tempo
     The rate of the transport clock, expressed in bpm.
     **/
-
     tempo: {
-        get: function() {
-            return this.rate * 60;
-        },
-
-        set: function(tempo) {
-            this.rate = tempo / 60;
-        }
+        get: function() { return this.rate * 60; },
+        set: function(tempo) { this.rate = tempo / 60; }
     },
 
 //    status: getOwnPropertyDescriptor(Playable.prototype, 'status')

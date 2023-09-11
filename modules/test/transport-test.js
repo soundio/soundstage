@@ -4,43 +4,49 @@ import Transport from '../transport.js';
 
 // Transports default rate is 2!!
 
-run('transport.start()', [true, true, true, 0, 2], function(test, done) {
-    const rateNode    = new ConstantSourceNode(context, { offset: 2 });
-    const transport   = new Transport(context, rateNode.offset);
+run('transport.start()',
+    [true, true, true, 0, 2],
+    function(test, done) {
+        const rateNode    = new ConstantSourceNode(context, { offset: 2 });
+        const transport   = new Transport(context, rateNode.offset);
 
-    // Let audio clock settle
-    setTimeout(function() {
-        const t = context.currentTime;
+        // Let audio clock settle
+        setTimeout(function() {
+            const t = context.currentTime;
 
-        transport.start();
+            transport.start();
 
-        test(t === transport.startTime);
-        test(t === transport.timeAtBeat(0));
-        test(t + 0.5 === transport.timeAtBeat(1));
-        test(transport.beatAtTime(t));
-        test(transport.beatAtTime(t + 1));
+            test(t === transport.startTime);           // Check startTime is currentTime by default
+            test(t === transport.timeAtBeat(0));       // Check time corresponds to startTime
+            test(t + 0.5 === transport.timeAtBeat(1)); // Check rate is 2
+            test(transport.beatAtTime(t));
+            test(transport.beatAtTime(t + 1));
 
-        done();
-    }, 500);
-});
+            done();
+        }, 500);
+    }
+);
 
-run('transport.start(time)', [1, 1, 1.5, 0, 2], function(test, done) {
-    const rateNode    = new ConstantSourceNode(context, { offset: 2 });
-    const transport   = new Transport(context, rateNode.offset);
+run('transport.start(time)',
+    [1, 1, 1.5, 0, 2],
+    function(test, done) {
+        const rateNode    = new ConstantSourceNode(context, { offset: 2 });
+        const transport   = new Transport(context, rateNode.offset);
 
-    // Let audio clock settle
-    setTimeout(function() {
-        transport.start(1);
+        // Let audio clock settle
+        setTimeout(function() {
+            transport.start(1);
 
-        test(transport.startTime);
-        test(transport.timeAtBeat(0));
-        test(transport.timeAtBeat(1));
-        test(transport.beatAtTime(1));
-        test(transport.beatAtTime(2));
+            test(transport.startTime);
+            test(transport.timeAtBeat(0));
+            test(transport.timeAtBeat(1));
+            test(transport.beatAtTime(1));
+            test(transport.beatAtTime(2));
 
-        done();
-    }, 500);
-});
+            done();
+        }, 500);
+    }
+);
 
 run('transport.start(time).stop(time) ...start(time).stop(time)',
     [true, true, true, true, 0, 2, 4, true, true, true, true, 0, 2, 4],

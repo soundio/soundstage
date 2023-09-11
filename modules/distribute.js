@@ -134,3 +134,8 @@ export function Distribute(target, notify) {
         }
     };
 }
+
+
+
+
+Stream.of().each((event) => distribute.apply(this, event));

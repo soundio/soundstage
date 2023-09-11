@@ -48,7 +48,7 @@ AudioParam controlling effect gain.
 **/
 
 import NodeGraph from './graph.js';
-import { validateOscillatorType } from '../modules/validate.js';
+import { validateOscillatorType } from '../oscillator.js';
 
 const assign = Object.assign;
 

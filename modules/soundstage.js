@@ -12,12 +12,12 @@ import { isKeyboardInputSource } from './control-sources/keyboard-input-source.j
 //import { isMIDIInputSource } from './control-sources/midi-input-source.js';
 import { connect, disconnect } from './connect.js';
 import Control       from './control.js';
-import Metronome     from '../nodes/metronome.js';
 import Graph         from './graph.js';
 import requestMedia  from './request-media.js';
 import Transport     from './transport.js';
 import Sequencer     from './sequencer.js';
 import Sequence      from './sequence.js';
+import Metronome     from '../nodes/metronome.js';
 import config        from '../config.js';
 
 const DEBUG        = window.DEBUG || false;
@@ -153,6 +153,7 @@ following properties and methods.
 //interrogated. Use notify to have Soundstage notify changes to AudioParam values.
 
 
+
 export default function Soundstage(data = defaultData, settings = nothing) {
     if (!Soundstage.prototype.isPrototypeOf(this)) {
         // Soundstage has been called without `new`
@@ -165,28 +166,20 @@ export default function Soundstage(data = defaultData, settings = nothing) {
 
     if (DEBUG) { printGroup('Soundstage()'); }
 
+    const privates    = Privates(this);
     const context     = settings.context || defaults.context;
     const destination = settings.destination || context.destination;
     const notify      = settings.notify || noop;
+    const transport   = new Transport(context);
+
     const merger      = createOutputMerger(context, destination);
-    const rateNode    = new window.ConstantSourceNode(context, { offset: 2 });
-    const rateParam   = rateNode.offset;
-    //const timer       = new Timer(() => context.currentTime);
-    const transport   = new Transport(context, rateParam, notify);
-
-    // Replace with stage.connect(destination) ??
     merger.connect(destination);
-    rateNode.start(0);
-
-
-    // Privates
-
-    const privates = Privates(this);
 
     privates.notify = notify;
     privates.outputs = {
         default: merger,
-        rate:    rateNode
+        rate:    rateNode,
+        beat:    beatNode
     };
 
 
@@ -280,7 +273,7 @@ export default function Soundstage(data = defaultData, settings = nothing) {
     // barAtBeat:      fn
     // cue:            fn
 
-    Sequencer.call(this, transport, data, rateParam, null, notify);
+    Sequencer.call(this, transport, data, transport.rate, null, notify);
 
 
     // Initialise as a recorder...

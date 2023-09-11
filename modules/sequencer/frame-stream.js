@@ -1,8 +1,8 @@
 
-import Stream, { pipe, stop } from '../../fn/modules/stream/stream.js';
-import remove   from '../../fn/modules/remove.js';
-import config   from '../config.js';
-import Playable from './playable.js';
+import Stream, { pipe, stop } from '../../../fn/modules/stream/stream.js';
+import remove   from '../../../fn/modules/remove.js';
+import config   from '../../config.js';
+import Playable from '../playable.js';
 
 const assign       = Object.assign;
 const create       = Object.create;
@@ -10,7 +10,7 @@ const define       = Object.defineProperties;
 const lookahead    = 0.12;
 const duration     = 0.24;
 
-const worker       = new Worker(config.basePath + 'modules/frames.worker.js');
+const worker       = new Worker(config.basePath + 'modules/sequencer/frame-worker.js');
 const startMessage = { command: 'start' };
 const stopMessage  = { command: 'stop' };
 const timers       = [];

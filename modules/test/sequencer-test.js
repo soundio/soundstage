@@ -1,25 +1,20 @@
 
 import run        from '../../../fn/modules/test.js';
+import Stream     from '../../../fn/modules/stream.js';
 import context    from '../context.js';
 import Transport  from '../transport.js';
-import Sequencer  from '../sequencer.js';
+import Sequencer  from '../sequencer-2.js';
 
-// Default rate 2 = 120bpm
-const rateNode    = new window.ConstantSourceNode(context, { offset: 2 });
-const rateParam   = rateNode.offset;
-rateNode.start(0);
-
-run('Sequencer()', [0, 0, 2, 120], function(test, done) {
+run('Sequencer()', [0, 0, 120], function(test, done) {
     function notify() { console.log('notify', ...arguments); }
 
-    const transport = new Transport(context, rateParam, notify);
-    const sequencer = new Sequencer(transport, {
-        events: [[0, 'sequence', 'one', 'target', 2]],
-        sequences: [{
-            id:     'one',
-            events: [[0, 'log', 'G3', 0.5]]
-        }]
-    }, rateParam, notify);
+    const output    = Stream.of().each((event) => console.log(event));
+    const transport = new Transport(context);
+    const sequencer = new Sequencer(transport,  output, {
+        events: [
+            [0, 'log', 'First event']
+        ]
+    });
 
     window.sequencer = sequencer;
 
@@ -29,12 +24,10 @@ run('Sequencer()', [0, 0, 2, 120], function(test, done) {
         return { DUMMY: true };
     };
 
-
     test(sequencer.bar);
     test(sequencer.beat);
 // TODO: Fix meter when not playing
 //    test(sequencer.meter);
-    test(sequencer.rate);
     test(sequencer.tempo);
 
     sequencer

@@ -1,10 +1,11 @@
 
 import nothing from '../../fn/modules/nothing.js';
-import { isMeterEvent } from './event.js';
+import Event, { isMeterEvent } from './event.js';
 
 var assign = Object.assign;
 var freeze = Object.freeze;
 var meter0 = freeze({ 0: 0, 1: 'meter', 2: 4, 3: 1, bar: 0 });
+
 
 export function barAtBeat(events, beat) {
     let barCount = 0;
@@ -39,11 +40,29 @@ export default function Meter(events) {
 }
 
 assign(Meter.prototype, {
+    /* TEMP. Not what we want. */
+    createMeterEvent: function(beat, bar, div) {
+        const privates = Privates(this);
+        const meters   = privates.meters;
+
+        // Shorten meters to time
+        let n = -1;
+        while (++n < meters.length) {
+            if (meters[n][0] >= beat) {
+                meters.length = n;
+                break;
+            }
+        }
+
+        const event = new Event(beat, 'meter', bar, div);
+        meters.push(event);
+        return event;
+    },
+
     /**
     .barAtBeat(beat)
     Returns the bar at a given `beat`.
     **/
-
     barAtBeat: function(beat) {
         return barAtBeat(this.events && this.events.filter(isMeterEvent) || nothing, beat);
     },
@@ -52,8 +71,20 @@ assign(Meter.prototype, {
     .beatAtBar(bar)
     Returns the beat at the start of a given `bar`.
     **/
-
     beatAtBar: function(bar) {
         return beatAtBar(this.events && this.events.filter(isMeterEvent) || nothing, bar);
+    },
+
+    /**
+    .meterAtTime()
+    **/
+    meterAtTime: function(time) {
+        const { meters } = Privates(this);
+        const beat = this.beatAtTime(time);
+
+        let n = -1;
+        while(++n < meters.length && meters[n][0] <= beat);
+        console.log(time, beat, n, meters[n]);
+        return meters[n - 1];
     }
 });

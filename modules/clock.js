@@ -13,35 +13,30 @@ const properties = {
     .context
     The AudioContext.
     **/
-
-    context:       { writable: true },
+    context:       { writable: false },
 
     /**
     .startTime
     The time at which the clock was scheduled to start.
     **/
-
     startTime:     { writable: true, value: undefined },
 
     /**
     .startLocation
     **/
-
     startLocation: { writable: true, value: undefined },
 
     /**
     .stopTime
     The time at which the clock has been scheduled to stop.
     **/
-
     stopTime:      { writable: true, value: undefined }
 };
 
-export default function Clock(context, notify) {
+export default function Clock(context) {
     // Properties
+    properties.context.value = context;
     define(this, properties);
-    this.context = context;
-    Privates(this).notify = notify;
 }
 
 assign(Clock.prototype, {
