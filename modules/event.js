@@ -327,16 +327,22 @@ type signature.
 // [time, "param", name, value, curve]
 // [time, "pitch", semitones]
 // [time, "chord", root, mode, duration]
+// [time, "log", value]
 // [time, "sequence", name || events, target, duration, transforms...]
 
 export const isValidEvent = overload(get(1), {
 	note:     (event) => event[4] !== undefined,
 	noteon:   (event) => event[3] !== undefined,
-	noteoff:  (event) => event[3] !== undefined,
+	noteoff:  (event) => event[2] !== undefined,
+	'note-start': (event) => event[3] !== undefined,
+	'note-stop':  (event) => event[2] !== undefined,
 	sequence: (event) => event[4] !== undefined,
+	'sequence-start': (event) => event[4] !== undefined,
+	'sequence-stop':  (event) => event[3] !== undefined,
 	meter:    (event) => event[3] !== undefined,
 	rate:     (event) => event[2] !== undefined,
 	param:    (event) => event[4] !== undefined,
+	log:      (event) => event[2] !== undefined,
 	default:  (event) => false
 });
 
@@ -344,8 +350,13 @@ export const eventValidationHint = overload(get(1), {
 	note:     (event) => 'Should be of the form [time, "note", number, velocity, duration]',
 	noteon:   (event) => 'Should be of the form [time, "noteon", number, velocity]',
 	noteoff:  (event) => 'Should be of the form [time, "noteoff", number]',
+	'note-start': (event) => 'Should be of the form [time, "noteon", number, velocity]',
+	'note-stop':  (event) => 'Should be of the form [time, "note-stop", number]',
 	sequence: (event) => 'Should be of the form [time, "sequence", id, target, duration]',
+	'sequence-start': (event) => 'Should be of the form [time, "sequence-start", name, target, duration]',
+	'sequence-stop':  (event) => 'Should be of the form [time, "sequence-stop", name, target]',
 	meter:    (event) => 'Should be of the form [time, "meter", numerator, denominator]',
 	rate:     (event) => 'Should be of the form [time, "rate", number, curve]',
+	log:      (event) => 'Should be of the form [time, "log", string]',
 	default:  (event) => 'Probably should be of the form [time, "param", name, value, curve]'
 });

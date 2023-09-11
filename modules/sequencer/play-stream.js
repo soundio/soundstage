@@ -1,7 +1,11 @@
 
+import Event, { isValidEvent, getDuration } from '../event.js';
 import FrameStream from './frame-stream.js';
 
-/** PlayStream(context, data) **/
+/**
+PlayStream(context, data)
+Returns a stream of events for sending to targets.
+**/
 
 function processFrame(data, frame) {
     if (frame.type === 'stop') {
@@ -10,12 +14,11 @@ function processFrame(data, frame) {
         return data;
     }
 
-    const sequence     = data.sequence;
-    const buffer       = data.buffer;
-    const commands     = data.commands;
-    const stopCommands = data.stopCommands;
-    const processed    = data.processed;
-    const events       = sequence.events;
+    const sequence   = data.sequence;
+    const buffer     = data.buffer;
+    const stopEvents = data.stopEvents;
+    const processed  = data.processed;
+    const events     = sequence.events;
 
     // Empty buffer
     buffer.length = 0;
@@ -24,35 +27,35 @@ function processFrame(data, frame) {
     let n = indexEventAtBeat(events, frame.b1);
 
     // Grab events up to b2
+    --n;
     while (++n < events.length && events[n][0] < frame.b2) {
         let event = events[n];
 
+        // Ignore those we have already processed
         if (event[1] === 'meter' || event[1] === 'rate') {
             continue;
         }
 
-        let eventType = event[1];
-        let eventName = event[2];
+        let name = event[2];
 
         // Check that we are after the last buffered event of
         // this type and kind
-        if (!processed[eventType]) {
-            processed[eventType] = {};
+        if (!processed[event.type]) {
+            processed[event.type] = {};
             buffer.push(event);
-            processed[eventType] = { [eventName]: event };
+            processed[event.type] = { [name]: event };
         }
-        else if (!processed[eventType][eventName] || processed[eventType][eventName][0] < event[0]) {
+        else if (!processed[event.type][name] || processed[event.type][name][0] < event[0]) {
             buffer.push(event);
-            processed[eventType][eventName] = event;
+            processed[event.type][name] = event;
         }
     }
     --n;
 
     // Grab exponential events beyond b2 that should be cued in this frame
     while (++n < events.length) {
-        let event     = events[n];
-        let eventType = event[1];
-        let eventName = event[2];
+        let event = events[n];
+        let name  = event[2];
 
         // Ignore non-param, non-exponential events
         if (event[1] !== "param" && event[4] !== "exponential") {
@@ -61,69 +64,67 @@ function processFrame(data, frame) {
 
         // Check that we are after the last buffered event of
         // this type and kind, and that last event is before b2
-        if (!processed[eventType]) {
-            processed[eventType] = {};
+        if (!processed[event.type]) {
+            processed[event.type] = {};
             buffer.push(event);
-            processed[eventType] = { [eventName]: event };
+            processed[event.type] = { [name]: event };
         }
-        else if (!processed[eventType][eventName]) {
+        else if (!processed[event.type][name]) {
             buffer.push(event);
-            processed[eventType][eventName] = event;
+            processed[event.type][name] = event;
         }
-        else if (processed[eventType][eventName][0] < frame.b2 && processed[eventType][eventName][0] < event[0]) {
+        else if (processed[event.type][name][0] < frame.b2 && processed[event.type][name][0] < event[0]) {
             buffer.push(event);
-            processed[eventType][eventName] = event;
+            processed[event.type][name] = event;
         }
     }
     --n;
 
-    // Populate commands
-    commands.length = 0;
+    // Reset data.events
+    data.events.length = 0;
 
-    // Transfer commands from the stopCommands buffer
+    // Transfer events from the stopEvents buffer
     n = -1;
-    while (++n < stopCommands.length) {
-        if (stopCommands[n].beat < frame.b2) {
-            stopCommands[n].time = sequence.timeAtBeat(stopCommands[n].beat);
-            commands.push(stopCommands[n]);
-            stopCommands.splice(n, 1);
+    while (++n < stopEvents.length) {
+        if (stopEvents[n].beat < frame.b2) {
+            stopEvents[n].time = sequence.timeAtBeat(stopEvents[n].beat);
+            data.events.push(stopEvents[n]);
+            stopEvents.splice(n, 1);
         }
     }
 
-    // Populate commands from buffer
+    // Populate events from buffer
     n = -1;
     while (++n < buffer.length) {
-        const event = buffer[n];
+        // Clone event, there may be other things using this data
+        const event = Event.from(buffer[n]);
 
         if (!isValidEvent(event)) {
             throw new Error('Invalid event ' + JSON.stringify(event) + '. ' + eventValidationHint(event));
         }
 
-        const command = new Command(event[0], event[1], event);
-        //console.log('COMMAND', event, JSON.stringify(command));
-        command.time = sequence.timeAtBeat(command.beat);
-        commands.push(command);
+        event.time = sequence.timeAtBeat(event.beat);
+        data.events.push(event);
 
         // Deal with events that have duration
-        const duration = getDuration(buffer[n]);
+        const duration = getDuration(event);
 
         if (duration !== undefined) {
-            // This should apply to sequenceon/sequenceoff too, but sequence
-            // is bugging for that. Investigate.
-            if (command.type === 'note') { command.type = 'noteon'; }
-            const stopCommand = new Command(event[0] + duration, event[1] + 'off', event);
+            // Give start and stop events a reference to each other
+            const stopEvent
+                = event.stopEvent
+                = new Event(event[0] + duration, event.type + '-stop', event[2], event.type === 'sequence' ? event[3] : undefined);
 
-            // Give stop and start a reference to each other
-            stopCommand.startCommand = command;
-            command.stopCommand = stopCommand;
+            event.type += '-start';
+            stopEvent.startEvent = event;
 
             // If the stop is in this frame
-            if (stopCommand.beat < frame.b2) {
-                stopCommand.time = sequence.timeAtBeat(stopCommand.beat);
-                commands.push(stopCommand)
+            if (stopEvent.beat < frame.b2) {
+                stopEvent.time = sequence.timeAtBeat(stopEvent.beat);
+                events.push(stopEvent)
             }
             else {
-                stopCommands.push(stopCommand);
+                stopEvents.push(stopEvent);
             }
         }
     }
@@ -147,9 +148,9 @@ export default function PlayStream(sequencer, sequence,/* TEMP */transport) {
     const data = {
         sequence,
         buffer:       [],
-        commands:     [],
+        events:       [],
+        stopEvents:   [],
         sequences:    [],
-        stopCommands: [],
         processed:    {},
         target:       null
     };
@@ -164,8 +165,8 @@ export default function PlayStream(sequencer, sequence,/* TEMP */transport) {
         // Event index
         const n = indexEventAtBeat(events, frame.b1);
 
-        // Grab meter events up to b2
-        // We do this first so that a generator might follow these changes
+        // Grab meter events up to b2. We do this first so that a generator
+        // might follow these changes
         let m = n - 1;
         while (++m < events.length && events[m][0] < frame.b2) {
             // Schedule meter events on transport
@@ -176,5 +177,9 @@ export default function PlayStream(sequencer, sequence,/* TEMP */transport) {
 
         return frame;
     })
-    .scan(processFrame, data);
+    .scan(processFrame, data)
+    .flatMap((event) => {
+        //console.log('HEY', data);
+        return data.events;
+    });
 }

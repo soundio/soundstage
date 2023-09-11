@@ -1,276 +1,33 @@
 
-import matches  from '../../fn/modules/matches.js';
+import by       from '../../fn/modules/by.js';
+import get      from '../../fn/modules/get.js';
 import Privates from '../../fn/modules/privates.js';
 
-import Frames                 from './sequencer/frames.js';
-import Playable, { PLAYING }  from './playable.js';
-import Meter                  from './meter.js';
-import { SSSequencer }        from './sssequencer.js';
-import { isRateEvent, getDuration, isValidEvent, eventValidationHint } from './event.js';
+import Clock      from './clock.js';
+import Event      from './event.js';
+import Meter      from './meter.js';
+import PlayStream from './sequencer/play-stream.js';
+
+import Playable, { PLAYING } from './playable.js';
 import { automate, getValueAtTime } from './automate.js';
+import { isRateEvent, getDuration, isValidEvent, eventValidationHint } from './event.js';
 import { timeAtBeatOfEvents } from './location.js';
-import { distribute }         from './distribute.js';
 
-const DEBUG = window.DEBUG;
+const assign = Object.assign;
+const define = Object.defineProperties;
+const byBeat = by(get(0));
+const seedRateEvent  = new Event(0, 'rate', 2);
 
-const assign    = Object.assign;
-const define    = Object.defineProperties;
-const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
-const seedRateEvent  = { 0: 0, 1: 'rate' };
-const idQuery        = { id: '' };
-
-function byBeat(a, b) {
-    return a[0] === b[0] ? 0 :
-        a[0] > b[0] ? 1 :
-        -1 ;
+function assignTime(e0, e1) {
+    e1.time = e0.time + timeAtBeatOfEvents(e0, e1, e1[0] - e0[0]);
+    return e1;
 }
 
-// Command constructor and pool
-//
-// I SEE NO REASON NOT TO USE THE Event() OBJECT FOR COMMANDS
-
-function Command(beat, type, event) {
-    // If there is a command in the pool use that
-    if (Command.pool.length) {
-        return Command.reset(Command.pool.shift(), beat, type, event);
-    }
-
-    Command.reset(this, beat, type, event);
-}
-
-Command.pool = [];
-
-Command.reset = function(command, beat, type, event) {
-    command.beat  = beat;
-    command.type  = type;
-    command.event = event;
-
-    command.time         = undefined;
-    command.data         = undefined;
-    command.target       = undefined;
-    command.stopCommand  = undefined;
-    command.startCommand = undefined;
-
-    return command;
-}
-
-// -------------------
-
-
-
-
-function updateFrame(sequence, frame) {
-    // This assumes rateParam is already populated, or is
-    // populated dynamically
-    frame.b1 = sequence.beatAtTime(frame.t1);
-    frame.b2 = sequence.beatAtTime(frame.t2);
-    return frame;
-}
-
-function advanceToB1(events, frame) {
-    // Ignore events before b1
-    let n = -1;
-    while (++n < events.length && events[n][0] < frame.b1);
-    return n - 1;
-}
-
-function processFrame(data, frame) {
-    if (frame.type === 'stop') {
-        // Todo: stop all events
-        console.log('Implement stop frames');
-        return data;
-    }
-
-    const sequence     = data.sequence;
-    const buffer       = data.buffer;
-    const commands     = data.commands;
-    const stopCommands = data.stopCommands;
-    const processed    = data.processed;
-    const events       = sequence.events;
-
-    // Empty buffer
-    buffer.length = 0;
-
-    // Event index of first event after frame.b1
-    let n = advanceToB1(events, frame);
-
-    // Grab events up to b2
-    while (++n < events.length && events[n][0] < frame.b2) {
-        let event = events[n];
-
-        if (event[1] === 'meter' || event[1] === 'rate') {
-            continue;
-        }
-
-        let eventType = event[1];
-        let eventName = event[2];
-
-        // Check that we are after the last buffered event of
-        // this type and kind
-        if (!processed[eventType]) {
-            processed[eventType] = {};
-            buffer.push(event);
-            processed[eventType] = { [eventName]: event };
-        }
-        else if (!processed[eventType][eventName] || processed[eventType][eventName][0] < event[0]) {
-            buffer.push(event);
-            processed[eventType][eventName] = event;
-        }
-    }
-    --n;
-
-    // Grab exponential events beyond b2 that should be cued in this frame
-    while (++n < events.length) {
-        let event     = events[n];
-        let eventType = event[1];
-        let eventName = event[2];
-
-        // Ignore non-param, non-exponential events
-        if (event[1] !== "param" && event[4] !== "exponential") {
-            continue;
-        }
-
-        // Check that we are after the last buffered event of
-        // this type and kind, and that last event is before b2
-        if (!processed[eventType]) {
-            processed[eventType] = {};
-            buffer.push(event);
-            processed[eventType] = { [eventName]: event };
-        }
-        else if (!processed[eventType][eventName]) {
-            buffer.push(event);
-            processed[eventType][eventName] = event;
-        }
-        else if (processed[eventType][eventName][0] < frame.b2 && processed[eventType][eventName][0] < event[0]) {
-            buffer.push(event);
-            processed[eventType][eventName] = event;
-        }
-    }
-    --n;
-
-    // Populate commands
-    commands.length = 0;
-
-    // Transfer commands from the stopCommands buffer
-    n = -1;
-    while (++n < stopCommands.length) {
-        if (stopCommands[n].beat < frame.b2) {
-            stopCommands[n].time = sequence.timeAtBeat(stopCommands[n].beat);
-            commands.push(stopCommands[n]);
-            stopCommands.splice(n, 1);
-        }
-    }
-
-    // Populate commands from buffer
-    n = -1;
-    while (++n < buffer.length) {
-        const event = buffer[n];
-
-        if (!isValidEvent(event)) {
-            throw new Error('Invalid event ' + JSON.stringify(event) + '. ' + eventValidationHint(event));
-        }
-
-        const command = new Command(event[0], event[1], event);
-        //console.log('COMMAND', event, JSON.stringify(command));
-        command.time = sequence.timeAtBeat(command.beat);
-        commands.push(command);
-
-        // Deal with events that have duration
-        const duration = getDuration(buffer[n]);
-
-        if (duration !== undefined) {
-            // This should apply to sequenceon/sequenceoff too, but sequence
-            // is bugging for that. Investigate.
-            if (command.type === 'note') { command.type = 'noteon'; }
-            const stopCommand = new Command(event[0] + duration, event[1] + 'off', event);
-
-            // Give stop and start a reference to each other
-            stopCommand.startCommand = command;
-            command.stopCommand = stopCommand;
-
-            // If the stop is in this frame
-            if (stopCommand.beat < frame.b2) {
-                stopCommand.time = sequence.timeAtBeat(stopCommand.beat);
-                commands.push(stopCommand)
-            }
-            else {
-                stopCommands.push(stopCommand);
-            }
-        }
-    }
-
-    // Expose frame to allow it to be passed to sub sequences
-    data.frame = frame;
-
-    return data;
-}
-
-function addSequenceData(data, command) {
-    const target     = data.target;
-    const sequenceId = command.event[2];
-    const nodeId     = command.event[3];
-
-    idQuery.id = sequenceId;
-    const sequence   = target.sequences.find(matches(idQuery));
-
-    if (!sequence) {
-        throw new Error('Sequence "' + sequenceId + '" not found')
-    }
-
-    // TEMP: target? check only here so test will run
-    const node = target && target.get ? target.get(nodeId) : {} ;
-
-    if (!node) {
-        throw new Error('Node "' + nodeId + '" not found')
-    }
-
-    // Stream events
-    const childData = {
-        sequence:     new SSSequencer(target, sequence).start(command.time),
-        buffer:       [],
-        commands:     [],
-        stopCommands: [],
-        sequences:    [],
-        processed:    {},
-        target:       node
-    };
-
-    data.sequences.push(childData);
-
-    return childData;
-}
-
-function distributeCommand(data, command) {
-    if (command.type === 'sequence') {
-        command.data = addSequenceData(data, command);
-        //console.log('ADD', data.sequences.length)
-    }
-    else if (command.type === 'sequenceoff') {
-        command.startCommand.data.stopTime = command.time;
-        command.startCommand.data.sequence.stop(command.time);
-    }
-    else {
-        const target = command.startCommand ?
-            command.startCommand.target :
-            data.target ;
-
-        command.target = distribute(target, command.time, command.type, command.event[2], command.event[3], command.event[4]);
-    }
-
-    if (!command.stopCommand) {
-        if (command.startCommand) {
-            // Release back to pool
-            Command.pool.push(command.startCommand);
-
-            // Unlink start and stop commands
-            command.startCommand.stopCommand = undefined;
-            command.startCommand = undefined;
-        }
-
-        // Release back to pool
-        Command.pool.push(command);
-    }
+function automateRate(privates, event) {
+    // param, time, curve, value, duration, notify, context
+    automate(privates.rateParam, event.time, event[3] || 'step', event[2], null, privates.notify, privates.context) ;
+    return privates;
 }
 
 function distributeSequence(data, sequenceData) {
@@ -286,7 +43,7 @@ function distributeData(data) {
             distributeCommand(data, data.commands[n]);
         }
     }
-
+/*
     if (data.sequences.length) {
         let n = -1;
         while (++n < data.sequences.length) {
@@ -297,80 +54,166 @@ function distributeData(data) {
             }
         }
     }
+*/
 }
 
-function assignTime(e0, e1) {
-    e1.time = e0.time + timeAtBeatOfEvents(e0, e1, e1[0] - e0[0]);
-    return e1;
+
+/**
+Sequencer()
+
+```js
+// Clock
+.context
+.startTime
+.startLocation
+.stopTime
+.start()
+.stop()
+
+// Sequencer
+startTime:  number || undefined
+stopTime:   number || undefined
+status:     idle || playing || done
+transport:  object
+
+// Meter methods
+beatAtBar:  fn(n)
+barAtBeat:  fn(n)
+```
+**/
+
+export default function Sequencer(transport, output, data) {
+    // Clock
+    // .context
+    // .startTime
+    // .startLocation
+    // .stopTime
+    // .start()
+    // .stop()
+    Clock.call(this, transport.context);
+
+    const privates       = Privates(this);
+    privates.beat        = 0;
+    privates.output      = output;
+    privates.playstreams = [];
+
+    // .transport
+    // .events
+    // .sequences
+    this.transport       = transport;
+    this.events          = data.events;
+    this.rate            = transport.outputs.rate.offset;  // TODO: `outputs` may be renamed, see transport
+    this.sequences       = data.sequences;
 }
 
-function automateRate(privates, event) {
-    // param, time, curve, value, duration, notify, context
-    automate(privates.rateParam, event.time, event[3] || 'step', event[2], null, privates.notify, privates.context) ;
-    return privates;
-}
+assign(Sequencer.prototype, Meter.prototype, {
+    beatAtTime: function(time) {
+        const transport     = this.transport;
+        const startLocation = this.startLocation
+           || (this.startLocation = transport.beatAtTime(this.startTime)) ;
+        return transport.beatAtTime(time) - startLocation;
+    },
 
-export default function Sequencer(transport, data, rateParam, notify) {
+    timeAtBeat: function(beat) {
+        const transport     = this.transport;
+        const startLocation = this.startLocation
+           || (this.startLocation = transport.beatAtTime(this.startTime)) ;
+        return transport.timeAtBeat(startLocation + beat);
+    },
 
-    // Playable provides the properties:
-    //
-    // startTime:  number || undefined
-    // stopTime:   number || undefined
-    // status:     idle || playing || done
-    //
-    // There is no point in calling this here as .startTime and .stopTime are
-    // defined in SSSequencer and .status in define(Sequencer) below.
-    // Playable.call(this);
-
-
-    // SSSequencer provides the properties:
-    //
-    // startTime:  number || undefined
-    // stopTime:   number || undefined
-    // status:     idle || playing || done
-    // transport:  object
-
-    SSSequencer.call(this, transport, this);
-
-    this.events    = data.events;
-    this.sequences = data.sequences;
-
-    // Mix in Meter
-    //
-    // beatAtBar:  fn(n)
-    // barAtBeat:  fn(n)
-    //
-    // There is no point in calling this as the constructor does nothing
-    // Meter.call(this)
-
-
-    // Private
-
-    const privates = Privates(this);
-
-    privates.rateParam = rateParam;
-    privates.beat      = 0;
-    privates.notify    = notify;
-    privates.context   = this.context;
-
-    /** .rate
-    An AudioParam representing the rate of the transport clock in
-    beats per second.
+    /**
+    .start(time, beat)
+    Starts the sequencer at `time` to play on `beat`, returning a PlayStream.
     **/
+    start: function(time, beat) {
+        const privates = Privates(this);
+        const { output, playstreams } = privates;
+        const { context, transport, events }    = this;
 
-    //define(this, {
-    //	rate: {
-    //		value: rateParam
-    //	}
-    //});
-}
+        time = time || this.context.currentTime;
+        beat = beat === undefined ? privates.beat : beat ;
+
+        // Set this.startTime
+        Clock.prototype.start.call(this, time);
+
+        // Todo: .status uses currentTime, write some logic that uses time
+        if (transport.status === PLAYING) {
+            // If transport is running set start time to next beat
+            time = transport.timeAtBeat(Math.ceil(transport.beatAtTime(time)));
+        }
+        else {
+            // Otherwise start transport at time
+            transport.start(time, beat);
+        }
+
+        // Set rates
+        const rates = this.events ?
+            this.events.filter(isRateEvent).sort(byBeat) :
+            [] ;
+
+        seedRateEvent.time   = time;
+        seedRateEvent.source = this;
+        seedRateEvent[2]   = getValueAtTime(this.rate, time);
+
+        rates.reduce(assignTime, seedRateEvent);
+        rates.reduce(automateRate, privates);
+
+        const stream = PlayStream(this, this, transport);
+        playstreams.push(stream);
+
+        stream
+        .start(time)
+        .pipe(output);
+
+        return stream;
+    },
+
+    /**
+    .stop(time)
+    Stops the sequencer at `time`, stopping all child sequence streams.
+    **/
+    stop: function(time) {
+        time = time || this.context.currentTime;
+
+        // Set this.stopTime
+        Clock.prototype.stop.call(this, time);
+
+        const privates    = Privates(this);
+        const playstreams = privates.playstreams;
+
+        // Hold automation for the rate node
+        // param, time, curve, value, duration, notify, context
+        automate(this.rate, this.stopTime, 'hold', null, null, privates.notify, this.context);
+
+        // Store beat
+        privates.beat = this.beatAtTime(this.stopTime);
+
+        // Stop all playing stream
+        while (playstreams[0] && (playstream = playstreams.shift())) {
+            playstream.stop(this.stopTime);
+        }
+
+        // Stop transport ???
+        this.transport.stop(this.stopTime);
+
+        // Log the state of Pool shortly after stop
+        //if (DEBUG) {
+        //	setTimeout(function() {
+        //		logSequence(sequencer);
+        //		console.log('Pool –––––––––––––––––––––––––––––––––');
+        //		console.table(Pool.snapshot());
+        //	}, 400);
+        //}
+
+        return this;
+    }
+});
 
 define(Sequencer.prototype, {
     /**
     .bar
     The current bar count.
     **/
-
     bar: {
         get: function() { return this.barAtBeat(this.beat) ; }
     },
@@ -378,12 +221,12 @@ define(Sequencer.prototype, {
     /** .beat
     The current beat count.
     **/
-
     beat: {
         get: function() {
             const privates = Privates(this);
-
-            if (this.startTime === undefined || this.startTime >= this.context.currentTime || this.stopTime < this.context.currentTime) {
+            if (this.startTime === undefined
+                || this.startTime >= this.context.currentTime
+                || this.stopTime < this.context.currentTime) {
                 return privates.beat;
             }
 
@@ -393,10 +236,11 @@ define(Sequencer.prototype, {
         set: function(value) {
             const privates = Privates(this);
 
-            if (this.startTime === undefined || this.stopTime < this.context.currentTime) {
+            if (this.startTime === undefined
+                || this.stopTime < this.context.currentTime) {
                 privates.beat = value;
                 // Todo: update state of entire graph with evented settings for
-                // this beat
+                // this beat   ... wot? Oh snapshot cuurent state to Graph. Ah.
             }
             else {
                 // Sequence is started - can we move the beat? Ummm... I don't thunk so...
@@ -405,23 +249,9 @@ define(Sequencer.prototype, {
         }
     },
 
-    /** .time
-    The time of audio now leaving the device output. (In browsers the have not
-    yet implemented `AudioContext.getOutputTimestamp()` this value is estimated
-    from `currentTime` and a guess at the output latency. Which is a bit meh,
-    but better than nothing.)
-    **/
-
-    time: {
-        get: function() {
-            return this.context.getOutputTimestamp().contextTime;
-        }
-    },
-
     /** .meter
     The current meter.
     **/
-
     meter: {
         get: function() {
             const { transport } = Privates(this);
@@ -434,176 +264,25 @@ define(Sequencer.prototype, {
         }
     },
 
-    /** .rate
-    The rate of the transport clock in beats per second.
-    **/
-
-    rate: {
-        get: function () {
-            const privates = Privates(this);
-            return getValueAtTime(privates.rateParam, this.time);
-        },
-
-        set: function (rate) {
-            const privates = Privates(this);
-            // param, time, curve, value, duration, notify, context
-            automate(privates.rateParam, this.context.currentTime, 'step', rate, null, privates.notify, this.context);
-        }
-    },
-
     /** .tempo
     The rate of the transport clock, expressed in bpm.
     **/
     tempo: {
-        get: function() { return this.rate * 60; },
-        set: function(tempo) { this.rate = tempo / 60; }
+        get: function() { return getValueAtTime(this.rate, this.time) * 60; },
+        set: function(tempo) { automate(this.rate, this.time, 'step', tempo / 60, null, privates.notify, this.context); }
     },
+
+    /** .time
+    The time of audio now leaving the device output. (In browsers the have not
+    yet implemented `AudioContext.getOutputTimestamp()` this value is estimated
+    from `currentTime` and a guess at the output latency. Which is a bit meh,
+    but better than nothing.)
+    **/
+    time: {
+        get: function() {
+            return this.context.getOutputTimestamp().contextTime;
+        }
+    }
 
 //    status: getOwnPropertyDescriptor(Playable.prototype, 'status')
-});
-
-assign(Sequencer.prototype, Meter.prototype, {
-    beatAtTime: function(time) {
-        const transport     = Privates(this).transport;
-        const startLocation = this.startLocation
-           || (this.startLocation = transport.beatAtTime(this.startTime)) ;
-
-        return transport.beatAtTime(time) - startLocation;
-    },
-
-    timeAtBeat: function(beat) {
-        const transport     = Privates(this).transport;
-        const startLocation = this.startLocation
-           || (this.startLocation = transport.beatAtTime(this.startTime)) ;
-
-        return transport.timeAtBeat(startLocation + beat);
-    },
-
-    /**
-    .start(time)
-    Starts the sequencer at `time`.
-    **/
-
-    start: function(time, beat) {
-        const privates  = Privates(this);
-        const transport = privates.transport;
-
-        time = time || this.context.currentTime;
-        beat = beat === undefined ? privates.beat : beat ;
-
-        // Run transport, if it is not already - Todo: .playing uses currentTime
-        // write some logic that uses time (kind of like what .playing does)
-        if (transport.status === PLAYING) {
-            time = transport.timeAtBeat(Math.ceil(transport.beatAtTime(time)));
-        }
-        else {
-            transport.start(time, beat);
-        }
-
-        const stream    = privates.stream;
-        const events    = this.events;
-        const rateParam = privates.rateParam;
-
-        // If stream is not waiting, stop it and start a new one
-        if (stream) {
-            stream.stop(time);
-        }
-
-        // Set this.startTime
-        SSSequencer.prototype.start.call(this, time, beat);
-
-        // Set rates
-        const rates = this.events ?
-            this.events.filter(isRateEvent).sort(byBeat) :
-            [] ;
-
-        seedRateEvent.time = time;
-        seedRateEvent[2]   = getValueAtTime(rateParam, time);
-        rates.reduce(assignTime, seedRateEvent);
-        rates.reduce(automateRate, privates);
-
-        // Stream events
-        const data = {
-            sequence:     this,
-            buffer:       [],
-            commands:     [],
-            sequences:    [],
-            stopCommands: [],
-            processed:    {},
-            target:       this
-        };
-
-        return privates.stream = Frames
-        .from(this.context)
-        .map((frame) => {
-            updateFrame(this, frame);
-
-            // Event index
-            const n = advanceToB1(events, frame);
-
-            // Grab meter events up to b2
-            // We do this first so that a generator might follow these changes
-            let m = n;
-            while (++m < events.length && events[m][0] < frame.b2) {
-                // Schedule meter events on transport
-                if (events[m][1] === 'meter') {
-                    transport.setMeterAtBeat(events[m][0] + transport.beatAtTime(this.startTime), events[m][2], events[m][3]);
-                }
-            }
-
-            return frame;
-        })
-        .scan(processFrame, data)
-        .each(distributeData)
-        .start(time);
-    },
-
-    /**
-    .stop(time)
-    Stops the sequencer at `time`.
-    **/
-
-    stop: function(time) {
-        time = time || this.context.currentTime;
-
-        const privates  = Privates(this);
-        const stream    = privates.stream;
-        const rateParam = privates.rateParam;
-
-        // Set this.stopTime
-        SSSequencer.prototype.stop.call(this, time);
-
-        // Hold automation for the rate node
-        // param, time, curve, value, duration, notify, context
-        automate(rateParam, this.stopTime, 'hold', null, null, privates.notify, this.context);
-
-        // Store beat
-        privates.beat = this.beatAtTime(this.stopTime);
-
-        // Stop the stream
-        stream && stream.stop(this.stopTime);
-
-        // Stop transport
-        privates.transport.stop(this.stopTime);
-
-        // Log the state of Pool shortly after stop
-        //if (DEBUG) {
-        //	setTimeout(function() {
-        //		logSequence(sequencer);
-        //		console.log('Pool –––––––––––––––––––––––––––––––––');
-        //		console.table(Pool.snapshot());
-        //	}, 400);
-        //}
-
-        return this;
-    },
-
-    //.cue(beat, fn)
-    //Cues `fn` to be called on `beat`.
-
-    cue: function(beat, fn) {
-        var stream = Privates(this).stream;
-        stream.cue(beat, fn);
-        return this;
-    }
 });
