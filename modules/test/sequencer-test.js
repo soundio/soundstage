@@ -5,7 +5,7 @@ import context    from '../context.js';
 import Transport  from '../transport.js';
 import Sequencer  from '../sequencer.js';
 
-run('Sequencer()', [0, 0, 120, 'log', 'note-start', 'sequence-start', 'note-stop'], function(test, done) {
+run('Sequencer()', [0, 0, 120, 'log', 'note-start', 'note-stop'], function(test, done) {
     function notify() { console.log('notify', ...arguments); }
 
     const output    = Stream.of().each((event) => test(event.type));
@@ -14,8 +14,17 @@ run('Sequencer()', [0, 0, 120, 'log', 'note-start', 'sequence-start', 'note-stop
         events: [
             [0.0, 'log', 'First event'],
             [0.1, 'note', 49, 1, 0.8],
-            [0.2, 'sequence', 'id', 4, 3]
-        ]
+            // Sequence events are not published to the output stream
+            [0.2, 'sequence', 'bob', 4, 3]
+        ],
+
+        sequences: [{
+            id: 'bob',
+            events: [
+                [0, 'note', 54, 0.2, 0.3],
+                [0.2, 'param', 'gain', 1, 'exponential']
+            ]
+        }]
     });
 
     window.sequencer = sequencer;

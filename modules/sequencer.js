@@ -1,12 +1,14 @@
 
 import by       from '../../fn/modules/by.js';
 import get      from '../../fn/modules/get.js';
+import matches  from '../../fn/modules/matches.js';
 import Privates from '../../fn/modules/privates.js';
 
 import Clock      from './clock.js';
 import Event      from './event.js';
 import Meter      from './meter.js';
 import PlayStream from './sequencer/play-stream.js';
+import Sequence   from './sequencer/sequence.js';
 
 import Playable, { PLAYING } from './playable.js';
 import { automate, getValueAtTime } from './automate.js';
@@ -30,33 +32,62 @@ function automateRate(privates, event) {
     return privates;
 }
 
-function distributeSequence(data, sequenceData) {
-    updateFrame(sequenceData.sequence, data.frame);
-    processFrame(sequenceData, data.frame);
-    distributeData(sequenceData);
+
+const selector  = { id: '' };
+const matchesId = matches(selector);
+
+function addSequenceData(sequencer, sequences, output, event) {
+    // Look for target sequence
+    selector.id = event[2];
+    const data = sequencer.sequences.find(matchesId);
+
+    if (!data) {
+        throw new Error('Sequence "' + event[2] + '" not found')
+    }
+
+    //const nodeId = event[3];
+    // TEMP: target? check only here so test will run
+    //const node = target && target.get ? target.get(nodeId) : {} ;
+    //
+    //if (!node) {
+    //    throw new Error('Node "' + nodeId + '" not found')
+    //}
+
+    const childsequencer = new Sequence(sequencer, output, data).start(event.time);
+
+    // Stream events
+    const childData = {
+        sequence:     childsequencer,
+        buffer:       [],
+        events:       [],
+        stopEvents:   [],
+        sequences:    [],
+        processed:    {},
+        target:       childsequencer
+    };
+
+    sequences.push(childsequencer);
+    return childsequencer;
 }
 
-function distributeData(data) {
-    if (data.commands.length) {
-        let n = -1;
-        while (++n < data.commands.length) {
-            distributeCommand(data, data.commands[n]);
-        }
+function runSequenceEvent(sequencer, sequences, output, event) {
+    // Syphon of sequencer events
+    if (event.type === 'sequence-start') {
+        event.data   = addSequenceData(sequencer, sequences, output, event);
+        event.target = sequencer;
+        //console.log('ADD', data.sequences.length)
+        return;
     }
-/*
-    if (data.sequences.length) {
-        let n = -1;
-        while (++n < data.sequences.length) {
-            distributeSequence(data, data.sequences[n]);
 
-            if (data.sequences[n].stopTime !== undefined) {
-                data.sequences.splice(n--, 1);
-            }
-        }
+    if (event.type === 'sequence-stop') {
+        event.startEvent.data.stopTime = event.time;
+        event.startEvent.data.sequence.stop(event.time);
+        event.startEvent = undefined;
+        return;
     }
-*/
+
+    return event;
 }
-
 
 /**
 Sequencer()
@@ -128,7 +159,7 @@ assign(Sequencer.prototype, Meter.prototype, {
     start: function(time, beat) {
         const privates = Privates(this);
         const { output, playstreams } = privates;
-        const { context, transport, events }    = this;
+        const { context, transport, events } = this;
 
         time = time || this.context.currentTime;
         beat = beat === undefined ? privates.beat : beat ;
@@ -162,6 +193,7 @@ assign(Sequencer.prototype, Meter.prototype, {
         playstreams.push(stream);
 
         stream
+        .map((event) => runSequenceEvent(this, [], output, event))
         .start(time)
         .pipe(output);
 

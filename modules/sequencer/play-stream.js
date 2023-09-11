@@ -1,11 +1,20 @@
 
+import get from '../../../fn/modules/get.js';
 import Event, { isValidEvent, getDuration } from '../event.js';
 import FrameStream from './frame-stream.js';
+
 
 /**
 PlayStream(context, data)
 Returns a stream of events for sending to targets.
 **/
+
+function indexEventAtBeat(events, beat) {
+    // Ignore events before beat, include event on beat
+    let n = -1;
+    while (++n < events.length && events[n][0] < beat);
+    return n;
+}
 
 function processFrame(data, frame) {
     if (frame.type === 'stop') {
@@ -135,14 +144,7 @@ function processFrame(data, frame) {
     return data;
 }
 
-function indexEventAtBeat(events, beat) {
-    // Ignore events before beat, include event on beat
-    let n = -1;
-    while (++n < events.length && events[n][0] < beat);
-    return n;
-}
-
-export default function PlayStream(sequencer, sequence,/* TEMP */transport) {
+export default function PlayStream(sequencer, sequence,/* TEMP */transport/* */) {
     // Stream events
     const events = sequence.events;
     const data = {
@@ -152,21 +154,20 @@ export default function PlayStream(sequencer, sequence,/* TEMP */transport) {
         stopEvents:   [],
         sequences:    [],
         processed:    {},
-        target:       null
+        target:       sequencer
     };
 
     return FrameStream
     .from(sequencer.context)
     .map((frame) => {
-        // Assign beats of frame start and end
+        // Assign beats at frame start and end
         frame.b1 = sequencer.beatAtTime(frame.t1);
         frame.b2 = sequencer.beatAtTime(frame.t2);
 
         // Event index
         const n = indexEventAtBeat(events, frame.b1);
 
-        // Grab meter events up to b2. We do this first so that a generator
-        // might follow these changes
+        // Grab meter events up to b2
         let m = n - 1;
         while (++m < events.length && events[m][0] < frame.b2) {
             // Schedule meter events on transport
@@ -178,8 +179,5 @@ export default function PlayStream(sequencer, sequence,/* TEMP */transport) {
         return frame;
     })
     .scan(processFrame, data)
-    .flatMap((event) => {
-        //console.log('HEY', data);
-        return data.events;
-    });
+    .flatMap(get('events'));
 }
