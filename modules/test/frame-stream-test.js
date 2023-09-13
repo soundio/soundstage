@@ -2,7 +2,7 @@
 import run     from '../../../fn/modules/test.js';
 import Stream  from '../../../fn/modules/stream.js';
 import context from '../context.js';
-import Frames  from '../sequencer/frames.js';
+import Frames  from '../sequencer/frame-stream.js';
 
 
 run('Frames.from(context).start(1).stop(2) - events emitted', [true, true, true, true, true, true, true, true, true, true, true, true, true, true, true], function(test, done) {

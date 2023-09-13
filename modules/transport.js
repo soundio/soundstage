@@ -2,14 +2,13 @@
 import id       from '../../fn/modules/id.js';
 import Privates from '../../fn/modules/privates.js';
 import Stream   from '../../fn/modules/stream.js';
-
 import Clock    from './clock.js';
 
 import { roundBeat }            from './utilities.js';
 import { automate, getValueAtTime, getAutomation } from './automate.js';
-import { barAtBeat, beatAtBar } from './meter.js';
 import { connect, disconnect }  from './connect.js';
-import { beatAtTimeOfAutomation, timeAtBeatOfAutomation } from './location.js';
+import { barAtBeat, beatAtBar } from './sequencer/meter.js';
+import { beatAtTimeOfAutomation, timeAtBeatOfAutomation } from './sequencer/location.js';
 
 
 const assign = Object.assign;
@@ -91,8 +90,7 @@ assign(Transport.prototype, Clock.prototype, {
         // Cache startLocation as it is highly likely to be needed again
         //console.log('transport.beatAtTime', this.startTime, defaultRateEvent, events);
         const startBeat = this.startLocation || (this.startLocation = beatAtTimeOfAutomation(events, defaultRateEvent, this.startTime));
-        const timeBeat  = beatAtTimeOfAutomation(events, defaultRateEvent, time);
-
+        const timeBeat  = beatAtTimeOfAutomation(events, defaultRateEvent, time, this.startTime);
         return roundBeat(timeBeat - startBeat);
     },
 
@@ -101,8 +99,8 @@ assign(Transport.prototype, Clock.prototype, {
 
         const events    = getAutomation(this.rate);
         // Cache startLocation as it is highly likely to be needed again
+        //console.log('timeAtBeat()', beat, startBeat);
         const startBeat = this.startLocation || (this.startLocation = beatAtTimeOfAutomation(events, defaultRateEvent, this.startTime));
-
         return timeAtBeatOfAutomation(events, defaultRateEvent, startBeat + beat);
     },
 

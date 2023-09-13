@@ -39,16 +39,16 @@ worker.onmessage = function frame(e) {
     let n = -1;
 
     while (++n < timers.length) {
-        // Push to output of Frames
+        // Push to output of FrameStream
         // Does it matter that we may access context multiple times here, and
         // that the time is recalculated and therefore may not be the same for
-        // all Frames streams?
+        // all FrameStream streams?
         const stream  = timers[n];
         const context = stream.context;
         const time    = context.currentTime + lookahead + duration;
 
-        // Update cuurentTIme on stream... ??
-        stream.currentTime = time;
+        // Update cuurentTIme on stream... ?? NOPE
+        //stream.currentTime = time;
 
         // Stream has not yet started
         if (stream.startTime === undefined || stream.startTime >= time /*|| stream.stopTime < time*/) {
@@ -61,42 +61,38 @@ worker.onmessage = function frame(e) {
             frameId:    e.data
         });
 
+        data.t1 = data.t2 === undefined ?
+            stream.startTime :
+            data.t2 ;
+        data.t2       = time;
+        data.frame    = e.data;
+        data.stopTime = stream.stopTime;
+
         // If stopTime was before the start of this frame
-        if (stream.stopTime <= data.t2) {
-//console.log('Nope, because data.t1 === stream.startTime oops', data.t1 === stream.startTime);
-            //console.log('Frames stream stopped at time', stream.stopTime);
+        if (stream.stopTime <= data.t1) {
+//console.log('UNLISTEN', stream.startTime, stream.stopTime);
+            // Stream is already stopped, discard it
             unlisten(stream);
             // That will take stream out of timers, so decrement n
             --n;
             continue;
         }
 
-        data.t1 = data.t2 === undefined ?
-            stream.startTime :
-            data.t2 ;
-        data.t2    = time;
-        data.frame = e.data;
-
         // if stopTime is during this frame
-        if (stream.stopTime < data.t2) {
-            /*if (stream.stopTime <= stream.currentTime) {
-                unlisten(stream);
-                // That will take stream out of timers, so decrement n
-                --n;
-                continue;
-            }*/
+        if (stream.stopTime <= data.t2) {
+            data.t2 = stream.stopTime;
 
-            data.t2       = stream.stopTime;
-            data.stopTime = stream.stopTime;
+//console.log('STOP', data.t1, data.t2);
             // Is this good?
             //unlisten(stream);
             //push(stream[0], data);
             stream[0].push(data);
             stop(stream);
+            unlisten(stream);
             continue;
         }
         else {
-            //push(stream[0], data);
+//console.log('PUSH');
             stream[0].push(data);
         }
     }
@@ -104,17 +100,21 @@ worker.onmessage = function frame(e) {
 
 
 /**
-Frames(context)
+FrameStream(context)
 Creates a stream of frames of a timer triggered in a WebWorker. Placing a timer
 in a worker means it is not throttled when the tab is hidden, making this good
 for WebAudio scheduling tasks.
 **/
 
-export default function Frames(context) {
+export default function FrameStream(context) {
+    if (window.DEBUG && !context) {
+        throw new Error('FrameStream() requires an AudioContext is first parameter');
+    }
+
     this.context = context;
 }
 
-Frames.prototype = assign(create(Stream.prototype), Playable.prototype, {
+FrameStream.prototype = assign(create(Stream.prototype), Playable.prototype, {
     push: null,
 
     pipe: function(output) {
@@ -138,13 +138,7 @@ Frames.prototype = assign(create(Stream.prototype), Playable.prototype, {
         return output;
     },
 
-    start: function() {
-        Playable.prototype.start.apply(this, arguments);
-        // TODO: if this is not yet piped what do we do?
-        return this;
-    },
-
-    stop: function(time = (this.context.currentTime + duration + lookahead)) {
+    stop: function(time = this.context.currentTime) {
         // Update .startTime, .stopTime
         Playable.prototype.stop.apply(this, arguments);
 
@@ -161,12 +155,12 @@ Frames.prototype = assign(create(Stream.prototype), Playable.prototype, {
     }
 });
 
-define(Frames.prototype, { 'status': Object.getOwnPropertyDescriptor(Playable.prototype, 'status') });
+define(FrameStream.prototype, { 'status': Object.getOwnPropertyDescriptor(Playable.prototype, 'status') });
 
 /**
-Frames.from(context)
+FrameStream.from(context)
 **/
 
-Frames.from = function(context) {
-    return new Frames(context);
+FrameStream.from = function(context) {
+    return new FrameStream(context);
 };

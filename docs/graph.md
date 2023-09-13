@@ -54,7 +54,7 @@ array. The wrapper object is returned.</p>
 
 
 
-#### `.createConnector(source, target)`
+#### `.createConnection(source, target)`
 
 <p>Creates a connection between two nodes in the graph. The parameters
 <code>source</code> and <code>target</code> are node ids.</p>

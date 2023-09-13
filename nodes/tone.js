@@ -68,8 +68,8 @@ const defaults = {
     frequency: 440,
     detune:    0,
     //gain:      1,
-    attack:    0,
-    release:   0
+    attack:    0.002,
+    release:   0.006
 };
 
 const properties = {

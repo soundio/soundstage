@@ -140,3 +140,26 @@ export function getInputTime(context, domTime) {
     const outputLatency = _getOutputLatency(stamp, context);
     return time + inputLatency + outputLatency;
 }
+
+/*
+getDejitterTime(context)
+Returns a time just ahead of context.currentTime that compensates
+for block jitter caused by cueing everything to currentTime.
+*/
+
+export function getDejitterTime(context) {
+    let time = context.getOutputTimestamp().contextTime
+        + context.outputLatency
+        // Sample block compensation - IS THIS NEED? TEST!
+        + 128 / context.sampleRate;
+
+    if (time < context.currentTime) {
+        console.warn('Dejitter time behind currentTime by', time - context.currentTime);
+        time = context.currentTime;
+    }
+    else if (time > context.currentTime + 128 / context.sampleRate) {
+        console.warn('Dejitter time ahead of currentTime by', time - context.currentTime);
+    }
+
+    return time ;
+}

@@ -97,13 +97,13 @@ assign(Graph.prototype, {
     },
 
     /**
-    .createConnector(source, target)
+    .createConnection(source, target)
 
     Creates a connection between two nodes in the graph. The parameters
     `source` and `target` are node ids.
     **/
 
-    createConnector: function (source, target, output, input) {
+    createConnection: function (source, target, output, input) {
         return new Connector(this, source, target, output, input);
     },
 

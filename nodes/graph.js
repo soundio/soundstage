@@ -88,7 +88,7 @@ function create(type, context, settings, transport) {
     return new Constructor(context, settings, transport);
 }
 
-function createConnector(nodes, data) {
+function createConnection(nodes, data) {
     // Split paths such as env.gain.0 to ['env', 'gain', 0]
     const srcPath = data.source.split('.');
     const srcLast = srcPath[srcPath.length - 1];
@@ -200,7 +200,7 @@ export default function NodeGraph(context, data, transport) {
     }
 
     seal(nodes);
-    data.connections && data.connections.reduce(createConnector, nodes);
+    data.connections && data.connections.reduce(createConnection, nodes);
 
     if (DEBUG) { logGroupEnd(); }
 }
@@ -210,7 +210,7 @@ assign(NodeGraph.prototype, {
     .connect(target)
     Connect node to target. In Soundstage calling this method directly is
     discouraged: the graph cannot track changes to your connections if you use
-    it. Instead, call `stage.createConnector(node, target)`.
+    it. Instead, call `stage.createConnection(node, target)`.
     **/
 
     connect: function() {

@@ -52,7 +52,7 @@ export default function Node(graph, context, type, id, label, data, merger, tran
 
 assign(Node.prototype, {
     connect: function(target) {
-        this.graph.createConnector(this, target);
+        this.graph.createConnection(this, target);
         return this;
     },
 

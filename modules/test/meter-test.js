@@ -1,6 +1,6 @@
 import run     from '../../../fn/modules/test.js';
 import context from '../context.js';
-import Meter   from '../meter.js';
+import Meter   from '../sequencer/meter.js';
 
 run('meter.barAtBeat()', [0,0,1,1], (test, done) => {
     const meter = new Meter([]);

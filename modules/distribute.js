@@ -39,7 +39,7 @@ export const distributors = {
         const number = typeof name === 'number' ? name : toNoteNumber(name) ;
         return target.stop(time, number, value);
     },
-
+/*
     'sequence': function(target, time, type, sequenceId, rate, nodeId, notify) {
         const sequence = target.sequences.find(matches({ id: sequenceId }));
 
@@ -68,7 +68,7 @@ export const distributors = {
 			targets:   new Map()
 		};
     },
-
+*/
     'param': function(target, time, type, name, value, duration, notify, context) {
         const param = target[name];
 

@@ -95,6 +95,22 @@ const getData = get('data');
 
 const pitchBendRange = 2;
 
+const lengths = {
+	'note':           5,
+	'noteon':         4,
+	'noteoff':        3,
+	'note-start':     4,
+	'note-stop':      3,
+	'sequence':       5, // time sequence sequence target duration
+	'sequence-start': 4, // time sequence-start sequence target
+	'sequence-stop':  3, // time sequence-stop  sequence
+	'meter':          4,
+	'rate':           3,
+	'param':          5,
+	'log':            3,
+	default:          2
+};
+
 function pitchToFloat(message) {
 	return bytesToSignedFloat(message[1], message[2]) * pitchBendRange;
 }
@@ -142,7 +158,6 @@ export default function Event(time, type) {
 	}
 
 	assign(this, arguments);
-	this.length = arguments.length;
 }
 
 assign(Event, {
@@ -151,7 +166,8 @@ assign(Event, {
 	},
 
 	from: function(data) {
-		const event = new Event(...data);
+		//const event = new Event(...data);
+		const event = Event.of.apply(Event, data);
 		event.originalEvent = data;
 		return event;
 	},
@@ -189,8 +205,6 @@ assign(Event, {
 		// Reset other references
 		this.target        = undefined;
 		this.originalEvent = undefined;
-		this.onEvent       = undefined;
-		this.offEvent      = undefined;
 	}
 });
 
@@ -211,13 +225,12 @@ assign(Event.prototype, {
 });
 
 define(Event.prototype, {
-	/**
+	/*
 	.beat
 	The event beat. An alias for `event[0]`.
-	**/
-
+	*/
 	beat: {
-		get: function() { return this[0]; },
+		get: function() { console.trace('IM DEPRECATING THIS'); return this[0]; },
 		set: function(beat) { this[0] = beat; }
 	},
 
@@ -225,7 +238,6 @@ define(Event.prototype, {
 	.type
 	The event type. An alias for `event[1]`.
 	**/
-
 	type: {
 		get: function() { return this[1]; },
 		set: function(type) { this[1] = type; }
@@ -235,36 +247,21 @@ define(Event.prototype, {
 	.length
 	Event length.
 	**/
-
-	length:   { value: 0,    writable: true },
+	length: {
+		get: function() { return lengths[this[1]]; }
+	},
 
 	/**
 	.target
 	Event may have a target assigned if it is being distributed by a sequencer.
 	**/
-
 	target:   { value: null, writable: true },
 
 	/**
 	.originalEvent
 	Original event this event was cloned from, if cloned via Event.from().
 	**/
-
-	originalEvent: { value: undefined, writable: true },
-
-	/**
-	.onEvent
-	If this is an `off` event, onEvent is its mirror `on` event.
-	**/
-
-	onEvent:  { value: undefined, writable: true },
-
-	/**
-	.offEvent
-	If this is an `on` event, offEvent is its mirror `off` event.
-	**/
-
-	offEvent: { value: undefined, writable: true }
+	originalEvent: { value: undefined, writable: true }
 });
 
 
@@ -336,9 +333,9 @@ export const isValidEvent = overload(get(1), {
 	noteoff:  (event) => event[2] !== undefined,
 	'note-start': (event) => event[3] !== undefined,
 	'note-stop':  (event) => event[2] !== undefined,
-	sequence: (event) => event[4] !== undefined,
-	'sequence-start': (event) => event[4] !== undefined,
-	'sequence-stop':  (event) => event[3] !== undefined,
+	'sequence':       (event) => event[4] !== undefined,
+	'sequence-start': (event) => event[3] !== undefined,
+	'sequence-stop':  (event) => event[2] !== undefined,
 	meter:    (event) => event[3] !== undefined,
 	rate:     (event) => event[2] !== undefined,
 	param:    (event) => event[4] !== undefined,
@@ -352,9 +349,9 @@ export const eventValidationHint = overload(get(1), {
 	noteoff:  (event) => 'Should be of the form [time, "noteoff", number]',
 	'note-start': (event) => 'Should be of the form [time, "noteon", number, velocity]',
 	'note-stop':  (event) => 'Should be of the form [time, "note-stop", number]',
-	sequence: (event) => 'Should be of the form [time, "sequence", id, target, duration]',
-	'sequence-start': (event) => 'Should be of the form [time, "sequence-start", name, target, duration]',
-	'sequence-stop':  (event) => 'Should be of the form [time, "sequence-stop", name, target]',
+	sequence:         (event) => 'Should be of the form [time, "sequence", id, target, duration]',
+	'sequence-start': (event) => 'Should be of the form [time, "sequence-start", id, target]',
+	'sequence-stop':  (event) => 'Should be of the form [time, "sequence-stop", id]',
 	meter:    (event) => 'Should be of the form [time, "meter", numerator, denominator]',
 	rate:     (event) => 'Should be of the form [time, "rate", number, curve]',
 	log:      (event) => 'Should be of the form [time, "log", string]',

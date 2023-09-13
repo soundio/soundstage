@@ -4,90 +4,32 @@ import get      from '../../fn/modules/get.js';
 import matches  from '../../fn/modules/matches.js';
 import Privates from '../../fn/modules/privates.js';
 
-import Clock      from './clock.js';
-import Event      from './event.js';
-import Meter      from './meter.js';
-import PlayStream from './sequencer/play-stream.js';
-import Sequence   from './sequencer/sequence.js';
+import Event       from './event.js';
+import Clock       from './clock.js';
+import FrameStream from './sequencer/frame-stream.js';
+import Meter       from './sequencer/meter.js';
+import Sequence, { by0Float32 } from './sequencer/sequence.js';
 
+import { getDejitterTime }   from './context.js';
 import Playable, { PLAYING } from './playable.js';
 import { automate, getValueAtTime } from './automate.js';
 import { isRateEvent, getDuration, isValidEvent, eventValidationHint } from './event.js';
-import { timeAtBeatOfEvents } from './location.js';
+import { timeAtBeatOfEvents } from './sequencer/location.js';
+import parseEvents from './events/parse-events.js';
 
 const assign = Object.assign;
+const create = Object.create;
 const define = Object.defineProperties;
-const byBeat = by(get(0));
-const seedRateEvent  = new Event(0, 'rate', 2);
 
 
-function assignTime(e0, e1) {
-    e1.time = e0.time + timeAtBeatOfEvents(e0, e1, e1[0] - e0[0]);
-    return e1;
-}
-
-function automateRate(privates, event) {
-    // param, time, curve, value, duration, notify, context
-    automate(privates.rateParam, event.time, event[3] || 'step', event[2], null, privates.notify, privates.context) ;
-    return privates;
+function getDejitter(context) {
+    return context.getOutputTimestamp().contextTime
+        + context.outputLatency
+        // Sample block compensation - IS THIS NEED? TEST!
+        + 128 / context.sampleRate ;
 }
 
 
-const selector  = { id: '' };
-const matchesId = matches(selector);
-
-function addSequenceData(sequencer, sequences, output, event) {
-    // Look for target sequence
-    selector.id = event[2];
-    const data = sequencer.sequences.find(matchesId);
-
-    if (!data) {
-        throw new Error('Sequence "' + event[2] + '" not found')
-    }
-
-    //const nodeId = event[3];
-    // TEMP: target? check only here so test will run
-    //const node = target && target.get ? target.get(nodeId) : {} ;
-    //
-    //if (!node) {
-    //    throw new Error('Node "' + nodeId + '" not found')
-    //}
-
-    const childsequencer = new Sequence(sequencer, output, data).start(event.time);
-
-    // Stream events
-    const childData = {
-        sequence:     childsequencer,
-        buffer:       [],
-        events:       [],
-        stopEvents:   [],
-        sequences:    [],
-        processed:    {},
-        target:       childsequencer
-    };
-
-    sequences.push(childsequencer);
-    return childsequencer;
-}
-
-function runSequenceEvent(sequencer, sequences, output, event) {
-    // Syphon of sequencer events
-    if (event.type === 'sequence-start') {
-        event.data   = addSequenceData(sequencer, sequences, output, event);
-        event.target = sequencer;
-        //console.log('ADD', data.sequences.length)
-        return;
-    }
-
-    if (event.type === 'sequence-stop') {
-        event.startEvent.data.stopTime = event.time;
-        event.startEvent.data.sequence.stop(event.time);
-        event.startEvent = undefined;
-        return;
-    }
-
-    return event;
-}
 
 /**
 Sequencer()
@@ -113,28 +55,25 @@ barAtBeat:  fn(n)
 ```
 **/
 
-export default function Sequencer(transport, output, data) {
-    // Clock
+export default function Sequencer(transport, output, events = [], sequences = []) {
     // .context
     // .startTime
     // .startLocation
     // .stopTime
     // .start()
     // .stop()
-    Clock.call(this, transport.context);
+    Playable.call(this, transport.context);
 
-    const privates       = Privates(this);
-    privates.beat        = 0;
-    privates.output      = output;
-    privates.playstreams = [];
+    this.transport = transport;
+    this.events    = typeof evente === 'string' ?
+        parseEvents(events) :
+        events.sort(by0Float32) ;
+    this.sequences = sequences;
+    this.rate      = transport.outputs.rate.offset;
 
-    // .transport
-    // .events
-    // .sequences
-    this.transport       = transport;
-    this.events          = data.events;
-    this.rate            = transport.outputs.rate.offset;  // TODO: `outputs` may be renamed, see transport
-    this.sequences       = data.sequences;
+    const privates = Privates(this);
+    privates.beat   = 0;
+    privates.output = output;
 }
 
 assign(Sequencer.prototype, Meter.prototype, {
@@ -156,18 +95,10 @@ assign(Sequencer.prototype, Meter.prototype, {
     .start(time, beat)
     Starts the sequencer at `time` to play on `beat`, returning a PlayStream.
     **/
-    start: function(time, beat) {
-        const privates = Privates(this);
-        const { output, playstreams } = privates;
-        const { context, transport, events } = this;
+    start: function(time = getDejitterTime(this.context), beat) {
+        const { transport } = this;
 
-        time = time || this.context.currentTime;
-        beat = beat === undefined ? privates.beat : beat ;
-
-        // Set this.startTime
-        Clock.prototype.start.call(this, time);
-
-        // Todo: .status uses currentTime, write some logic that uses time
+        // Todo: .status uses currentTime, write some other thing?
         if (transport.status === PLAYING) {
             // If transport is running set start time to next beat
             time = transport.timeAtBeat(Math.ceil(transport.beatAtTime(time)));
@@ -177,27 +108,22 @@ assign(Sequencer.prototype, Meter.prototype, {
             transport.start(time, beat);
         }
 
-        // Set rates
-        const rates = this.events ?
-            this.events.filter(isRateEvent).sort(byBeat) :
-            [] ;
+        //beat = beat === undefined ? privates.beat : beat ;
 
-        seedRateEvent.time   = time;
-        seedRateEvent.source = this;
-        seedRateEvent[2]   = getValueAtTime(this.rate, time);
+        // Delegate timing to playable
+        Playable.prototype.start.call(this, time);
 
-        rates.reduce(assignTime, seedRateEvent);
-        rates.reduce(automateRate, privates);
+        const privates = Privates(this);
 
-        const stream = PlayStream(this, this, transport);
-        playstreams.push(stream);
+        // Clock stuff?? IS THIS NEEDED?
+        this.startLocation = undefined;
 
-        stream
-        .map((event) => runSequenceEvent(this, [], output, event))
-        .start(time)
-        .pipe(output);
+        privates.sequence = new FrameStream(this.context)
+            .pipe(new Sequence(this, this.events, this.sequences))
+            .each((event) => privates.output.push(event))
+            .start(this.startTime);
 
-        return stream;
+        return this;
     },
 
     /**
@@ -205,13 +131,13 @@ assign(Sequencer.prototype, Meter.prototype, {
     Stops the sequencer at `time`, stopping all child sequence streams.
     **/
     stop: function(time) {
+        const privates = Privates(this);
+
+        // Ought to be this.time TODO
         time = time || this.context.currentTime;
 
         // Set this.stopTime
-        Clock.prototype.stop.call(this, time);
-
-        const privates    = Privates(this);
-        const playstreams = privates.playstreams;
+        Playable.prototype.stop.call(this, time);
 
         // Hold automation for the rate node
         // param, time, curve, value, duration, notify, context
@@ -220,22 +146,11 @@ assign(Sequencer.prototype, Meter.prototype, {
         // Store beat
         privates.beat = this.beatAtTime(this.stopTime);
 
-        // Stop all playing stream
-        while (playstreams[0] && (playstream = playstreams.shift())) {
-            playstream.stop(this.stopTime);
-        }
+        // Stop sequence
+        privates.sequence.stop(this.stopTime);
 
         // Stop transport ???
         this.transport.stop(this.stopTime);
-
-        // Log the state of Pool shortly after stop
-        //if (DEBUG) {
-        //	setTimeout(function() {
-        //		logSequence(sequencer);
-        //		console.log('Pool –––––––––––––––––––––––––––––––––');
-        //		console.table(Pool.snapshot());
-        //	}, 400);
-        //}
 
         return this;
     }
@@ -297,7 +212,7 @@ define(Sequencer.prototype, {
     },
 
     /** .tempo
-    The rate of the transport clock, expressed in bpm.
+    The rate of the transport clock expressed in bpm.
     **/
     tempo: {
         get: function() { return getValueAtTime(this.rate, this.time) * 60; },

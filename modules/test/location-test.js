@@ -2,7 +2,7 @@ import run from '../../../fn/modules/test.js';
 import { timeAtBeatExponential, rateAtBeatExponential,
 	beatAtTimeExponential, rateAtTimeExponential, timeAtBeatOfEvents,
 	beatAtLocation, locationAtBeat, beatAtTimeOfAutomation,
-	timeAtBeatOfAutomation } from '../location.js';
+	timeAtBeatOfAutomation } from '../sequencer/location.js';
 
 const k = 1000000000;
 

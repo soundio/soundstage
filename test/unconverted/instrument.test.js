@@ -15,15 +15,17 @@ test('Instrument', function(run, print, fixture) {
             voice: {
                 nodes: [{
                     id:   'osc-1',
-                    type: 'sample',
+                    type: 'tone',
                     data: {
-                        src: '../sample-maps/mis-piano.js'
+                        type: 'square',
+                        detune: -1200
                     }
                 }, {
                     id:   'osc-2',
                     type: 'tone',
                     data: {
-                        type: 'square'
+                        type: 'sawtooth',
+                        detune: 1200
                     }
                 }, {
                     id:   'mix-1',
@@ -36,19 +38,21 @@ test('Instrument', function(run, print, fixture) {
                     id:   'mix-2',
                     type: 'mix',
                     data: {
-                        gain: 0.05,
-                        pan: 0.3
+                        gain: 1,
+                        pan: 0
                     }
                 }, {
                     id:   'gain-envelope',
                     type: 'envelope',
                     data: {
                         attack: [
-                            [0, "step",   1]
+                            [0,     "step",   0],
+                            [0.012, "linear", 1],
+                            [0.3,   "exponential", 0.125]
                         ],
 
                         release: [
-                            [0, "target", 0, 0.003]
+                            [0, "target", 0, 0.1]
                         ]
                     }
                 }, {
@@ -56,11 +60,13 @@ test('Instrument', function(run, print, fixture) {
                     type: 'envelope',
                     data: {
                         attack: [
-                            [0, "step", 1]
+                            [0,     "step",   0],
+                            [0.012, "linear", 1],
+                            [0.3,   "exponential", 0.125]
                         ],
 
                         release: [
-                            [0, "target", 0, 0.003]
+                            [0, "target", 0, 0.1]
                         ]
                     }
                 }, {
@@ -83,7 +89,7 @@ test('Instrument', function(run, print, fixture) {
                     { source: 'gain-envelope', target: 'gain.gain' },
                     { source: 'filter-envelope', target: 'filter.frequency' },
                     { source: 'osc-1', target: 'mix-1' },
-                    //{ source: 'osc-2', target: 'mix-2' },
+                    { source: 'osc-2', target: 'mix-2' },
                     { source: 'mix-1', target: 'gain' },
                     { source: 'mix-2', target: 'gain' },
                     { source: 'gain', target: 'filter' }
@@ -105,7 +111,7 @@ test('Instrument', function(run, print, fixture) {
                     'filter-envelope': {
                         gain: {
                             1: { type: 'scale', scale: 1 },
-                            2: { type: 'logarithmic', min: 2000, max: 20000 }
+                            2: { type: 'logarithmic', min: 200, max: 20000 }
                         }
                     },
 
@@ -129,55 +135,42 @@ test('Instrument', function(run, print, fixture) {
             output: 1
         })
         .then(function(node) {
-            stage.createConnector(node, 'output');
+            stage.createConnection(node, 'output');
 
             stage.__promise.then(function() {
+                window.voice = node
+                .start(stage.time + 1, 'C3', 0.333333)
+                .stop(stage.time + 1.5);
 
-                var n = -1;
-                var nmax = 128;
-                while (n++ < nmax) {
-                    node
-                    .start(stage.time + n/8, n, 0.8)
-                    .stop(stage.time + n/8 + 0.125);
-                }
+                node
+                .start(stage.time + 1.6, 'C3', 0.666667)
+                .stop(stage.time + 1.9);
 
-/*
+                node
+                .start(stage.time + 1.9, 'D3', 0.333333)
+                .stop(stage.time + 2.8);
+
+                node
+                .start(stage.time + 2.8, 'C3', 0.1)
+                .stop(stage.time + 3.2);
+
+                node
+                .start(stage.time + 3.7, 'F3', 1)
+                .stop(stage.time + 4.5);
+
+                node
+                .start(stage.time + 4.6, 'E3', 0.5)
+                .stop(stage.time + 5.5);
+
                 setTimeout(function() {
-                    window.voice = node
-                    .start(stage.time + 1, 'C3', 0.5)
+                    node
+                    .start(stage.time + 1, 'C3', 0.0009765625)
                     .stop(stage.time + 1.5);
 
                     node
-                    .start(stage.time + 1.6, 'C3', 0.666667)
+                    .start(stage.time + 1.6, 'C3', 1)
                     .stop(stage.time + 1.9);
-
-                    node
-                    .start(stage.time + 1.9, 'D3', 0.333333)
-                    .stop(stage.time + 2.8);
-
-                    node
-                    .start(stage.time + 2.8, 'C3', 0.1)
-                    .stop(stage.time + 3.2);
-
-                    node
-                    .start(stage.time + 3.7, 'F3', 1)
-                    .stop(stage.time + 4.5);
-
-                    node
-                    .start(stage.time + 4.6, 'E3', 0.5)
-                    .stop(stage.time + 5.5);
-
-                    setTimeout(function() {
-                        node
-                        .start(stage.time + 1, 'E3', 1)
-                        .stop(stage.time + 1.5);
-
-                        node
-                        .start(stage.time + 1.6, 'C3', 1)
-                        .stop(stage.time + 1.9);
-                    }, 6000);
-                }, 1000);
-*/
+                }, 6000);
             });
         });
 

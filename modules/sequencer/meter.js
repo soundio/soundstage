@@ -1,6 +1,6 @@
 
-import nothing from '../../fn/modules/nothing.js';
-import Event, { isMeterEvent } from './event.js';
+import nothing from '../../../fn/modules/nothing.js';
+import Event, { isMeterEvent } from '../event.js';
 
 var assign = Object.assign;
 var freeze = Object.freeze;
