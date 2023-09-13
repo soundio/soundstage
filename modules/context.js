@@ -6,6 +6,8 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
 // Crude polyfill for systems without getOutputTimeStamp()
 if (!AudioContext.prototype.getOutputTimestamp) {
+    console.log('Polyfill AudioContext.getOutputTimestamp()');
+
     AudioContext.prototype.getOutputTimestamp = function() {
         return {
             contextTime:     this.currentTime + this.outputLatency,
@@ -68,6 +70,14 @@ if (context.state === 'suspended') {
 // Todo: remove default
 export default context;
 
+export function isAudioContext(object) {
+    return window.AudioContext && window.AudioContext.prototype.isPrototypeOf(object);
+}
+
+
+
+
+
 function stampTimeAtDomTime(stamp, domTime) {
     return stamp.contextTime + (domTime - stamp.performanceTime) / 1000;
 }
@@ -104,11 +114,13 @@ function _getOutputLatency(stamps, context) {
         print('Output latency changed to', Math.round(context._outputLatency * context.sampleRate) + ' samples (' + context._outputLatency.toFixed(3) + 's @ ' + context.sampleRate + 'Hz)');
     }
 
+    console.log('Soundstage: Estimated output latency', context._outputLatency);
     return context._outputLatency;
 }
 
 export function getInputLatency(context) {
     if (context.inputLatency) {
+        console.log('Soundstage: input latency estimated from output latency');
         return context.inputLatency;
     }
 
@@ -118,6 +130,7 @@ export function getInputLatency(context) {
 
 export function getOutputLatency(context) {
     if (context.outputLatency) {
+        console.log('Soundstage: context native output latency', context.outputLatency);
         return context.outputLatency;
     }
 
@@ -147,19 +160,47 @@ Returns a time just ahead of context.currentTime that compensates
 for block jitter caused by cueing everything to currentTime.
 */
 
+const safetyTime = 0.2;
+let discrepancy  = 0;
+
 export function getDejitterTime(context) {
-    let time = context.getOutputTimestamp().contextTime
-        + context.outputLatency
-        // Sample block compensation - IS THIS NEED? TEST!
-        + 128 / context.sampleRate;
+    // FOR SOME REASON THERE IS a 200ms discrepancy betweeen this currentTime
+    // and the currentTime it is by the time the sequence starts, and I cant
+    // quite believe it. I mean, this should cause everything to be rendered...
+    //return context.currentTime;
 
-    if (time < context.currentTime) {
-        console.warn('Dejitter time behind currentTime by', time - context.currentTime);
-        time = context.currentTime;
-    }
-    else if (time > context.currentTime + 128 / context.sampleRate) {
-        console.warn('Dejitter time ahead of currentTime by', time - context.currentTime);
+    const { currentTime, sampleRate } = context;
+    const stamp = context.getOutputTimestamp();
+    const diff  = currentTime - stamp.contextTime;
+
+    // A rolling diff that always chases the max
+    if (diff > discrepancy) {
+        console.log('Increasing rolling latency measurement', diff.toFixed(3));
+        discrepancy = diff > discrepancy ? diff : discrepancy ;
     }
 
-    return time ;
+    const time = stamp.contextTime + discrepancy + safetyTime + 128 / context.sampleRate;;
+
+    if (time < currentTime) {
+        console.log('Something is really wrong');
+    }
+
+    return time;
+
+/*
+    const time = stamp.contextTime
+        + getOutputLatency(context)
+        // 2 sample blocks compensation - Why 2? I don't know, but 1 is not enough
+        // WHY?? WHY? Do we have to add so much latency on? THIS IS A QUARTER OF A SECOND!!
+        + 10000 / context.sampleRate;
+
+    if (time < currentTime) {
+        console.warn('Dejitter time ahead of currentTime by', time - currentTime, currentTime.toFixed(3), time.toFixed(3));
+        time = currentTime;
+    }
+    else if (time > currentTime + 256 / sampleRate) {
+        console.warn('Dejitter time behind currentTime by', time - currentTime, currentTime.toFixed(3), time.toFixed(3));
+    }
+
+    return time ;*/
 }

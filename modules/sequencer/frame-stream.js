@@ -87,6 +87,7 @@ worker.onmessage = function frame(e) {
             //unlisten(stream);
             //push(stream[0], data);
             stream[0].push(data);
+console.log('STOP FRAMES');
             stop(stream);
             unlisten(stream);
             continue;
@@ -138,7 +139,7 @@ FrameStream.prototype = assign(create(Stream.prototype), Playable.prototype, {
         return output;
     },
 
-    stop: function(time = this.context.currentTime) {
+    stop: function(time) {
         // Update .startTime, .stopTime
         Playable.prototype.stop.apply(this, arguments);
 
@@ -147,6 +148,7 @@ FrameStream.prototype = assign(create(Stream.prototype), Playable.prototype, {
             // Unbind from webworker timer
             unlisten(this);
             // Stop stream (like Stream.prototype.stop)
+console.log('STOP FRAMES');
             stop(this);
         }
 

@@ -15,7 +15,7 @@ import Soundstage from '../modules/soundstage.js';
 
 const data = {
     nodes: [
-        { id: 'tone',   type: 'tone', data: { attack: 0.2 } },
+        { id: 'tone',   type: 'tone', node: { attack: 0.02, release: 0.08 } },
         { id: 'output', type: 'output' }
     ],
 
@@ -26,17 +26,17 @@ const data = {
     sequences: [{
         id: 'test',
         events: [
-            [0,    'note', 800, 0.6, 0.2],
-            [0.25, 'note', 400, 0.7, 0.2],
-            [0.5,  'note', 600, 0.8, 0.2],
-            [0.75, 'note', 300, 0.8, 0.2],
-            [1,    'note', 400, 0.7, 0.4],
-            [2,    'param', 'detune', -1, 'step'],
-            [2,    'note', 800, 0.6, 0.2],
-            [2.25, 'note', 400, 0.7, 0.2],
-            [2.5,  'note', 600, 0.8, 0.2],
-            [2.75, 'note', 300, 0.8, 0.2],
-            [3,    'note', 400, 0.7, 0.8],
+            [0,    'note', 800,  0.6, 0.2],
+            //[0.25, 'note', 400,  0.7, 0.2],
+            //[0.5,  'note', 600,  0.8, 0.2],
+            //[0.75, 'note', 300,  0.8, 0.2],
+            //[1,    'note', 1200, 0.7, 3],
+            //[2,    'detune', -1, 'step'],
+            //[2,    'note', 800,  0.6, 0.2],
+            //[2.25, 'note', 400,  0.7, 0.2],
+            //[2.5,  'note', 600,  0.8, 0.2],
+            //[2.75, 'note', 300,  0.8, 0.2],
+            //[3,    'note', 400,  0.7, 0.8],
         ]
     }],
 
@@ -54,7 +54,6 @@ function(test, done) {
     window.stage = stage;
 
     stage.start(0);
-
 
     document.body.addEventListener('click', function() {
         stage.start();

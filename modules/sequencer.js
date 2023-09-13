@@ -1,7 +1,10 @@
 
+import arg      from '../../fn/modules/arg.js';
 import by       from '../../fn/modules/by.js';
 import get      from '../../fn/modules/get.js';
+import id       from '../../fn/modules/id.js';
 import matches  from '../../fn/modules/matches.js';
+import overload from '../../fn/modules/overload.js';
 import Privates from '../../fn/modules/privates.js';
 
 import Event       from './event.js';
@@ -10,8 +13,9 @@ import FrameStream from './sequencer/frame-stream.js';
 import Meter       from './sequencer/meter.js';
 import Sequence, { by0Float32 } from './sequencer/sequence.js';
 
+import { print } from './print.js';
 import { getDejitterTime }   from './context.js';
-import Playable, { PLAYING } from './playable.js';
+import Playable, { IDLE, PLAYING } from './playable.js';
 import { automate, getValueAtTime } from './automate.js';
 import { isRateEvent, getDuration, isValidEvent, eventValidationHint } from './event.js';
 import { timeAtBeatOfEvents } from './sequencer/location.js';
@@ -98,29 +102,76 @@ assign(Sequencer.prototype, Meter.prototype, {
     start: function(time = getDejitterTime(this.context), beat) {
         const { transport } = this;
 
-        // Todo: .status uses currentTime, write some other thing?
-        if (transport.status === PLAYING) {
-            // If transport is running set start time to next beat
-            time = transport.timeAtBeat(Math.ceil(transport.beatAtTime(time)));
-        }
-        else {
-            // Otherwise start transport at time
-            transport.start(time, beat);
-        }
-
-        //beat = beat === undefined ? privates.beat : beat ;
+        // If the sequencer is running stop it first
+        if (this.status !== IDLE) { this.stop(time); }
 
         // Delegate timing to playable
         Playable.prototype.start.call(this, time);
 
+        if (window.DEBUG) {
+            print('Sequencer start()', 'startTime', this.startTime, 'transport', transport.status);
+        }
+
         const privates = Privates(this);
 
-        // Clock stuff?? IS THIS NEEDED?
+        if (transport.status !== PLAYING) {
+            console.log('TRAN START', transport.status);
+            transport.start(time, beat);
+        }
+/*        if (transport.status === PLAYING) {
+            console.log('A', time);
+            // If transport is running set start time to next beat
+            time = transport.timeAtBeat(Math.ceil(transport.beatAtTime(time)));
+            console.log('B', time);
+        }
+        else {
+            // Otherwise start transport at time
+            transport.start(time, beat);
+            //time = transport.startTime;
+        }
+*/
+        // TODO: Clock stuff?? IS THIS NEEDED?
         this.startLocation = undefined;
 
         privates.sequence = new FrameStream(this.context)
-            .pipe(new Sequence(this, this.events, this.sequences))
-            .each((event) => privates.output.push(event))
+            // Pipe frames to sequence. Parameter 4 is just a name for debugging.
+            .pipe(new Sequence(this, this.events, this.sequences, 'root'))
+            // Error-check and consume output events
+            .map(overload(arg(1), {
+                'note':     (event) => { throw new Error('note events should have been converted to start and stop here'); },
+                'sequence': (event) => { throw new Error('sequence events should have been consumed by the sequencer here'); },
+                'param':    (event) => { throw new Error('param events should have been renamed by the sequencer here'); },
+
+                'start':    (event) => {
+                    console.log('SSTTAARRART', event);
+                    return event;
+                },
+
+                'stop':     (event) => {
+                    console.log('SSTTSTTSTOOOOPPP');
+                    if (!event.startEvent) { throw new Error('stopEvent with missing startEvent'); }
+                    event.target = event.startEvent.target.stop(event[0], event[2]);
+                },
+
+                'log':      (event) => {
+                    console.log(this.context.currentTime.toFixed(3), event[0].toFixed(3), event[2]);
+                },
+
+                default: id
+            }))
+            // Distribute to output stream
+            .each((event) => {
+                //console.log('OUT      ', event[0].toFixed(3), event[2], event[1]);
+                // Automation should return a target. This may be dodgy.
+                event.target = privates.output.push(event);
+
+                if (!event.target) {
+                    console.log('No target returned for', event[1], event);
+                }
+
+                return event.target;
+            })
+            // Start sequence
             .start(this.startTime);
 
         return this;
@@ -138,6 +189,10 @@ assign(Sequencer.prototype, Meter.prototype, {
 
         // Set this.stopTime
         Playable.prototype.stop.call(this, time);
+
+        if (window.DEBUG) {
+            print('Sequencer stop() ', 'stopTime ', this.stopTime, 'status', this.status);
+        }
 
         // Hold automation for the rate node
         // param, time, curve, value, duration, notify, context
@@ -229,7 +284,7 @@ define(Sequencer.prototype, {
         get: function() {
             return this.context.getOutputTimestamp().contextTime;
         }
-    }
+    },
 
-//    status: getOwnPropertyDescriptor(Playable.prototype, 'status')
+    status: Object.getOwnPropertyDescriptor(Playable.prototype, 'status')
 });

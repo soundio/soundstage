@@ -99,8 +99,8 @@ const lengths = {
 	'note':           5,
 	'noteon':         4,
 	'noteoff':        3,
-	'note-start':     4,
-	'note-stop':      3,
+	'start':          4,
+	'stop':           3,
 	'sequence':       5, // time sequence sequence target duration
 	'sequence-start': 4, // time sequence-start sequence target
 	'sequence-stop':  3, // time sequence-stop  sequence
@@ -108,7 +108,7 @@ const lengths = {
 	'rate':           3,
 	'param':          5,
 	'log':            3,
-	default:          2
+	default:          5
 };
 
 function pitchToFloat(message) {
@@ -157,7 +157,13 @@ export default function Event(time, type) {
 		throw new Error('Soundstage new Event() called with invalid arguments [' + Array.from(arguments).join(', ') + ']. ' + eventValidationHint(arguments));
 	}
 
-	assign(this, arguments);
+	this[0] = time;
+	this[1] = type;
+
+	const l = this.length;
+
+	let n = 1;
+	while (++n < l) { this[n] = arguments[n]; }
 }
 
 assign(Event, {
@@ -248,7 +254,7 @@ define(Event.prototype, {
 	Event length.
 	**/
 	length: {
-		get: function() { return lengths[this[1]]; }
+		get: function() { return lengths[this[1]] || lengths.default; }
 	},
 
 	/**
@@ -331,8 +337,8 @@ export const isValidEvent = overload(get(1), {
 	note:     (event) => event[4] !== undefined,
 	noteon:   (event) => event[3] !== undefined,
 	noteoff:  (event) => event[2] !== undefined,
-	'note-start': (event) => event[3] !== undefined,
-	'note-stop':  (event) => event[2] !== undefined,
+	'start':  (event) => event[3] !== undefined,
+	'stop':   (event) => event[2] !== undefined,
 	'sequence':       (event) => event[4] !== undefined,
 	'sequence-start': (event) => event[3] !== undefined,
 	'sequence-stop':  (event) => event[2] !== undefined,
@@ -340,20 +346,20 @@ export const isValidEvent = overload(get(1), {
 	rate:     (event) => event[2] !== undefined,
 	param:    (event) => event[4] !== undefined,
 	log:      (event) => event[2] !== undefined,
-	default:  (event) => false
+	default:  (event) => (typeof event[0] === 'number' && typeof event[1] === 'string')
 });
 
 export const eventValidationHint = overload(get(1), {
 	note:     (event) => 'Should be of the form [time, "note", number, velocity, duration]',
-	noteon:   (event) => 'Should be of the form [time, "noteon", number, velocity]',
-	noteoff:  (event) => 'Should be of the form [time, "noteoff", number]',
-	'note-start': (event) => 'Should be of the form [time, "noteon", number, velocity]',
-	'note-stop':  (event) => 'Should be of the form [time, "note-stop", number]',
-	sequence:         (event) => 'Should be of the form [time, "sequence", id, target, duration]',
+	noteon:   (event) => 'Should be of the form [time, "noteon", note, velocity]',
+	noteoff:  (event) => 'Should be of the form [time, "noteoff", note]',
+	'start':  (event) => 'Should be of the form [time, "start", note, level]',
+	'stop':   (event) => 'Should be of the form [time, "stop",  note]',
+	'sequence':       (event) => 'Should be of the form [time, "sequence", id, target, duration]',
 	'sequence-start': (event) => 'Should be of the form [time, "sequence-start", id, target]',
 	'sequence-stop':  (event) => 'Should be of the form [time, "sequence-stop", id]',
 	meter:    (event) => 'Should be of the form [time, "meter", numerator, denominator]',
 	rate:     (event) => 'Should be of the form [time, "rate", number, curve]',
 	log:      (event) => 'Should be of the form [time, "log", string]',
-	default:  (event) => 'Probably should be of the form [time, "param", name, value, curve]'
+	default:  (event) => 'Probably should be of the form [time, name, value, curve, duration]'
 });

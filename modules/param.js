@@ -1,5 +1,13 @@
 
+import { getAutomation, automateParamEvents } from './automate.js';
+
 const fadeDuration = 0.012;
+
+/** isAudioParam(object) **/
+
+export function isAudioParam(object) {
+    return window.AudioParam && window.AudioParam.prototype.isPrototypeOf(object);
+}
 
 /**
 fadeInFromTime(context, param, duration, time)

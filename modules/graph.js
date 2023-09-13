@@ -118,7 +118,12 @@ assign(Graph.prototype, {
     **/
 
     get: function(id) {
+        //console.trace('graph.get(id) renamed graph.getNode(id) !!');
         return this.nodes.find(has('id', id)).node;
+    },
+
+    getNode: function(id) {
+        return this.nodes.find(has('id', id));
     },
 
     /**

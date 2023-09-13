@@ -152,16 +152,15 @@ define(Playable.prototype, {
         },
 
         get: function() {
-            return
-                /* Experimental allow Stream to overwrite .status */
-                this.statusOverride ? this.statusOverride :
-                this.startTime !== undefined ?
-                    this.startTime <= this.context.currentTime ?
-                        this.stopTime === undefined || this.stopTime > this.context.currentTime ?
-                            PLAYING :
-                        IDLE :
-                    CUED :
-                IDLE ;
+            const time = this.context.currentTime;
+            /* Experimental allow Stream to overwrite .status */
+            return this.statusOverride ? this.statusOverride :
+                this.startTime === undefined ? IDLE :
+                this.startTime <= time ?
+                    this.stopTime === undefined ? PLAYING :
+                    time <= this.stopTime ? PLAYING :
+                    IDLE :
+                CUED ;
         }
     }
 });

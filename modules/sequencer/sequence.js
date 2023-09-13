@@ -7,6 +7,7 @@ import { remove } from '../../../fn/modules/remove.js';
 import Privates   from '../../../fn/modules/privates.js';
 import Stream, { pipe, stop } from '../../../fn/modules/stream.js';
 
+import { print } from '../print.js';
 import Event, { isRateEvent, isValidEvent, getDuration, eventValidationHint }  from '../event.js';
 import Playable   from '../playable.js';
 import { beatAtLocation, locationAtBeat } from './location.js';
@@ -23,6 +24,10 @@ const rate0         = Object.freeze(new Event(0, 'rate', 1));
 const seedRateEvent = new Event(0, 'rate', 1);
 const selector      = { id: '' };
 const matchesSelector = matches(selector);
+
+
+let count = 0;
+
 
 export function by0Float32(a, b) {
     // Compare 32-bit versions of these number, avoid 64-bit rounding errors
@@ -127,12 +132,17 @@ function processFrame(frame, events, latest, stopbuffer, buffer) {
         const duration = getDuration(event);
 
         if (duration !== undefined) {
-            // Give stop a reference to start
+            // Give stop a reference to start, renaming event type. Renames
+            // 'note' to 'start'/'stop', and 'sequence' to
+            // 'sequence-start'/'sequence-stop'.
+            const namePrefix = event[1] === 'note' ? '' : event[1] + '-' ;
+
             const startEvent
-                = new Event(event[0], event[1] + '-start', event[2], event[3]);
+                = new Event(event[0], namePrefix + 'start', event[2], event[3]);
+
             const stopEvent
                 = event.stopEvent
-                = new Event(event[0] + duration, event[1] + '-stop', event[2]);
+                = new Event(event[0] + duration, namePrefix + 'stop', event[2]);
 
             stopEvent.startEvent = startEvent;
             buffer[n] = startEvent;
@@ -152,7 +162,7 @@ function processFrame(frame, events, latest, stopbuffer, buffer) {
 
     return buffer;
 }
-
+var r = 0;
 function readBufferEvent(sequence, stopbuffer, buffer, n) {
     const event = buffer[n];
     const time  = sequence.timeAtBeat(event[0]);
@@ -163,25 +173,45 @@ function readBufferEvent(sequence, stopbuffer, buffer, n) {
 
     // Syphon off events, create and start child sequences
     if (event[1] === 'sequence-start') {
+        event.id = ++r;
+
         // This may extend the buffer with more events
         event.target = sequence
             .createSequence(event[2], event[3])
             .start(time);
+
+        if (!event.target) {
+            console.log('SEQUENCE START createSequence did not return target?', event);
+        }
 
         buffer.splice(n, 1);
         return n - 1;
     }
 
     if (event[1] === 'sequence-stop') {
-        // This may extend the buffer with more events
+        if (window.DEBUG && !event.startEvent.target) {
+            console.log('"sequence-stop" .startEvent not given target - should not be possible - IGNORING');
+            buffer.splice(n, 1);
+            return n - 1;
+            throw new Error('"sequence-stop" .startEvent not given target - should not be possible ' + event.startEvent.id);
+        }
+
         event.startEvent.target.stop(time);
         buffer.splice(n, 1);
         return n - 1;
     }
 
-    if (event[1] === 'note-start' || event[1] === 'note-stop') {
+    if (event[1] === 'start' || event[1] === 'stop') {
         // It should already be an Event object, update to time
         event[0] = time;
+        return n;
+    }
+
+    if (event[1] === 'param') {
+        // Param events lose 'param' and go by their param name. I may
+        // ultimately deprecate them. So for example [0, 'param', 'gain', 1]
+        // becomes [0, 'gain', 1]
+        buffer[n] = new Event(time, event[2], event[3], event[4], event[5], event[6]);
         return n;
     }
 
@@ -192,18 +222,38 @@ function readBufferEvent(sequence, stopbuffer, buffer, n) {
 
 /** Sequence(transport, events, sequences) **/
 
-export default function Sequence(transport, events = [], sequences = []) {
+export default function Sequence(transport, events = [], sequences = [], debugId) {
     // .context
     Playable.call(this, transport.context);
 
     // Transport and sequences
     this.transport  = transport;
     this.sequences  = sequences;
-    this.events     = events;
+    this.events     = events.sort(by0);
     this.buffer     = [];
     this.stopbuffer = [];
     this.latest     = {};
     this.inputs     = [];
+
+    if (window.DEBUG) {
+        this.debugId = debugId;
+        ++count;
+
+        print(
+            'Sequence "' + this.debugId + '" created',
+            'events',     this.events.length,
+            'count',      count
+        );
+
+        // Print stats on sequence stop
+        this.done(() => (--count, print(
+            'Sequence "' + (this.debugId ? this.debugId : '') + '" done',
+            'stopTime',   this.stopTime,
+            'buffer',     this.buffer.length,
+            'stopbuffer', this.stopbuffer.length,
+            'count',      count
+        )));
+    }
 }
 
 Sequence.prototype = assign(create(Stream.prototype), {
@@ -248,6 +298,7 @@ Sequence.prototype = assign(create(Stream.prototype), {
         buffer.sort(by0Float32);
         n = -1;
         while (buffer[++n]) {
+
             this[0].push(buffer[n]);
         }
 
@@ -273,22 +324,24 @@ Sequence.prototype = assign(create(Stream.prototype), {
     /**
     .createSequence()
     **/
-    createSequence: function(id, target) {
+    createSequence: function(sequenceId, nodeId) {
         // Look for target sequence
-        selector.id = id;
+        selector.id = sequenceId;
         const data = this.sequences.find(matchesSelector);
 
         if (!data) {
             throw new Error('Sequence "' + event[2] + '" not found')
         }
 
-        const sequence = new Sequence(this, data.events, data.sequences)
+        const sequence = new Sequence(this, data.events, data.sequences, sequenceId)
             .done(() => remove(this.inputs, sequence));
 
         this.inputs.push(sequence);
 
         sequence
-        .map((e) => (e.target = target, e))
+        // Update event path / type / name / address / whatever you want
+        // to call it
+        .map((event) => (event[1] = nodeId + '.' + event[1], event))
         .pipe(this.buffer);
 
         return sequence;

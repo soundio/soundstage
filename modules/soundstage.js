@@ -79,38 +79,6 @@ function createOutputMerger(context, target) {
     return merger;
 }
 
-const automate = overload(get(1), {
-    'note': (event) => {
-
-    },
-
-    'note-start': (event) => {
-        event.target = event.target.start(event[0], event[2], event[3]);
-    },
-
-    'note-stop': (event) => {
-        if (!event.startEvent) { throw new Error('stopEvent with missing startEvent'); }
-        event.startEvent.target.stop(event[0], event[2]);
-    },
-
-    'param': (event) => {
-        const param = event.target[event[2]];
-
-        if (!param || !param.setValueAtTime) {
-            console.warn('Node property "' + name + '" is not an AudioParam', target);
-            return;
-        }
-
-        // node, name, time, curve, value, duration, notify
-        automato__(event.target, event[2], event[0], event[4], event[3], null, noop);
-    },
-
-    'log': (event) => console.log('event', event[0], event[2]),
-
-    default: function(event) {
-        console.log('Event type ' + event[1] + ' not handled', event);
-    }
-});
 
 /**
 Soundstage()
@@ -152,14 +120,17 @@ export default function Soundstage(data = defaultData, settings = nothing) {
     // always hot stream.
     const automation = Stream.of();
 
-    automation
-    .map((event) => {
-        event.target = typeof event.target === 'string' ?
-            this.get(event.target) :
-            event.target ;
-        return event;
-    })
-    .each(automate);
+    // Cascade automation events to nodes
+    automation.each((event) => {
+        // Get node from first part of event type
+        const i    = event[1].indexOf('.');
+        const id   = event[1].slice(0, i);
+        const node = this.getNode(id);
+
+        // Update event type by lopping off name of node
+        event[1] = event[1].slice(i + 1);
+        return node.push(event);
+    });
 
 
 
@@ -234,7 +205,7 @@ define(Soundstage.prototype, {
     //meter:   getOwnPropertyDescriptor(Sequencer.prototype, 'meter'),
     //beat:    getOwnPropertyDescriptor(Sequencer.prototype, 'beat'),
     //bar:     getOwnPropertyDescriptor(Sequencer.prototype, 'bar'),
-    //status:  getOwnPropertyDescriptor(Sequencer.prototype, 'status'),
+    status:  Object.getOwnPropertyDescriptor(Sequencer.prototype, 'status'),
 
     //blockDuration:  getOwnPropertyDescriptor(Transport.prototype, 'blockDuration'),
     //frameDuration:  getOwnPropertyDescriptor(Transport.prototype, 'frameDuration'),
@@ -302,38 +273,11 @@ assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
         return new Control(this.controls, source, target, options, privates.notify);
     },
 
-    automate: function(target, time, type) {
+    automate: function(time, type) {
         const { automation } = Privates(this);
         const event = new Event(...arguments);
-        event.target = target;
-        automation.push(event);
+        event.target = automation.push(event);
         return this;
-
-        /*
-        const privates = Privates(this.graph);
-
-        if (this.record) {
-            const beat     = Math.floor(this.graph.beatAtTime(time));
-
-            if (!privates.recordSequence) {
-                const sequence = this.graph.createSequence();
-                const event    = this.graph.createEvent(beat, 'sequence', sequence.id, this.id);
-                privates.recordSequence = sequence;
-            }
-
-            privates.recordSequence.createEvent(
-                this.graph.beatAtTime(time) - beat,
-                type, name, value, duration
-            );
-        }
-
-        return typeof this.data[type] === 'function' ?
-            this.data[type](time, name, value) :
-        isAudioParam(this.data[type]) ?
-            // param, time, curve, value, duration, notify, context
-            automato__(this.data, type, time, name, value, duration, privates.notify, this.data.context) :
-        undefined ;
-        */
     },
 
 /*

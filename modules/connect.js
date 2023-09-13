@@ -1,7 +1,7 @@
 
-import isDefined      from '../../fn/modules/is-defined.js';
-import { print, log } from './print.js';
-import { isAudioParam } from './automate.js';
+import isDefined        from '../../fn/modules/is-defined.js';
+import { print, log }   from './print.js';
+import { isAudioParam } from './param.js';
 
 const DEBUG = false;//window.DEBUG;
 

@@ -5,7 +5,8 @@ import id       from '../../fn/modules/id.js';
 import last     from '../../fn/modules/last.js';
 import overload from '../../fn/modules/overload.js';
 
-import { timeAtDomTime } from './context.js';
+import { isAudioContext, timeAtDomTime } from './context.js';
+import { isAudioParam }  from './param.js';
 import config from '../config.js';
 
 const DEBUG = false;
@@ -13,16 +14,8 @@ const DEBUG = false;
 // 60 frames/sec frame rate
 const frameDuration = 1000 / 60;
 
-export function isAudioContext(object) {
-    return window.AudioContext && window.AudioContext.prototype.isPrototypeOf(object);
-}
-
 export function isAudioNode(object) {
     return window.AudioNode && window.AudioNode.prototype.isPrototypeOf(object);
-}
-
-export function isAudioParam(object) {
-    return window.AudioParam && window.AudioParam.prototype.isPrototypeOf(object);
 }
 
 export function getAutomation(param) {
@@ -202,7 +195,7 @@ const mutateEvents = choose({
     }
 });
 
-function automateParamEvents(param, events, time, curve, value, duration) {
+export function automateParamEvents(param, events, time, curve, value, duration) {
     var n = events.length;
     while (events[--n] && events[n].time >= time);
 
@@ -485,4 +478,73 @@ export function requestAutomationData(param, rate, t0, t1) {
     const events = getAutomation(param);
     return requestBufferFromEvents(rate, t0, t1, events)
     .then(bufferToChannel0);
+}
+
+
+
+
+
+
+export function automateParamAtTime(param, time, value, curve, duration) {
+    if (curve === 'target' && duration === undefined) {
+        throw new Error('Automation curve "target" must have a duration');
+    }
+
+    const events = getAutomation(param);
+    automateParamEvents(param, events, time, curve, value, duration);
+    return param;
+
+/*
+    if (!notify) {
+        if (DEBUG) { console.warn('No notify for param change', value, curve, param); }
+        return;
+    }
+
+    // If param is flagged as already notifying, do nothing
+    if (param[config.animationFrameId]) {
+        return;
+    }
+
+    var n = -1;
+
+    function frame(time) {
+        // Notify at 1/3 frame rate
+        n = (n + 1) % 3;
+        if (n === 0) {
+            param[config.animationFrameId] = requestAnimationFrame(frame);
+            return;
+        }
+
+        const renderTime  = time + frameDuration;
+        const outputTime  = timeAtDomTime(node.context, renderTime);
+        const outputValue = getValueAtTime(param, outputTime);
+        const lastEvent   = events[events.length - 1];
+
+        // If outputTime is not yet beyond the end of the events list
+        param[config.animationFrameId] = lastEvent && outputTime <= lastEvent.time ?
+            requestAnimationFrame(frame) :
+            undefined ;
+
+        notify(node, name, outputValue);
+    }
+
+    param[config.animationFrameId] = requestAnimationFrame(frame);
+*/
+}
+
+
+export function automatePropertyAtTime(node, time, name, value) {
+    const context = node.context;
+    console.log('Setting timer for property. You dont want to be doing this too much.');
+
+    if (window.DEBUG && typeof node[name] === 'function') {
+        console.log('Automationg ignoring event, cannot set node.' + name, node);
+    }
+
+    if (window.DEBUG && typeof !(name in node)) {
+        console.log('Automationg ignoring event, "' + name + '" not in node', node);
+    }
+
+    setTimeout(() => node[name] = value, (time - context.currentTime) * 1000);
+    return null;
 }

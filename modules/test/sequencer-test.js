@@ -6,7 +6,7 @@ import Transport  from '../transport.js';
 import Sequencer  from '../sequencer.js';
 
 run('Sequencer()',
-[0, 0, 120, 'log', 'note-start', 'note-start', 'param', 'note-stop', 'note-stop'],
+[0, 0, 120, 'log', 'start', 'start', 'param', 'stop', 'stop'],
 function(test, done) {
     const transport = new Transport(context);
     const output    = Stream.of().each((event) => test(event[1]));

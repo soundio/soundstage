@@ -6,7 +6,7 @@ import Transport  from '../transport.js';
 import Sequence   from '../sequencer/sequence.js';
 import Event      from '../event.js';
 
-run('Sequence()', ['log', true, 'note-start', true, 'note-stop', true], function(test, done) {
+run('Sequence()', ['log', true, 'start', true, 'stop', true], function(test, done) {
     const transport = new Transport(context).start();
     const sequence  = new Sequence(transport, [
         [0.0, 'log', 'First'],
@@ -53,7 +53,7 @@ run('Sequence()', ['log', true, 'note-start', true, 'note-stop', true], function
 
 
 run('Sequence() - child sequence',
-[1, 'log', true, 'note-start', true, 2, 'log', true, 'note-start', true, 3, 'note-stop', true, 'note-stop', true],
+[1, 'log', true, 'start', true, 2, 'log', true, 'start', true, 3, 'stop', true, 'stop', true],
 function(test, done) {
     const transport = new Transport(context).start();
     const sequence  = new Sequence(transport, [
@@ -109,7 +109,7 @@ function(test, done) {
 
 
 run('Sequence() - consecutive notes',
-[1,  'note-start', 40, 'note-stop', 40, 'note-start', 41, 'note-stop', 41, 'note-start', 42, 2, 'note-stop', 42, 3],
+[1,  'start', 40, 'stop', 40, 'start', 41, 'stop', 41, 'start', 42, 2, 'stop', 42, 3],
 function(test, done) {
     const transport = new Transport(context).start();
     const sequence  = new Sequence(transport, [

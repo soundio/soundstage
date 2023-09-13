@@ -1,14 +1,19 @@
 
+import arg      from '../../../fn/modules/arg.js';
+import invoke   from '../../../fn/modules/invoke.js';
+import matches  from '../../../fn/modules/matches.js';
+import nothing  from '../../../fn/modules/nothing.js';
+import overload from '../../../fn/modules/overload.js';
 import Privates from '../../../fn/modules/privates.js';
 import remove   from '../../../fn/modules/remove.js';
-import invoke   from '../../../fn/modules/invoke.js';
-import nothing  from '../../../fn/modules/nothing.js';
-import matches  from '../../../fn/modules/matches.js';
-import { create }           from '../constructors.js';
-import { automato__, isAudioParam } from '../automate.js';
-import { matchesId }        from '../utilities.js';
-import { assignSettingz__ } from '../assign-settings.js';
+
 import Output   from '../../nodes/output.js';
+
+import { create }              from '../constructors.js';
+import { isAudioParam }        from '../param.js';
+import { automateParamAtTime, automatePropertyAtTime } from '../automate.js';
+import { matchesId }           from '../utilities.js';
+import { assignSettingz__ }    from '../assign-settings.js';
 
 const assign = Object.assign;
 const define = Object.defineProperties;
@@ -23,6 +28,10 @@ const blacklist = {
     onended: true
 };
 
+function throwParamNotFound(name) {
+    throw new Error('Soundstage Node cannot .automate() "' + name + '" not in node');
+}
+
 export default function Node(graph, context, type, id, label, data, merger, transport) {
     // Define identity in the graph
     this.id    = id;
@@ -31,6 +40,7 @@ export default function Node(graph, context, type, id, label, data, merger, tran
 
     // Define non-enumerable properties
     define(this, {
+        data:              { get: function(value) { throw new Error('Cannot set .data. You are probably looking for .node. ' + value); } },
         graph:             { value: graph },
         record:            { writable: true },
         recordDestination: { writable: true },
@@ -68,7 +78,34 @@ assign(Node.prototype, {
         return this;
     },
 
-    automate: function(type, time, name, value, duration) {
+    push: function(event) {
+        return this.automate(event[0], event[1], event[2], event[3], event[4]);
+    },
+
+    // time, 'start', note, level
+    // time, 'stop', note
+    // time, name, value, curve, duration
+    automate: overload(arg(1), {
+        'start': function(time, name, note, level) {
+            console.log(this.node.context.currentTime.toFixed(3), 'start', time.toFixed(3), note);
+            return this.node.start(time, note, level);
+        },
+
+        'stop': function(time, name, note) {
+            console.log(this.node.context.currentTime.toFixed(3), 'stop ', time.toFixed(3), note);
+            return this.node.stop(time, note);
+        },
+
+        default: function(time, name, value, curve, duration) {
+            return !(name in this.node) ?
+                    throwParamNotFound(name) :
+                isAudioParam(this.node[name]) ?
+                    automateParamAtTime(this.node[name], time, value, curve, duration) :
+                automatePropertyAtTime(this.node, time, name, value) ;
+        }
+    }),
+/*
+    automateOLD: function(type, time, name, value, duration) {
         const privates = Privates(this.graph);
 
         if (this.record) {
@@ -93,7 +130,7 @@ assign(Node.prototype, {
             automato__(this.data, type, time, name, value, duration, privates.notify, this.data.context) :
         undefined ;
     },
-
+*/
     start: function(time, name, value, settings) {
         return assignSettingz__(this.node.start(time, name, value), settings);
     },
