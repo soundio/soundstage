@@ -21,11 +21,12 @@ const define = Object.defineProperties;
 
 const by0           = by(get(0));
 const rate0         = Object.freeze(new Event(0, 'rate', 1));
-const seedRateEvent = new Event(0, 'rate', 1);
+//const seedRateEvent = new Event(0, 'rate', 1);
 const selector      = { id: '' };
 const matchesSelector = matches(selector);
 
 
+const seqs = [];
 let count = 0;
 
 
@@ -162,7 +163,7 @@ function processFrame(frame, events, latest, stopbuffer, buffer) {
 
     return buffer;
 }
-var r = 0;
+
 function readBufferEvent(sequence, stopbuffer, buffer, n) {
     const event = buffer[n];
     const time  = sequence.timeAtBeat(event[0]);
@@ -173,8 +174,6 @@ function readBufferEvent(sequence, stopbuffer, buffer, n) {
 
     // Syphon off events, create and start child sequences
     if (event[1] === 'sequence-start') {
-        event.id = ++r;
-
         // This may extend the buffer with more events
         event.target = sequence
             .createSequence(event[2], event[3])
@@ -224,12 +223,13 @@ function readBufferEvent(sequence, stopbuffer, buffer, n) {
 
 export default function Sequence(transport, events = [], sequences = [], debugId) {
     // .context
+    // .status
     Playable.call(this, transport.context);
 
     // Transport and sequences
     this.transport  = transport;
-    this.sequences  = sequences;
     this.events     = events.sort(by0);
+    this.sequences  = sequences;
     this.buffer     = [];
     this.stopbuffer = [];
     this.latest     = {};
@@ -238,6 +238,7 @@ export default function Sequence(transport, events = [], sequences = [], debugId
     if (window.DEBUG) {
         this.debugId = debugId;
         ++count;
+        seqs.push(this);
 
         print(
             'Sequence "' + this.debugId + '" created',
@@ -246,13 +247,13 @@ export default function Sequence(transport, events = [], sequences = [], debugId
         );
 
         // Print stats on sequence stop
-        this.done(() => (--count, print(
+        this.done(() => (remove(seqs, this), --count, print(
             'Sequence "' + (this.debugId ? this.debugId : '') + '" done',
             'stopTime',   this.stopTime,
             'buffer',     this.buffer.length,
             'stopbuffer', this.stopbuffer.length,
-            'count',      count
-        )));
+            'inputs',     this.inputs.length
+        ), console.log('count', count, seqs)));
     }
 }
 
@@ -427,4 +428,8 @@ Sequence.prototype = assign(create(Stream.prototype), {
 
         return this.transport.timeAtBeat(startLoc + beatLoc);
     }
+});
+
+define(Sequence.prototype, {
+    status: Object.getOwnPropertyDescriptor(Playable.prototype, 'status')
 });

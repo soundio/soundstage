@@ -162,7 +162,6 @@ for block jitter caused by cueing everything to currentTime.
 
 const safetyTime = 0.2;
 let discrepancy  = 0;
-
 export function getDejitterTime(context) {
     // FOR SOME REASON THERE IS a 200ms discrepancy betweeen this currentTime
     // and the currentTime it is by the time the sequence starts, and I cant
@@ -175,7 +174,7 @@ export function getDejitterTime(context) {
 
     // A rolling diff that always chases the max
     if (diff > discrepancy) {
-        console.log('Increasing rolling latency measurement', diff.toFixed(3));
+        print('Rolling latency', diff.toFixed(3));
         discrepancy = diff > discrepancy ? diff : discrepancy ;
     }
 

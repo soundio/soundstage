@@ -82,12 +82,9 @@ worker.onmessage = function frame(e) {
         if (stream.stopTime <= data.t2) {
             data.t2 = stream.stopTime;
 
-//console.log('STOP', data.t1, data.t2);
             // Is this good?
-            //unlisten(stream);
-            //push(stream[0], data);
             stream[0].push(data);
-console.log('STOP FRAMES');
+console.log('Frames', stream.debugId, 'stop() in last frame', stream.stopTime.toFixed(3));
             stop(stream);
             unlisten(stream);
             continue;
@@ -106,12 +103,12 @@ Creates a stream of frames of a timer triggered in a WebWorker. Placing a timer
 in a worker means it is not throttled when the tab is hidden, making this good
 for WebAudio scheduling tasks.
 **/
-
+var h = 0;
 export default function FrameStream(context) {
     if (window.DEBUG && !context) {
         throw new Error('FrameStream() requires an AudioContext is first parameter');
     }
-
+this.debugId = ++h;
     this.context = context;
 }
 
@@ -139,6 +136,12 @@ FrameStream.prototype = assign(create(Stream.prototype), Playable.prototype, {
         return output;
     },
 
+    start: function() {
+        Playable.prototype.start.apply(this, arguments);
+console.log('Frames.start()');
+        return this;
+    },
+
     stop: function(time) {
         // Update .startTime, .stopTime
         Playable.prototype.stop.apply(this, arguments);
@@ -148,7 +151,7 @@ FrameStream.prototype = assign(create(Stream.prototype), Playable.prototype, {
             // Unbind from webworker timer
             unlisten(this);
             // Stop stream (like Stream.prototype.stop)
-console.log('STOP FRAMES');
+console.log('Frames', this.debugId, 'stop() right away', this.stopTime.toFixed(3));
             stop(this);
         }
 

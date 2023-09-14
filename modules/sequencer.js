@@ -26,15 +26,6 @@ const create = Object.create;
 const define = Object.defineProperties;
 
 
-function getDejitter(context) {
-    return context.getOutputTimestamp().contextTime
-        + context.outputLatency
-        // Sample block compensation - IS THIS NEED? TEST!
-        + 128 / context.sampleRate ;
-}
-
-
-
 /**
 Sequencer()
 
@@ -44,18 +35,24 @@ Sequencer()
 .startTime
 .startLocation
 .stopTime
+.bar
+.beat
+.meter
+.tempo
 .start()
 .stop()
 
 // Sequencer
-startTime:  number || undefined
-stopTime:   number || undefined
-status:     idle || playing || done
-transport:  object
+.status
+.transport
+.startTime()
+.stopTime()
+.beatAtTime()
+.timeAtBeat()
 
 // Meter methods
-beatAtBar:  fn(n)
-barAtBeat:  fn(n)
+.beatAtBar()
+.barAtBeat()
 ```
 **/
 
@@ -100,7 +97,7 @@ assign(Sequencer.prototype, Meter.prototype, {
     Starts the sequencer at `time` to play on `beat`, returning a PlayStream.
     **/
     start: function(time = getDejitterTime(this.context), beat) {
-        const { transport } = this;
+        const { context, transport } = this;
 
         // If the sequencer is running stop it first
         if (this.status !== IDLE) { this.stop(time); }
@@ -115,7 +112,6 @@ assign(Sequencer.prototype, Meter.prototype, {
         const privates = Privates(this);
 
         if (transport.status !== PLAYING) {
-            console.log('TRAN START', transport.status);
             transport.start(time, beat);
         }
 /*        if (transport.status === PLAYING) {
@@ -138,37 +134,23 @@ assign(Sequencer.prototype, Meter.prototype, {
             .pipe(new Sequence(this, this.events, this.sequences, 'root'))
             // Error-check and consume output events
             .map(overload(arg(1), {
-                'note':     (event) => { throw new Error('note events should have been converted to start and stop here'); },
+                /*'note':     (event) => { throw new Error('note events should have been converted to start and stop here'); },
                 'sequence': (event) => { throw new Error('sequence events should have been consumed by the sequencer here'); },
                 'param':    (event) => { throw new Error('param events should have been renamed by the sequencer here'); },
-
-                'start':    (event) => {
-                    console.log('SSTTAARRART', event);
-                    return event;
-                },
-
                 'stop':     (event) => {
-                    console.log('SSTTSTTSTOOOOPPP');
                     if (!event.startEvent) { throw new Error('stopEvent with missing startEvent'); }
                     event.target = event.startEvent.target.stop(event[0], event[2]);
-                },
-
-                'log':      (event) => {
+                },*/
+                'log': (event) => {
                     console.log(this.context.currentTime.toFixed(3), event[0].toFixed(3), event[2]);
                 },
-
                 default: id
             }))
             // Distribute to output stream
             .each((event) => {
-                //console.log('OUT      ', event[0].toFixed(3), event[2], event[1]);
                 // Automation should return a target. This may be dodgy.
                 event.target = privates.output.push(event);
-
-                if (!event.target) {
-                    console.log('No target returned for', event[1], event);
-                }
-
+                if (!event.target) { console.log('No target returned for', event[1], event); }
                 return event.target;
             })
             // Start sequence
@@ -191,7 +173,7 @@ assign(Sequencer.prototype, Meter.prototype, {
         Playable.prototype.stop.call(this, time);
 
         if (window.DEBUG) {
-            print('Sequencer stop() ', 'stopTime ', this.stopTime, 'status', this.status);
+            print('Sequencer stop() ', 'stopTime ', this.stopTime.toFixed(3), 'status', this.status);
         }
 
         // Hold automation for the rate node
@@ -204,8 +186,8 @@ assign(Sequencer.prototype, Meter.prototype, {
         // Stop sequence
         privates.sequence.stop(this.stopTime);
 
-        // Stop transport ???
-        this.transport.stop(this.stopTime);
+        // Stop transport ??? Naaaaa... not if we are going to .stop() inside .start()
+        //this.transport.stop(this.stopTime);
 
         return this;
     }
