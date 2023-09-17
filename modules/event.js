@@ -83,6 +83,7 @@ sequence
 import compose    from '../../fn/modules/compose.js';
 import get        from '../../fn/modules/get.js';
 import overload   from '../../fn/modules/overload.js';
+import Pool       from '../../fn/modules/pool.js';
 import remove     from '../../fn/modules/remove.js';
 import { bytesToSignedFloat } from '../../midi/modules/maths.js';
 import { toType } from '../../midi/modules/data.js';
@@ -115,44 +116,13 @@ function pitchToFloat(message) {
 	return bytesToSignedFloat(message[1], message[2]) * pitchBendRange;
 }
 
-// Event
-//
-// A constructor for pooled event objects, for internal use. Internal
-// events are for flows of data (rather than storage), and have extra data
-// assigned.
 
-//export default Event = Pool({
-//	name: 'Soundstage Event',
-//
-//	create: noop,
-//
-//	reset: function reset() {
-//		assign(this, arguments);
-//		var n = arguments.length - 1;
-//		while (this[++n] !== undefined) { delete this[n]; }
-//		this.recordable = false;
-//		this.idle       = false;
-//	},
-//
-//	isIdle: function isIdle(object) {
-//		return !!object.idle;
-//	}
-//}, defineProperties({
-//	toJSON: function() {
-//		// Event has no length by default, we cant loop over it
-//		var array = [];
-//		var n = -1;
-//		while (this[++n] !== undefined) { array[n] = this[n]; }
-//		return array;
-//	}
-//}, {
-//	time:       { writable: true },
-//	object:     { writable: true },
-//	recordable: { writable: true },
-//	idle:       { writable: true }
-//}));
+/**
+Event(time, type, ...)
+A constructor for event objects for internal use.
+**/
 
-export default function Event(time, type) {
+export function Event(time, type) {
 	if (window.DEBUG && !isValidEvent(arguments)) {
 		throw new Error('Soundstage new Event() called with invalid arguments [' + Array.from(arguments).join(', ') + ']. ' + eventValidationHint(arguments));
 	}
@@ -166,6 +136,21 @@ export default function Event(time, type) {
 	while (++n < l) { this[n] = arguments[n]; }
 }
 
+function reset() {
+	this.target = undefined;
+
+	// Apply arguments
+	Event.apply(this, arguments);
+
+	// Clear out any old parameters beyond length
+	let n = this.length - 1;
+	while(this[++n]) { delete this[n]; }
+}
+
+function isIdle(event) {
+	return event[0] === undefined;
+}
+
 assign(Event, {
 	of: function() {
 		return new Event(...arguments);
@@ -174,7 +159,7 @@ assign(Event, {
 	from: function(data) {
 		//const event = new Event(...data);
 		const event = Event.of.apply(Event, data);
-		event.originalEvent = data;
+		/*event.originalEvent = data;*/
 		return event;
 	},
 
@@ -198,35 +183,20 @@ assign(Event, {
 		default: function(e) {
 			return Event.of(e.timeStamp, toType(e.data), e.data[1], e.data[2] / 127) ;
 		}
-	}),
-
-	// For pooled events
-	reset: function(time, type) {
-		Event.apply(this, argumnents);
-
-		// Clear out additional parameters (if this is pooled)
-		let n = this.length - 1;
-		while(this[++n]) { delete this[n]; }
-
-		// Reset other references
-		this.target        = undefined;
-		this.originalEvent = undefined;
-	}
+	})
 });
 
 assign(Event.prototype, {
-	remove: function() {
-		if (!this.sequence) {
-			console.warn('Trying to remove event. Event has not had a sequence assigned. This should (probably) not be possible.');
-			return this;
-		}
-
-		remove(this.sequence, this);
-		return this;
-	},
-
 	toJSON: function() {
 		return Array.from(this);
+	},
+
+	/**
+	.release()
+	**/
+	release: function() {
+		// This is how we detect isIdle()
+		this[0] = undefined;
 	}
 });
 
@@ -236,7 +206,7 @@ define(Event.prototype, {
 	The event beat. An alias for `event[0]`.
 	*/
 	beat: {
-		get: function() { console.trace('IM DEPRECATING THIS'); return this[0]; },
+		get: function() { console.trace('IM DEPRECATING event.beat'); return this[0]; },
 		set: function(beat) { this[0] = beat; }
 	},
 
@@ -258,16 +228,22 @@ define(Event.prototype, {
 	},
 
 	/**
-	.target
-	Event may have a target assigned if it is being distributed by a sequencer.
-	**/
-	target:   { value: null, writable: true },
-
-	/**
 	.originalEvent
 	Original event this event was cloned from, if cloned via Event.from().
 	**/
-	originalEvent: { value: undefined, writable: true }
+	/*originalEvent: { value: undefined, writable: true }*/
+});
+
+
+/**
+Event(time, type, ...)
+A constructor for event objects for internal use.
+**/
+
+export default assign(Pool(Event, reset, isIdle), {
+	of:       Event.of,
+	from:     Event.from,
+	fromMIDI: Event.fromMIDI
 });
 
 
@@ -295,14 +271,6 @@ export function isMeterEvent(event) {
 
 
 
-
-
-/*
-export function release(event) {
-	event.idle = true;
-	return event;
-}
-*/
 
 export const getBeat = get(0);
 export const getType = get(1);

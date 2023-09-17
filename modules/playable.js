@@ -57,16 +57,12 @@ const properties = {
 };
 
 export default function Playable(context) {
-    if (DEBUG) { logGroup('mixin ', 'Playable'); }
-
     // Define this.context
     if (!this.context) {
         define(this, { context: { value: context } });
     }
 
     define(this, properties);
-
-    if (DEBUG) { logGroupEnd(); }
 }
 
 Playable.reset = function(node) {

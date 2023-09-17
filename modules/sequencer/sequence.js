@@ -26,10 +26,6 @@ const selector      = { id: '' };
 const matchesSelector = matches(selector);
 
 
-const seqs = [];
-let count = 0;
-
-
 export function by0Float32(a, b) {
     // Compare 32-bit versions of these number, avoid 64-bit rounding errors
     // getting in the way of our time comparisons
@@ -58,7 +54,7 @@ function indexEventAtBeat(events, beat) {
     return n;
 }
 
-function processFrame(frame, events, latest, stopbuffer, buffer) {
+function processFrame(sequence, frame, events, latest, stopbuffer, buffer) {
     // Event index of first event after frame.b1 (we assume they sorted !!)
     let n = indexEventAtBeat(events, frame.b1);
 
@@ -78,7 +74,7 @@ function processFrame(frame, events, latest, stopbuffer, buffer) {
         // this type and kind
         const key = type + '|' + name;
 
-        if (!latest[key] || latest[key][0] <= event[0]) {
+        if (!latest[key] || (latest[key] !== event && latest[key][0] <= event[0])) {
             buffer.push(event);
             latest[key] = event;
         }
@@ -104,19 +100,39 @@ function processFrame(frame, events, latest, stopbuffer, buffer) {
             latest[key] = event;
             buffer.push(event);
         }
-        else if (latest[key][0] < frame.b2 && latest[key][0] < event[0]) {
+        else if (latest[key][0] < frame.b2 && latest[key][0] <= event[0]) {
             latest[key] = event;
             buffer.push(event);
         }
     }
 
-    // Transfer events from the stopbuffer buffer
-    n = -1;
-    while (++n < stopbuffer.length) {
-        if (stopbuffer[n][0] < frame.b2) {
-            // Attempt to preserve event order by jamming these at the front
-            buffer.unshift(stopbuffer[n]);
-            stopbuffer.splice(n, 1);
+    // Transfer events from the stopbuffer to buffer. Did the sequence stop
+    // since the last frame?
+    if (sequence.stopTime <= frame.t2) {
+        // Take any buffered stop events and send them all on this frame with a
+        // max time of sequence.stopTime
+        const stopBeat = sequence.beatAtTime(sequence.stopTime);
+
+        n = -1;
+        while (++n < stopbuffer.length) {
+            if (stopbuffer[n][0] > stopBeat) {
+                stopbuffer[n][0] = stopBeat;
+            }
+        }
+
+        // Transfer stop events to buffer
+        buffer.unshift.apply(buffer, stopbuffer);
+        stopbuffer.length = 0;
+    }
+    else {
+        // Transfer stop events in this frame to buffer
+        n = -1;
+        while (++n < stopbuffer.length) {
+            if (stopbuffer[n][0] < frame.b2) {
+                // Attempt to preserve event order by jamming these at the front
+                buffer.unshift(stopbuffer[n]);
+                stopbuffer.splice(n, 1);
+            }
         }
     }
 
@@ -179,10 +195,6 @@ function readBufferEvent(sequence, stopbuffer, buffer, n) {
             .createSequence(event[2], event[3])
             .start(time);
 
-        if (!event.target) {
-            console.log('SEQUENCE START createSequence did not return target?', event);
-        }
-
         buffer.splice(n, 1);
         return n - 1;
     }
@@ -235,26 +247,29 @@ export default function Sequence(transport, events = [], sequences = [], debugId
     this.latest     = {};
     this.inputs     = [];
 
+    // For debugging (not included in build)
     if (window.DEBUG) {
         this.debugId = debugId;
-        ++count;
-        seqs.push(this);
+        //seqs.push(this);
 
         print(
-            'Sequence "' + this.debugId + '" created',
-            'events',     this.events.length,
-            'count',      count
+            'Sequence created "' + this.debugId + '"',
+            'events', this.events.length,
+            'count',  ++Sequence.count
         );
-
+//debugger
         // Print stats on sequence stop
-        this.done(() => (remove(seqs, this), --count, print(
-            'Sequence "' + (this.debugId ? this.debugId : '') + '" done',
+        this.done(() => print(
+            'Sequence done "' + (this.debugId ? this.debugId : '') + '"',
             'stopTime',   this.stopTime,
-            'buffer',     this.buffer.length,
-            'stopbuffer', this.stopbuffer.length,
-            'inputs',     this.inputs.length
-        ), console.log('count', count, seqs)));
+            'buffers',    this.buffer.length, this.stopbuffer.length, this.inputs.length,
+            'count',      --Sequence.count
+        ));
     }
+}
+
+if (window.DEBUG) {
+    Sequence.count = 0;
 }
 
 Sequence.prototype = assign(create(Stream.prototype), {
@@ -279,36 +294,45 @@ Sequence.prototype = assign(create(Stream.prototype), {
         // Fill buffer with events from this sequence
         const { buffer, events, latest, stopbuffer } = this;
         buffer.length = 0;
-        processFrame(frame, events, latest, stopbuffer, buffer);
+        processFrame(this, frame, events, latest, stopbuffer, buffer);
 
         // Loop over events, deal with sequence-start and -stop events, convert
         // to Event objects, absolute time
+        // Aaargh, these have to be fed to readBufferEvent in time order, annoyingly
+        buffer.sort(by0Float32);
         let n = -1;
         while (buffer[++n]) {
             n = readBufferEvent(this, stopbuffer, buffer, n);
         }
 
         // Fill buffer with events from child sequences
+        const isStopFrame = this.stopTime <= frame.t2 ;
+        let input;
         n = -1;
         while (this.inputs[++n]) {
+            input = this.inputs[n];
+
+            // Cue stop sub sequences if they are not scheduled to stop before
+            // this stopTime
+            if (isStopFrame && !(input.stopTime < this.stopTime)) {
+                input.stop(this.stopTime);
+            }
+
             // Push frame to child sequence
-            this.inputs[n].push(frame);
+            input.push(frame);
         }
 
         // Push events to output in time-sorted order
         buffer.sort(by0Float32);
         n = -1;
         while (buffer[++n]) {
-
             this[0].push(buffer[n]);
         }
 
-        // If frame end is beyond stopTime stop the sequence
-        if (this.stopTime <= frame.t2) {
-            // Only stop stream if it is not being directed by a higher power
-            // (ie is piped from a FrameStream).
-            if (!this.input) { stop(this); }
-            this.inputs.forEach((sequence) => sequence.stop(this.stopTime));
+        // If frame end is beyond stopTime stop the sequence - stop stream if
+        // it is not being directed by a higher power (ie is piped from a FrameStream).
+        if (isStopFrame && !this.input) {
+            stop(this);
         }
     },
 
@@ -386,6 +410,15 @@ Sequence.prototype = assign(create(Stream.prototype), {
     stop: function(time) {
         // Set .stopTime
         Playable.prototype.stop.call(this, time);
+
+        // Set stop beat of buffered stop events that are beyond stopTime
+        const beat = this.beatAtTime(this.stopTime);
+
+        this.stopbuffer.forEach((event) => {
+            if (event[0] > beat) {
+                event[0] = beat;
+            }
+        });
 
         // Stop sequence and input and all inputs
         if (this.input) {

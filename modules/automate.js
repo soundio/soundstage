@@ -546,5 +546,5 @@ export function automatePropertyAtTime(node, time, name, value) {
     }
 
     setTimeout(() => node[name] = value, (time - context.currentTime) * 1000);
-    return null;
+    return node;
 }

@@ -1,5 +1,4 @@
 
-import arg      from '../../fn/modules/arg.js';
 import by       from '../../fn/modules/by.js';
 import get      from '../../fn/modules/get.js';
 import id       from '../../fn/modules/id.js';
@@ -106,7 +105,7 @@ assign(Sequencer.prototype, Meter.prototype, {
         Playable.prototype.start.call(this, time);
 
         if (window.DEBUG) {
-            print('Sequencer start()', 'startTime', this.startTime, 'transport', transport.status);
+    //        print('Sequencer start()', 'startTime', this.startTime, 'transport', transport.status);
         }
 
         const privates = Privates(this);
@@ -114,18 +113,7 @@ assign(Sequencer.prototype, Meter.prototype, {
         if (transport.status !== PLAYING) {
             transport.start(time, beat);
         }
-/*        if (transport.status === PLAYING) {
-            console.log('A', time);
-            // If transport is running set start time to next beat
-            time = transport.timeAtBeat(Math.ceil(transport.beatAtTime(time)));
-            console.log('B', time);
-        }
-        else {
-            // Otherwise start transport at time
-            transport.start(time, beat);
-            //time = transport.startTime;
-        }
-*/
+
         // TODO: Clock stuff?? IS THIS NEEDED?
         this.startLocation = undefined;
 
@@ -133,27 +121,31 @@ assign(Sequencer.prototype, Meter.prototype, {
             // Pipe frames to sequence. Parameter 4 is just a name for debugging.
             .pipe(new Sequence(this, this.events, this.sequences, 'root'))
             // Error-check and consume output events
-            .map(overload(arg(1), {
-                /*'note':     (event) => { throw new Error('note events should have been converted to start and stop here'); },
-                'sequence': (event) => { throw new Error('sequence events should have been consumed by the sequencer here'); },
-                'param':    (event) => { throw new Error('param events should have been renamed by the sequencer here'); },
-                'stop':     (event) => {
-                    if (!event.startEvent) { throw new Error('stopEvent with missing startEvent'); }
-                    event.target = event.startEvent.target.stop(event[0], event[2]);
-                },*/
+            .map(overload(get(1), {
+                // Do nothing, Sequencer doesn't respond to "start"
+                'start': (event) => event.release(),
+
+                // But perhaps it can respond to "stop", why not - ooo, because
+                // note ends could be interpreted as stops
+                'stop': (event) => {
+                    this.stop(event[0]);
+                    event.release();
+                },
+
+                // Just log
                 'log': (event) => {
                     console.log(this.context.currentTime.toFixed(3), event[0].toFixed(3), event[2]);
+                    event.release();
                 },
+
                 default: id
             }))
             // Distribute to output stream
-            .each((event) => {
+            .each((event) =>
                 // Automation should return a target. This may be dodgy.
-                event.target = privates.output.push(event);
-                if (!event.target) { console.log('No target returned for', event[1], event); }
-                return event.target;
-            })
-            // Start sequence
+                event.target = privates.output.push(event)
+            )
+            // Start sequence. This should push a frame to Sequence immediately??
             .start(this.startTime);
 
         return this;
@@ -173,7 +165,7 @@ assign(Sequencer.prototype, Meter.prototype, {
         Playable.prototype.stop.call(this, time);
 
         if (window.DEBUG) {
-            print('Sequencer stop() ', 'stopTime ', this.stopTime.toFixed(3), 'status', this.status);
+    //        print('Sequencer stop() ', 'stopTime ', this.stopTime, 'status', this.status);
         }
 
         // Hold automation for the rate node
