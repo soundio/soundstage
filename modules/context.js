@@ -160,7 +160,7 @@ Returns a time just ahead of context.currentTime that compensates
 for block jitter caused by cueing everything to currentTime.
 */
 
-const safetyTime = 0.2;
+const safetyTime = 0;
 let discrepancy  = 0;
 export function getDejitterTime(context) {
     // FOR SOME REASON THERE IS a 200ms discrepancy betweeen this currentTime

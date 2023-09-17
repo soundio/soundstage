@@ -411,7 +411,7 @@ Sequence.prototype = assign(create(Stream.prototype), {
 
     /**
     .stop(time)
-    Stops the sequencer and all child sequencers at `time`.
+    Stops the sequencer and all child sequences at `time`.
     **/
     stop: function(time) {
         // Set .stopTime
