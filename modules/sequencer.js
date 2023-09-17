@@ -134,7 +134,7 @@ assign(Sequencer.prototype, Meter.prototype, {
 
                 // Just log
                 'log': (event) => {
-                    console.log(this.context.currentTime.toFixed(3), event[0].toFixed(3), event[2]);
+                    console.log(this.context.currentTime.toFixed(3), event[2]);
                     event.release();
                 },
 

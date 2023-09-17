@@ -54,13 +54,13 @@ function indexEventAtBeat(events, beat) {
     return n;
 }
 
-function processFrame(sequence, frame, events, latest, stopbuffer, buffer) {
+function processFrame(sequence, t2, b1, b2, events, latest, stopbuffer, buffer) {
     // Event index of first event after frame.b1 (we assume they sorted !!)
-    let n = indexEventAtBeat(events, frame.b1);
+    let n = indexEventAtBeat(events, b1);
 
     // Grab events up to b2
     --n;
-    while (++n < events.length && events[n][0] < frame.b2) {
+    while (++n < events.length && events[n][0] < b2) {
         const event = events[n];
         const type  = event[1];
         const name  = event[2];
@@ -100,7 +100,7 @@ function processFrame(sequence, frame, events, latest, stopbuffer, buffer) {
             latest[key] = event;
             buffer.push(event);
         }
-        else if (latest[key][0] < frame.b2 && latest[key][0] <= event[0]) {
+        else if (latest[key][0] < b2 && latest[key][0] <= event[0]) {
             latest[key] = event;
             buffer.push(event);
         }
@@ -108,7 +108,7 @@ function processFrame(sequence, frame, events, latest, stopbuffer, buffer) {
 
     // Transfer events from the stopbuffer to buffer. Did the sequence stop
     // since the last frame?
-    if (sequence.stopTime <= frame.t2) {
+    if (sequence.stopTime <= t2) {
         // Take any buffered stop events and send them all on this frame with a
         // max time of sequence.stopTime
         const stopBeat = sequence.beatAtTime(sequence.stopTime);
@@ -128,7 +128,7 @@ function processFrame(sequence, frame, events, latest, stopbuffer, buffer) {
         // Transfer stop events in this frame to buffer
         n = -1;
         while (++n < stopbuffer.length) {
-            if (stopbuffer[n][0] < frame.b2) {
+            if (stopbuffer[n][0] < b2) {
                 // Attempt to preserve event order by jamming these at the front
                 buffer.unshift(stopbuffer[n]);
                 stopbuffer.splice(n, 1);
@@ -165,7 +165,7 @@ function processFrame(sequence, frame, events, latest, stopbuffer, buffer) {
             buffer[n] = startEvent;
 
             // If the stop is in this frame, stick it in buffer, otherwise stopbuffer
-            if (stopEvent[0] < frame.b2) {
+            if (stopEvent[0] < b2) {
                 // Make an attempt to preserve event order by jamming these at the
                 // front, where they'll get sorted in front of any start events set
                 // to the same time
@@ -283,18 +283,21 @@ Sequence.prototype = assign(create(Stream.prototype), {
     }
     ```
     **/
-    push: function(frame) {
+    push: function(frameTime) {
+        const t1 = this.currentTime;
+        const t2 = frameTime;
+
         // Is sequence running during frame? Remember .startTime/.stopTime may be undefined
-        if (this.stopTime < frame.t1 || !(this.startTime < frame.t2)) { return; }
+        if (this.stopTime < t1 || !(this.startTime < t2)) { return; }
 
         // Assign beats at frame start and end
-        frame.b1 = this.beatAtTime(frame.t1 < this.startTime ? this.startTime : frame.t1);
-        frame.b2 = this.beatAtTime(frame.t2 > this.stopTime  ? this.stopTime  : frame.t2);
+        const b1 = this.beatAtTime(t1 < this.startTime ? this.startTime : t1);
+        const b2 = this.beatAtTime(t2 > this.stopTime  ? this.stopTime  : t2);
 
         // Fill buffer with events from this sequence
         const { buffer, events, latest, stopbuffer } = this;
         buffer.length = 0;
-        processFrame(this, frame, events, latest, stopbuffer, buffer);
+        processFrame(this, t2, b1, b2, events, latest, stopbuffer, buffer);
 
         // Loop over events, deal with sequence-start and -stop events, convert
         // to Event objects, absolute time
@@ -306,7 +309,7 @@ Sequence.prototype = assign(create(Stream.prototype), {
         }
 
         // Fill buffer with events from child sequences
-        const isStopFrame = this.stopTime <= frame.t2 ;
+        const isStopFrame = this.stopTime <= t2 ;
         let input;
         n = -1;
         while (this.inputs[++n]) {
@@ -319,7 +322,7 @@ Sequence.prototype = assign(create(Stream.prototype), {
             }
 
             // Push frame to child sequence
-            input.push(frame);
+            input.push(t2);
         }
 
         // Push events to output in time-sorted order
@@ -334,6 +337,8 @@ Sequence.prototype = assign(create(Stream.prototype), {
         if (isStopFrame && !this.input) {
             stop(this);
         }
+
+        this.currentTime = t2;
     },
 
     pipe: function(output) {
@@ -349,7 +354,7 @@ Sequence.prototype = assign(create(Stream.prototype), {
     /**
     .createSequence()
     **/
-    createSequence: function(sequenceId, nodeId) {
+    createSequence: function(sequenceId, address) {
         // Look for target sequence
         selector.id = sequenceId;
         const data = this.sequences.find(matchesSelector);
@@ -363,10 +368,9 @@ Sequence.prototype = assign(create(Stream.prototype), {
 
         this.inputs.push(sequence);
 
+        // Update event target address and pipe to buffer
         sequence
-        // Update event path / type / name / address / whatever you want
-        // to call it
-        .map((event) => (event[1] = nodeId + '.' + event[1], event))
+        .map((event) => (event[1] = address + '.' + event[1], event))
         .pipe(this.buffer);
 
         return sequence;
@@ -383,6 +387,8 @@ Sequence.prototype = assign(create(Stream.prototype), {
 
         // Set .startTime
         Playable.prototype.start.call(this, time);
+        // Set rolling time to whenever this starts
+        this.currentTime = this.starTime;
 
         //const privates = Privates(this);
         const { context, transport, events } = this;

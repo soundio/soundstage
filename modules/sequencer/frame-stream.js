@@ -35,7 +35,6 @@ function unlisten(object) {
 }
 
 worker.onmessage = function frame(e) {
-    // e.data is a frame count
     let n = -1;
 
     while (++n < streams.length) {
@@ -45,32 +44,24 @@ worker.onmessage = function frame(e) {
         // all FrameStream streams?
         const stream  = streams[n];
         const context = stream.context;
-        const time    = context.currentTime + lookahead + duration;
 
+        // Context has not yet started
         if (context.state !== 'running') {
             continue;
         }
 
-        // Update cuurentTIme on stream... ?? NOPE
-        //stream.currentTime = time;
+        // Get frame times
+        const t1 = stream.currentTime;
+        const t2 = context.currentTime + lookahead + duration;
+        stream.currentTime = t2;
 
         // Stream has not yet started
-        if (stream.startTime === undefined || stream.startTime >= time /*|| stream.stopTime < time*/) {
+        if (stream.startTime === undefined || stream.startTime >= t2) {
             continue;
         }
 
-        const data = stream.data || (stream.data = {});
-
-        data.t1       = stream.currentTime;
-        data.t2       = time;
-        data.frame    = e.data;
-        data.stopTime = stream.stopTime;
-
-        // Update currentTime whenever frames have been sent
-        stream.currentTime = time;
-
         // If stopTime was before the start of this frame
-        if (stream.stopTime <= data.t1) {
+        if (stream.stopTime <= t1) {
             // Stream is already stopped, discard it
             unlisten(stream);
             // That will take stream out of streams, so decrement n
@@ -78,18 +69,18 @@ worker.onmessage = function frame(e) {
             continue;
         }
 
-console.log(':::::::::: FRAME ::::::::::', data.t1, '-', data.t2, 'stopTime', stream.stopTime);
+//console.log(':::::::::: FRAME ::::::::::', t1, '-', t2, 'stopTime', stream.stopTime);
 
         // if stopTime is during this frame
-        if (stream.stopTime <= data.t2) {
+        if (stream.stopTime <= t2) {
             // Push this frame in
-            stream[0].push(data);
+            stream[0].push(t2);
             stop(stream);
             unlisten(stream);
             continue;
         }
 
-        stream[0].push(data);
+        stream[0].push(t2);
     }
 };
 
@@ -113,9 +104,9 @@ FrameStream.prototype = assign(create(Stream.prototype), Playable.prototype, {
     push: null,
 
     pipe: function(output) {
-// PROTECT AGAINST DOUBLE PIPING. This happens because our two-stage Stream
-// piping is confused by frames.pipe(sequence).each(...) TODO: This is a
-// problem with Stream()
+        // PROTECT AGAINST DOUBLE PIPING. This happens because our two-stage Stream
+        // piping is confused by frames.pipe(sequence).each(...) TODO: This is a
+        // problem with Stream(), you need to do something about it.
         if (output.input !== this) {
             output.input = this;
             return output;
@@ -125,7 +116,7 @@ FrameStream.prototype = assign(create(Stream.prototype), Playable.prototype, {
         // store currentTime of this frames timer?
         if (this.context.currentTime >= this.stopTime) {
             // Stop stream
-            return output;
+            return output.stop(this.stopTime);
         }
 
         // It should never be less than, but no harm in catching it
@@ -137,30 +128,24 @@ FrameStream.prototype = assign(create(Stream.prototype), Playable.prototype, {
         pipe(this, output);
         // Register for frames
         listen(this);
+
         // Return output pipe
         return output;
     },
 
     start: function() {
         Playable.prototype.start.apply(this, arguments);
-
         const t2 = this.context.currentTime + lookahead + duration;
 
         // Play first frame immediately for any consumer whos startTime is
         // in the frame range
         if (this.startTime <= t2) {
-console.log(':::::::::: FRAME ::::::::::', this.startTime, '-', t2, 'stopTime', this.stopTime);
-            this.data = {
-                t1: this.startTime,
-                t2: this.context.currentTime + lookahead + duration
-            };
-
-            this[0].push(this.data);
+//console.log(':::::::::: FRAME ::::::::::', this.startTime, '-', t2, 'stopTime', this.stopTime);
+            this[0].push(t2);
         }
 
         // Update currentTime whenever frames have been sent
         this.currentTime = t2;
-
         return this;
     },
 
@@ -182,6 +167,7 @@ console.log(':::::::::: FRAME ::::::::::', this.startTime, '-', t2, 'stopTime', 
 });
 
 define(FrameStream.prototype, { 'status': Object.getOwnPropertyDescriptor(Playable.prototype, 'status') });
+
 
 /**
 FrameStream.from(context)

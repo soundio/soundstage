@@ -18,7 +18,7 @@ function(test, done) {
     const output    = Stream.of().each((event) => test(event[1]));
     const sequencer = new Sequencer(transport, output, [
         // Log events are not published to the output stream
-        [0.0, 'log', 'First event'],
+        [0.0, 'log', 'Log'],
         // Nor are root events on root sequence
         [0.1, 'note', 49, 1, 0.8],
         // Nor are sequence events, which are consumed by the sequencer
