@@ -160,8 +160,7 @@ Returns a time just ahead of context.currentTime that compensates
 for block jitter caused by cueing everything to currentTime.
 */
 
-const safetyTime = 0;
-let discrepancy  = 0;
+let discrepancy = 0;
 export function getDejitterTime(context) {
     // FOR SOME REASON THERE IS a 200ms discrepancy betweeen this currentTime
     // and the currentTime it is by the time the sequence starts, and I cant
@@ -174,11 +173,11 @@ export function getDejitterTime(context) {
 
     // A rolling diff that always chases the max
     if (diff > discrepancy) {
-        print('Rolling latency', diff.toFixed(3));
+        print('Rolling latency', diff.toFixed(6), context.baseLatency, context.outputLatency);
         discrepancy = diff > discrepancy ? diff : discrepancy ;
     }
 
-    const time = stamp.contextTime + discrepancy + safetyTime + 128 / context.sampleRate;;
+    const time = stamp.contextTime + discrepancy + 128 / context.sampleRate;;
 
     if (time < currentTime) {
         console.log('Something is really wrong');
