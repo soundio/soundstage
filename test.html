@@ -10,6 +10,8 @@
 
 <p>Click somewhere to launch the WebAudio clock: some tests – see them in the console – depend on it.</p>
 
+<soundstage-player src="./test/soundstage-test.json"></soundstage-player>
+
 <script>
     window.DEBUG = true;
 </script>
@@ -45,7 +47,9 @@
     //import './nodes/test/instrument-test.js';
 
     // Soundstage
-    import './test/soundstage-test.js';
+    //import './test/soundstage-test.js';
+
+    import SoundstagePlayer from './player/module.js';
 
     // Report results
     done((totals) => (totals.fail > 0 ? fail() : pass()));

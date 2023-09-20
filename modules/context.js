@@ -15,6 +15,10 @@ if (!AudioContext.prototype.getOutputTimestamp) {
         };
     };
 }
+else /*if (isSafari)*/ {
+    // TODO: Safari appears to get contextTime VERY wrong on the native
+    // getOutputTimestamp()... can we sanitise it?
+}
 
 export const context = new window.AudioContext();
 context.destination.channelInterpretation = "discrete";

@@ -256,7 +256,10 @@ define(Sequencer.prototype, {
     **/
     time: {
         get: function() {
-            return this.context.getOutputTimestamp().contextTime;
+            return this.context.getOutputTimestamp().contextTime - this.startTime;
+        },
+        set: function(time) {
+            console.log('TODO: set time', time);
         }
     },
 

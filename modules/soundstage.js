@@ -199,12 +199,12 @@ export default function Soundstage(data = defaultData, settings = nothing) {
 
 define(Soundstage.prototype, {
     version: { value: 1 },
-    //time:    getOwnPropertyDescriptor(Sequencer.prototype, 'time'),
-    //rate:    getOwnPropertyDescriptor(Sequencer.prototype, 'rate'),
-    //tempo:   getOwnPropertyDescriptor(Sequencer.prototype, 'tempo'),
-    //meter:   getOwnPropertyDescriptor(Sequencer.prototype, 'meter'),
-    //beat:    getOwnPropertyDescriptor(Sequencer.prototype, 'beat'),
-    //bar:     getOwnPropertyDescriptor(Sequencer.prototype, 'bar'),
+    time:    Object.getOwnPropertyDescriptor(Sequencer.prototype, 'time'),
+    //rate:    Object.getOwnPropertyDescriptor(Sequencer.prototype, 'rate'),
+    //tempo:   Object.getOwnPropertyDescriptor(Sequencer.prototype, 'tempo'),
+    //meter:   Object.getOwnPropertyDescriptor(Sequencer.prototype, 'meter'),
+    //beat:    Object.getOwnPropertyDescriptor(Sequencer.prototype, 'beat'),
+    //bar:     Object.getOwnPropertyDescriptor(Sequencer.prototype, 'bar'),
     status:  Object.getOwnPropertyDescriptor(Sequencer.prototype, 'status'),
 
     //blockDuration:  getOwnPropertyDescriptor(Transport.prototype, 'blockDuration'),
