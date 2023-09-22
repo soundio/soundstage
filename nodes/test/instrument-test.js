@@ -280,7 +280,7 @@ run('Instrument() Chromatic and dynamic test', [false], function(test, done) {
                 id:   'sample',
                 type: 'sample',
                 data: {
-                    src: path + 'samples/steinway-piano/sample-map-local.json',
+                    src: path + 'samples/steinway-piano/sample-map.json',
                     nominalFrequency: 440,
                     // TODO: gain is working? Do we need gain?
                     gain: 1
