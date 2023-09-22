@@ -1,4 +1,5 @@
 import run        from '../../../fn/modules/test.js';
+import toGain     from '../../../fn/modules/to-gain.js';
 import context    from '../../modules/context.js';
 import Instrument from '../instrument.js';
 
@@ -268,8 +269,8 @@ run('Instrument() sample and tone', [false], function(test, done) {
 });
 */
 
-//const path = 'http://sound.stephen.band/';
-const path = 'http://localhost/sound.stephen.band/';
+const path = 'http://sound.stephen.band/';
+//const path = 'http://localhost/sound.stephen.band/';
 
 run('Instrument() Chromatic and dynamic test', [false], function(test, done) {
     const duration = 0.1;
@@ -311,6 +312,19 @@ run('Instrument() Chromatic and dynamic test', [false], function(test, done) {
 
     instrument.connect(context.destination);
 
+    function playDynamic(note) {
+        const t = context.currentTime;
+        let n = 0;
+        while (++n < 13) {
+            var gain = toGain(n * 2.5  - 30);
+            instrument
+            .start(t + 0.6 * n, note, gain)
+            .stop( t + 0.6 * n + 0.6) ;
+        }
+    }
+
+    playDynamic(60);
+/*
     function playChromatic(min, max, gain) {
         const t = context.currentTime;
         let n = min - 1;
@@ -328,4 +342,5 @@ run('Instrument() Chromatic and dynamic test', [false], function(test, done) {
     setTimeout(() => playChromatic(25, 108, 0.5),     40000);
     setTimeout(() => playChromatic(25, 108, 1),       50000);
     setTimeout(() => done, 60000);
+*/
 });

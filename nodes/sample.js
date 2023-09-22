@@ -213,6 +213,8 @@ function startSources(sources, destination, detuneNode, map, time, frequency = 4
 
     sources.length = 0;
 
+console.log('NOTE ----------');
+
     // Neuter velocity 0s - they dont seem to get filtered below
     return gain === 0 ? sources : map
     .filter((region) => (
@@ -239,6 +241,9 @@ function startSources(sources, destination, detuneNode, map, time, frequency = 4
 
         source.region     = region;
         source.bufferNode = setupBufferNode(context, source, detuneNode, region, buffer, time, frequency);
+
+console.log('START', gain, region.src);
+
         startSource(context, source, source.bufferNode, region.attack, time);
 
         sources.length = i + 1;
