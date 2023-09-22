@@ -84,13 +84,13 @@ const properties = {
             // Import JSON
             // Todo: Expose a better way than this.promise
             this.promise = requestData(src)
-            .then((data) => {
+            .then((sampleMap) => {
                 this.promise = undefined;
-                privates.src = src;
-                privates.map = data;
+                privates.src     = src;
+                privates.regions = sampleMap.data;
 
                 // Populate buffer cache with buffer data
-                return Promise.all(data.map((region) =>
+                return Promise.all(privates.regions.map((region) =>
                     requestBuffer(context, region.src)
                     .then((buffer) => cache[region.src] = buffer)
                 ));
@@ -309,7 +309,7 @@ assign(Sample.prototype, Playable.prototype, NodeGraph.prototype, {
         this.frequency = frequency;
 
         gainNode.gain.setValueAtTime(this.gain, this.startTime);
-        startSources(privates.sources, gainNode, detuneNode, privates.map, this.startTime, this.frequency, note, this.gain) ;
+        startSources(privates.sources, gainNode, detuneNode, privates.regions, this.startTime, this.frequency, note, this.gain) ;
 
         return this;
     },

@@ -15,6 +15,11 @@ assign(constructors, {
     tone:   Tone
 });
 
+run('Start context', [], function(test, done) {
+    context.resume().then(done);
+});
+
+/*
 run('Instrument() sample', [false], function(test, done) {
     const duration = 0.1;
     const instrument = new Instrument(context, {
@@ -260,4 +265,67 @@ run('Instrument() sample and tone', [false], function(test, done) {
             done();
         }, 2000);
     }, 1000);
+});
+*/
+
+//const path = 'http://sound.stephen.band/';
+const path = 'http://localhost/sound.stephen.band/';
+
+run('Instrument() Chromatic and dynamic test', [false], function(test, done) {
+    const duration = 0.1;
+    const instrument = new Instrument(context, {
+        voice: {
+            nodes: [{
+                id:   'sample',
+                type: 'sample',
+                data: {
+                    src: path + 'samples/steinway-piano/sample-map-local.json',
+                    nominalFrequency: 440,
+                    // TODO: gain is working? Do we need gain?
+                    gain: 1
+                }
+            }, {
+                id:   'mix',
+                type: 'mix',
+                data: { gain: 1, pan: 0 }
+            }, {
+                id:   'output',
+                type: 'gain',
+                data: { gain: 1 }
+            }],
+
+            connections: [
+                { source: 'sample', target: 'mix' },
+                { source: 'mix', target: 'output' }
+            ],
+
+            commands: [
+                { target: 'sample' }
+            ],
+
+            output: 'output'
+        },
+
+        output: 1
+    });
+
+    instrument.connect(context.destination);
+
+    function playChromatic(min, max, gain) {
+        const t = context.currentTime;
+        let n = min - 1;
+        while (++n < max) {
+            instrument
+            .start(t + 0.12 * (n - min), n, gain)
+            .stop( t + 0.12 * (n - min) + 0.3) ;
+        }
+    }
+
+    setTimeout(() => playChromatic(25, 108, 0.03125), 0);
+    setTimeout(() => playChromatic(25, 108, 0.0625),  10000);
+    setTimeout(() => playChromatic(25, 108, 0.125),   20000);
+    setTimeout(() => playChromatic(25, 108, 0.25),    30000);
+    setTimeout(() => playChromatic(25, 108, 0.5),     40000);
+    setTimeout(() => playChromatic(25, 108, 1),       50000);
+    setTimeout(() => done, 60000);
 });

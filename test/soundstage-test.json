@@ -26,6 +26,9 @@
     }],
 
     "events": [
-        [0, "sequence", "test", "tone", 4]
+        [0, "sequence", "test", "tone", 4],
+        [4, "sequence", "test", "tone", 4],
+        [8, "sequence", "test", "tone", 4],
+        [12, "sequence", "test", "tone", 4]
     ]
 }
