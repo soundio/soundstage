@@ -49,7 +49,7 @@ const DEBUG  = window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
 
-import Sink from './sink';
+import Sink from './sink.js';
 assign(constructors, {
     sink: Sink
 });
