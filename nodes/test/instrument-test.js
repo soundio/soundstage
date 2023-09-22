@@ -269,7 +269,7 @@ run('Instrument() sample and tone', [false], function(test, done) {
 });
 */
 
-const path = 'http://sound.stephen.band/';
+const path = 'https://sound.stephen.band/';
 //const path = 'http://localhost/sound.stephen.band/';
 
 run('Instrument() Chromatic and dynamic test', [false], function(test, done) {
