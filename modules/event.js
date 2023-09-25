@@ -80,13 +80,16 @@ sequence
 **/
 
 
+import capture    from '../../fn/modules/capture.js';
 import compose    from '../../fn/modules/compose.js';
 import get        from '../../fn/modules/get.js';
 import overload   from '../../fn/modules/overload.js';
 import Pool       from '../../fn/modules/pool.js';
 import remove     from '../../fn/modules/remove.js';
+import toType     from '../../fn/modules/to-type.js';
 import { bytesToSignedFloat } from '../../midi/modules/maths.js';
-import { toType } from '../../midi/modules/data.js';
+import { toType as toTypeMIDI } from '../../midi/modules/data.js';
+import parseEvent from './parse/parse-event.js';
 
 const assign  = Object.assign;
 const define  = Object.defineProperties;
@@ -127,13 +130,17 @@ export function Event(time, type) {
 		throw new Error('Soundstage new Event() called with invalid arguments [' + Array.from(arguments).join(', ') + ']. ' + eventValidationHint(arguments));
 	}
 
+	const length = type === 'param' && arguments[4] === 'target' ?
+		6 :
+		(lengths[type] || lengths.default) ;
+
 	this[0] = time;
 	this[1] = type;
 
-	const l = this.length;
-
 	let n = 1;
-	while (++n < l) { this[n] = arguments[n]; }
+	while (++n < length) {
+		this[n] = arguments[n];
+	}
 }
 
 function reset() {
@@ -157,13 +164,10 @@ assign(Event, {
 	},
 
 	from: function(data) {
-		//const event = new Event(...data);
-		const event = Event.of.apply(Event, data);
-		/*event.originalEvent = data;*/
-		return event;
+		return Event.of.apply(Event, data);
 	},
 
-	fromMIDI: overload(compose(toType, getData), {
+	fromMIDI: overload(compose(toTypeMIDI, getData), {
 		pitch: function(e) {
 			return Event.of(e.timeStamp, 'pitch', pitchToFloat(e.data));
 		},
@@ -181,14 +185,32 @@ assign(Event, {
 		},
 
 		default: function(e) {
-			return Event.of(e.timeStamp, toType(e.data), e.data[1], e.data[2] / 127) ;
+			return Event.of(e.timeStamp, toTypeMIDI(e.data), e.data[1], e.data[2] / 127) ;
 		}
-	})
+	}),
+
+	// "time type ..."
+	parse: capture(/^\s*([-\d\.e]+)\s+(\w+)\s+/, {
+		2: (event, captures) => {
+			// time
+			event[0] = parseFloat(captures[1]);
+			// type
+			event[1] = captures[2];
+			// parameters
+			parseEvent(event, captures);
+			// Convert to event object
+			return Event.from(event);
+		}
+	}, []),
+
+	stringify: function(event) {
+		return Array.prototype.join.call(event, ' ');
+	}
 });
 
 assign(Event.prototype, {
 	toJSON: function() {
-		return Array.from(this);
+		return Event.stringify(this);
 	},
 
 	/**
@@ -224,14 +246,11 @@ define(Event.prototype, {
 	Event length.
 	**/
 	length: {
-		get: function() { return lengths[this[1]] || lengths.default; }
-	},
-
-	/**
-	.originalEvent
-	Original event this event was cloned from, if cloned via Event.from().
-	**/
-	/*originalEvent: { value: undefined, writable: true }*/
+		get: function() {
+			return this[1] === 'param' && this[4] === 'target' ? 6 :
+				(lengths[this[1]] || lengths.default) ;
+		}
+	}
 });
 
 
@@ -241,9 +260,11 @@ A constructor for event objects for internal use.
 **/
 
 export default assign(Pool(Event, reset, isIdle), {
-	of:       Event.of,
-	from:     Event.from,
-	fromMIDI: Event.fromMIDI
+	of:        Event.of,
+	from:      Event.from,
+	fromMIDI:  Event.fromMIDI,
+	parse:     Event.parse,
+	stringify: Event.stringify
 });
 
 

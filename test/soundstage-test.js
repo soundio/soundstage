@@ -62,3 +62,15 @@ function(test, done) {
     });
 });
 
+run('Soundstage()',
+[JSON.stringify({"id":"1","type":"input","data":{"channels":[0,1],"name":"In 1/2"}})],
+function(test, done) {
+    const stage = new Soundstage(data);
+    window.stage = stage;
+    stage.start(0);
+
+    document.body.addEventListener('click', function() {
+        stage.start();
+    });
+});
+

@@ -18,7 +18,8 @@ import Playable, { IDLE, PLAYING } from './playable.js';
 import { automate, getValueAtTime } from './automate.js';
 import { isRateEvent, getDuration, isValidEvent, eventValidationHint } from './event.js';
 import { timeAtBeatOfEvents } from './sequencer/location.js';
-import parseEvents from './events/parse-events.js';
+import parseEvent  from './parse/parse-event.js';
+import parseEvents from './parse/parse-events.js';
 
 const assign = Object.assign;
 const create = Object.create;
@@ -55,6 +56,13 @@ Sequencer()
 ```
 **/
 
+function sanitiseEvents(sequence) {
+    sequence.sequences && sequence.sequences.forEach(sanitiseEvents);
+    sequence.events = sequence.events
+        .map((data) => typeof data === 'string' ? Event.parse(data) : Event.from(data))
+        .sort(by0Float32);
+}
+
 export default function Sequencer(transport, output, events = [], sequences = []) {
     // .context
     // .startTime
@@ -65,15 +73,17 @@ export default function Sequencer(transport, output, events = [], sequences = []
     Playable.call(this, transport.context);
 
     this.transport = transport;
-    this.events    = typeof evente === 'string' ?
-        parseEvents(events) :
-        events.sort(by0Float32) ;
+    this.events    = typeof events === 'string' ?
+        parseEvents(events).sort(by0Float32) :
+        events.map((data) => typeof data === 'string' ? Event.parse(data) : Event.from(data)).sort(by0Float32) ;
     this.sequences = sequences;
     this.rate      = transport.outputs.rate.offset;
 
     const privates = Privates(this);
     privates.beat   = 0;
     privates.output = output;
+
+    console.log('SEQUENCER', this.events, this.sequences);
 }
 
 assign(Sequencer.prototype, Meter.prototype, {
