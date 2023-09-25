@@ -16,7 +16,7 @@ import { print } from './print.js';
 import { getDejitterTime }   from './context.js';
 import Playable, { IDLE, PLAYING } from './playable.js';
 import { automate, getValueAtTime } from './automate.js';
-import { isRateEvent, getDuration, isValidEvent, eventValidationHint } from './event.js';
+import { isRateEvent, getDuration } from './event.js';
 import { timeAtBeatOfEvents } from './sequencer/location.js';
 import parseEvent  from './parse/parse-event.js';
 import parseEvents from './parse/parse-events.js';

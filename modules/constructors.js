@@ -13,7 +13,7 @@ import Instrument from '../nodes/instrument.js';
 import Metronome  from '../nodes/metronome.js';
 
 import MixNode    from '../nodes/mix.js';
-import SampleNode from '../nodes/sample.js';
+import SampleNode from '../nodes/sample-set.js';
 */
 
 /*
@@ -45,7 +45,7 @@ import SampleNode from '../nodes/sample.js';
 
     // ../nodes/mix.js
     'mix': MixNode,
-    // ../nodes/sample.js
+    // ../nodes/sample-set.js
     'sample': SampleNode
 */
 

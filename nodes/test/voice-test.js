@@ -3,7 +3,7 @@ import context from '../../modules/context.js';
 import Voice   from '../voice.js';
 
 import Mix    from '../mix.js';
-import Sample from '../sample.js';
+import Sample from '../sample-set.js';
 import { constructors } from '../graph.js';
 
 const assign = Object.assign;

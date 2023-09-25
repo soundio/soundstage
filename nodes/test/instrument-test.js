@@ -4,7 +4,7 @@ import context    from '../../modules/context.js';
 import Instrument from '../instrument.js';
 
 import Mix    from '../mix.js';
-import Sample from '../sample.js';
+import Sample from '../sample-set.js';
 import Tone   from '../tone.js';
 import { constructors } from '../graph.js';
 

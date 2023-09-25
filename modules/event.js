@@ -7,7 +7,7 @@ import overload   from '../../fn/modules/overload.js';
 import Pool       from '../../fn/modules/pool.js';
 import remove     from '../../fn/modules/remove.js';
 import toType     from '../../fn/modules/to-type.js';
-import { bytesToSignedFloat } from '../../midi/modules/maths.js';
+import { bytesToSignedFloat }   from '../../midi/modules/maths.js';
 import { toType as toTypeMIDI } from '../../midi/modules/data.js';
 import parseFloat64   from './parse/parse-float-64.js';
 import parseFloat32   from './parse/parse-float-32.js';
@@ -101,8 +101,6 @@ const define  = Object.defineProperties;
 const getData = get('data');
 
 
-// ---
-
 const pitchBendRange = 2;
 
 const lengths = {
@@ -117,6 +115,7 @@ const lengths = {
 	'meter':          4,
 	'rate':           3,
 	'param':          5,
+	'pitch':          3,
 	'log':            3,
 	default:          5
 };
@@ -125,16 +124,21 @@ function pitchToFloat(message) {
 	return bytesToSignedFloat(message[1], message[2]) * pitchBendRange;
 }
 
-
-
-
-/**
-Event(time, type, ...)
-A constructor for event objects for internal use.
-**/
-
 const tuning = 440; /* TEMP */
 const constructEventType = overload(arg(1), {
+	// Event types
+	//
+	// [time, "rate", number, curve]
+	// [time, "meter", numerator, denominator]
+	// [time, "note", number, velocity, duration]
+	// [time, "noteon", number, velocity]
+	// [time, "noteoff", number]
+	// [time, "param", name, value, curve]
+	// [time, "pitch", semitones]
+	// [time, "chord", root, mode, duration]
+	// [time, "log", value]
+	// [time, "sequence", name || events, target, duration, transforms...]
+
 	'note': function() {
 		// frequency, gain, duration
 		this[2] = parseNote(arguments[2], tuning);
@@ -180,6 +184,10 @@ const constructEventType = overload(arg(1), {
 		if (arguments[4] === 'target') {
 			this[5] = parseFloat64(arguments[5]);
 		}
+	},
+
+	'pitch': function() {
+		this[2] = parseFloat64(arguments[2]);
 	},
 
 	'meter': function() {
@@ -356,54 +364,3 @@ export function getDuration(e)  {
 		e[1] === 'sequence' ? e[4] :
 		undefined ;
 }
-
-
-/**
-isValidEvent(event)
-Checks event for type and length to make sure it conforms to an event
-type signature.
-**/
-
-// Event types
-//
-// [time, "rate", number, curve]
-// [time, "meter", numerator, denominator]
-// [time, "note", number, velocity, duration]
-// [time, "noteon", number, velocity]
-// [time, "noteoff", number]
-// [time, "param", name, value, curve]
-// [time, "pitch", semitones]
-// [time, "chord", root, mode, duration]
-// [time, "log", value]
-// [time, "sequence", name || events, target, duration, transforms...]
-
-export const isValidEvent = overload(get(1), {
-	note:     (event) => event[4] !== undefined,
-	noteon:   (event) => event[3] !== undefined,
-	noteoff:  (event) => event[2] !== undefined,
-	'start':  (event) => event[3] !== undefined,
-	'stop':   (event) => event[2] !== undefined,
-	'sequence':       (event) => event[4] !== undefined,
-	'sequence-start': (event) => event[3] !== undefined,
-	'sequence-stop':  (event) => event[2] !== undefined,
-	meter:    (event) => event[3] !== undefined,
-	rate:     (event) => event[2] !== undefined,
-	param:    (event) => event[4] !== undefined,
-	log:      (event) => event[2] !== undefined,
-	default:  (event) => (typeof event[0] === 'number' && typeof event[1] === 'string')
-});
-
-export const eventValidationHint = overload(get(1), {
-	note:     (event) => 'Should be of the form [time, "note", number, velocity, duration]',
-	noteon:   (event) => 'Should be of the form [time, "noteon", note, velocity]',
-	noteoff:  (event) => 'Should be of the form [time, "noteoff", note]',
-	'start':  (event) => 'Should be of the form [time, "start", note, level]',
-	'stop':   (event) => 'Should be of the form [time, "stop",  note]',
-	'sequence':       (event) => 'Should be of the form [time, "sequence", id, target, duration]',
-	'sequence-start': (event) => 'Should be of the form [time, "sequence-start", id, target]',
-	'sequence-stop':  (event) => 'Should be of the form [time, "sequence-stop", id]',
-	meter:    (event) => 'Should be of the form [time, "meter", numerator, denominator]',
-	rate:     (event) => 'Should be of the form [time, "rate", number, curve]',
-	log:      (event) => 'Should be of the form [time, "log", string]',
-	default:  (event) => 'Probably should be of the form [time, name, value, curve, duration]'
-});

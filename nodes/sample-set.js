@@ -39,7 +39,7 @@ An AudioParam that modifies the frequency in cents.
 
 import Privates             from '../../fn/modules/privates.js';
 import { frequencyToFloat } from '../../midi/modules/data.js';
-import { dB24, dB30, dB60 }    from '../modules/constants.js';
+import { dB24, dB30, dB60 } from '../modules/constants.js';
 import { requestBuffer }    from '../modules/request-buffer.js';
 import { requestData }      from '../modules/request-data.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';

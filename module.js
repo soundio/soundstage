@@ -22,7 +22,7 @@ import Envelope   from './nodes/envelope.js';
 import Tick       from './nodes/tick.js';
 import Recorder   from './nodes/recorder.js';
 import Sink       from './nodes/sink.js';
-import Sample     from './nodes/sample.js';
+import Sample     from './nodes/sample-set.js';
 import Tone       from './nodes/tone.js';
 import Noise      from './nodes/noise.js';
 import Instrument from './nodes/instrument.js';

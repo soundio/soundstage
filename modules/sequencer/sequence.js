@@ -145,10 +145,6 @@ function processFrame(sequence, t2, b1, b2, events, latest, stopbuffer, buffer) 
     while (++n < buffer.length) {
         let event = buffer[n];
 
-        /*if (!isValidEvent(event)) {
-            throw new Error('Invalid event ' + JSON.stringify(event) + '. ' + eventValidationHint(event));
-        }*/
-
         // Deal with events that have duration by creating -start and -stop events
         const duration = getDuration(event);
 
@@ -192,11 +188,7 @@ function processFrame(sequence, t2, b1, b2, events, latest, stopbuffer, buffer) 
 function readBufferEvent(sequence, stopbuffer, buffer, n) {
     const event = buffer[n];
     const time  = sequence.timeAtBeat(event[0]);
-    /*
-    if (!isValidEvent(event)) {
-        throw new Error('Invalid event ' + JSON.stringify(event) + '. ' + eventValidationHint(event));
-    }
-    */
+
     // Syphon off events, create and start child sequences
     if (event[1] === 'sequence-start') {
         // This may extend the buffer with more events

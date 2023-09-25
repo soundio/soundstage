@@ -1,7 +1,7 @@
 import run     from '../../../fn/modules/test.js';
 import toGain  from '../../../fn/modules/to-gain.js';
 import context from '../../modules/context.js';
-import Sample  from '../sample.js';
+import Sample  from '../sample-set.js';
 
 import { floatToFrequency } from '../../../midi/module.js';
 
