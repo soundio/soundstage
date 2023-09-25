@@ -65,9 +65,6 @@ function sanitiseEvents(sequence) {
 
 export default function Sequencer(transport, output, events = [], sequences = []) {
     // .context
-    // .startTime
-    // .startLocation
-    // .stopTime
     // .start()
     // .stop()
     Playable.call(this, transport.context);
@@ -87,6 +84,10 @@ export default function Sequencer(transport, output, events = [], sequences = []
 }
 
 assign(Sequencer.prototype, Meter.prototype, {
+    /**
+    .beatAtTime(time)
+    Returns the beat of this sequence given a context `time`.
+    **/
     beatAtTime: function(time) {
         const transport     = this.transport;
         const startLocation = this.startLocation
@@ -94,6 +95,10 @@ assign(Sequencer.prototype, Meter.prototype, {
         return transport.beatAtTime(time) - startLocation;
     },
 
+    /**
+    .timeAtBeat(beat)
+    Returns the context time that `beat` of the sequence plays at.
+    **/
     timeAtBeat: function(beat) {
         const transport     = this.transport;
         const startLocation = this.startLocation
@@ -115,7 +120,7 @@ assign(Sequencer.prototype, Meter.prototype, {
         Playable.prototype.start.call(this, time);
 
         if (window.DEBUG) {
-    //        print('Sequencer start()', 'startTime', this.startTime, 'transport', transport.status);
+            print('Sequencer start()', 'startTime', this.startTime, 'transport', transport.status);
         }
 
         const privates = Privates(this);
@@ -175,7 +180,7 @@ assign(Sequencer.prototype, Meter.prototype, {
         Playable.prototype.stop.call(this, time);
 
         if (window.DEBUG) {
-    //        print('Sequencer stop() ', 'stopTime ', this.stopTime, 'status', this.status);
+            print('Sequencer stop() ', 'stopTime ', this.stopTime, 'status', this.status);
         }
 
         // Hold automation for the rate node
