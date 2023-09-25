@@ -1,18 +1,18 @@
 
-import by         from '../../../fn/modules/by.js';
-import get        from '../../../fn/modules/get.js';
-import matches    from '../../../fn/modules/matches.js';
-import nothing    from '../../../fn/modules/nothing.js';
-import { remove } from '../../../fn/modules/remove.js';
-import Privates   from '../../../fn/modules/privates.js';
+import by                     from '../../../fn/modules/by.js';
+import get                    from '../../../fn/modules/get.js';
+import matches                from '../../../fn/modules/matches.js';
+import nothing                from '../../../fn/modules/nothing.js';
+import Privates               from '../../../fn/modules/privates.js';
+import { remove }             from '../../../fn/modules/remove.js';
 import Stream, { pipe, stop } from '../../../fn/modules/stream.js';
+import { noteToFrequency }    from '../../../midi/modules/data.js';
 
-import { print } from '../print.js';
-import Event, { isRateEvent, isValidEvent, getDuration, eventValidationHint }  from '../event.js';
-import Playable   from '../playable.js';
-import { beatAtLocation, locationAtBeat } from './location.js';
-import { getValueAtTime } from '../automate.js';
-
+import Event, { isRateEvent, getDuration } from '../event.js';
+import Playable                            from '../playable.js';
+import { beatAtLocation, locationAtBeat }  from './location.js';
+import { getValueAtTime }                  from '../automate.js';
+import { print }                           from '../print.js';
 
 const A      = Array.prototype;
 const assign = Object.assign;
@@ -52,6 +52,10 @@ function indexEventAtBeat(events, beat) {
     let n = -1;
     while (++n < events.length && events[n][0] < beat);
     return n;
+}
+
+function throwDurationEventError(event) {
+    throw new Error('Cannot create start/stop events from ' + JSON.stringify(event));
 }
 
 function processFrame(sequence, t2, b1, b2, events, latest, stopbuffer, buffer) {
@@ -141,9 +145,9 @@ function processFrame(sequence, t2, b1, b2, events, latest, stopbuffer, buffer) 
     while (++n < buffer.length) {
         let event = buffer[n];
 
-        if (!isValidEvent(event)) {
+        /*if (!isValidEvent(event)) {
             throw new Error('Invalid event ' + JSON.stringify(event) + '. ' + eventValidationHint(event));
-        }
+        }*/
 
         // Deal with events that have duration by creating -start and -stop events
         const duration = getDuration(event);
@@ -152,14 +156,19 @@ function processFrame(sequence, t2, b1, b2, events, latest, stopbuffer, buffer) 
             // Give stop a reference to start, renaming event type. Renames
             // 'note' to 'start'/'stop', and 'sequence' to
             // 'sequence-start'/'sequence-stop'.
-            const namePrefix = event[1] === 'note' ? '' : event[1] + '-' ;
+            const type = event[1];
 
-            const startEvent
-                = new Event(event[0], namePrefix + 'start', event[2], event[3]);
+            const startEvent = type === 'note' ?
+                    new Event(event[0], 'start', noteToFrequency(event[2], 440), event[3]) :
+                type === 'sequence' ?
+                    new Event(event[0], 'sequence-start', event[2], event[3]) :
+                throwDurationEventError(event) ;
 
-            const stopEvent
-                = event.stopEvent
-                = new Event(event[0] + duration, namePrefix + 'stop', event[2]);
+            const stopEvent = type === 'note' ?
+                    new Event(event[0] + duration, 'stop', startEvent[2]) :
+                type === 'sequence' ?
+                    new Event(event[0], 'sequence-stop', event[2]) :
+                throwDurationEventError(event) ;
 
             stopEvent.startEvent = startEvent;
             buffer[n] = startEvent;
@@ -168,7 +177,7 @@ function processFrame(sequence, t2, b1, b2, events, latest, stopbuffer, buffer) 
             if (stopEvent[0] < b2) {
                 // Make an attempt to preserve event order by jamming these at the
                 // front, where they'll get sorted in front of any start events set
-                // to the same time
+                // to the same time. A bit dodgy.
                 buffer.unshift(stopEvent);
             }
             else {
@@ -183,11 +192,11 @@ function processFrame(sequence, t2, b1, b2, events, latest, stopbuffer, buffer) 
 function readBufferEvent(sequence, stopbuffer, buffer, n) {
     const event = buffer[n];
     const time  = sequence.timeAtBeat(event[0]);
-
+    /*
     if (!isValidEvent(event)) {
         throw new Error('Invalid event ' + JSON.stringify(event) + '. ' + eventValidationHint(event));
     }
-
+    */
     // Syphon off events, create and start child sequences
     if (event[1] === 'sequence-start') {
         // This may extend the buffer with more events

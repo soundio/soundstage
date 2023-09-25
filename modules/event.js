@@ -1,4 +1,20 @@
 
+import arg        from '../../fn/modules/arg.js';
+import capture    from '../../fn/modules/capture.js';
+import compose    from '../../fn/modules/compose.js';
+import get        from '../../fn/modules/get.js';
+import overload   from '../../fn/modules/overload.js';
+import Pool       from '../../fn/modules/pool.js';
+import remove     from '../../fn/modules/remove.js';
+import toType     from '../../fn/modules/to-type.js';
+import { bytesToSignedFloat } from '../../midi/modules/maths.js';
+import { toType as toTypeMIDI } from '../../midi/modules/data.js';
+import parseFloat64   from './parse/parse-float-64.js';
+import parseFloat32   from './parse/parse-float-32.js';
+import parseFrequency from './parse/parse-frequency.js';
+import parseGain      from './parse/parse-gain.js';
+import parseNote      from './parse/parse-note.js';
+
 /**
 Event(time, type, data...)
 
@@ -80,20 +96,10 @@ sequence
 **/
 
 
-import capture    from '../../fn/modules/capture.js';
-import compose    from '../../fn/modules/compose.js';
-import get        from '../../fn/modules/get.js';
-import overload   from '../../fn/modules/overload.js';
-import Pool       from '../../fn/modules/pool.js';
-import remove     from '../../fn/modules/remove.js';
-import toType     from '../../fn/modules/to-type.js';
-import { bytesToSignedFloat } from '../../midi/modules/maths.js';
-import { toType as toTypeMIDI } from '../../midi/modules/data.js';
-import parseEvent from './parse/parse-event.js';
-
 const assign  = Object.assign;
 const define  = Object.defineProperties;
 const getData = get('data');
+
 
 // ---
 
@@ -120,27 +126,84 @@ function pitchToFloat(message) {
 }
 
 
+
+
 /**
 Event(time, type, ...)
 A constructor for event objects for internal use.
 **/
 
+const tuning = 440; /* TEMP */
+const constructEventType = overload(arg(1), {
+	'note': function() {
+		// frequency, gain, duration
+		this[2] = parseNote(arguments[2], tuning);
+		this[3] = parseGain(arguments[3]);
+		this[4] = parseFloat64(arguments[4]);
+	},
+
+	'start': function() {
+		// frequency, gain
+		this[2] = parseFrequency(arguments[2], tuning);
+		this[3] = parseGain(arguments[3]);
+	},
+
+	'stop': function() {
+		// frequency
+		this[2] = parseFrequency(arguments[2], tuning);
+	},
+
+	'sequence': function() {
+		// name, target, duration
+		this[2] = arguments[2];
+		this[3] = arguments[3];
+		this[4] = parseFloat64(arguments[4]);
+	},
+
+	'sequence-start': function() {
+		// name, target
+		this[2] = arguments[2];
+		this[3] = arguments[3];
+	},
+
+	'sequence-stop': function() {
+		// name
+		this[2] = arguments[2];
+	},
+
+	'param': function() {
+		// name, value, [curve, [duration]]
+		this[2] = arguments[2];
+		this[3] = parseFloat32(arguments[3]);
+		this[4] = arguments[4] || 'step';
+
+		if (arguments[4] === 'target') {
+			this[5] = parseFloat64(arguments[5]);
+		}
+	},
+
+	'meter': function() {
+		// numerator, denominator
+		this[2] = parseInt(arguments[2], 10);
+		this[3] = parseInt(arguments[3], 10);
+	},
+
+	'rate': function() {
+		// rate
+		this[2] = parseFloat64(arguments[2]);
+	},
+
+	default: function() {
+		this[2] = arguments[2];
+	}
+});
+
 export function Event(time, type) {
-	if (window.DEBUG && !isValidEvent(arguments)) {
-		throw new Error('Soundstage new Event() called with invalid arguments [' + Array.from(arguments).join(', ') + ']. ' + eventValidationHint(arguments));
-	}
-
-	const length = type === 'param' && arguments[4] === 'target' ?
-		6 :
-		(lengths[type] || lengths.default) ;
-
-	this[0] = time;
+	// Yes, WebAudio time is Float32, but this event may be a beat and I see
+	// little reason not to use full accuracy
+	this[0] = parseFloat64(time);
 	this[1] = type;
-
-	let n = 1;
-	while (++n < length) {
-		this[n] = arguments[n];
-	}
+	constructEventType.apply(this, arguments);
 }
 
 function reset() {
@@ -163,9 +226,10 @@ assign(Event, {
 		return new Event(...arguments);
 	},
 
-	from: function(data) {
-		return Event.of.apply(Event, data);
-	},
+	from: overload(toType, {
+		string: (data) => Event.parse(data),
+		object: (data) => Event.of.apply(Event, data)
+	}),
 
 	fromMIDI: overload(compose(toTypeMIDI, getData), {
 		pitch: function(e) {
@@ -189,19 +253,10 @@ assign(Event, {
 		}
 	}),
 
-	// "time type ..."
-	parse: capture(/^\s*([-\d\.e]+)\s+(\w+)\s+/, {
-		2: (event, captures) => {
-			// time
-			event[0] = parseFloat(captures[1]);
-			// type
-			event[1] = captures[2];
-			// parameters
-			parseEvent(event, captures);
-			// Convert to event object
-			return Event.from(event);
-		}
-	}, []),
+	parse: function(string) {
+		const data = string.split(/\s+/);
+		return new Event(...data);
+	},
 
 	stringify: function(event) {
 		return Array.prototype.join.call(event, ' ');

@@ -10,7 +10,7 @@ import Event       from './event.js';
 import Clock       from './clock.js';
 import FrameStream from './sequencer/frame-stream.js';
 import Meter       from './sequencer/meter.js';
-import Sequence, { by0Float32 } from './sequencer/sequence.js';
+import Sequence    from './sequencer/sequence.js';
 
 import { print } from './print.js';
 import { getDejitterTime }   from './context.js';
@@ -24,6 +24,7 @@ import parseEvents from './parse/parse-events.js';
 const assign = Object.assign;
 const create = Object.create;
 const define = Object.defineProperties;
+const by0    = by(get(0));
 
 
 /**
@@ -56,25 +57,31 @@ Sequencer()
 ```
 **/
 
-function sanitiseEvents(sequence) {
-    sequence.sequences && sequence.sequences.forEach(sanitiseEvents);
-    sequence.events = sequence.events
-        .map((data) => typeof data === 'string' ? Event.parse(data) : Event.from(data))
-        .sort(by0Float32);
+function parseSequence(data) {
+    return {
+        id:        data.id,
+        label:     data.label,
+        events:    data.events.map(Event.from).sort(by0),
+        sequences: data.sequences && data.sequences.map(parseSequence)
+    };
 }
 
-export default function Sequencer(transport, output, events = [], sequences = []) {
+export default function Sequencer(transport, output, data) {
     // .context
     // .start()
     // .stop()
     Playable.call(this, transport.context);
 
     this.transport = transport;
-    this.events    = typeof events === 'string' ?
-        parseEvents(events).sort(by0Float32) :
-        events.map((data) => typeof data === 'string' ? Event.parse(data) : Event.from(data)).sort(by0Float32) ;
-    this.sequences = sequences;
     this.rate      = transport.outputs.rate.offset;
+
+    this.events    = data.events ?
+        data.events.map(Event.from).sort(by0) :
+        [] ;
+
+    this.sequences = data.sequences ?
+        data.sequences.map(parseSequence) :
+        [] ;
 
     const privates = Privates(this);
     privates.beat   = 0;
@@ -137,7 +144,7 @@ assign(Sequencer.prototype, Meter.prototype, {
             .pipe(new Sequence(this, this.events, this.sequences, 'root'))
             // Error-check and consume output events
             .map(overload(get(1), {
-                // Do nothing, Sequencer doesn't respond to "start"
+                // Do nothing, Sequencer itself doesn't respond to "start"
                 'start': (event) => event.release(),
 
                 // But perhaps it can respond to "stop", why not - ooo, because

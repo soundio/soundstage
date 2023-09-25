@@ -16,20 +16,23 @@ run('Sequencer()',
 function(test, done) {
     const transport = new Transport(context);
     const output    = Stream.of().each((event) => test(event[1]));
-    const sequencer = new Sequencer(transport, output, [
-        // Log events are not published to the output stream
-        [0.0, 'log', 'Log'],
-        // Nor are root events on root sequence
-        [0.1, 'note', 49, 1, 0.8],
-        // Nor are sequence events, which are consumed by the sequencer
-        [0.2, 'sequence', 'bob', 'path', 0.6]
-    ], [{
-        id: 'bob',
+    const sequencer = new Sequencer(transport, output, {
         events: [
-            [0, 'note', 54, 0.2, 0.3],
-            [0.2, 'param', 'gain', 1, 'exponential']
-        ]
-    }]);
+            // Log events are not published to the output stream
+            [0.0, 'log', 'Log'],
+            // Nor are root events on root sequence
+            [0.1, 'note', 49, 1, 0.8],
+            // Nor are sequence events, which are consumed by the sequencer
+            [0.2, 'sequence', 'bob', 'path', 0.6]
+        ],
+        sequences: [{
+            id: 'bob',
+            events: [
+                [0, 'note', 54, 0.2, 0.3],
+                [0.2, 'param', 'gain', 1, 'exponential']
+            ]
+        }]
+    });
 
     window.sequencer = sequencer;
 
@@ -62,14 +65,17 @@ run('Sequencer()',
 function(test, done) {
     const transport = new Transport(context);
     const output    = Stream.of().each((event) => test(event[1]));
-    const sequencer = new Sequencer(transport, output, [
-        [0, 'sequence', 'id', 'target', 3]
-    ], [{
-        id: 'id',
+    const sequencer = new Sequencer(transport, output, {
         events: [
-            [0, 'note', 50, 0.6, 0.5]
-        ]
-    }]);
+            [0, 'sequence', 'id', 'target', 3]
+        ],
+        sequences: [{
+            id: 'id',
+            events: [
+                [0, 'note', 50, 0.6, 0.5]
+            ]
+        }]
+    });
 
     window.sequencer = sequencer;
 

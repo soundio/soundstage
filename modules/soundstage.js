@@ -171,7 +171,7 @@ export default function Soundstage(data = defaultData, settings = nothing) {
     // .timeAtBeat(beat)
     // .beatAtBar(bar)
     // .barAtBeat(beat)
-    Sequencer.call(this, transport, automation, data.events, data.sequences);
+    Sequencer.call(this, transport, automation, data);
 
     privates.outputs = {
         default: merger,

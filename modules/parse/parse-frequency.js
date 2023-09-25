@@ -8,7 +8,7 @@ const rdigit = /^\d/;
 
 export default overload(toType, {
     'number': id,
-    'string': (value, tuning) => (
+    'string': (value, tuning = 440) => (
         rdigit.test(value) ?
             value.slice(-2) === 'Hz' ? parseFloat(value) :
             floatToFrequency(tuning, value) :

@@ -4,16 +4,16 @@ import context     from '../context.js';
 import parseEvents from '../parse/parse-events.js';
 
 run('Event.of()', [
-    [[0, 'note', 440, 1, 1]],
-    [[0, 'note', 440, 1, 1]],
-    [[0, 'note', 440, 1, 1]],
-    [[0, 'note', 440, 0.001, 1]],
+    [[0, 'note', 69, 1, 1]],
+    [[0, 'note', 69, 1, 1]],
+    [[0, 'note', 69, 1, 1]],
+    [[0, 'note', 69, 0.001, 1]],
     [[1, 'sequence', 'name', 'target', 8]],
     [[1.1, 'param', 'gain', 0, 'step']],
     [[8.012, 'param', 'gain', 0.5, 'target', 3]],
     [
-        [0, 'note', 440, 1, 1],
-        [0, 'note', 440, 1, 1],
+        [0, 'note', 69, 1, 1],
+        [0, 'note', 69, 1, 1],
         [1, 'sequence', 'name', 'target', 8],
         [1.1, 'param', 'gain', 0, 'step'],
         [8.012, 'param', 'gain', 0.5, 'target', 3],
