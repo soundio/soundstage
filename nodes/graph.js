@@ -59,12 +59,21 @@ import Privates from '../../fn/modules/privates.js';
 import { logGroup, logGroupEnd } from '../modules/print.js';
 import { connect, disconnect }   from '../modules/connect.js';
 import nativeConstructors        from '../modules/constructors.js';
+
+import Mix                       from './mix.js';
+import SampleSet                 from './sample-set.js';
+import Tone                      from './tone.js';
+
 const DEBUG  = false;//window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
 const seal   = Object.seal;
 
-export const constructors = assign({}, nativeConstructors);
+export const constructors = assign({
+    mix:     Mix,
+    samples: SampleSet,
+    tone:    Tone,
+}, nativeConstructors);
 
 function create(type, context, settings, transport) {
     const Constructor = constructors[type];
@@ -100,7 +109,6 @@ function createConnection(nodes, data) {
     }
 
     const source  = nodes[srcPath[0]];
-
     const tgtPath = data.target.split('.');
     const tgtLast = tgtPath[tgtPath.length - 1];
     let tgtChan;
