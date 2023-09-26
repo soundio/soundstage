@@ -2,7 +2,7 @@
 <meta charset="utf-8" />
 <title>Tests</title>
 
-<link rel="stylesheet" href="./tests/tests.css" />
+<link rel="stylesheet" href="./test/tests.css" />
 
 <!-- These elements are picked up by Selenium in Github Actions -->
 <pre class="console-pre" id="console"></pre>
@@ -18,7 +18,7 @@
 </script>
 
 <script type="module">
-    import { pass, fail } from './tests/tests.js';
+    import { pass, fail } from './test/tests.js';
     import { done }       from '../fn/modules/test.js';
 
     // Import test files here
@@ -52,7 +52,7 @@
     // Soundstage
     //import './test/soundstage-test.js';
 
-    import SoundstagePlayer from './player/module.js';
+    import SoundstagePlayer from './elements/soundstage-player.js';
 
     // Report results
     done((totals) => (totals.fail > 0 ? fail() : pass()));

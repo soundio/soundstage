@@ -1,16 +1,16 @@
 
-import Stream, { frames }        from '../../fn/modules/stream.js';
-import { formatTime }            from '../../fn/modules/time.js';
-import observe                   from '../../fn/observer/observe.js';
-import Observer                  from '../../fn/observer/observer.js';
-import delegate                  from '../../dom/modules/delegate.js';
-import createBoolean             from '../../dom/modules/element/create-boolean.js';
-import createTokenList           from '../../dom/modules/element/create-token-list.js';
-import element, { getInternals } from '../../dom/modules/element.js';
-import events                    from '../../dom/modules/events.js';
-import request                   from '../../dom/modules/request.js';
-import { getSequenceDuration }   from '../modules/sequencer/get-duration.js'
-import Soundstage                from '../modules/soundstage.js';
+import Stream, { frames }        from '../../../fn/modules/stream.js';
+import { formatTime }            from '../../../fn/modules/time.js';
+import observe                   from '../../../fn/observer/observe.js';
+import Observer                  from '../../../fn/observer/observer.js';
+import delegate                  from '../../../dom/modules/delegate.js';
+import createBoolean             from '../../../dom/modules/element/create-boolean.js';
+import createTokenList           from '../../../dom/modules/element/create-token-list.js';
+import element, { getInternals } from '../../../dom/modules/element.js';
+import events                    from '../../../dom/modules/events.js';
+import request                   from '../../../dom/modules/request.js';
+import { getSequenceDuration }   from '../../modules/sequencer/get-duration.js'
+import Soundstage                from '../../modules/soundstage.js';
 
 
 export default element('soundstage-player', {
