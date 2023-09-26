@@ -24,7 +24,7 @@
                 ],
 
                 "commands": [
-                    { "target": "sample" }
+                    { "target": "samples" }
                 ],
 
                 "output": "output"
