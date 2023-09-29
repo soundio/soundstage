@@ -37,6 +37,17 @@ import { assignSettingz__ } from '../modules/assign-settings.js';
 import { floatToFrequency, toNoteNumber } from '../../midi/modules/data.js';
 import { create } from '../modules/constructors.js';
 
+import Mix       from './mix.js';
+import Samples   from './sample-set.js';
+import Tick      from './tick.js';
+import Tone      from './tone.js';
+
+// Register node constructors in NodeGraph
+NodeGraph.register('mix',     Mix);
+NodeGraph.register('samples', Samples);
+NodeGraph.register('tick',    Tick);
+NodeGraph.register('tone',    Tone);
+
 const assign = Object.assign;
 const define = Object.defineProperties;
 const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;

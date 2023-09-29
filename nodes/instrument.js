@@ -45,18 +45,9 @@ import Pool      from '../modules/pool.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
 import { connect, disconnect } from '../modules/connect.js';
 
-import Mix       from './mix.js';
-import Samples   from './sample-set.js';
-import Tone      from './tone.js';
-
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
-
-// Register node constructors in NodeGraph
-NodeGraph.register('mix',     Mix);
-NodeGraph.register('samples', Samples);
-NodeGraph.register('tone',    Tone);
 
 export const config = {
     tuning: 440
