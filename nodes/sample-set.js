@@ -44,8 +44,8 @@ import { requestBuffer }    from '../modules/request-buffer.js';
 import { requestData }      from '../modules/request-data.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
 import { fadeInFromTime, fadeOutToTime, releaseAtTime } from '../modules/param.js';
-import NodeGraph from './graph.js';
-import Playable  from '../modules/playable.js';
+import NodeGraph            from './graph.js';
+import Playable             from '../modules/playable.js';
 
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;

@@ -58,22 +58,18 @@ output by the `.connect()` and `.disconnect()` methods.
 import Privates from '../../fn/modules/privates.js';
 import { logGroup, logGroupEnd } from '../modules/print.js';
 import { connect, disconnect }   from '../modules/connect.js';
-import nativeConstructors        from '../modules/constructors.js';
+import baseConstructors          from '../modules/constructors.js';
+import Sink     from './sink.js';
 
-import Mix                       from './mix.js';
-import SampleSet                 from './sample-set.js';
-import Tone                      from './tone.js';
-
-const DEBUG  = false;//window.DEBUG;
+const DEBUG  = window.DEBUG && window.DEBUG.soundstage !== false;
 const assign = Object.assign;
 const define = Object.defineProperties;
 const seal   = Object.seal;
 
-export const constructors = assign({
-    mix:     Mix,
-    samples: SampleSet,
-    tone:    Tone,
-}, nativeConstructors);
+const constructors = assign({
+    sink: Sink
+}, baseConstructors);
+
 
 function create(type, context, settings, transport) {
     const Constructor = constructors[type];
@@ -140,7 +136,7 @@ function createConnection(nodes, data) {
 }
 
 export default function NodeGraph(context, data, transport) {
-    if (DEBUG) { logGroup('mixin ', 'GraphNode', data.nodes && data.nodes.map((n) => n.type).join(', ')); }
+    if (window.DEBUG) { logGroup('mixin ', 'GraphNode', data.nodes && data.nodes.map((n) => n.type).join(', ')); }
 
     const privates = Privates(this);
     privates.outputId = data.output || 'output' ;
@@ -210,7 +206,7 @@ export default function NodeGraph(context, data, transport) {
     seal(nodes);
     data.connections && data.connections.reduce(createConnection, nodes);
 
-    if (DEBUG) { logGroupEnd(); }
+    if (window.DEBUG) { logGroupEnd(); }
 }
 
 assign(NodeGraph.prototype, {
@@ -250,3 +246,11 @@ assign(NodeGraph.prototype, {
         return privates.nodes && privates.nodes[id];
     }
 });
+
+NodeGraph.register = function register(name, constructor) {
+    if (constructors[name]) {
+        throw new Error('Soundstage: constructor "' + name+ '" already registered in NodeGraph');
+    }
+
+    constructors[name] = constructor;
+};

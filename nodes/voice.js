@@ -282,7 +282,7 @@ assign(Voice.prototype, Playable.prototype, NodeGraph.prototype, {
 
         // Start command target
         const commands = privates.commands;
-
+console.log(note, frequency, commands);
         // Quick out
         if (!commands) { return this; }
 

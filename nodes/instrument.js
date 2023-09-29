@@ -40,19 +40,23 @@ import isDefined from '../../fn/modules/is-defined.js';
 import Privates  from '../../fn/modules/privates.js';
 import { logGroup, logGroupEnd } from './print.js';
 import Voice, { defaults as voiceDefaults } from './voice.js';
-import NodeGraph, { constructors } from './graph.js';
-import Pool from '../modules/pool.js';
+import NodeGraph from './graph.js';
+import Pool      from '../modules/pool.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
 import { connect, disconnect } from '../modules/connect.js';
+
+import Mix       from './mix.js';
+import Samples   from './sample-set.js';
+import Tone      from './tone.js';
 
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
 
-import Sink from './sink.js';
-assign(constructors, {
-    sink: Sink
-});
+// Register node constructors in NodeGraph
+NodeGraph.register('mix',     Mix);
+NodeGraph.register('samples', Samples);
+NodeGraph.register('tone',    Tone);
 
 export const config = {
     tuning: 440
@@ -62,7 +66,7 @@ const graph = {
     nodes: [
         { id: 'sink',       type: 'sink' },
         { id: 'pitch',      type: 'constant', data: { offset: 0 } },
-        { id: 'detune',     type: 'gain',     data: { gain: 100 } },
+        { id: 'detune',     type: 'gain',     data: { gain:   100 } },
         { id: 'modulation', type: 'constant', data: { offset: 120 } },
         { id: 'output',     type: 'gain',     data: {
             channelInterpretation: 'speakers',
