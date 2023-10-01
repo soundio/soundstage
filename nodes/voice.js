@@ -35,7 +35,7 @@ import NodeGraph   from './graph.js';
 import Playable    from '../modules/playable.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
 import { floatToFrequency, toNoteNumber } from '../../midi/modules/data.js';
-import { create } from '../modules/constructors.js';
+import { create } from '../modules/graph/constructors.js';
 
 const assign = Object.assign;
 const define = Object.defineProperties;

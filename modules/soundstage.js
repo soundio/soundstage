@@ -20,8 +20,8 @@ import { context, domTimeAtTime, timeAtDomTime, getOutputLatency } from './conte
 //import { isKeyboardInputSource } from './control-sources/keyboard-input-source.js';
 //import { isMIDIInputSource } from './control-sources/midi-input-source.js';
 import { connect, disconnect } from './connect.js';
-import requestMedia  from './request-media.js';
-import { automato__ } from './automate.js';
+import requestMedia  from './request/request-media.js';
+import { automato__ } from './automate__.js';
 
 const DEBUG        = window.DEBUG || false;
 const assign       = Object.assign;
@@ -36,7 +36,7 @@ const defaultData = {
     nodes: [{ id: '0', type: 'output' }]
 };
 
-import constructors  from './constructors.js';
+import constructors  from './graph/constructors.js';
 import Input         from '../nodes/input.js';
 import Tone          from '../nodes/tone.js';
 import Instrument    from '../nodes/instrument.js';

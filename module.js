@@ -12,7 +12,7 @@ import { print } from './modules/print.js';
 print(' - http://github.com/soundio/soundstage');
 
 import Soundstage from './modules/soundstage.js';
-import { register } from './modules/constructors.js';
+import { register } from './modules/graph/constructors.js';
 
 import Input      from './nodes/input.js';
 import Meter      from './nodes/meter.js';
@@ -47,7 +47,7 @@ export default Soundstage;
 export { register };
 export { timeAtDomTime, domTimeAtTime, getContextTime } from './modules/context.js';
 export { transforms, parseValue } from './modules/transforms.js';
-export { automate, automato__, isAudioParam, getValueAtTime } from './modules/automate.js';
+export { automate, automato__, isAudioParam, getValueAtTime } from './modules/automate__.js';
 export * from './modules/encode.js';
-export { requestBuffer } from './modules/request-buffer.js';
+export { requestBuffer } from './modules/request/request-buffer.js';
 export { getEventsDuration, getEventDuration } from './modules/events.js';

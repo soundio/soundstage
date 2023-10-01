@@ -27,7 +27,7 @@ They are capable of producing DC signal.
 
 import last     from '../../fn/modules/last.js';
 import Playable from '../modules/playable.js';
-import { automate, getValueAtTime, validateParamEvent } from '../modules/automate.js';
+import { automate, getValueAtTime, validateParamEvent } from '../modules/automate__.js';
 import config from '../config.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
 

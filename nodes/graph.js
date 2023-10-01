@@ -58,7 +58,7 @@ output by the `.connect()` and `.disconnect()` methods.
 import Privates from '../../fn/modules/privates.js';
 import { logGroup, logGroupEnd } from '../modules/print.js';
 import { connect, disconnect }   from '../modules/connect.js';
-import nativeConstructors        from '../modules/constructors.js';
+import nativeConstructors        from '../modules/graph/constructors.js';
 
 import Mix                       from './mix.js';
 import SampleSet                 from './sample-set.js';

@@ -1,6 +1,6 @@
 
 import { log, logGroup, logGroupEnd } from './print.js';
-import { automato__, getAutomation } from './automate.js';
+import { automato__, getAutomation } from './automate__.js';
 
 const DEBUG = false;
 

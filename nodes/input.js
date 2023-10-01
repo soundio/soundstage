@@ -10,7 +10,7 @@ const input = stage.createNode('input', {
 **/
 
 import weakCache    from '../../fn/modules/weak-cache.js';
-import requestMedia from '../modules/request-media.js';
+import requestMedia from '../modules/request/request-media.js';
 
 const assign   = Object.assign;
 const rautoname = /In\s\d+\/\d+/;

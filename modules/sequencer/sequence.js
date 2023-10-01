@@ -11,7 +11,7 @@ import { noteToFrequency }    from '../../../midi/modules/data.js';
 import Event, { isRateEvent, getDuration } from '../event.js';
 import Playable                            from '../playable.js';
 import { beatAtLocation, locationAtBeat }  from './location.js';
-import { getValueAtTime }                  from '../automate.js';
+import { getValueAtTime }                  from '../automate__.js';
 import { print }                           from '../print.js';
 
 const A      = Array.prototype;

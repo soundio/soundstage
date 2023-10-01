@@ -2,7 +2,7 @@
 import Pool    from '../../fn/modules/pool.js';
 import noop    from '../../fn/modules/noop.js';
 import nothing from '../../fn/modules/nothing.js';
-import { requestBuffer } from './request-buffer.js';
+import { requestBuffer } from './request/request-buffer.js';
 
 var assign      = Object.assign;
 

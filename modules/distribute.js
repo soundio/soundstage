@@ -3,7 +3,7 @@ import matches  from '../../fn/modules/matches.js';
 import overload from '../../fn/modules/overload.js';
 import { print } from './print.js';
 import { toNoteNumber } from '../../midi/modules/data.js';
-import { automato__ } from './automate.js';
+import { automato__ } from './automate__.js';
 
 const DEBUG = true;
 

@@ -9,9 +9,9 @@ import remove   from '../../../fn/modules/remove.js';
 
 import Output   from '../../nodes/output.js';
 
-import { create }              from '../constructors.js';
+import { create }              from '../graph/constructors.js';
 import { isAudioParam }        from '../param.js';
-import { automateParamAtTime, automatePropertyAtTime } from '../automate.js';
+import { automateParamAtTime, automatePropertyAtTime } from '../automate__.js';
 import { matchesId }           from '../utilities.js';
 import { assignSettingz__ }    from '../assign-settings.js';
 

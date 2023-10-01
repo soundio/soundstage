@@ -1,12 +1,10 @@
 
-import { getAutomation, automateParamEvents } from './automate.js';
-
 const fadeDuration = 0.012;
 
-/** isAudioParam(object) **/
 
+/** isAudioParam(object) **/
 export function isAudioParam(object) {
-    return window.AudioParam && window.AudioParam.prototype.isPrototypeOf(object);
+    return window.AudioParam && AudioParam.prototype.isPrototypeOf(object);
 }
 
 /**
@@ -14,7 +12,6 @@ fadeInFromTime(context, param, duration, time)
 Linearly fades param to `1` from `time` over `duration` seconds. Returns the end
 time, `time + duration`.
 **/
-
 export function fadeInFromTime(context, param, gain, duration, time) {
     if (!duration) {
         param.setValueAtTime(gain, time);
@@ -32,7 +29,6 @@ TODO
 Linearly fades param to `1` to `time` over `duration` seconds (or shorter if
 `context.currentTime` is greater than `time - duration`). Returns `time`.
 **/
-
 export function fadeInToTime(context, param, time) {
     // TODO
     const t0 = context.currentTime;
@@ -48,7 +44,7 @@ export function fadeInToTime(context, param, time) {
         param.setValueAtTime(1, time);
     }
     else {
-        param.cancelAndHoldAtTime(t1);
+        hold(param, t1);
         param.linearRampToValueAtTime(1, time);
     }
 
@@ -59,7 +55,6 @@ export function fadeInToTime(context, param, time) {
 fadeOutAtTime(context, param, time)
 Linearly fades param to `0` from `time` over 12ms.
 **/
-
 export function fadeOutAtTime(context, param, time) {
     return fadeOutToTime(context, param, time + fadeDuration);
 }
@@ -68,7 +63,6 @@ export function fadeOutAtTime(context, param, time) {
 fadeOutToTime(context, param, time)
 Linearly fades param to `0` at `time` over 12ms.
 **/
-
 export function fadeOutToTime(context, param, time) {
     const t0 = context.currentTime;
     const t1 =
@@ -83,7 +77,7 @@ export function fadeOutToTime(context, param, time) {
         param.setValueAtTime(0, time);
     }
     else {
-        param.cancelAndHoldAtTime(t1);
+        hold(param, t1);
         param.linearRampToValueAtTime(0, time);
     }
 
@@ -132,9 +126,41 @@ export function releaseAtTime(context, param, gain, duration, time) {
     // TODO: this 1,125 factor ought to be researched, im just guessin'
     const t2 = time + (duration * 1.125);
 
-    param.cancelAndHoldAtTime(time);
+    hold(param, time);
     param.exponentialRampToValueAtTime(gain, t1);
     param.linearRampToValueAtTime(0, t2);
 
     return t2;
 }
+
+
+/**
+hold(param, time)
+**/
+export const hold = AudioParam.prototype.cancelAndHoldAtTime ?
+    // Use prototype method
+    (param, time) => param.cancelAndHoldAtTime(time) :
+
+    // FF has no param.cancelAndHoldAtTime() (despite it being in the spec for,
+    // like, forever), try and work around it
+    (param, time) => {
+        // Set a curve of the same type as what was the next event at this
+        // time and value. TODO: get the curve and intermediate value from
+        // next set event.
+        const curve = 'step';
+        const value = 0;
+
+        // Cancel values
+        param.cancelScheduledValues(time);
+
+        // Truncate curve
+        if (curve === 'linear') {
+            param.linearRampToValueAtTime(value, time);
+        }
+        else if (curve === 'exponential') {
+            param.exponentialRampToValueAtTime(value, time);
+        }
+        else if (curve === 'step') {
+            param.setValueAtTime(value, time);
+        }
+    } ;

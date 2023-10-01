@@ -29,11 +29,12 @@ A float?? Todo.
 An AudioParam representing output gain.
 **/
 
-import noop from '../../fn/modules/noop.js';
+import noop     from '../../fn/modules/noop.js';
 import { floatToFrequency, toNoteNumber } from '../../midi/modules/data.js';
 import { dB48 } from '../modules/constants.js';
+import { hold } from '../modules/param.js';
 
-var assign      = Object.assign;
+const assign = Object.assign;
 
 
 // Define
@@ -90,19 +91,19 @@ export default function Tick(audio, options) {
         oscillator.frequency.setValueAtTime(frequency, attackTime);
         oscillator.frequency.exponentialRampToValueAtTime(frequency / 1.06, time + decay);
 
-        filter.frequency.cancelAndHoldAtTime(attackTime);
+        hold(filter.frequency, attackTime);
         filter.frequency.setValueAtTime(frequency * 1.1, attackTime);
         filter.frequency.exponentialRampToValueAtTime(frequency * 4.98, time);
         //filter.frequency.setTargetAtTime(frequency + 300, time + 0.003, 0.0625);
         filter.frequency.exponentialRampToValueAtTime(frequency * 1.5, time + decay);
 
-        filter.Q.cancelAndHoldAtTime(attackTime);
+        hold(filter.Q, attackTime);
         filter.Q.setValueAtTime(0, attackTime);
         filter.Q.linearRampToValueAtTime(resonance, time);
         //filter.Q.setTargetAtTime(0, time + 0.05, 0.0625);
         filter.Q.linearRampToValueAtTime(0, time + decay);
 
-        gain.gain.cancelAndHoldAtTime(attackTime);
+        hold(gain.gain, attackTime);
         gain.gain.setValueAtTime(0, attackTime);
         gain.gain.linearRampToValueAtTime(level, time);
         //gain.gain.setTargetAtTime(0, time, decay);
@@ -113,7 +114,7 @@ export default function Tick(audio, options) {
     }
 
     function unschedule(time, decay) {
-        gain.gain.cancelAndHoldAtTime(time + decay * 1.25);
+        hold(gain.gain, time + decay * 1.25);
     }
 
     oscillator.type = 'square';

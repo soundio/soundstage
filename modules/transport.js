@@ -5,7 +5,7 @@ import Stream   from '../../fn/modules/stream.js';
 import Clock    from './clock.js';
 
 import { roundBeat }            from './utilities.js';
-import { automate, getValueAtTime, getAutomation } from './automate.js';
+import { automate, getValueAtTime, getAutomation } from './automate__.js';
 import { connect, disconnect }  from './connect.js';
 import { barAtBeat, beatAtBar } from './sequencer/meter.js';
 import { beatAtTimeOfAutomation, timeAtBeatOfAutomation } from './sequencer/location.js';

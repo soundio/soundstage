@@ -1,5 +1,5 @@
-import { print as log } from './print.js';
-import get from '../../fn/modules/get.js';
+import { print as log } from '../print.js';
+import get from '../../../fn/modules/get.js';
 
 export function requestData(url) {
     return url.slice(-3) === '.js' ?

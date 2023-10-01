@@ -18,7 +18,7 @@ import Playable from './play-node.js';
 import Recorder from './recorder.js';
 import Sample from './sample-set.js';
 import { assignSettings } from '../modules/assign-settings.js';
-import { automate } from '../modules/automate.js';
+import { automate } from '../modules/automate__.js';
 import { getInputLatency, getOutputLatency } from '../modules/context.js';
 
 const DEBUG  = window.DEBUG;
