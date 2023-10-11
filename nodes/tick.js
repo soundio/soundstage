@@ -30,6 +30,7 @@ An AudioParam representing output gain.
 **/
 
 import noop     from '../../fn/modules/noop.js';
+import Playable from '../modules/playable.js';
 import { floatToFrequency, toNoteNumber } from '../../midi/modules/data.js';
 import { dB48 } from '../modules/constants.js';
 
@@ -52,8 +53,10 @@ export default function Tick(context, options) {
         return new Tick(context, options);
     }
 
-    var settings   = assign({}, defaults, options);
+    // Define .startTime and .stopTime
+    Playable.call(this, context);
 
+    var settings   = assign({}, defaults, options);
     var oscillator = context.createOscillator();
     var filter     = context.createBiquadFilter();
     var gain       = context.createGain();
@@ -78,6 +81,7 @@ export default function Tick(context, options) {
     oscillator.channelCount = 1;
     filter.channelCount     = 1;
     gain.channelCount       = 1;
+    gain.gain.value         = 0;
     output.channelCount     = 1;
 
     function schedule(time, frequency, level, decay, resonance) {
@@ -120,25 +124,19 @@ export default function Tick(context, options) {
     oscillator.frequency.setValueAtTime(300, context.currentTime);
     oscillator.start();
     oscillator.connect(filter);
-
     filter.connect(gain);
-
-    gain.gain.value = 0;
     gain.connect(output);
-    //output.connect(merger, 0, 0);
-    //output.connect(merger, 0, 1);
 
-    this.context   = context;
     this.gain      = output.gain;
     this.resonance = settings.resonance;
     this.decay     = settings.decay;
-    //this.gain      = settings.gain;
 
     /**
     .start(time, note, velocity)
     Todo: move parameters to be properties of tick object, echoing other signal generators
     **/
     this.start = function(time, frequency, level) {
+        Playable.prototype.start.apply(this, arguments);
         schedule(time || context.currentTime, frequency, level, this.decay, this.resonance);
         return this;
     };
@@ -174,3 +172,6 @@ A noop method, provided to echo the interface of other generators.
 **/
 
 Tick.prototype.stop = noop;
+
+assign(Tick.prototype, Playable.prototype);
+
