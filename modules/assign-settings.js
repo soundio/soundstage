@@ -1,5 +1,6 @@
 
 import { log, logGroup, logGroupEnd } from './print.js';
+import parseValue32 from './parse/parse-value-32.js';
 import { automato__, getAutomation } from './automate.js';
 
 const DEBUG = false;
@@ -20,7 +21,7 @@ function assignSetting(node, key, value, notify) {
         getAutomation(node[key]).length = 0;
 
         // node, name, time, curve, value, duration, notify, context
-        automato__(node, key, node.context.currentTime, 'step', value, null, notify);
+        automato__(node, key, node.context.currentTime, 'step', parseValue32(value), null, notify);
     }
 
     // Or an AudioNode?

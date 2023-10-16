@@ -142,7 +142,7 @@ export default function NodeGraph(context, data, transport) {
     privates.outputId = data.output || 'output' ;
 
     // Create nodes
-    const nodes = privates.nodes = data.nodes && data.nodes.reduce(function(nodes, data) {
+    const nodes = privates.nodes = data.nodes && data.nodes.reduce((nodes, data) => {
         nodes[data.id] = create(data.type, context, data.data, transport);
         return nodes;
     }, {});
