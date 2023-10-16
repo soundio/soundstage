@@ -171,6 +171,4 @@ export default function Tick(context, options) {
 A noop method, provided to echo the interface of other generators.
 **/
 
-assign(Tick.prototype, Playable.prototype, {
-    stop: noop
-});
+assign(Tick.prototype, Playable.prototype);
