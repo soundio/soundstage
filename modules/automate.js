@@ -16,24 +16,22 @@ const DEBUG = false;
 const frameDuration = 1000 / 60;
 
 
-// Polyfill param.cancelAndHoldAtTime().
+// Partial polyfill/delegation for param.cancelAndHoldAtTime().
 //
-// This is here because it delegates to
-// automate(), and putting it in a separate file creates a circular dependency,
-// because automate() can call param.cancelAndHoldAtTime().
+// Firefox has not yet implemented the spec, still, in 2023. This is here
+// because it delegates to automate(), and putting it in a separate file creates
+// a circular dependency: automate() can call param.cancelAndHoldAtTime().
 
 const AudioParam = window.AudioParam;
 let isCancelAndHoldPolyfilled = false;
 
-// Attempt to partially fill .cancelAndHoldAtTime()
 if (AudioParam && !AudioParam.prototype.cancelAndHoldAtTime) {
-    // Old chrome had the same method under another name. Use that.
+    // Old Chrome had the same method under another name. Use that.
     if (AudioParam.prototype.cancelValuesAndHoldAtTime) {
         AudioParam.prototype.cancelAndHoldAtTime = AudioParam.prototype.cancelValuesAndHoldAtTime;
     }
 
-    // Firefox has not yet implemented the spec, still, in 2023. Attempt to
-    // partially fill it.
+    // Firefox doesn't implement it at all.
     else {
         AudioParam.prototype.cancelAndHoldAtTime = function(time) {
             if (hasAutomation(this)) {
@@ -50,7 +48,6 @@ if (AudioParam && !AudioParam.prototype.cancelAndHoldAtTime) {
         isCancelAndHoldPolyfilled = true;
     }
 }
-
 
 
 // Automate audio param
