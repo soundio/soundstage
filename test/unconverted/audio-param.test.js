@@ -1,6 +1,6 @@
 import { test } from '../../fn/module.js';
 import { create, append, find } from '../../dom/module.js';
-import { automate, getValueAtTime, getAutomation, requestAutomationData } from '../modules/automate.js';
+import automate, { getValueAtTime, getAutomation, requestAutomationData } from '../modules/automate.js';
 import { drawYAxisAmplitude, drawCurve, drawPoint } from '../modules/canvas.js';
 import audio from '../modules/context.js';
 

@@ -47,7 +47,7 @@ export default Soundstage;
 export { register };
 export { timeAtDomTime, domTimeAtTime, getContextTime } from './modules/context.js';
 export { transforms, parseValue } from './modules/transforms.js';
-export { automate, automato__, isAudioParam, getValueAtTime } from './modules/automate.js';
+export automate, { automato__, isAudioParam, getValueAtTime } from './modules/automate.js';
 export * from './modules/encode.js';
 export { requestBuffer } from './modules/request-buffer.js';
 export { getEventsDuration, getEventDuration } from './modules/events.js';

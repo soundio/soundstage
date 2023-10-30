@@ -1,9 +1,9 @@
 import { logGroup, logGroupEnd } from './print.js';
-import Privates     from '../../fn/modules/privates.js';
-import NodeGraph    from './graph.js';
-import Recorder     from './recorder.js';
-import Sample       from './sample-set.js';
-import { automate } from '../modules/automate.js';
+import Privates  from '../../fn/modules/privates.js';
+import NodeGraph from './graph.js';
+import Recorder  from './recorder.js';
+import Sample    from './sample-set.js';
+import automate  from '../modules/automate.js';
 
 const DEBUG  = window.DEBUG;
 

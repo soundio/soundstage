@@ -6,28 +6,51 @@ import last     from '../../fn/modules/last.js';
 import overload from '../../fn/modules/overload.js';
 
 import { isAudioContext, timeAtDomTime } from './context.js';
-import { isAudioParam }  from './param.js';
+import { hasAutomation, getAutomation } from './param/automation.js';
 import config from '../config.js';
+
 
 const DEBUG = false;
 
 // 60 frames/sec frame rate
 const frameDuration = 1000 / 60;
 
-export function isAudioNode(object) {
-    return window.AudioNode && window.AudioNode.prototype.isPrototypeOf(object);
-}
 
-export function getAutomation(param) {
-    if (DEBUG && !isAudioParam(param)) {
-        throw new Error('Not an AudioParam ' + JSON.stringify(param));
+// Polyfill param.cancelAndHoldAtTime().
+//
+// This is here because it delegates to
+// automate(), and putting it in a separate file creates a circular dependency,
+// because automate() can call param.cancelAndHoldAtTime().
+
+const AudioParam = window.AudioParam;
+let isCancelAndHoldPolyfilled = false;
+
+// Attempt to partially fill .cancelAndHoldAtTime()
+if (AudioParam && !AudioParam.prototype.cancelAndHoldAtTime) {
+    // Old chrome had the same method under another name. Use that.
+    if (AudioParam.prototype.cancelValuesAndHoldAtTime) {
+        AudioParam.prototype.cancelAndHoldAtTime = AudioParam.prototype.cancelValuesAndHoldAtTime;
     }
 
-    // Todo: I would love to use a WeakMap to store data about AudioParams,
-    // but FF refuses to allow AudioParams as WeakMap keys. So... lets use
-    // an expando.
-    return param[config.automationEventsKey] || (param[config.automationEventsKey] = []);
+    // Firefox has not yet implemented the spec, still, in 2023. Attempt to
+    // partially fill it.
+    else {
+        AudioParam.prototype.cancelAndHoldAtTime = function(time) {
+            if (hasAutomation(this)) {
+                // Automate with Soundstage automation data
+                automate(this, time, 'hold');
+            }
+            else {
+                // Do something either simple and broken, or nasty. Try simple
+                // and broken.
+                this.cancelScheduledValues(time);
+            }
+        };
+
+        isCancelAndHoldPolyfilled = true;
+    }
 }
+
 
 
 // Automate audio param
@@ -53,21 +76,7 @@ export const validateParamEvent = overload(get(1), {
     }
 });
 
-function holdFn(param, event) {
-    // Cancel values
-    param.cancelScheduledValues(event.time);
 
-    // Set a curve of the same type as the next to this time and value
-    if (event.curve === 'linear') {
-        param.linearRampToValueAtTime(event.value, event.time);
-    }
-    else if (event.curve === 'exponential') {
-        param.exponentialRampToValueAtTime(event.value, event.time);
-    }
-    else if (event.curve === 'step') {
-        param.setValueAtTime(event.value, event.time);
-    }
-}
 
 const curves = {
     'step':        (param, event) => param.setValueAtTime(event.value, event.time),
@@ -75,19 +84,31 @@ const curves = {
     'exponential': (param, event) => param.exponentialRampToValueAtTime(event.value, event.time),
     'target':      (param, event) => param.setTargetAtTime(event.value, event.time, event.duration),
     'curve':       (param, event) => param.setValueCurveAtTime(event.value, event.time, event.duration),
-    'hold': AudioParam.prototype.cancelAndHoldAtTime ?
-        function hold(param, event, event1) {
-            // Work around a Chrome bug where target curves are not
-            // cancelled by hold events inserted in front of them:
-            // https://bugs.chromium.org/p/chromium/issues/detail?id=952642&q=cancelAndHoldAtTime&colspec=ID%20Pri%20M%20Stars%20ReleaseBlock%20Component%20Status%20Owner%20Summary%20OS%20Modified
-            if (event1 && event1.curve === 'target') {
-                return holdFn(param, event);
-            }
+    'hold': isCancelAndHoldPolyfilled ?
+        (param, event) => {
+            // Cancel values
+            param.cancelScheduledValues(event.time);
 
-            param.cancelAndHoldAtTime(event.time);
+            // Set a curve of the same type as the next to this time and value
+            if (event.curve === 'linear') {
+                param.linearRampToValueAtTime(event.value, event.time);
+            }
+            else if (event.curve === 'exponential') {
+                param.exponentialRampToValueAtTime(event.value, event.time);
+            }
+            else if (event.curve === 'step') {
+                param.setValueAtTime(event.value, event.time);
+            }
         } :
 
-        holdFn
+        // Todo: Fixed in 2019! Remove.
+        // Work around a Chrome bug where target curves are not cancelled
+        // by hold events inserted in front of them:
+        // https://bugs.chromium.org/p/chromium/issues/detail?id=952642&q=cancelAndHoldAtTime&colspec=ID%20Pri%20M%20Stars%20ReleaseBlock%20Component%20Status%20Owner%20Summary%20OS%20Modified
+        //if (event1 && event1.curve === 'target') {
+        //    return holdFn(param, event);
+        //}
+        (param, event) => param.cancelAndHoldAtTime(event.value, event.time)
 };
 
 const createEvent = overload(id, {
@@ -215,16 +236,16 @@ export function automateParamEvents(param, events, time, curve, value, duration)
 }
 
 /**
-automate(param, time, value, curve, decay)
+automate(param, time, curve, value, duration)
 
-param - AudioParam object
-time  -
-value -
-curve - one of 'step', 'hold', 'linear', 'exponential' or 'target'
-decay - where curve is 'target', decay is a time constant for the decay curve
+param    - AudioParam object
+time     - a 32-bit floating point number
+curve    - one of 'step', 'hold', 'linear', 'exponential' or 'target'
+value    -
+duration - where curve is 'target', decay is a time constant for the decay curve
 **/
 
-export function automate(param, time, curve, value, duration, notify, context) {
+export default function automate(param, time, curve, value, duration, notify, context) {
     if (curve === 'target' && duration === undefined) {
         throw new Error('Automation curve "target" must have a duration');
     }

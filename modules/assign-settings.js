@@ -1,7 +1,8 @@
 
 import { log, logGroup, logGroupEnd } from './print.js';
 import parseValue32 from './parse/parse-value-32.js';
-import { automato__, getAutomation } from './automate.js';
+import { automato__ } from './automate.js';
+import { getAutomation } from './param/automation.js';
 
 const DEBUG = false;
 
