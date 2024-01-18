@@ -35,12 +35,13 @@ function addConnector(graph, setting) {
     return graph;
 }
 
-export default function Graph(context, merger, data, transport) {
+export default function Graph(context, merger, data, transport, options) {
     const graph    = this;
     const privates = Privates(this);
 
     privates.merger    = merger;
     privates.transport = transport;
+    privates.options   = options;
 
     define(this, {
         nodes:       { enumerable: true, value: [] },
@@ -50,7 +51,7 @@ export default function Graph(context, merger, data, transport) {
     if (data.nodes) {
         data.nodes.forEach(function(data) {
             // Nodes add themselves to the graph
-            return new Node(graph, context, data.type, data.id, data.label, data.node, merger, transport);
+            return new Node(graph, context, data.type, data.id, data.label, data.node, merger, transport, options);
         });
     }
 
@@ -66,10 +67,10 @@ assign(Graph.prototype, {
     /**
     .createNode(type, settings)
 
-    Creates a new AudioNode in the Soundstage graph.
+    Creates a new AudioNode wrapped in a new node of the Soundstage graph.
 
     ```js
-    var wrap = stage.createNode('delay', {
+    const delay = stage.createNode('delay', {
         delayTime: 0.5
     });
     ```
@@ -88,8 +89,9 @@ assign(Graph.prototype, {
         const merger    = privates.merger;
         const transport = privates.transport;
         const notify    = privates.notify;
+        const options   = privates.options;
         const id        = generateUnique(this.nodes.map(get('id')));
-        const node      = new Node(graph, graph.context, type, id, type, data, merger, transport);
+        const node      = new Node(graph, graph.context, type, id, type, data, merger, transport, options);
 
         notify(graph.nodes, '.');
 

@@ -1,5 +1,6 @@
 
 import get           from '../../fn/modules/get.js';
+import { set }       from '../../fn/modules/set.js';
 import isDefined     from '../../fn/modules/is-defined.js';
 import noop          from '../../fn/modules/noop.js';
 import nothing       from '../../fn/modules/nothing.js';
@@ -29,7 +30,8 @@ const define       = Object.defineProperties;
 const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
 const defaults = {
-    context: context
+    context: context,
+    set:     set
 };
 
 const defaultData = {
@@ -76,6 +78,7 @@ function createOutputMerger(context, target) {
     // Upmix/downmix incoming connections.
     merger.channelInterpretation = 'discrete';
 
+    merger.connect(target);
     return merger;
 }
 
@@ -107,7 +110,6 @@ export default function Soundstage(data = defaultData, settings = nothing) {
     const context     = settings.context || defaults.context;
     const destination = settings.destination || context.destination;
     const merger      = createOutputMerger(context, destination);
-    merger.connect(destination);
 
     // Hmmm.
     const notify    = settings.notify || noop;
@@ -156,7 +158,7 @@ export default function Soundstage(data = defaultData, settings = nothing) {
     // .get(id)
     // .createNode(type, data)
     // .createConnection(source, target)
-    Graph.call(this, context, merger, data, transport);
+    Graph.call(this, context, merger, data, transport, options);
 
     // .context
     // .transport
