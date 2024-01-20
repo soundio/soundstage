@@ -33,16 +33,24 @@
 
         events('click', document.getElementById('start')).each((e) => {
             const sequencer = new Sequencer(context, [
-                [0, 'sequence', 9, 0, 2]
+                [0, 'sequence', 9, 0, 2],
+                [1, 'sequence', 9, 0, 2],
+                [2, 'sequence', 9, 0, 2],
+                [3, 'sequence', 9, 0, 2],
+                [4, 'sequence', 9, 0, 2]
             ], [{
                 id:        9,
                 events:    [
-                    [1, 'note', 0, 0, 0]
+                    // Should never be played
+                    [-0.1, 'note', 0, 0, 0.2],
+                    // Should be played
+                    [0,   'note', 1, 0, 0.2],
+                    [0.1, 'note', 2, 0, 0.2]
                 ],
                 sequences: []
             }]);
 
-            sequencer.start(1).stop(3);
+            sequencer.start(context.currentTime + 1).stop(context.currentTime + 5);
         });
     </script>
 </body>

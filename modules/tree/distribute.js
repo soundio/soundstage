@@ -77,6 +77,6 @@ const play = overload(arg(2), {
 });
 
 export default function distribute(event) {
-    log('distribute', event[1], event[2], event[3], event[4]);
-    play(event.target, event[0], event[1], event[2], event[3], event[4]);
+    log('distribute', event[0].toFixed(3), event[1], event[2]);
+    return play(event.target, event[0], event[1], event[2], event[3], event[4]);
 }

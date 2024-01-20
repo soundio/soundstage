@@ -19,12 +19,6 @@ const properties = {
         value:      undefined,
         enumerable: false,
         writable:   true
-    },
-
-    feedback: {
-        value:      undefined,
-        enumerable: false,
-        writable:   true
     }
 };
 
@@ -37,7 +31,6 @@ function createId() {
 export default function Node() {
     this.id = createId();
     define(this, properties);
-    this.feedback = [];
 }
 
 define(Node.prototype, {
@@ -106,16 +99,15 @@ assign(Node.prototype, {
     push: function(value) {
         // Reject undefined
         if (value === undefined) { return; }
-        let n = -1, response;
-        this.feedback.length = 0;
+
+        let n = -1;
         while (this[++n]) {
-            // TODO: To enable feedback, we need to flatten feedback into an
-            // array and return it
-            response = this[n].push(value);
-            if (response === undefined) continue;
-            this.feedback.push(response);
+            var node = this[n + 1];
+            this[n].push(value);
+            // Did node just .stop() and removed itself? I hope that's all it
+            // did. It could be a problem. Decrement n and cross our fingers.
+            if (node === this[n]) { --n; }
         }
-        return this.feedback;
     },
 
     pipe: function(output) {

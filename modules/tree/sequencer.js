@@ -4,7 +4,7 @@ import Privates   from '../../../fn/modules/privates.js';
 import Playable   from '../playable.js';
 import Frames     from './frames.js';
 import Head       from './head.js';
-import distribute from './distribute.js';
+import distrib    from './distribute.js';
 import { log }    from '../print.js';
 
 const assign = Object.assign;
@@ -12,10 +12,14 @@ const assign = Object.assign;
 
 /* Sequencer */
 
-export default function Sequencer(context, events, sequences) {
+export default function Sequencer(context, events, sequences, distribute = distrib /* TEMP, no default distrib */) {
+    const privates = Privates(this);
+
     this.context    = context;
     this.events     = events;
     this.sequences  = sequences;
+
+    privates.distribute = distribute;
 }
 
 assign(Sequencer, {
@@ -30,6 +34,7 @@ assign(Sequencer, {
 
 assign(Sequencer.prototype, {
     start: function(time) {
+        const privates = Privates(this);
         //const transport = this.transport;
 
         // If the sequencer is running stop it first
@@ -46,10 +51,16 @@ assign(Sequencer.prototype, {
         //    transport.start(time, beat);
         //}
 
-        const privates = Privates(this);
         const frames   = new Frames(this.context);
-        const head     = new Head(this.events, this.sequences, id, this, distribute);
-console.log('START', this.startTime);
+        const head     = new Head(this.events, this.sequences, id, { start: function(a, b, c, d, e) {
+                //console.log('START', a, b, c, d, e);
+                return this;
+            },
+            stop: function(a, b) {
+                //console.log('STOP', a, b);
+                return this;
+            }}, privates.distribute);
+
         // Pipe frames to playback head and send resulting events
         // to distributor
         return privates.playbackStream = frames
@@ -90,3 +101,7 @@ console.log('START', this.startTime);
         return this;
     }
 });
+
+if (window.DEBUG) {
+    window.Head = Head;
+}

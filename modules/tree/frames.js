@@ -1,4 +1,5 @@
 
+import id       from '../../../fn/modules/id.js';
 import Stream, { pipe, stop } from '../../../fn/modules/stream/stream.js';
 import remove   from '../../../fn/modules/remove.js';
 import config   from '../../config.js';
@@ -158,13 +159,8 @@ console.log(':::::::::: FRAME ::::::::::', this.startTime, '-', t2, 'stopTime', 
     },
 
     // These only here because head relies on them...
-    beatAtTime: function(time) {
-        return time;
-    },
-
-    timeAtBeat: function(beat) {
-        return beat;
-    }
+    //beatAtTime: id,
+    //timeAtBeat: id
 });
 
 define(FrameStream.prototype, { 'status': Object.getOwnPropertyDescriptor(Playable.prototype, 'status') });
