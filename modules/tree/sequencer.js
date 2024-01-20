@@ -1,34 +1,26 @@
 
-import id         from '../../../fn/modules/id.js';
-import Privates   from '../../../fn/modules/privates.js';
-import Playable   from '../playable.js';
-import Frames     from './frames.js';
-import Head       from './head.js';
-import distrib    from './distribute.js';
-import { log }    from '../print.js';
+import id           from '../../../fn/modules/id.js';
+import Privates     from '../../../fn/modules/privates.js';
+import Playable     from '../playable.js';
+import Frames       from './frames.js';
+import SequenceHead from './sequence-head.js';
+import { log }      from '../print.js';
 
 const assign = Object.assign;
 
 
-/* Sequencer */
+/** Sequencer() **/
 
-export default function Sequencer(context, events, sequences, distribute = distrib /* TEMP, no default distrib */) {
+export default function Sequencer(context, events, sequences) {
     const privates = Privates(this);
-
-    this.context    = context;
-    this.events     = events;
-    this.sequences  = sequences;
-
-    privates.distribute = distribute;
+    this.context   = context;
+    this.events    = events;
+    this.sequences = sequences;
 }
 
 assign(Sequencer, {
-    of: function() {
-        return new Sequencer(arguments);
-    },
-
     from: function(data) {
-        return new Sequencer(data.events, data.sequences, distribute);
+        return new Sequencer(data.context, data.events, data.sequences);
     }
 });
 
@@ -51,15 +43,18 @@ assign(Sequencer.prototype, {
         //    transport.start(time, beat);
         //}
 
-        const frames   = new Frames(this.context);
-        const head     = new Head(this.events, this.sequences, id, { start: function(a, b, c, d, e) {
+        const frames = new Frames(this.context);
+        const head   = new SequenceHead(this.events, this.sequences, id, {
+            start: function(a, b, c, d, e) {
                 //console.log('START', a, b, c, d, e);
                 return this;
             },
+
             stop: function(a, b) {
                 //console.log('STOP', a, b);
                 return this;
-            }}, privates.distribute);
+            }
+        });
 
         // Pipe frames to playback head and send resulting events
         // to distributor
@@ -101,7 +96,3 @@ assign(Sequencer.prototype, {
         return this;
     }
 });
-
-if (window.DEBUG) {
-    window.Head = Head;
-}

@@ -36,9 +36,9 @@ const play = overload(arg(2), {
 
     'sequence': (head, time, type, sequenceid, selector, duration, transform) => {
         const sequence = head.sequences.find(matches({ id: sequenceid }));
-        // TODO: target.target
+        // TODO: head.target
         return head
-        .create('head', sequence.events, sequence.sequences, transform, head.target, head.distribute)
+        .create('sequencehead', sequence.events, sequence.sequences, transform, head.target)
         .start(time);
     },
 

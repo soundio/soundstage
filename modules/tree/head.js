@@ -1,95 +1,13 @@
 
-import get      from '../../../fn/modules/get.js';
 import id       from '../../../fn/modules/id.js';
 import mix      from '../../../fn/modules/mix.js';
-import overload from '../../../fn/modules/overload.js';
-import remove   from '../../../fn/modules/remove.js';
-import Event, { isRateEvent, getDuration } from '../event.js';
+import { isRateEvent } from '../event.js';
 import { beatAtLocation, locationAtBeat } from '../sequencer/location.js';
 import Tree     from './node.js';
 import { log }  from '../print.js';
 
 const assign = Object.assign;
-const create = Object.create;
-const define = Object.defineProperties;
 const rate0  = Object.freeze({ 0: 0, 1: 'rate', 2: 1 });
-
-function by0Float32(a, b) {
-    // Compare 32-bit versions of these number, avoid 64-bit rounding errors
-    // getting in the way of our time comparisons
-    const a0 = Math.fround(a[0]);
-    const b0 = Math.fround(b[0]);
-    return a0 < b0 ? -1 :
-        a0 > b0 ? 1 :
-        0 ;
-}
-
-function bufferFrameEvents(events, b1, b2, buffer, params) {
-    let n = -1, event;
-
-    // Ignore events before b1
-    while ((event = events[++n]) && event[0] < b1);
-    --n;
-
-    // Process events between b1 and b2
-    while ((event = events[++n]) && event[0] < b2) {
-        if (isRateEvent(event)) continue;
-
-        if (isParamEvent(event)) {
-            const key = event[1] + '|' + event[2];
-            // If key is not set on params, or if this event is not the stored
-            // event and it is on or after the stored event, set it on params
-            if (params[key] === undefined || (params[key] !== event && params[key][0] <= event[0])) {
-                params[key] = event;
-                buffer.push(Event.from(event));
-            }
-
-            continue;
-        }
-
-        buffer.push(Event.from(event));
-    }
-    --n;
-
-    // Grab exponential events beyond b2 that should be cued in this buffer
-    while ((event = events[++n])) {
-        // Ignore non-param, non-exponential events
-        if (event[1] !== "param" && event[4] !== "exponential") {
-            continue;
-        }
-
-        // Check that we are after the previous buffered event of
-        // this type and kind, and that previous event is before b2
-        const key = event[1] + '|' + event[2];
-        if (params[key] === undefined || params[key][0] < b2) {
-            params[key] = event;
-            buffer.push(Event.from(event));
-        }
-    }
-
-    return buffer;
-}
-
-function bufferStopEvents(events, b1, b2, buffer) {
-    // We can't ignore stop events in the buffer that are already in the past.
-    // This may happen if the sequence rates changed between frames, and it's
-    // indicative of hanging notes. Stop everything in the past.
-    let n = -1, event;
-    //while ((event = events[++n]) && event[0] < b1) {
-        // Set it to stop as early as possible - in this scheduler that's b1,
-        // but should we recalculate it's time... hmm...
-        //event[0] = b1;
-    //    buffer.push(event);
-    }
-    //--n;
-
-    while ((event = events[++n]) && event[0] < b2) {
-        buffer.push(event);
-    }
-    --n;
-
-    return buffer;
-}
 
 
 /**
@@ -99,100 +17,42 @@ their input's stream of time numbers. When a head starts a sequence it becomes
 the input stream for the head that reads the sequence.
 **/
 
-const distributeEvent = overload((head, event, b2) => event[1], {
-    sequence: (head, event) => {
-        event.target = head;
-        head.distribute(event).stop(event[0] + event[4]);
-    },
-
-    note: (head, event, b2) => {
-        const stopevent = new Event(event[0] + event[4], 'stop', event[2], event[3]);
-
-        // Redefine event as start event, abs time
-        event[0] = head.timeAtBeat(event[0]);
-        event[1] = 'start';
-        event[4] = undefined;
-
-        // Distribute start event
-        event.target = head.target;
-        stopevent.target = head.distribute(event);
-
-        if (window.DEBUG && !stopevent.target) {
-            throw new Error('Head: .distribute() must return a target object for a "start" event');
-        }
-
-        if (stopevent.target.events) {
-            console.log('Head: .distribute() has returned a sequence... ?');
-        }
-
-        // Stop event is before frame end, distribute, otherwise cue
-        if (stopevent[0] < b2) {
-            stopevent[0] = head.timeAtBeat(stopevent[0]);
-            head.distribute(stopevent);
-        }
-        else {
-            head.stopevents.push(stopevent);
-        }
-    },
-
-    stop: (head, event) => {
-        event[0] = head.timeAtBeat(event[0]);
-        head.distribute(event);
-        remove(head.stopevents, event);
-    },
-
-    default: (head, event) => {
-        event[0]     = head.timeAtBeat(event[0]);
-        event.target = head.target;
-        head.distribute(event);
-    }
-});
-
-function stopHead(head) {
+function stop(head) {
     const rates = head.rates || head.events.filter(isRateEvent);
     const beat  = beatAtLocation(rates, rate0, head.stopTime - head.startTime);
-    const abs   = head.timeAtBeat(beat);
 
-    // Distribute all stop events with time set to absolute time
-    head.stopevents.forEach((event) => {
-        if (event[0] >= beat) {
-            // Update time of event to now
-            event[0] = abs;
-            // Distribute it boy-o
-            head.distribute(event);
-        }
-    });
+    // Support SequenceHead stopevents
+    head.stopRead && head.stopRead(beat);
 
     // Stop child heads (that are not already stopped by beat??)
     while(head[0]) head[0].stop(beat);
 
     // Decrement count
     --Head.count;
+    if (window.DEBUG && !Head.count) {
+        log('Head', 'no heads running');
+    }
 
     // Remove from tree
     return Tree.prototype.stop.call(head);
 }
 
-export default function Head(events = [], sequences = [], transform = id, target, distribute) {
+export default function Head(events = [], sequences = [], transform = id) {
     Tree.call(this);
 
     if (window.DEBUG) { log('create', 'Head', this.id, events.length, sequences.length); }
 
-    this.buffer      = [];
-    this.distribute  = distribute;
     this.events      = events;
-    this.params      = {};
     this.sequences   = sequences;
-    this.stopevents  = [];
-    this.target      = target;
     this.transform   = transform;
     this.currentTime = 0;
 
+    // Track head count
     ++Head.count;
 }
 
 assign(Head, {
-    from: (data) => new Head(data.events, data.sequences, data.transform, data.target, data.distribute),
+    from: (data) => new Head(data.events, data.sequences, data.transform),
 
     nodes: {
         'head': Head
@@ -222,27 +82,18 @@ assign(Head.prototype, {
         const b2     = beatAtLocation(rates, rate0, loc2);
 
         // Fill frame buffer with events between b1 and b2
-        const buffer = this.buffer;
-        buffer.length = 0;
-        bufferFrameEvents(this.events.sort(by0Float32), b1, b2, buffer, this.params);
-        bufferStopEvents(this.stopevents.sort(by0Float32), b1, b2, buffer);
-
-        // Loop over events, deal with sequence and note events, convert to
-        // absolute time. Do we need to sort to time order again?
-        //buffer.sort(by0Float32);
-        let n = -1, event, sequence;
-        while (event = buffer[++n]) distributeEvent(this, event, b2);
+        this.read(b1, b2);
 
         // Push b2 to child heads to advance their currentTime
         Tree.prototype.push.call(this, b2);
 
-        //TODO: does this cause problems for the input's pushing loop???
-        if (time > this.stopTime) stopHead(this);
+        // TODO: does stopping cause problems for the input's pushing loop??? It
+        // does mean that we can't now stop the thing in an emergency, it's
+        // removed from the tree.
+        if (time > this.stopTime) stop(this);
 
-        // Update time
+        // Update time and uncache rates
         this.currentTime = time;
-
-        // Uncache rates
         this.rates = undefined;
     },
 
@@ -283,7 +134,7 @@ assign(Head.prototype, {
             this.currentTime :
             time ;
 
-        return stopHead(this);
+        return stop(this);
     },
 
     /**
