@@ -56,7 +56,7 @@ const play = overload(arg(2), {
         const param = target[name];
 
         if (!param || !param.setValueAtTime) {
-            console.warn('Dropping "param" event. Target property "' + name + '" is not an AudioParam');
+            console.warn('Dropping "param" event, property "' + name + '" is not an AudioParam. Target:', target);
             return;
         }
 

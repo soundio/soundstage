@@ -24,24 +24,64 @@ function by0Float32(a, b) {
         0 ;
 }
 
-function bufferFrameEvents(events, b1, b2, buffer) {
+function bufferFrameEvents(events, b1, b2, buffer, params) {
     let n = -1, event;
+
+    // Ignore events before b1
     while ((event = events[++n]) && event[0] < b1);
     --n;
 
+    // Process events between b1 and b2
     while ((event = events[++n]) && event[0] < b2) {
         if (isRateEvent(event)) continue;
+
+        if (isParamEvent(event)) {
+            const key = event[1] + '|' + event[2];
+            // If key is not set on params, or if this event is not the stored
+            // event and it is on or after the stored event, set it on params
+            if (params[key] === undefined || (params[key] !== event && params[key][0] <= event[0])) {
+                params[key] = event;
+                buffer.push(Event.from(event));
+            }
+
+            continue;
+        }
+
         buffer.push(Event.from(event));
     }
     --n;
+
+    // Grab exponential events beyond b2 that should be cued in this buffer
+    while ((event = events[++n])) {
+        // Ignore non-param, non-exponential events
+        if (event[1] !== "param" && event[4] !== "exponential") {
+            continue;
+        }
+
+        // Check that we are after the previous buffered event of
+        // this type and kind, and that previous event is before b2
+        const key = event[1] + '|' + event[2];
+        if (params[key] === undefined || params[key][0] < b2) {
+            params[key] = event;
+            buffer.push(Event.from(event));
+        }
+    }
 
     return buffer;
 }
 
 function bufferStopEvents(events, b1, b2, buffer) {
+    // We can't ignore stop events in the buffer that are already in the past.
+    // This may happen if the sequence rates changed between frames, and it's
+    // indicative of hanging notes. Stop everything in the past.
     let n = -1, event;
-    while ((event = events[++n]) && event[0] < b1);
-    --n;
+    //while ((event = events[++n]) && event[0] < b1) {
+        // Set it to stop as early as possible - in this scheduler that's b1,
+        // but should we recalculate it's time... hmm...
+        //event[0] = b1;
+    //    buffer.push(event);
+    }
+    //--n;
 
     while ((event = events[++n]) && event[0] < b2) {
         buffer.push(event);
@@ -54,6 +94,9 @@ function bufferStopEvents(events, b1, b2, buffer) {
 
 /**
 Head()
+In a head, `.startTime`, `.stopTime` and `.currentTime` refer to the time of
+their input's stream of time numbers. When a head starts a sequence it becomes
+the input stream for the head that reads the sequence.
 **/
 
 const distributeEvent = overload((head, event, b2) => event[1], {
@@ -65,7 +108,7 @@ const distributeEvent = overload((head, event, b2) => event[1], {
     note: (head, event, b2) => {
         const stopevent = new Event(event[0] + event[4], 'stop', event[2], event[3]);
 
-        // Redefine event as start event
+        // Redefine event as start event, abs time
         event[0] = head.timeAtBeat(event[0]);
         event[1] = 'start';
         event[4] = undefined;
@@ -138,6 +181,7 @@ export default function Head(events = [], sequences = [], transform = id, target
     this.buffer      = [];
     this.distribute  = distribute;
     this.events      = events;
+    this.params      = {};
     this.sequences   = sequences;
     this.stopevents  = [];
     this.target      = target;
@@ -180,11 +224,11 @@ assign(Head.prototype, {
         // Fill frame buffer with events between b1 and b2
         const buffer = this.buffer;
         buffer.length = 0;
-        bufferFrameEvents(this.events, b1, b2, buffer);
-        bufferStopEvents(this.stopevents, b1, b2, buffer);
+        bufferFrameEvents(this.events.sort(by0Float32), b1, b2, buffer, this.params);
+        bufferStopEvents(this.stopevents.sort(by0Float32), b1, b2, buffer);
 
         // Loop over events, deal with sequence and note events, convert to
-        // absolute time. Do we need to sort to time order?
+        // absolute time. Do we need to sort to time order again?
         //buffer.sort(by0Float32);
         let n = -1, event, sequence;
         while (event = buffer[++n]) distributeEvent(this, event, b2);
@@ -192,10 +236,8 @@ assign(Head.prototype, {
         // Push b2 to child heads to advance their currentTime
         Tree.prototype.push.call(this, b2);
 
-        if (time > this.stopTime) {
-            //TODO: does this cause problems for the input's pushing loop???
-            stopHead(this);
-        }
+        //TODO: does this cause problems for the input's pushing loop???
+        if (time > this.stopTime) stopHead(this);
 
         // Update time
         this.currentTime = time;
