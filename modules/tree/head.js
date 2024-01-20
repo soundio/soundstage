@@ -1,12 +1,13 @@
 
-import get    from '../../../fn/modules/get.js';
-import id     from '../../../fn/modules/id.js';
-import mix    from '../../../fn/modules/mix.js';
-import remove from '../../../fn/modules/remove.js';
+import get      from '../../../fn/modules/get.js';
+import id       from '../../../fn/modules/id.js';
+import mix      from '../../../fn/modules/mix.js';
+import overload from '../../../fn/modules/overload.js';
+import remove   from '../../../fn/modules/remove.js';
 import Event, { isRateEvent, getDuration } from '../event.js';
 import { beatAtLocation, locationAtBeat } from '../sequencer/location.js';
-import Tree from './node.js';
-import { log } from '../print.js';
+import Tree     from './node.js';
+import { log }  from '../print.js';
 
 const assign = Object.assign;
 const create = Object.create;
@@ -51,7 +52,83 @@ function bufferStopEvents(events, b1, b2, buffer) {
 }
 
 
-/** Head() **/
+/**
+Head()
+**/
+
+const distributeEvent = overload((head, event, b2) => event[1], {
+    sequence: (head, event) => {
+        event.target = head;
+        head.distribute(event).stop(event[0] + event[4]);
+    },
+
+    note: (head, event, b2) => {
+        const stopevent = new Event(event[0] + event[4], 'stop', event[2], event[3]);
+
+        // Redefine event as start event
+        event[0] = head.timeAtBeat(event[0]);
+        event[1] = 'start';
+        event[4] = undefined;
+
+        // Distribute start event
+        event.target = head.target;
+        stopevent.target = head.distribute(event);
+
+        if (window.DEBUG && !stopevent.target) {
+            throw new Error('Head: .distribute() must return a target object for a "start" event');
+        }
+
+        if (stopevent.target.events) {
+            console.log('Head: .distribute() has returned a sequence... ?');
+        }
+
+        // Stop event is before frame end, distribute, otherwise cue
+        if (stopevent[0] < b2) {
+            stopevent[0] = head.timeAtBeat(stopevent[0]);
+            head.distribute(stopevent);
+        }
+        else {
+            head.stopevents.push(stopevent);
+        }
+    },
+
+    stop: (head, event) => {
+        event[0] = head.timeAtBeat(event[0]);
+        head.distribute(event);
+        remove(head.stopevents, event);
+    },
+
+    default: (head, event) => {
+        event[0]     = head.timeAtBeat(event[0]);
+        event.target = head.target;
+        head.distribute(event);
+    }
+});
+
+function stopHead(head) {
+    const rates = head.rates || head.events.filter(isRateEvent);
+    const beat  = beatAtLocation(rates, rate0, head.stopTime - head.startTime);
+    const abs   = head.timeAtBeat(beat);
+
+    // Distribute all stop events with time set to absolute time
+    head.stopevents.forEach((event) => {
+        if (event[0] >= beat) {
+            // Update time of event to now
+            event[0] = abs;
+            // Distribute it boy-o
+            head.distribute(event);
+        }
+    });
+
+    // Stop child heads (that are not already stopped by beat??)
+    while(head[0]) head[0].stop(beat);
+
+    // Decrement count
+    --Head.count;
+
+    // Remove from tree
+    return Tree.prototype.stop.call(head);
+}
 
 export default function Head(events = [], sequences = [], transform = id, target, distribute) {
     Tree.call(this);
@@ -90,7 +167,7 @@ assign(Head.prototype, {
         }
 
         if (this.currentTime > this.stopTime) {
-            throw new Error('NONONO WE SHOULD NOT BE IN HERE');
+            throw new Error('NO NO NO WE SHOULD NOT BE IN HERE');
         }
 
         // Cache rates, calculate beats at frame start and end
@@ -106,72 +183,22 @@ assign(Head.prototype, {
         bufferFrameEvents(this.events, b1, b2, buffer);
         bufferStopEvents(this.stopevents, b1, b2, buffer);
 
-        // Loop over events, deal with sequence-start and -stop events, convert
-        // to Event objects, absolute time
-        // Aaargh, these have to be fed to readBufferEvent in time order, annoyingly
-        buffer.sort(by0Float32);
+        // Loop over events, deal with sequence and note events, convert to
+        // absolute time. Do we need to sort to time order?
+        //buffer.sort(by0Float32);
         let n = -1, event, sequence;
-        while (event = buffer[++n]) {
-            // FROM sequence.js ... n = readBufferEvent(this, stopbuffer, buffer, n);
+        while (event = buffer[++n]) distributeEvent(this, event, b2);
 
-            if (event[1] === 'sequence') {
-                event.target = this;
-                this.distribute(event);
-                continue;
-            }
-
-            if (event[1] === 'note') {
-                const stopevent = new Event(event[0] + event[4], 'stop', event[2], event[3]);
-
-                // Redefine event as start event
-                event[0] = this.timeAtBeat(event[0]);
-                event[1] = 'start';
-                event[4] = undefined;
-
-                // Distribute start event
-                event.target = this.target;
-                stopevent.target = this.distribute(event);
-
-                if (window.DEBUG && !stopevent.target) {
-                    throw new Error('Head: .distribute() must return a target object for a "start" event');
-                }
-
-                // Stop event is before frame end, distribute, otherwise cue
-                if (stopevent[0] < b2) {
-                    stopevent[0] = this.timeAtBeat(stopevent[0]);
-                    this.distribute(stopevent);
-                }
-                else {
-                    this.stopevents.push(stopevent);
-                }
-
-                continue;
-            }
-
-            if (event[1] === 'stop') {
-                event[0] = this.timeAtBeat(event[0]);
-                this.distribute(event);
-                remove(this.stopevents, event);
-                continue;
-            }
-
-            event[0]     = this.timeAtBeat(event[0]);
-            event.target = this.target;
-            this.distribute(event);
-        }
-
-        // Push b2 to child playables to advance their currentTime and
-        // return their events
+        // Push b2 to child heads to advance their currentTime
         Tree.prototype.push.call(this, b2);
-
-        // Update time
-        this.currentTime = time;
 
         if (time > this.stopTime) {
             //TODO: does this cause problems for the input's pushing loop???
-            this.stop(this.stopTime);
-            return;
+            stopHead(this);
         }
+
+        // Update time
+        this.currentTime = time;
 
         // Uncache rates
         this.rates = undefined;
@@ -199,7 +226,7 @@ assign(Head.prototype, {
     **/
     stop: function(time) {
         if (window.DEBUG && this.stopTime < time) {
-            throw new Error('Head: Attempt to stop head that is stopped');
+            throw new Error('Head: Attempt to stop head that is stopped ' + this.stopTime.toFixed(3) + ' ' + time.toFixed(3));
         }
 
         // Schedule future stopTime
@@ -214,28 +241,7 @@ assign(Head.prototype, {
             this.currentTime :
             time ;
 
-        const rates = this.rates || this.events.filter(isRateEvent);
-        const beat  = beatAtLocation(rates, rate0, this.stopTime - this.startTime);
-        const abs   = this.timeAtBeat(beat);
-
-        // Distribute all stop events with time set to absolute time
-        this.stopevents.forEach((event) => {
-            if (event[0] >= beat) {
-                // Update time of event to now
-                event[0] = abs;
-                // Distribute it boy-o
-                this.distribute(event);
-            }
-        });
-
-        // Stop child heads
-        while(this[0]) this[0].stop(beat);
-
-        // Decrement count
-        --Head.count;
-
-        // Remove from tree
-        return Tree.prototype.stop.call(this);
+        return stopHead(this);
     },
 
     /**

@@ -39,8 +39,7 @@ const play = overload(arg(2), {
         // TODO: target.target
         return head
         .create('head', sequence.events, sequence.sequences, transform, head.target, head.distribute)
-        .start(time)
-        .stop(time + duration);
+        .start(time);
     },
 
     'sequence-start': (head, time, type, sequenceid, selector, duration, transform) => {
