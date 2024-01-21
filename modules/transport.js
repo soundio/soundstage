@@ -83,6 +83,10 @@ export default function Transport(context) {
 }
 
 assign(Transport.prototype, Clock.prototype, {
+    create: function() {
+        // Create a frames stream... or IS this a frames stream???
+    },
+
     beatAtTime: function(time) {
         if (time < 0) { throw new Error('Location: beatAtLoc(loc) does not accept -ve values.'); }
 

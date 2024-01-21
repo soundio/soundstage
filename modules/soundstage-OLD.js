@@ -1,40 +1,56 @@
 
+import get           from '../../fn/modules/get.js';
+import { set }       from '../../fn/modules/set.js';
 import isDefined     from '../../fn/modules/is-defined.js';
+import noop          from '../../fn/modules/noop.js';
 import nothing       from '../../fn/modules/nothing.js';
 import matches       from '../../fn/modules/matches.js';
+import overload      from '../../fn/modules/overload.js';
 import Privates      from '../../fn/modules/privates.js';
+import Stream        from '../../fn/modules/stream.js';
 import config        from '../config.js';
-import requestMedia  from './request/request-media.js';
-import { context, domTimeAtTime, timeAtDomTime, getOutputLatency } from './context.js';
-import { connect, disconnect } from './connect.js';
-import constructors  from './graph/constructors.js';
-import Graph         from './graph.js';
-import Sequencer     from './sequencer.js';
-import Transport     from './transport.js';
 
-import Input         from '../nodes/input.js';
-import Instrument    from '../nodes/instrument.js';
+//import Control       from './control.js';
+import Graph         from './graph.js';
+import Transport     from './transport.js';
+import Sequencer     from './sequencer.js';
 //import Metronome     from '../nodes/metronome.js';
-import Tone          from '../nodes/tone.js';
 
 import { print, printGroup, printGroupEnd }     from './print.js';
+import { context, domTimeAtTime, timeAtDomTime, getOutputLatency } from './context.js';
+//import { isKeyboardInputSource } from './control-sources/keyboard-input-source.js';
+//import { isMIDIInputSource } from './control-sources/midi-input-source.js';
+import { connect, disconnect } from './connect.js';
+import requestMedia  from './request/request-media.js';
+import { automato__ } from './automate__.js';
 
+const DEBUG        = window.DEBUG || false;
+const assign       = Object.assign;
+const define       = Object.defineProperties;
+const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
-const assign   = Object.assign;
 const defaults = {
     context: context,
-    nodes:   [{ id: '0', type: 'output' }]
+    set:     set
 };
 
+const defaultData = {
+    nodes: [{ id: '0', type: 'output' }]
+};
 
-/* Nodes */
+import constructors  from './graph/constructors.js';
+import Input         from '../nodes/input.js';
+import Tone          from '../nodes/tone.js';
+import Instrument    from '../nodes/instrument.js';
 
-// Assign Soundstage-specific AudioNode constructors to the Graph
 assign(constructors, {
     'input':      Input,
     'instrument': Instrument,
     'tone':       Tone
 });
+
+
+// Nodes
 
 function createOutputMerger(context, target) {
     // Safari sets audio.destination.maxChannelCount to
@@ -71,17 +87,23 @@ function createOutputMerger(context, target) {
 Soundstage()
 
 ```js
-const stage = new Soundstage(nodes, connects, events, sequences, options);
-const stage = Soundstage.from(data);
+const stage = new Soundstage();
 ```
 
-A stage is a graph of AudioNodes and a sequencer of events that control those
-AudioNodes.
+A stage is a graph of AudioNodes and a sequencer of events.
 **/
 
-export default function Soundstage(nodes = defaults.nodes, connects = [], events = [], sequences = [], settings = nothing) {
+export default function Soundstage(data = defaultData, settings = nothing) {
+    if (!Soundstage.prototype.isPrototypeOf(this)) {
+        // Soundstage has been called without `new`
+        return new Soundstage(data, settings);
+    }
 
-    if (window.DEBUG) { printGroup('Soundstage()'); }
+    if (isDefined(data.version) && data.version !== this.version) {
+        throw new Error('Soundstage: data version mismatch.', this.version, data.version);
+    }
+
+    if (DEBUG) { printGroup('Soundstage()'); }
 
     // Soundstage
     const privates    = Privates(this);
@@ -89,146 +111,107 @@ export default function Soundstage(nodes = defaults.nodes, connects = [], events
     const destination = settings.destination || context.destination;
     const merger      = createOutputMerger(context, destination);
 
-    /**
-    .transport
-    **/
-    this.transport = new Transport(context);
+    // Hmmm.
+    const notify    = settings.notify || noop;
+    privates.notify = notify;
 
-    privates.beat    = 0;
-    privates.outputs = {
-        default: merger,
-        rate:    this.transport.outputs.rate,
-        beat:    this.transport.outputs.beat
-    };
+    // Transport
+    const transport = new Transport(context);
+
+    // Stream of events going to the stage. TODO: make this a multi-input,
+    // always hot stream.
+    const automation = Stream.of();
+
+    // Cascade automation events to nodes
+    automation.each((event) => {
+        // Get node from first part of event type
+        const i    = event[1].indexOf('.');
+        const id   = event[1].slice(0, i);
+        const node = this.getNode(id);
+
+        // Update event type by lopping off name of node
+        event[1] = event[1].slice(i + 1);
+        return node.push(event);
+    });
+
+
+
+    // Properties
 
     /**
     .label
     A string name for this Soundstage document.
     **/
+
     this.label = data.label || '';
 
     /**
     .mediaChannelCount
     **/
+
     define(this, {
         mediaChannelCount: { value: undefined, writable: true, configurable: true }
     });
 
     // .nodes
     // .connections
-    // .find()
-    // .findAll()
-    Graph.call(this, context, nodes, connects, merger, transport, options);
+    // .get(id)
+    // .createNode(type, data)
+    // .createConnection(source, target)
+    Graph.call(this, context, merger, data, transport, options);
 
     // .context
+    // .transport
     // .events
     // .sequences
     // .startTime
+    // .startLocation
     // .stopTime
-    // .start()
-    // .stop()
-    Sequencer.call(this, context, events, sequences);
+    // .start(time)
+    // .stop(time)
+    // .beatAtTime(time)
+    // .timeAtBeat(beat)
+    // .beatAtBar(bar)
+    // .barAtBeat(beat)
+    Sequencer.call(this, transport, automation, data);
+
+    privates.outputs = {
+        default: merger,
+        rate:    this.transport.outputs.rate,
+        beat:    this.transport.outputs.beat
+    };
 
     console.log(context.resume());
+
+
+    // Initialise as a recorder...
+    //var recordStream   = RecordStream(this, this.sequences);
+
 
     // Create metronome.
     //this.metronome = new Metronome(context, data.metronome, this);
     //this.metronome.start(0);
+    // Todo: is this really necessary? Is there another way of getting
+    // transport inside sound.io?
+    //this.transport = transport;
 
-    if (window.DEBUG) { printGroupEnd(); }
+
+    if (DEBUG) { printGroupEnd(); }
 }
 
-assign(Soundstage, {
-    version: 1,
-
-    from: (data) => {
-        if (data && isDefined(data.version) && data.version !== Soundstage.version) {
-            throw new Error('Soundstage: no adapter for data version ' + data.version);
-        }
-
-        return new Soundstage(data.nodes, data.connects, data.events, data.sequences);
-    }
-});
-
-mix(Soundstage.prototype, Sequencer.prototype, Graph.prototype, Meter.prototype);
-
 define(Soundstage.prototype, {
-    /**
-    .bar
-    The current bar count.
-    **/
-    bar: {
-        get: function() { return this.barAtBeat(this.beat) ; }
-    },
+    version: { value: 1 },
+    time:    Object.getOwnPropertyDescriptor(Sequencer.prototype, 'time'),
+    //rate:    Object.getOwnPropertyDescriptor(Sequencer.prototype, 'rate'),
+    //tempo:   Object.getOwnPropertyDescriptor(Sequencer.prototype, 'tempo'),
+    //meter:   Object.getOwnPropertyDescriptor(Sequencer.prototype, 'meter'),
+    //beat:    Object.getOwnPropertyDescriptor(Sequencer.prototype, 'beat'),
+    //bar:     Object.getOwnPropertyDescriptor(Sequencer.prototype, 'bar'),
+    status:  Object.getOwnPropertyDescriptor(Sequencer.prototype, 'status'),
 
-    /** .beat
-    The current beat count.
-    **/
-    beat: {
-        get: function() {
-            const privates = Privates(this);
-            if (this.startTime === undefined
-                || this.startTime >= this.context.currentTime
-                || this.stopTime < this.context.currentTime) {
-                return privates.beat;
-            }
-
-            return this.beatAtTime(this.time);
-        },
-
-        set: function(value) {
-            const privates = Privates(this);
-
-            if (this.startTime === undefined
-                || this.stopTime < this.context.currentTime) {
-                privates.beat = value;
-                // Todo: update state of entire graph with evented settings for
-                // this beat   ... wot? Oh snapshot cuurent state to Graph. Ah.
-            }
-            else {
-                // Sequence is started - can we move the beat? Ummm... I don't thunk so...
-                throw new Error('Beat cannot be moved while sequencer is running');
-            }
-        }
-    },
-
-    /** .meter
-    The current meter.
-    **/
-    meter: {
-        get: function() {
-            const { transport } = Privates(this);
-            return transport.getMeterAtTime(this.context.currentTime);
-        },
-
-        set: function(meter) {
-            const { transport } = Privates(this);
-            transport.setMeterAtTime(meter, this.context.currentTime)
-        }
-    },
-
-    /** .tempo
-    The rate of the transport clock expressed in bpm.
-    **/
-    tempo: {
-        get: function() { return getValueAtTime(this.rate, this.time) * 60; },
-        set: function(tempo) { automate(this.rate, this.time, 'step', tempo / 60, null, privates.notify, this.context); }
-    },
-
-    /** .time
-    The time of audio now leaving the device output. (In browsers the have not
-    yet implemented `AudioContext.getOutputTimestamp()` this value is estimated
-    from `currentTime` and a guess at the output latency. Which is a bit meh,
-    but better than nothing.)
-    **/
-    time: {
-        get: function() {
-            return this.context.getOutputTimestamp().contextTime - this.startTime;
-        },
-        set: function(time) {
-            console.log('TODO: set time', time);
-        }
-    },
+    //blockDuration:  getOwnPropertyDescriptor(Transport.prototype, 'blockDuration'),
+    //frameDuration:  getOwnPropertyDescriptor(Transport.prototype, 'frameDuration'),
+    //frameLookahead: getOwnPropertyDescriptor(Transport.prototype, 'frameLookahead'),
 
     outputLatency: {
         enumerable: true,
@@ -281,7 +264,7 @@ define(Soundstage.prototype, {
 });
 
 assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
-    /*createControl: function(source, target, options) {
+    createControl: function(source, target, options) {
         const privates = Privates(this);
 
         // Target must be the graph node
@@ -290,25 +273,16 @@ assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
             target ;
 
         return new Control(this.controls, source, target, options, privates.notify);
-    },*/
-
-    /* Receive events */
-
-    automate: function(address, name, value, curve, duration, time) {
-        // TODO! Fold address into event stuff how??
-        const last = /\.(\w+)$/.exec(address)[1];
-
-        // Send 'start/stop' event
-        if (last === 'start' || last === 'stop') {
-            return this.push(new Event(time, last, name, value));
-        }
-
-        // Send 'param' event
-        return this.push(new Event(time, 'param', name, value, curve, duration));
     },
 
-    /* AudioNode methods */
+    automate: function(time, type) {
+        const { automation } = Privates(this);
+        const event = new Event(...arguments);
+        event.target = automation.push(event);
+        return this;
+    },
 
+/*
     connect: function(input, port, channel) {
         const outputs = Privates(this).outputs;
         const output = typeof port === 'string' ? outputs[port] : outputs.default ;
@@ -328,43 +302,7 @@ assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
 
         return this;
     },
-
-    /* Sequencer methods */
-
-    start: function(time) {
-        // If the sequencer is running stop it first
-        if (this.status !== IDLE) {
-            this.stop(time);
-        }
-
-        // Sets privates.playhead internally (watch out should that change).
-        Sequencer.prototype.start.apply(this, arguments);
-
-        // Return this, rather than the playhead, so there is only ever one
-        // playhead per soundstage
-        return this;
-    },
-
-    /**
-    .beatAtTime(time)
-    Returns the beat of this sequence given a context `time`.
-    **/
-    beatAtTime: function(time) {
-        return privates.playhead ?
-            privates.playhead.beatAtTime(time) :
-            0 ;
-    },
-
-    /**
-    .timeAtBeat(beat)
-    Returns the context time that `beat` of the sequence plays at.
-    **/
-    timeAtBeat: function(beat) {
-        return privates.playhead ?
-            privates.playhead.timeAtBeat(time) :
-            0 ;
-    },
-
+*/
     /**
     .timeAtDomTime(domTime)
     Returns audio context time at the given `domTime`, where `domTime` is a
@@ -383,9 +321,6 @@ assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
     domTimeAtTime: function(domTime) {
         return domTimeAtTime(this.context, domTime);
     },
-
-
-    /* Hmmmm... */
 
     destroy: function() {
         // Destroy the playhead.

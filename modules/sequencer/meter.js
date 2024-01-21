@@ -40,25 +40,6 @@ export default function Meter(events) {
 }
 
 assign(Meter.prototype, {
-    /* TEMP. Not what we want. */
-    createMeterEvent: function(beat, bar, div) {
-        const privates = Privates(this);
-        const meters   = privates.meters;
-
-        // Shorten meters to time
-        let n = -1;
-        while (++n < meters.length) {
-            if (meters[n][0] >= beat) {
-                meters.length = n;
-                break;
-            }
-        }
-
-        const event = new Event(beat, 'meter', bar, div);
-        meters.push(event);
-        return event;
-    },
-
     /**
     .barAtBeat(beat)
     Returns the bar at a given `beat`.

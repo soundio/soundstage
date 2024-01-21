@@ -3,9 +3,9 @@ import mix        from '../../../fn/modules/mix.js';
 import overload   from '../../../fn/modules/overload.js';
 import remove     from '../../../fn/modules/remove.js';
 import Event, { isRateEvent, isParamEvent, getDuration } from '../event.js';
-import { beatAtLocation } from './location.js';
 import distribute from '../distribute.js';
 import Head       from '../tree/head.js';
+import { beatAtLocation } from './location.js';
 import { log }    from '../print.js';
 
 const assign = Object.assign;
