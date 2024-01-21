@@ -1,22 +1,15 @@
 
-import arg      from '../../../fn/modules/arg.js';
-import invoke   from '../../../fn/modules/invoke.js';
-import matches  from '../../../fn/modules/matches.js';
-import nothing  from '../../../fn/modules/nothing.js';
-import overload from '../../../fn/modules/overload.js';
-import Privates from '../../../fn/modules/privates.js';
-import remove   from '../../../fn/modules/remove.js';
+import get      from '../../../../fn/modules/get.js';
+import Stream   from '../../../../fn/modules/stream/stream.js';
+import nothing  from '../../../../fn/modules/nothing.js';
+import overload from '../../../../fn/modules/overload.js';
+//import Privates from '../../../../fn/modules/privates.js';
+import remove   from '../../../../fn/modules/remove.js';
 
-import Output   from '../../nodes/output.js';
-
-import { create }              from '../graph/constructors.js';
-import { isAudioParam }        from '../param.js';
+import { create }           from '../graph/constructors.js';
 import { automateParamAtTime, automatePropertyAtTime } from '../automate__.js';
-import { matchesId }           from '../utilities.js';
-import { assignSettingz__ }    from '../assign-settings.js';
-
-const assign = Object.assign;
-const define = Object.defineProperties;
+import { isAudioParam }     from '../param.js';
+import { assignSettingz__ } from '../assign-settings.js';
 
 const blacklist = {
     channelCount: true,
@@ -28,24 +21,51 @@ const blacklist = {
     onended: true
 };
 
-function throwParamNotFound(name) {
-    throw new Error('Soundstage Node cannot .automate() "' + name + '" not in node');
+
+/**
+GraphNode()
+**/
+
+const assign  = Object.assign;
+const define  = Object.defineProperties;
+const properties = {
+    status: {
+        value:      undefined,
+        enumerable: false,
+        writable:   true
+    }
+};
+
+const ids = {};
+
+function assignId(node, id) {
+    if (id) {
+        if (id in ids) {
+            throw new Error('GraphNode: Attempt to create node with id of existing node');
+        }
+    }
+    else {
+        id = 0;
+        while (ids[++id]);
+    }
+
+    ids[id] = node;
+    node.id = id;
 }
 
-export default function Node(graph, context, type, id, label, data, merger, transport) {
+export default function GraphNode(context, type, id, label, data, merger, transport) {
     // Define identity in the graph
-    this.id    = id;
-    this.type  = type;
-    this.label = label || '';
+    assignId(this, id);
+
+    this.context = context;
+    this.type    = type;
+    this.label   = label || '';
 
     // Define non-enumerable properties
-    define(this, {
-        data:              { get: function(value) { throw new Error('Cannot set .data. You are probably looking for .node. ' + value); } },
-        graph:             { value: graph },
-        record:            { writable: true },
-        recordDestination: { writable: true },
-        recordCount:       { writable: true, value: 0 }
-    });
+    define(this, properties);
+    /*define(this, {
+        graph: { value: graph }
+    });*/
 
     // Define the audio node, special casing 'output', which must connect itself to
     // the stage's output merger
@@ -57,128 +77,101 @@ export default function Node(graph, context, type, id, label, data, merger, tran
     assignSettingz__(this.node, data);
 
     // Add this node to the graph
-    graph.nodes.push(this);
+    //graph.nodes.push(this);
 }
 
-assign(Node.prototype, {
-    connect: function(target) {
-        this.graph.createConnection(this, target);
-        return this;
+assign(GraphNode, {
+    from: function(data) {
+        return new GraphNode(/*data.graph, */data.context, data.type, undefined, data.label, data.node, data.merger, data.transport);
+    }
+});
+
+assign(GraphNode.prototype, {
+    find: function(fn) {
+        if (fn(this.node)) { return node; }
     },
 
-    disconnect: function(target) {
-        target = typeof target === 'string' ?
-            this.graph.nodes.find(matchesId(target)) :
-            target ;
-
-        this.graph.connections
-        .filter(matches({ source: this, target: target }))
-        .forEach(invoke('remove', nothing));
-
-        return this;
+    findAll: function(fn) {
+        const nodes = [];
+        if (fn(this.node)) { nodes.push(this.node); }
+        return nodes;
     },
 
-    push: function(event) {
-        return this.automate(event[0], event[1], event[2], event[3], event[4]);
-    },
-
-    // time, 'start', note, level
-    // time, 'stop', note
-    // time, name, value, curve, duration
-    automate: overload(arg(1), {
-        'start': function(time, name, note, level) {
-            console.log(this.node.context.currentTime.toFixed(3), 'start', time.toFixed(3), note);
-            return this.node.start(time, note, level);
+    push: overload(get(1), {
+        // time, 'start', note, level
+        'start': function([ time, type, note, level ]) {
+            console.log(this.context.currentTime.toFixed(3), 'start', time.toFixed(3), note, level);
+            return this.node.start(time, note, value);
         },
 
-        'stop': function(time, name, note) {
-            console.log(this.node.context.currentTime.toFixed(3), 'stop ', time.toFixed(3), note);
-            return this.node.stop(time, note);
+        // time, 'stop', note, level
+        'stop': function([ time, type, note, level ]) {
+            console.log(this.context.currentTime.toFixed(3), 'stop ', time.toFixed(3), note, level);
+            return this.node.stop(time, note, value);
         },
 
-        default: function(time, name, value, curve, duration) {
-            return !(name in this.node) ?
-                    throwParamNotFound(name) :
-                isAudioParam(this.node[name]) ?
-                    automateParamAtTime(this.node[name], time, value, curve, duration) :
+        // time, 'param', name, value, type, duration
+        'param': function([ time, type, name, value, curve, duration ]) {
+            console.log(this.context.currentTime.toFixed(3), 'param ', time.toFixed(3), name);
+            return !(name in this.node)       ? throwParamNotFound(name) :
+                isAudioParam(this.node[name]) ? automateParamAtTime(this.node[name], time, value, curve, duration) :
+                automatePropertyAtTime(this.node, time, name, value) ;
+        },
+
+        // time, name, value, curve, duration
+        default: function([ time, name, value, curve, duration ]) {
+            return !(name in this.node)       ? throwParamNotFound(name) :
+                isAudioParam(this.node[name]) ? automateParamAtTime(this.node[name], time, value, curve, duration) :
                 automatePropertyAtTime(this.node, time, name, value) ;
         }
     }),
-/*
-    automateOLD: function(type, time, name, value, duration) {
-        const privates = Privates(this.graph);
 
-        if (this.record) {
-            const beat     = Math.floor(this.graph.beatAtTime(time));
-
-            if (!privates.recordSequence) {
-                const sequence = this.graph.createSequence();
-                const event    = this.graph.createEvent(beat, 'sequence', sequence.id, this.id);
-                privates.recordSequence = sequence;
-            }
-
-            privates.recordSequence.createEvent(
-                this.graph.beatAtTime(time) - beat,
-                type, name, value, duration
-            );
-        }
-
-        return typeof this.data[type] === 'function' ?
-            this.data[type](time, name, value) :
-        isAudioParam(this.data[type]) ?
-            // param, time, curve, value, duration, notify, context
-            automato__(this.data, type, time, name, value, duration, privates.notify, this.data.context) :
-        undefined ;
-    },
-*/
-    start: function(time, name, value, settings) {
-        return assignSettingz__(this.node.start(time, name, value), settings);
-    },
-
-    records: function() {
-        return this.data.records && this.data.records()
-        .map((record) => {
-            record.nodeId = this.id;
-            return record;
-        });
-    },
+    // pipe from tree/node, to make this broadcastable, so you can record from
+    // it?
+    // pipe: Tree.prototype.pipe
 
     remove: function() {
+        const graph = this.graph;
+
         // Remove connections that source or target this
-        this.graph.connections && this.graph.connections
+        graph.connections && graph.connections
         .filter((connection) => connection.source === this.data || connection.target === this.data)
         .forEach((connection) => connection.remove());
 
         // Remove controls that target this
-        this.graph.controls && this.graph.controls
+        graph.controls && graph.controls
         .filter((control) => control.target === this.data)
         .forEach((control) => control.remove());
 
         // Remove from nodes
-        remove(this.graph.nodes, this);
+        remove(graph.nodes, this);
 
         // Notify observers
-        const privates = Privates(this.graph);
-        privates.notify(this.graph.nodes, '');
+        //const privates = Privates(graph);
+        //privates.notify(graph.nodes, '');
 
         return this;
     },
 
+    stop: Stream.prototype.stop,
+    done: Stream.prototype.done,
+
     toJSON: function toJSON() {
-        const node = this.data;
+        const node = this.node;
         const data = {};
-        var name;
+        let name;
 
         for (name in node) {
             //if (!this.hasOwnProperty(name)) { continue; }
-            if (node[name] === null) { continue; }
+            if (node[name] === null)      { continue; }
             if (node[name] === undefined) { continue; }
-            if (blacklist[name]) { continue; }
+            if (blacklist[name])          { continue; }
 
-            data[name] = node[name].setValueAtTime ?
-                    node[name].value :
-                node[name].connect ?
-                    toJSON.apply(node[name]) :
+                // Is it an AudioParam or pseudo-AudioParam
+            data[name] = node[name].setValueAtTime ? node[name].value :
+                // Is it a... TODO: what are we doing here?
+                node[name].connect ? toJSON.apply(node[name]) :
+                // Get value of property
                 node[name] ;
         }
 
@@ -186,7 +179,7 @@ assign(Node.prototype, {
             id:    this.id,
             type:  this.type,
             label: this.label,
-            data:  data
+            node:  data
         };
     }
 });

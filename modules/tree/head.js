@@ -11,7 +11,12 @@ const rate0  = Object.freeze({ 0: 0, 1: 'rate', 2: 1 });
 
 
 /**
-Head()
+Head(events, sequences, transform)
+
+A head is a broadcast node tree that takes a stream of times and distributes
+events up to those times. It is a mixin for other constructors: it requires
+`.read()` and `.stopRead()` methods to be useful.
+
 In a head, `.startTime`, `.stopTime` and `.currentTime` refer to the time of
 their input's stream of time numbers. When a head starts a sequence it becomes
 the input stream for the head that reads the sequence.
@@ -30,7 +35,7 @@ function stop(head) {
     // Decrement count
     --Head.count;
     if (window.DEBUG && !Head.count) {
-        log('Head', 'no heads running');
+        log('Head', 'playing heads', 0);
     }
 
     // Remove from tree
@@ -68,10 +73,6 @@ assign(Head.prototype, {
         if (time <= this.startTime) {
             this.currentTime = time;
             return;
-        }
-
-        if (this.currentTime > this.stopTime) {
-            throw new Error('NO NO NO WE SHOULD NOT BE IN HERE');
         }
 
         // Cache rates, calculate beats at frame start and end
@@ -139,7 +140,7 @@ assign(Head.prototype, {
 
     /**
     .beatAtTime(time)
-    Returns the beat at a given `time`.
+    Returns the beat at a given context `time`.
     **/
     beatAtTime: function(time) {
         if (window.DEBUG && time < 0) {
@@ -157,7 +158,7 @@ assign(Head.prototype, {
 
     /**
     .timeAtBeat(beat)
-    Returns the time at a given `beat`.
+    Returns the context time at a given `beat`.
     **/
     timeAtBeat: function(beat) {
         // Use cached rates if we have them

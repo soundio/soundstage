@@ -8,8 +8,7 @@ const assign = Object.assign;
 const define = Object.defineProperties;
 const seal   = Object.seal;
 
-export default function Connector(graph, sourceId, targetId, sourceChan, targetChan) {
-
+export default function GraphConnect(graph, sourceId, targetId, sourceChan, targetChan) {
     // Get source node
     //const sourceParts = sourceId.split('.');
     const sourceNode = typeof sourceId === 'object' ?
@@ -46,12 +45,31 @@ export default function Connector(graph, sourceId, targetId, sourceChan, targetC
     seal(this);
 
     // Connect them up
-    if (connect(this.source, this.targetParam || this.target, this.data && this.data[0], this.data && this.data[1])) {
-        graph.connections.push(this);
+    if (!connect(this.source, this.targetParam || this.target, this.data && this.data[0], this.data && this.data[1])) {
+        return false;
     }
 }
 
-assign(Connector.prototype, {
+assign(GraphConnect, {
+    from: function(data) {
+        return new GraphConnect(data.graph, data.source, data.target, data.srcchan, data.tgtchan);
+    }
+});
+
+assign(GraphConnect.prototype, {
+    push: overload(get(1), {
+        // time, 'start', note, level
+        'disconnect': function([ time, type, note, level ]) {
+            console.log(this.context.currentTime.toFixed(3), 'start', time.toFixed(3), note, level);
+            return this.node.start(time, note, value);
+        },
+
+        // time, name, value, curve, duration
+        default: function([ time, name, value, curve, duration ]) {
+            console.warn('Event not handled by connect', time, name, value);
+        }
+    }),
+
     remove: function() {
         // Disconnect them
         if (disconnect(this.source, this.targetParam || this.target, this.data && this.data[0], this.data && this.data[1])) {

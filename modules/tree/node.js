@@ -8,8 +8,8 @@ import remove        from '../../../../fn/modules/remove.js';
 
 /**
 Node()
-A base class for scene tree nodes - objects and vertices –, providing id,
-position properties and tree methods.
+A base class for tree nodes, which are broadcast streams whose outputs are the
+branches.
 **/
 
 const assign  = Object.assign;
@@ -127,12 +127,6 @@ assign(Node.prototype, {
         // Pipe
         if (output.stop) { output.input = this; }
         this[n] = output;
-
-        // If not a memory stream and this is the first output start the pipeline
-        //if (this.input && /*!this.memory && */n === 0) {
-            //this.input.pipe(this);
-        //}
-
         return output;
     },
 
