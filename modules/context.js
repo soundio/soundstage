@@ -49,7 +49,7 @@ if (context.state === 'suspended') {
     print('Audio context suspended', 'User interaction required');
 
     // Listen for user events, resume the context when one is detected.
-    const types = ['mousedown', 'keydown', 'touchstart', 'contextmenu'];
+    const types = ['pointerdown', 'mousedown', 'keydown', 'touchstart', 'contextmenu'];
 
     const add = (fn, type) => {
         document.addEventListener(type, fn);
@@ -61,14 +61,20 @@ if (context.state === 'suspended') {
         return fn;
     };
 
-    types.reduce(add, function fn(e) {
+    const fn = (e) => {
         context
         .resume()
-        .then(function() {
-            print('Audio context resumed on "' + e.type + '"');
+        .then(() => {
+            if (resumed) { return; }
+            print('Audio context resumed', 'Event type "' + e.type + '"');
+            resumed = true;
             types.reduce(remove, fn);
         });
-    });
+    };
+
+    let resumed = false;
+
+    types.reduce(add, fn);
 }
 
 // Todo: remove default

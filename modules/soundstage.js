@@ -1,7 +1,9 @@
 
+import id            from '../../fn/modules/id.js';
 import isDefined     from '../../fn/modules/is-defined.js';
 import nothing       from '../../fn/modules/nothing.js';
 import matches       from '../../fn/modules/matches.js';
+import mix           from '../../fn/modules/mix.js';
 import Privates      from '../../fn/modules/privates.js';
 import config        from '../config.js';
 import requestMedia  from './request/request-media.js';
@@ -9,18 +11,24 @@ import { context, domTimeAtTime, timeAtDomTime, getOutputLatency } from './conte
 import { connect, disconnect } from './connect.js';
 import constructors  from './graph/constructors.js';
 import Graph         from './graph.js';
-import Sequencer     from './sequencer.js';
+import Playable, { IDLE } from './playable.js';
+import Sequencer     from './sequencer/sequencer.js';
 import Transport     from './transport.js';
+// TODO: get frames form transport? Give plugins access to Frames via transport?
+import Frames        from './sequencer/frames.js';
+import PlayHead      from './sequencer/play-head.js';
 
 import Input         from '../nodes/input.js';
 import Instrument    from '../nodes/instrument.js';
 //import Metronome     from '../nodes/metronome.js';
 import Tone          from '../nodes/tone.js';
 
-import { print, printGroup, printGroupEnd }     from './print.js';
+import { log, printGroup, printGroupEnd }     from './print.js';
 
 
-const assign   = Object.assign;
+const assign = Object.assign;
+const define = Object.defineProperties;
+
 const defaults = {
     context: context,
     nodes:   [{ id: '0', type: 'output' }]
@@ -71,7 +79,7 @@ function createOutputMerger(context, target) {
 Soundstage()
 
 ```js
-const stage = new Soundstage(nodes, connects, events, sequences, options);
+const stage = new Soundstage(nodes, connectors, events, sequences, options);
 const stage = Soundstage.from(data);
 ```
 
@@ -79,7 +87,7 @@ A stage is a graph of AudioNodes and a sequencer of events that control those
 AudioNodes.
 **/
 
-export default function Soundstage(nodes = defaults.nodes, connects = [], events = [], sequences = [], settings = nothing) {
+export default function Soundstage(nodes = defaults.nodes, connectors = [], events = [], sequences = [], settings = nothing) {
 
     if (window.DEBUG) { printGroup('Soundstage()'); }
 
@@ -105,7 +113,7 @@ export default function Soundstage(nodes = defaults.nodes, connects = [], events
     .label
     A string name for this Soundstage document.
     **/
-    this.label = data.label || '';
+    //this.label = data.label || '';
 
     /**
     .mediaChannelCount
@@ -118,7 +126,7 @@ export default function Soundstage(nodes = defaults.nodes, connects = [], events
     // .connections
     // .find()
     // .findAll()
-    Graph.call(this, context, nodes, connects, merger, transport, options);
+    Graph.call(this, nodes, connectors, context, merger, this.transport);
 
     // .context
     // .events
@@ -128,8 +136,6 @@ export default function Soundstage(nodes = defaults.nodes, connects = [], events
     // .start()
     // .stop()
     Sequencer.call(this, context, events, sequences);
-
-    console.log(context.resume());
 
     // Create metronome.
     //this.metronome = new Metronome(context, data.metronome, this);
@@ -146,11 +152,11 @@ assign(Soundstage, {
             throw new Error('Soundstage: no adapter for data version ' + data.version);
         }
 
-        return new Soundstage(data.nodes, data.connects, data.events, data.sequences);
+        return new Soundstage(data.nodes, data.connectors, data.events, data.sequences);
     }
 });
 
-mix(Soundstage.prototype, Sequencer.prototype, Graph.prototype, Meter.prototype);
+mix(Soundstage.prototype, Sequencer.prototype, Graph.prototype/*, Meter.prototype*/);
 
 define(Soundstage.prototype, {
     /**
@@ -307,7 +313,7 @@ assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
         return this.push(new Event(time, 'param', name, value, curve, duration));
     },
 
-    /* AudioNode methods */
+    /* A soundstage is a pseudo-AudioNode. Give it AudioNode methods. */
 
     connect: function(input, port, channel) {
         const outputs = Privates(this).outputs;
@@ -338,11 +344,57 @@ assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
         }
 
         // Sets privates.playhead internally (watch out should that change).
-        Sequencer.prototype.start.apply(this, arguments);
+        //Sequencer.prototype.start.apply(this, arguments);
 
         // Return this, rather than the playhead, so there is only ever one
         // playhead per soundstage
-        return this;
+        //return this;
+
+        const privates = Privates(this);
+        //const transport = this.transport;
+
+        // Delegate this.startTime to playable
+        Playable.prototype.start.call(this, time);
+
+        //if (transport.status !== PLAYING) {
+        //    transport.start(time, beat);
+        //}
+
+        const frames = new Frames(this.context);
+        const head   = new PlayHead(this.events, this.sequences, id, {
+            start: function(a, b, c, d, e) {
+                //console.log('START', a, b, c, d, e);
+                return this;
+            },
+
+            stop: function(a, b) {
+                //console.log('STOP', a, b);
+                return this;
+            }
+        });
+
+
+        // Pipe frames to playback head (sneaky use of privates.playhead, be warned)
+        privates.playhead = frames
+        .pipe(head)
+        .start(this.startTime);
+
+        // Create dependent playheads for graph nodes that have events
+        let n = -1, node;
+        while(node = this.nodes[++n]) {
+            if (node.events && node.events.length) {
+                // 'playhead', events, sequences, transform, target
+                head
+                .create('playhead', node.events, this.sequences, id, node)
+                .start(0);
+            }
+        }
+
+        if (window.DEBUG) {
+            log('Sequencer start()', 'startTime', this.startTime, 'sequences', n);
+        }
+
+        return privates.playhead;
     },
 
     /**

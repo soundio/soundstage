@@ -140,6 +140,8 @@ const constructEventType = overload(arg(1), {
 	// [time, "sequence", name || events, target, duration, transforms...]
 
 	'note': function() {
+		this[0] = parseFloat32(arguments[0]);
+		this[1] = 'note';
 		// frequency, gain, duration
 		this[2] = parseNote(arguments[2], tuning);
 		this[3] = parseGain(arguments[3]);
@@ -147,35 +149,33 @@ const constructEventType = overload(arg(1), {
 	},
 
 	'start': function() {
+		this[0] = parseFloat32(arguments[0]);
+		this[1] = 'start';
 		// frequency, gain
 		this[2] = parseFrequency(arguments[2], tuning);
 		this[3] = parseGain(arguments[3]);
 	},
 
 	'stop': function() {
+		this[0] = parseFloat32(arguments[0]);
+		this[1] = 'stop';
 		// frequency
 		this[2] = parseFrequency(arguments[2], tuning);
+		this[3] = parseGain(arguments[3]);
 	},
 
 	'sequence': function() {
+		this[0] = parseFloat32(arguments[0]);
+		this[1] = 'sequence';
 		// name, target, duration
 		this[2] = arguments[2];
 		this[3] = arguments[3];
 		this[4] = parseFloat64(arguments[4]);
 	},
 
-	'sequence-start': function() {
-		// name, target
-		this[2] = arguments[2];
-		this[3] = arguments[3];
-	},
-
-	'sequence-stop': function() {
-		// name
-		this[2] = arguments[2];
-	},
-
 	'param': function() {
+		this[0] = parseFloat32(arguments[0]);
+		this[1] = 'param';
 		// name, value, [curve, [duration]]
 		this[2] = arguments[2];
 		this[3] = parseFloat32(arguments[3]);
@@ -187,32 +187,33 @@ const constructEventType = overload(arg(1), {
 	},
 
 	'pitch': function() {
+		this[0] = parseFloat32(arguments[0]);
+		this[1] = 'pitch';
 		this[2] = parseFloat64(arguments[2]);
 	},
 
 	'meter': function() {
+		this[0] = parseFloat32(arguments[0]);
+		this[1] = 'meter';
 		// numerator, denominator
 		this[2] = parseInt(arguments[2], 10);
 		this[3] = parseInt(arguments[3], 10);
 	},
 
 	'rate': function() {
+		this[0] = parseFloat32(arguments[0]);
+		this[1] = 'rate';
 		// rate
 		this[2] = parseFloat64(arguments[2]);
 	},
 
 	default: function() {
+		this[0] = parseFloat32(arguments[0]);
+		this[1] = arguments[1];
 		this[2] = arguments[2];
 	}
 });
 
-export function Event(time, type) {
-	// Yes, WebAudio time is Float32, but this event may be a beat and I see
-	// little reason not to use full accuracy
-	this[0] = parseFloat64(time);
-	this[1] = type;
-	constructEventType.apply(this, arguments);
-}
 
 function reset() {
 	this.target = undefined;
@@ -222,11 +223,18 @@ function reset() {
 
 	// Clear out any old parameters beyond length
 	let n = this.length - 1;
-	while(this[++n]) { delete this[n]; }
+	while(this[++n]) { this[n] = undefined; }
 }
 
 function isIdle(event) {
 	return event[0] === undefined;
+}
+
+
+/** Event() **/
+
+export function Event(time, type) {
+	assign(this, arguments);
 }
 
 assign(Event, {
@@ -263,6 +271,7 @@ assign(Event, {
 
 	parse: function(string) {
 		const data = string.split(/\s+/);
+		constructEventType.apply(data, data);
 		return new Event(...data);
 	},
 

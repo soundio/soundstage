@@ -20,38 +20,51 @@
         window.addEventListener('load', () => window.requestAnimationFrame(() => document.documentElement.classList.remove('loading')));
     </script>
 
-    <link rel="stylesheet" href="../module.css" />
+    <link rel="stylesheet" href="../../module.css" />
 </head>
 
 <body class="3x-grid grid">
-    <h1>Test tree</h1>
+    <h1>Test Soundstage</h1>
     <button type="button" value="" id="start">Start tests</button>
     <script type="module">
-        import events    from '../../../../dom/modules/events.js';
-        import context   from '../../context.js';
-        import Sequencer from '../../sequencer/sequencer.js';
+        import events     from '../../../dom/modules/events.js';
+        import context    from '../context.js';
+        import Soundstage from '../soundstage.js';
 
-        events('click', document.getElementById('start')).each((e) => {
-            const sequencer = new Sequencer(context, [
-                [0, 'sequence', 9, 0, 2],
-                [1, 'sequence', 9, 0, 2],
-                [2, 'sequence', 9, 0, 2],
-                [3, 'sequence', 9, 0, 2],
-                [4, 'sequence', 9, 0, 2]
-            ], [{
+        const stage = Soundstage.from({
+            nodes: [{
+                id: 1,
+                type: 'tone',
+                node: { type: 'sine' },
+                events: [
+                    [0, 'sequence', 9, 0, 2]
+                ]
+            }, {
+                id:   'output',
+                type: 'output',
+                node: { channels: [0,1] }
+            }],
+
+            connectors: [
+                [1, 'output']
+            ],
+
+            sequences: [{
                 id: 9,
                 events: [
                     // Should never be played
-                    [-0.1, 'note', 0, 0, 0.2],
+                    [-0.1, 'note', 80, 0, 0.2],
                     // Should be played
-                    [0,   'note', 1, 0, 2],
-                    [0.1, 'note', 2, 0, 0.2],
+                    [0,   'note', 100, 0, 0.05],
+                    [0.1, 'note', 200, 0, 0.2],
                     [0.2, 'param', 'gain', 0, 'exponential']
-                ],
-                sequences: []
-            }]);
+                ]
+            }]
+        });
 
-            sequencer.start(context.currentTime + 1).stop(context.currentTime + 5);
+        events('click', document.getElementById('start')).each((e) => {
+            stage.start(context.currentTime + 1).stop(context.currentTime + 5);
+            window.stage = stage;
         });
     </script>
 </body>

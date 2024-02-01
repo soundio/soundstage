@@ -55,28 +55,30 @@ Finally, the `output` property is the id of a child node that is used as an
 output by the `.connect()` and `.disconnect()` methods.
 **/
 
-import Privates from '../../fn/modules/privates.js';
+import Privates                  from '../../fn/modules/privates.js';
 import { logGroup, logGroupEnd } from '../modules/print.js';
 import { connect, disconnect }   from '../modules/connect.js';
-import nativeConstructors        from '../modules/graph/constructors.js';
-
+import constructors              from '../modules/graph/constructors.js';
 import Mix                       from './mix.js';
 import SampleSet                 from './sample-set.js';
-import Tone                      from './tone.js';
+import Sink                      from './sink.js';
+
+import { log }   from './print.js';
 
 const DEBUG  = false;//window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
 const seal   = Object.seal;
 
-export const constructors = assign({
+const types = assign({
     mix:     Mix,
     samples: SampleSet,
-    tone:    Tone,
-}, nativeConstructors);
+    sink:    Sink
+}, constructors);
+
 
 function create(type, context, settings, transport) {
-    const Constructor = constructors[type];
+    const Constructor = types[type];
 
     if (!Constructor) {
         throw new Error('Soundstage: NodeGraph cannot create node of unregistered type "' + type + '"');
@@ -89,7 +91,7 @@ function create(type, context, settings, transport) {
     if (Constructor.preload) {
         console.warn('Soundstage: node contructor for "' + type + '" has a preload function, which is Todo, because not properly implemented yet');
         Constructor.preload(basePath, context).then(() => {
-            print('Node', Node.name, 'preloaded');
+            log('Node', Node.name, 'preloaded');
             return Node;
         }) ;
     }
@@ -212,6 +214,8 @@ export default function NodeGraph(context, data, transport) {
 
     if (DEBUG) { logGroupEnd(); }
 }
+
+assign(NodeGraph, { types });
 
 assign(NodeGraph.prototype, {
     /**

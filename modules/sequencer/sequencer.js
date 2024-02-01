@@ -1,11 +1,13 @@
 
-import id           from '../../fn/modules/id.js';
-import mix          from '../../fn/modules/mix.js';
-import Privates     from '../../fn/modules/privates.js';
-import Frames       from './sequencer/frames.js';
-import SequenceHead from './sequencer/sequence-head.js';
-import Playable     from './playable.js';
-import { log }      from './print.js';
+import id           from '../../../fn/modules/id.js';
+import mix          from '../../../fn/modules/mix.js';
+import Privates     from '../../../fn/modules/privates.js';
+import Playable     from '../playable.js';
+import Frames       from './frames.js';
+import PlayHead     from './play-head.js';
+
+import { log }      from '../print.js';
+
 
 const assign = Object.assign;
 
@@ -13,13 +15,7 @@ const assign = Object.assign;
 /** Sequencer() **/
 
 export default function Sequencer(context, events, sequences) {
-    // .context
-    // .startTime
-    // .stopTime
-    // .status
     Playable.call(this, context);
-
-    const privates = Privates(this);
     this.events    = events;
     this.sequences = sequences;
 }
@@ -47,7 +43,7 @@ assign(Sequencer.prototype, {
         //}
 
         const frames = new Frames(this.context);
-        const head   = new SequenceHead(this.events, this.sequences, id, {
+        const head   = new PlayHead(this.events, this.sequences, id, {
             start: function(a, b, c, d, e) {
                 //console.log('START', a, b, c, d, e);
                 return this;
@@ -59,7 +55,7 @@ assign(Sequencer.prototype, {
             }
         });
 
-        // Pipe frames to playback head (Soundstage sneakily uses privates.playhead, be warned)
+        // Pipe frames to playback head (sneaky use of privates.playhead, be warned)
         return privates.playhead = frames
         .pipe(head)
         .start(this.startTime);

@@ -1,9 +1,10 @@
 
+import id         from '../../../fn/modules/id.js';
+import matches    from '../../../fn/modules/matches.js';
 import mix        from '../../../fn/modules/mix.js';
 import overload   from '../../../fn/modules/overload.js';
 import remove     from '../../../fn/modules/remove.js';
 import Event, { isRateEvent, isParamEvent, getDuration } from '../event.js';
-import distribute from '../distribute.js';
 import Head       from '../tree/head.js';
 import { beatAtLocation } from './location.js';
 import { log }    from '../print.js';
@@ -12,13 +13,24 @@ const assign = Object.assign;
 const create = Object.create;
 const define = Object.defineProperties;
 
-const distributeEvent = overload((head, event, b2) => event[1], {
-    sequence: (head, event) => {
-        event.target = head;
-        distribute(event).stop(event[0] + event[4]);
+const distribute = overload((head, target, event, b2) => event[1], {
+    // Event types
+    //
+    // [time, "rate",     number, curve]
+    // [time, "meter",    numerator, denominator]
+    // [time, "note",     number, velocity, duration]
+    // [time, "start",    number, velocity]
+    // [time, "stop",     number]
+    // [time, "param",    name, value, curve]
+    // [time, "pitch",    semitones]
+    // [time, "chord",    root, mode, duration]
+    // [time, "sequence", name || events, target, duration, transforms...]
+
+    log: (head, target, event) => {
+        print('Event ' + string);
     },
 
-    note: (head, event, b2) => {
+    note: (head, target, event, b2) => {
         const stopevent = new Event(event[0] + event[4], 'stop', event[2], event[3]);
 
         // Redefine event as start event, abs time
@@ -27,37 +39,45 @@ const distributeEvent = overload((head, event, b2) => event[1], {
         event[4] = undefined;
 
         // Distribute start event
-        event.target = head.target;
-        stopevent.target = distribute(event);
+        stopevent.target = target.push(event);
 
         if (window.DEBUG && !stopevent.target) {
-            throw new Error('SequenceHead: .distribute() must return a target object for a "start" event');
+            throw new Error('PlayHead: target.push() must return an object for a "start" event');
         }
 
         if (stopevent.target.events) {
-            console.log('SequenceHead: .distribute() has returned a sequence... ?');
+            console.log('PlayHead: target.push() has returned a sequence... ?');
         }
 
         // Stop event is before frame end, distribute, otherwise cue
         if (stopevent[0] < b2) {
             stopevent[0] = head.timeAtBeat(stopevent[0]);
-            distribute(stopevent);
+            target.push(stopevent);
         }
         else {
             head.stopevents.push(stopevent);
         }
     },
 
-    stop: (head, event) => {
+    sequence: (head, target, event) => {
+        const sequence = head.sequences.find(matches({ id: event[2] }));
+        const transform = id;
+
+        head
+        .create('playhead', sequence.events, sequence.sequences, transform, head.target)
+        .start(event[0])
+        .stop(event[0] + event[4]);
+    },
+
+    stop: (head, target, event) => {
         event[0] = head.timeAtBeat(event[0]);
-        distribute(event);
+        target.push(event);
         remove(head.stopevents, event);
     },
 
-    default: (head, event) => {
-        event[0]     = head.timeAtBeat(event[0]);
-        event.target = head.target;
-        distribute(event);
+    default: (head, target, event) => {
+        event[0] = head.timeAtBeat(event[0]);
+        target.push(event);
     }
 });
 
@@ -140,13 +160,13 @@ function bufferStopEvents(events, b1, b2, buffer) {
 
 
 /**
-SequenceHead()
+PlayHead()
 In a head, `.startTime`, `.stopTime` and `.currentTime` refer to the time of
 their input's stream of time numbers. When a head starts a sequence it becomes
 the input stream for the head that reads the sequence.
 **/
 
-export default function SequenceHead(events, sequences, transform, target) {
+export default function PlayHead(events, sequences, transform, target) {
     Head.apply(this, arguments);
     this.buffer     = [];
     this.params     = {};
@@ -154,17 +174,17 @@ export default function SequenceHead(events, sequences, transform, target) {
     this.target     = target;
 }
 
-assign(SequenceHead, {
-    from: (data) => new SequenceHead(data.events, data.sequences, data.transform, data.target),
+assign(PlayHead, {
+    from: (data) => new PlayHead(data.events, data.sequences, data.transform, data.target),
 
-    nodes: {
-        'sequencehead': SequenceHead
+    types: {
+        'playhead': PlayHead
     }
 });
 
-mix(SequenceHead.prototype, Head.prototype);
+mix(PlayHead.prototype, Head.prototype);
 
-assign(SequenceHead.prototype, {
+assign(PlayHead.prototype, {
     read: function(b1, b2) {
         // Fill frame buffer with events between b1 and b2
         const { buffer, events, params, stopevents } = this;
@@ -176,7 +196,7 @@ assign(SequenceHead.prototype, {
         // absolute time. Do we need to sort to time order again?
         //buffer.sort(by0Float32);
         let n = -1, event;
-        while (event = buffer[++n]) distributeEvent(this, event, b2);
+        while (event = buffer[++n]) distribute(this, this.target, event, b2);
         buffer.length = 0;
 
         return buffer;
@@ -191,7 +211,7 @@ assign(SequenceHead.prototype, {
         // Distribute all stop events with time set to absolute time
         this.stopevents.forEach((event) => {
             if (event[0] >= beat) { event[0] = beat; }
-            distributeEvent(this, event, beat);
+            distribute(this, this.target, event, beat);
         });
     }
 });

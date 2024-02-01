@@ -29,7 +29,7 @@
     <script type="module">
         import events    from '../../../../dom/modules/events.js';
         import context   from '../../context.js';
-        import Sequencer from '../../sequencer.js';
+        import Sequencer from '../sequencer.js';
 
         events('click', document.getElementById('start')).each((e) => {
             const sequencer = new Sequencer(context, [

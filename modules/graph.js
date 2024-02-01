@@ -1,40 +1,37 @@
 
-import GraphNodes    from './graph/nodes.js';
-import GraphConnects from './graph/connects.js';
+import Nodes      from './graph/nodes.js';
+import Connectors from './graph/connectors.js';
 
 const assign = Object.assign;
 const define = Object.defineProperties;
+const properties = {
+    nodes:      { enumerable: true },
+    connectors: { enumerable: true }
+};
 
 
 /* Graph */
 
-function Graph(context, nodes, connects) {
-    define(this, {
-        nodes:       {
-            enumerable: true,
-            value: new GraphNodes(this, context, nodes/*, merger, transport*/)
-        },
-
-        connections: {
-            enumerable: true,
-            value: new GraphConnects(this, connects)
-        }
-    });
+export default function Graph(nodes, connectors, context, merger, transport) {
+    // Define properties
+    properties.nodes.value      = new Nodes(this, nodes, context, merger, transport);
+    properties.connectors.value = new Connectors(properties.nodes.value, connectors);
+    define(this, properties);
 }
 
 assign(Graph, {
     from: function(data) {
-        return new Graph(data.context, data.nodes, data.connects);
+        return new Graph(data.nodes, data.connectors, data.context);
     }
 });
 
 assign(Graph.prototype, {
     find: function(fn) {
-        return this.nodes.find(fn) || this.connects.find(fn);
+        return this.nodes.find(fn) || this.connectors.find(fn);
     },
 
     findAll: function() {
-        return this.nodes.findAll(fn).concat(this.connects.findAll(fn));
+        return this.nodes.findAll(fn).concat(this.connectors.findAll(fn));
     },
 
     push: function(event) {
@@ -43,7 +40,7 @@ assign(Graph.prototype, {
         }
 
         if (event.address.startsWith('connects.')) {
-            return this.connects.push(event);
+            return this.connectors.push(event);
         }
 
         console.log('Event not handled', event);

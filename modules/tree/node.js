@@ -28,6 +28,7 @@ function createId() {
     return (++n) + '';
 }
 
+
 export default function Node() {
     this.id = createId();
     define(this, properties);
@@ -41,33 +42,37 @@ define(Node.prototype, {
     }
 });
 
+
+function toTypeCheck(object) {
+    const t = typeof object;
+
+    // Debug unsupported types
+    const type = t === 'object' ? object.type : object ;
+    if (!(this.constructor.types && (this.constructor.types[type] || this.constructor.types.default))) {
+        throw new Error(this.constructor.name + ': cannot .create() type "' + type
+            + '", supported types: '
+            + (this.constructor.types ?
+                '"' + Object.keys(this.constructor.types).join('", "') + '"' :
+                'none'
+            )
+        );
+    }
+
+    return t;
+}
+
 assign(Node.prototype, {
-    create: overload(function toTypeCheck(object) {
-        const t = typeof object;
-
-        if (window.DEBUG) {
-            // Debug unsupported types
-            const type = t === 'object' ? object.type : object ;
-            if (!(this.constructor.nodes && this.constructor.nodes[type])) {
-                throw new Error(this.constructor.name + ': cannot .create() type "' + type
-                    + '", supported types: '
-                    + (this.constructor.nodes ?
-                        '"' + Object.keys(this.constructor.nodes).join('", "') + '"' :
-                        'none'
-                    )
-                );
-            }
-        }
-
-        return t;
-    }, {
+    create: overload(window.DEBUG ? toTypeCheck : (object) => typeof object, {
         object: function(data) {
-            return this.pipe(this.constructor.nodes[data.type].from(data));
+            const Constructor = this.constructor.types[data.type] ||
+                this.constructor.types.default ;
+            return this.pipe(Constructor.from(data));
         },
 
         string: function(type, ...params) {
-            // Create object
-            return this.pipe(new this.constructor.nodes[type](...params));
+            const Constructor = this.constructor.types[type] ||
+                this.constructor.types.default ;
+            return this.pipe(new Constructor(...params));
         }
     }),
 
@@ -138,8 +143,6 @@ assign(Node.prototype, {
 
         return this;
     },
-
-    start: Stream.prototype.start,
 
     stop: function() {
         // Check status

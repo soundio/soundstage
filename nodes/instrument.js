@@ -40,7 +40,7 @@ import isDefined from '../../fn/modules/is-defined.js';
 import Privates  from '../../fn/modules/privates.js';
 import { logGroup, logGroupEnd } from './print.js';
 import Voice, { defaults as voiceDefaults } from './voice.js';
-import NodeGraph, { constructors } from './graph.js';
+import NodeGraph from './graph.js';
 import Pool from '../modules/pool.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
 import { connect, disconnect } from '../modules/connect.js';
@@ -48,11 +48,6 @@ import { connect, disconnect } from '../modules/connect.js';
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
-
-import Sink from './sink.js';
-assign(constructors, {
-    sink: Sink
-});
 
 export const config = {
     tuning: 440
@@ -65,10 +60,10 @@ const graph = {
         { id: 'detune',     type: 'gain',     data: { gain: 100 } },
         { id: 'modulation', type: 'constant', data: { offset: 120 } },
         { id: 'output',     type: 'gain',     data: {
-            channelInterpretation: 'speakers',
-            channelCountMode: 'explicit',
+            gain: 1,
             channelCount: 2,
-            gain: 1
+            channelCountMode: 'explicit',
+            channelInterpretation: 'speakers'
         }}
     ],
 
@@ -155,7 +150,6 @@ export default class Instrument extends GainNode {
 }
 
 assign(Instrument.prototype, NodeGraph.prototype, {
-
     /**
     .start(time, note, velocity)
 

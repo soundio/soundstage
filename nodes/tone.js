@@ -3,7 +3,7 @@
 Tone(context, settings)
 
 ```
-const tone = stage.createNode('tone', {
+const tone = stage.nodes.create('tone', {
     type: 'sine',      // String 'sine', 'square', 'sawtooth', 'triangle'
     frequency: 440,    // Frequency in Hz
     detune: 0,         // Deviation from frequency in cents
@@ -108,7 +108,7 @@ export default function Tone(context, options, transport) {
     // Set up the node graph
     NodeGraph.call(this, context, graph, transport);
 
-    // Define .startTime and .stopTime
+    // Define .context, .startTime and .stopTime
     Playable.call(this, context);
 
     // Define type
@@ -124,6 +124,11 @@ Tone.reset = function(node, args) {
     Playable.reset(node, args);
     assignSettingz__(node, assign({}, defaults, settings));
 };
+
+// Mixin property definitions
+define(Tone.prototype, {
+    status: getOwnPropertyDescriptor(Playable.prototype, 'status')
+});
 
 assign(Tone.prototype, NodeGraph.prototype, Playable.prototype, {
     /**
@@ -150,7 +155,5 @@ assign(Tone.prototype, NodeGraph.prototype, Playable.prototype, {
     }
 });
 
-// Mixin property definitions
-define(Tone.prototype, {
-    status: getOwnPropertyDescriptor(Playable.prototype, 'status')
-});
+// Publish Tone for use in node graphs
+NodeGraph.types.tone = Tone;

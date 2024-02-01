@@ -1,10 +1,11 @@
 
-import id       from '../../../fn/modules/id.js';
-import mix      from '../../../fn/modules/mix.js';
+import id      from '../../../fn/modules/id.js';
+import mix     from '../../../fn/modules/mix.js';
+import Stream  from '../../../../fn/modules/stream/stream.js';
 import { isRateEvent } from '../event.js';
 import { beatAtLocation, locationAtBeat } from '../sequencer/location.js';
-import Tree     from './node.js';
-import { log }  from '../print.js';
+import Tree    from './node.js';
+import { log } from '../print.js';
 
 const assign = Object.assign;
 const rate0  = Object.freeze({ 0: 0, 1: 'rate', 2: 1 });
@@ -26,7 +27,7 @@ function stop(head) {
     const rates = head.rates || head.events.filter(isRateEvent);
     const beat  = beatAtLocation(rates, rate0, head.stopTime - head.startTime);
 
-    // Support SequenceHead stopevents
+    // Support PlayHead stopevents
     head.stopRead && head.stopRead(beat);
 
     // Stop child heads (that are not already stopped by beat??)
@@ -59,7 +60,7 @@ export default function Head(events = [], sequences = [], transform = id) {
 assign(Head, {
     from: (data) => new Head(data.events, data.sequences, data.transform),
 
-    nodes: {
+    types: {
         'head': Head
     },
 
@@ -104,13 +105,23 @@ assign(Head.prototype, {
     been started throws an error. Returns the head.
     **/
     start: function(time) {
-        // Don't propagate up .start() on already started heads
+        // Don't .start() already started heads
+        if (this.status === 'done') {
+            return this;
+        }
+
         if (this.startTime !== undefined) {
             return this;
         }
 
         this.startTime = time;
-        return Tree.prototype.start.apply(this, arguments);
+
+        // Input may not exist yet
+        if (this.input) {
+            this.input.start.apply(this.input, arguments);
+        }
+
+        return this;
     },
 
     /**

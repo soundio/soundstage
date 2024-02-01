@@ -20,8 +20,8 @@ const envelope = stage.createNode('envelope', {
 ```
 
 <p class="warn">
-Take care not to connect an envelope directly to your outputs – expecially if you have expensive speakers attached.
-They are capable of producing DC signal.
+Take care not to connect an envelope directly to your outputs – expecially if
+you have expensive speakers attached. They are capable of producing DC signal.
 </p>
 **/
 
