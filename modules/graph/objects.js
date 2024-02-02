@@ -13,7 +13,7 @@ import { log }   from '../print.js';
 
 
 /**
-GraphNodes()
+Objects()
 **/
 
 const assign  = Object.assign;
@@ -29,7 +29,7 @@ const properties = {
     }
 };
 
-export default function GraphNodes(stage, data = [], context, merger, transport) {
+export default function Objects(stage, data = [], context, merger, transport) {
     // Objects that should be passed onto child nodes
     const privates = Privates(this);
     privates.stage     = stage;
@@ -44,12 +44,12 @@ export default function GraphNodes(stage, data = [], context, merger, transport)
     // Loop through nodes in data and create entries for them
     let n = -1, d;
     while (d = data[++n]) this.create(d.type, d.id, d.node, d.events, context, merger, transport);
-    log('GraphNodes', data.length + ' nodes');
+    log('Objects', data.length + ' nodes');
 }
 
-assign(GraphNodes, {
+assign(Objects, {
     /*from: function(data) {
-        return new GraphNodes(data.stage, data.nodes, data.context, data.merger, data.transport);
+        return new Objects(data.stage, data.nodes, data.context, data.merger, data.transport);
     },*/
 
     types: {
@@ -57,7 +57,7 @@ assign(GraphNodes, {
     }
 });
 
-define(GraphNodes.prototype, {
+define(Objects.prototype, {
     length: {
         get: function() {
             let n = -1;
@@ -67,7 +67,7 @@ define(GraphNodes.prototype, {
     }
 });
 
-assign(GraphNodes.prototype, {
+assign(Objects.prototype, {
     create: overload((object) => typeof object, {
         object: function(data) {
             const privates    = Privates(this);

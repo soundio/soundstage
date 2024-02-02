@@ -16,14 +16,10 @@ const assign  = Object.assign;
 const define  = Object.defineProperties;
 
 
-function getNodeFrom(nodes, src) {
+function getObjectFrom(objects, src) {
     return typeof src === 'object' ?
-        nodes.find((entry) => entry === src || entry.node === src) :
-        nodes.find(matches({ id: src })) ;
-}
-
-function create() {
-
+        objects.find((object) => object === src || object.node === src) :
+        objects.find(matches({ id: src })) ;
 }
 
 
@@ -61,7 +57,7 @@ assign(Connectors.prototype, {
             const privates = Privates(this);
             let n = -1;
             while (this[++n]);
-            return this[n] = new Connector(this, getNodeFrom(privates.nodes, src), getNodeFrom(privates.nodes, tgt), srcChan, tgtChan);
+            return this[n] = new Connector(this, getObjectFrom(privates.nodes, src), getObjectFrom(privates.nodes, tgt), srcChan, tgtChan);
         }
     }),
 

@@ -10,7 +10,8 @@ import requestMedia  from './request/request-media.js';
 import { context, domTimeAtTime, timeAtDomTime, getOutputLatency } from './context.js';
 import { connect, disconnect } from './connect.js';
 import constructors  from './graph/constructors.js';
-import Graph         from './graph.js';
+import Objects       from './graph/objects.js';
+import Connectors    from './graph/connectors.js';
 import Playable, { IDLE } from './playable.js';
 import Sequencer     from './sequencer/sequencer.js';
 import Transport     from './transport.js';
@@ -31,9 +32,15 @@ const define = Object.defineProperties;
 
 const defaults = {
     context: context,
-    nodes:   [{ id: '0', type: 'output' }]
+    objects: [{ id: '0', type: 'output' }]
 };
 
+const properties = {
+    mediaChannelCount: { enumerable: true },
+    transport:         {},
+    objects:           { enumerable: true },
+    connectors:        { enumerable: true }
+};
 
 /* Nodes */
 
@@ -79,7 +86,7 @@ function createOutputMerger(context, target) {
 Soundstage()
 
 ```js
-const stage = new Soundstage(nodes, connectors, events, sequences, options);
+const stage = new Soundstage(objects, connectors, events, sequences, options);
 const stage = Soundstage.from(data);
 ```
 
@@ -87,7 +94,7 @@ A stage is a graph of AudioNodes and a sequencer of events that control those
 AudioNodes.
 **/
 
-export default function Soundstage(nodes = defaults.nodes, connectors = [], events = [], sequences = [], settings = nothing) {
+export default function Soundstage(objects = defaults.objects, connectors = [], events = [], sequences = [], settings = nothing) {
 
     if (window.DEBUG) { printGroup('Soundstage()'); }
 
@@ -97,36 +104,30 @@ export default function Soundstage(nodes = defaults.nodes, connectors = [], even
     const destination = settings.destination || context.destination;
     const merger      = createOutputMerger(context, destination);
 
-    /**
-    .transport
-    **/
-    this.transport = new Transport(context);
+    /** .transport **/
+    const transport = new Transport(context);
 
     privates.beat    = 0;
     privates.outputs = {
         default: merger,
-        rate:    this.transport.outputs.rate,
-        beat:    this.transport.outputs.beat
+        rate:    transport.outputs.rate,
+        beat:    transport.outputs.beat
     };
 
-    /**
-    .label
-    A string name for this Soundstage document.
-    **/
-    //this.label = data.label || '';
+    properties.transport.value = transport;
 
-    /**
-    .mediaChannelCount
-    **/
-    define(this, {
-        mediaChannelCount: { value: undefined, writable: true, configurable: true }
-    });
+    /** .mediaChannelCount **/
+    properties.mediaChannelCount.value = settings.mediaChannelCount || 2;
 
-    // .nodes
-    // .connections
-    // .find()
-    // .findAll()
-    Graph.call(this, nodes, connectors, context, merger, this.transport);
+    // Setup the objects graph
+    /** .objects **/
+    properties.objects.value = new Objects(this, objects, context, merger, transport);
+    /** .connectors **/
+    properties.connectors.value = new Connectors(properties.objects.value, connectors);
+    /* TODO .pipes **/
+
+    // Define properties
+    define(this, properties);
 
     // .context
     // .events
@@ -152,11 +153,11 @@ assign(Soundstage, {
             throw new Error('Soundstage: no adapter for data version ' + data.version);
         }
 
-        return new Soundstage(data.nodes, data.connectors, data.events, data.sequences);
+        return new Soundstage(data.objects, data.connectors, data.events, data.sequences, data.settings);
     }
 });
 
-mix(Soundstage.prototype, Sequencer.prototype, Graph.prototype/*, Meter.prototype*/);
+mix(Soundstage.prototype, Sequencer.prototype/*, Graph.prototype, Meter.prototype*/);
 
 define(Soundstage.prototype, {
     /**
@@ -286,7 +287,7 @@ define(Soundstage.prototype, {
 */
 });
 
-assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
+assign(Soundstage.prototype, Sequencer.prototype, /*Graph.prototype,*/ {
     /*createControl: function(source, target, options) {
         const privates = Privates(this);
 
@@ -299,10 +300,14 @@ assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
     },*/
 
     find: function(fn) {
-        let object = this.nodes && this.nodes.find(fn);
+        let object = this.objects && this.objects.find(fn);
         if (object) { return object; }
         object = this.sequences && this.sequences.find(fn);
         return object;
+    },
+
+    findAll: function() {
+        return this.objects.findAll(fn).concat(this.connectors.findAll(fn));
     },
 
     /* Receive events */
@@ -387,12 +392,12 @@ assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
         .start(this.startTime);
 
         // Create dependent playheads for graph nodes that have events
-        let n = -1, node;
-        while(node = this.nodes[++n]) {
-            if (node.events && node.events.length) {
+        let n = -1, object;
+        while(object = this.objects[++n]) {
+            if (object.events && object.events.length) {
                 // 'playhead', events, sequences, transform, target
                 head
-                .create('playhead', node.events, this.sequences, id, node)
+                .create('playhead', object.events, this.sequences, id, object)
                 .start(0);
             }
         }
@@ -479,7 +484,7 @@ assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
     **/
 
     records: function() {
-        return this.nodes.reduce((list, node) => {
+        return this.objects.reduce((list, node) => {
             const data = node.records && node.records();
             return data ? list.concat(data) : list ;
         }, []);
