@@ -19,9 +19,9 @@ GraphNodes()
 const assign  = Object.assign;
 const define  = Object.defineProperties;
 const properties = {
-    stage: {
+    /*stage: {
         value:      undefined
-    },
+    },*/
 
     status: {
         value:      undefined,
@@ -38,7 +38,7 @@ export default function GraphNodes(stage, data = [], context, merger, transport)
     privates.transport = transport;
 
     // Define properties
-    properties.stage.value = stage;
+    //properties.stage.value = stage;
     define(this, properties);
 
     // Loop through nodes in data and create entries for them
@@ -54,6 +54,16 @@ assign(GraphNodes, {
 
     types: {
         default: GraphNode
+    }
+});
+
+define(GraphNodes.prototype, {
+    length: {
+        get: function() {
+            let n = -1;
+            while (this[++n]);
+            return n;
+        }
     }
 });
 
@@ -78,10 +88,6 @@ assign(GraphNodes.prototype, {
     pipe:    Tree.prototype.pipe,
 
     toJSON: function() {
-        // Turn this object to array
-        const array = [];
-        let n = -1;
-        while (this[++n]) node.push(this[n]);
-        return array;
+        return Array.from(this);
     }
 });

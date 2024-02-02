@@ -41,6 +41,16 @@ export default function Connectors(nodes, connectors = []) {
     log('Connectors', n + ' connections');
 }
 
+define(Connectors.prototype, {
+    length: {
+        get: function() {
+            let n = -1;
+            while (this[++n]);
+            return n;
+        }
+    }
+});
+
 assign(Connectors.prototype, {
     create: overload(function(){ return arguments.length; }, {
         1: function(data) {

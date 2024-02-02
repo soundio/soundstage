@@ -17,7 +17,6 @@ const define  = Object.defineProperties;
 const properties = {
     status: {
         value:      undefined,
-        enumerable: false,
         writable:   true
     }
 };
@@ -37,7 +36,16 @@ export default function Node() {
 define(Node.prototype, {
     type: {
         get: function() {
+            // Dodgy
             return this.constructor.name.toLowerCase();
+        }
+    },
+
+    length: {
+        get: function() {
+            let n = -1;
+            while (this[++n]);
+            return n;
         }
     }
 });

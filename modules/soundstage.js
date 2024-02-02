@@ -298,6 +298,13 @@ assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
         return new Control(this.controls, source, target, options, privates.notify);
     },*/
 
+    find: function(fn) {
+        let object = this.nodes && this.nodes.find(fn);
+        if (object) { return object; }
+        object = this.sequences && this.sequences.find(fn);
+        return object;
+    },
+
     /* Receive events */
 
     automate: function(address, name, value, curve, duration, time) {
@@ -402,6 +409,7 @@ assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
     Returns the beat of this sequence given a context `time`.
     **/
     beatAtTime: function(time) {
+        const privates = Privates(this);
         return privates.playhead ?
             privates.playhead.beatAtTime(time) :
             0 ;
@@ -412,6 +420,7 @@ assign(Soundstage.prototype, Sequencer.prototype, Graph.prototype, {
     Returns the context time that `beat` of the sequence plays at.
     **/
     timeAtBeat: function(beat) {
+        const privates = Privates(this);
         return privates.playhead ?
             privates.playhead.timeAtBeat(time) :
             0 ;

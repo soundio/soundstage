@@ -35,24 +35,33 @@
             nodes: [{
                 id: 1,
                 type: 'tone',
-                node: { type: 'sine' },
                 events: [
                     [0, 'sequence', 9, 0, 2]
-                ]
+                ],
+                node: {
+                    type: 'sine'
+                }
             }, {
                 id:   'output',
                 type: 'output',
-                node: { channels: [0,1] }
+                node: {
+                    channels: [0,1]
+                }
             }],
 
             connectors: [
                 [1, 'output']
             ],
 
+            events: [
+                // 180bpm
+                [0, 'rate', 3]
+            ],
+
             sequences: [{
                 id: 9,
                 events: [
-                    // Should never be played
+                    // TODO: Should never be played - or should we play the tail end of it?
                     [-0.1, 'note', 80, 0, 0.2],
                     // Should be played
                     [0,   'note', 100, 0, 0.05],
@@ -62,9 +71,10 @@
             }]
         });
 
+        window.stage = stage;
+
         events('click', document.getElementById('start')).each((e) => {
             stage.start(context.currentTime + 1).stop(context.currentTime + 5);
-            window.stage = stage;
         });
     </script>
 </body>

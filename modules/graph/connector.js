@@ -11,63 +11,42 @@ const assign = Object.assign;
 const define = Object.defineProperties;
 const seal   = Object.seal;
 const properties = {
-    connectors: {}
+    connectors: {},
+    source:     {},
+    target:     {},
+    param:      {},
+    length:     {}
 };
 
 export default function Connector(connectors, source, target, srcChan, tgtChan) {
-    // Get source node
-    //const sourceParts = sourceId.split('.');
-    /*const sourceNode = typeof sourceId === 'object' ?
-        nodes.find((entry) => entry === sourceId || entry.node === sourceId).node :
-        nodes.find(matches({ id: sourceId })) ;
-
-    // Get target node or param
-    //const targetParts = targetId.split('.');
-    const targetNode = typeof targetId === 'object' ?
-        nodes.find((entry) => entry === targetId || entry.node === targetId).node :
-        nodes.find(matches({ id: targetId })) ;*/
-
-    if (window.DEBUG && !source) {
-        throw new Error('Connector - missing source ' + source);
-    }
-
-    if (window.DEBUG && !target) {
-        throw new Error('Connector - missing target ' + target);
-    }
+    if (!source) { throw new Error('Connector - missing source object ' + source); }
+    if (!target) { throw new Error('Connector - missing target object ' + target); }
 
     // Define properties
     properties.connectors.value = connectors;
+    properties.source.value = source;
+    properties.target.value = target;
+
+    properties.param.value  = tgtChan
+        && !/^\d/.test(tgtChan)
+        && tgt.node[tgtChan] ;
+
+    properties.length.value = srcChan || tgtChan ?
+        4 :
+        2 ;
+
     define(this, properties);
-
-    const tgtParam = tgtChan
-    && !/^\d/.test(tgtChan)
-    && tgt.node[tgtChan] ;
-
-    this.source = source;
-    this.target = target;
-    this.tgtParam = tgtParam;
-    this.length = 2;
 
     if (srcChan || tgtChan) {
         this[2] = srcChan && parseInt(srcChan, 10) || 0;
         this[3] = tgtChan && /^\d/.test(tgtChan) && parseInt(tgtChan, 10) || 0;
-        this.length = 4;
     }
 
-    // Make immutable
-    seal(this);
-
     // Connect them up
-    if (!connect(this.source.node, this.tgtParam || this.target.node, this[2], this[3])) {
+    if (!connect(source.node, this.param || target.node, this[2], this[3])) {
         return false;
     }
 }
-
-assign(Connector, {
-    /*from: function(data) {
-        return new Connector(data.connectors, data.source, data.target, data[2], data[3]);
-    }*/
-});
 
 define(Connector.prototype, {
     0: {
@@ -84,7 +63,7 @@ define(Connector.prototype, {
 assign(Connector.prototype, {
     remove: function() {
         // Disconnect them
-        if (disconnect(this.source.node, this.tgtParam || this.target.node, this[2], this[3])) {
+        if (disconnect(this.source.node, this.param || this.target.node, this[2], this[3])) {
             // Splice this out of connectors
             let n = -1;
             while (this.connectors[++n] !== this);

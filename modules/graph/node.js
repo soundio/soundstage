@@ -1,9 +1,10 @@
 
 import get      from '../../../../fn/modules/get.js';
+import matches  from '../../../../fn/modules/matches.js';
 import Stream   from '../../../../fn/modules/stream/stream.js';
 import nothing  from '../../../../fn/modules/nothing.js';
 import overload from '../../../../fn/modules/overload.js';
-//import Privates from '../../../../fn/modules/privates.js';
+import Privates from '../../../../fn/modules/privates.js';
 import remove   from '../../../../fn/modules/remove.js';
 import { floatToFrequency, toNoteNumber } from '../../../../midi/modules/data.js';
 
@@ -42,34 +43,35 @@ const properties = {
     }
 };
 
-const ids = {};
-
-function assignId(node, id) {
-    if (id) {
-//        if (id in ids) {
-//            throw new Error('GraphNode: Attempt to create node with id of existing node');
-//        }
+function assignId(stage, object, id) {
+    if (stage.find(matches({ id }))) {
+        throw new Error('GraphNode: stage already has object with id ' + id);
     }
-    else {
+
+    // TODO: Cheeky, move this to graph.js? Hmm, circular dependency if we do.
+    const ids = Privates(stage).ids || (Privates(stage).ids = {});
+
+    if (id === undefined) {
         id = 0;
         while (ids[++id]);
     }
 
-    ids[id] = node;
-    node.id = id;
+    ids[id] = object;
+    object.id = id;
+    return object;
 }
 
-function warnNoPlayable(node, type, name) {
-    console.warn('Soundstage: dropping "' + type + '" event, node type "' + node.type + '" does not support start/stop');
+function warnNoPlayable(object, type, name) {
+    console.warn('Soundstage: dropping "' + type + '" event, node type "' + object.type + '" does not support start/stop');
 }
 
-function warnNoParam(node, type, name) {
-    console.warn('Soundstage: dropping "' + type + '" event, node type "' + node.type + '" does not support param "' + name + '"');
+function warnNoParam(object, type, name) {
+    console.warn('Soundstage: dropping "' + type + '" event, node type "' + object.type + '" does not support param "' + name + '"');
 }
 
 export default function GraphNode(stage, type, id, data = {}, events = [], context, merger, transport) {
     // Define identity in the graph
-    assignId(this, id);
+    assignId(stage, this, id);
 
     this.type    = type;
     this.events  = events;
@@ -110,7 +112,7 @@ assign(GraphNode.prototype, {
         start: function(event) {
             if (!this.node.start && !this.node.startWarningShown) {
                 this.node.startWarningShown = true;
-                warnNoPlayable(this.node, event[1], event[2])
+                warnNoPlayable(this, event[1], event[2])
                 return;
             }
 
@@ -125,7 +127,7 @@ assign(GraphNode.prototype, {
         stop: function(event) {
             if (!this.node.stop && !this.node.stopWarningShown) {
                 this.node.stopWarningShown = true;
-                warnNoPlayable(this.node, event[1], event[2])
+                warnNoPlayable(this, event[1], event[2])
                 return;
             }
 
@@ -141,7 +143,7 @@ assign(GraphNode.prototype, {
             const type = event[1];
             const name = event[2];
             //console.log(this.context.currentTime.toFixed(3), 'param ', time.toFixed(3), name, event[3], event[4], event[5]);
-            return !(name in this.node)       ? warnNoParam(this.node, type, name) :
+            return !(name in this.node)       ? warnNoParam(this, type, name) :
                 isAudioParam(this.node[name]) ? automateParamAtTime(this.node[name], time, event[3], event[4], event[5]) :
                 automatePropertyAtTime(this.node, time, name, event[3]) ;
         },
@@ -151,7 +153,7 @@ assign(GraphNode.prototype, {
             const time = event[0];
             const type = event[1];
             console.log(this.context.currentTime.toFixed(3), 'default ', time.toFixed(3), type);
-            return !(type in this.node)       ? warnNoParam(this.node, type, type) :
+            return !(type in this.node)       ? warnNoParam(this, type, type) :
                 isAudioParam(this.node[type]) ? automateParamAtTime(this.node[type], time, event[2], event[3], event[4]) :
                 automatePropertyAtTime(this.node, time, name, event[2]) ;
         }
