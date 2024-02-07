@@ -4,7 +4,8 @@ import mix     from '../../../fn/modules/mix.js';
 import Stream  from '../../../../fn/modules/stream/stream.js';
 import { isRateEvent } from '../event.js';
 import { beatAtLocation, locationAtBeat } from '../sequencer/location.js';
-import Tree    from './node.js';
+import Collection from './collection.js';
+import Tree    from './tree.js';
 import { log } from '../print.js';
 
 const assign = Object.assign;
@@ -70,6 +71,8 @@ assign(Head, {
 mix(Head.prototype, Tree.prototype);
 
 assign(Head.prototype, {
+    create: Collection.prototype.create,
+
     push: function(time) {
         if (time <= this.startTime) {
             this.currentTime = time;
@@ -77,11 +80,11 @@ assign(Head.prototype, {
         }
 
         // Cache rates, calculate beats at frame start and end
-        const rates  = this.rates = this.events.filter(isRateEvent);
-        const loc1   = this.currentTime < this.startTime ? 0 : this.currentTime - this.startTime ;
-        const loc2   = time > this.stopTime ? this.stopTime - this.startTime : time - this.startTime ;
-        const b1     = beatAtLocation(rates, rate0, loc1);
-        const b2     = beatAtLocation(rates, rate0, loc2);
+        const rates = this.rates = this.events.filter(isRateEvent);
+        const loc1  = this.currentTime < this.startTime ? 0 : this.currentTime - this.startTime ;
+        const loc2  = time > this.stopTime ? this.stopTime - this.startTime : time - this.startTime ;
+        const b1    = beatAtLocation(rates, rate0, loc1);
+        const b2    = beatAtLocation(rates, rate0, loc2);
 
         // Fill frame buffer with events between b1 and b2
         this.read(b1, b2);

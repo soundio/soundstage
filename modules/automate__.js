@@ -5,8 +5,8 @@ import id       from '../../fn/modules/id.js';
 import last     from '../../fn/modules/last.js';
 import overload from '../../fn/modules/overload.js';
 
+import { getAutomation } from './param.js';
 import { isAudioContext, timeAtDomTime } from './context.js';
-import { isAudioParam }  from './param.js';
 import config from '../config.js';
 
 const DEBUG = false;
@@ -14,16 +14,7 @@ const DEBUG = false;
 // 60 frames/sec frame rate
 const frameDuration = 1000 / 60;
 
-export function getAutomation(param) {
-    if (DEBUG && !isAudioParam(param)) {
-        throw new Error('Not an AudioParam ' + JSON.stringify(param));
-    }
 
-    // Todo: I would love to use a WeakMap to store data about AudioParams,
-    // but FF refuses to allow AudioParams as WeakMap keys. So... lets use
-    // an expando.
-    return param[config.automationEventsKey] || (param[config.automationEventsKey] = []);
-}
 
 
 // Automate audio param

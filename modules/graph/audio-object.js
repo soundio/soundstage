@@ -8,6 +8,7 @@ import Privates from '../../../../fn/modules/privates.js';
 import remove   from '../../../../fn/modules/remove.js';
 import { floatToFrequency, toNoteNumber } from '../../../../midi/modules/data.js';
 
+import Node     from '../streams/node.js';
 import { create }           from '../graph/constructors.js';
 import { automateParamAtTime, automatePropertyAtTime } from '../automate__.js';
 import { isAudioParam }     from '../param.js';
@@ -27,25 +28,25 @@ const blacklist = {
 
 
 /**
-GraphNode()
+AudioObject()
 **/
 
 const assign  = Object.assign;
 const define  = Object.defineProperties;
 const properties = {
     stage: {
-        value:      undefined
+        value:    undefined
     },
 
     status: {
-        value:      undefined,
-        writable:   true
+        value:    undefined,
+        writable: true
     }
 };
 
 function assignId(stage, object, id) {
-    if (stage.find(matches({ id }))) {
-        throw new Error('GraphNode: stage already has object with id ' + id);
+    if (id && stage.find(matches({ id }))) {
+        throw new Error('AudioObject: stage already has object with id ' + id);
     }
 
     // TODO: Cheeky, move this to graph.js? Hmm, circular dependency if we do.
@@ -69,7 +70,7 @@ function warnNoParam(object, type, name) {
     console.warn('Soundstage: dropping "' + type + '" event, node type "' + object.type + '" does not support param "' + name + '"');
 }
 
-export default function GraphNode(stage, type, id, data = {}, events = [], context, merger, transport) {
+export default function AudioObject(stage, type, id, data = {}, events = [], context, merger, transport) {
     // Define identity in the graph
     assignId(stage, this, id);
 
@@ -90,23 +91,13 @@ export default function GraphNode(stage, type, id, data = {}, events = [], conte
     assignSettingz__(this.node, data);
 }
 
-assign(GraphNode, {
+assign(AudioObject, {
     from: function(data) {
-        return new GraphNode(data.stage, data.type, data.id, data.node, data.events, data.context, data.merger, data.transport);
+        return new AudioObject(data.stage, data.type, data.id, data.node, data.events, data.context, data.merger, data.transport);
     }
 });
 
-assign(GraphNode.prototype, {
-    find: function(fn) {
-        if (fn(this.node)) { return node; }
-    },
-
-    findAll: function(fn) {
-        const nodes = [];
-        if (fn(this.node)) { nodes.push(this.node); }
-        return nodes;
-    },
-
+assign(AudioObject.prototype, Node.prototype, {
     push: overload(get(1), {
         // time, 'start', note, level
         start: function(event) {
@@ -159,35 +150,17 @@ assign(GraphNode.prototype, {
         }
     }),
 
-    // pipe from tree/node, to make this broadcastable, so you can record from
-    // it?
-    // pipe: Tree.prototype.pipe
-
     remove: function() {
-        const graph = this.graph;
+        const stage = this.stage;
 
         // Remove connections that source or target this
-        graph.connections && graph.connections
-        .filter((connection) => connection.source === this.data || connection.target === this.data)
+        stage.connectors && stage.connectors
+        .filter((connection) => connection.source === this || connection.target === this)
         .forEach((connection) => connection.remove());
 
-        // Remove controls that target this
-        //graph.controls && graph.controls
-        //.filter((control) => control.target === this.data)
-        //.forEach((control) => control.remove());
-
         // Remove from nodes
-        remove(graph.nodes, this);
-
-        // Notify observers
-        //const privates = Privates(graph);
-        //privates.notify(graph.nodes, '');
-
-        return this;
+        return Node.prototype.remove.call(this);
     },
-
-    stop: Stream.prototype.stop,
-    done: Stream.prototype.done,
 
     toJSON: function toJSON() {
         const node = this.node;

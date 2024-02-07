@@ -62,6 +62,7 @@ import constructors              from '../modules/graph/constructors.js';
 import Mix                       from './mix.js';
 import SampleSet                 from './sample-set.js';
 import Sink                      from './sink.js';
+import Tick                      from './tick.js';
 
 import { log }   from './print.js';
 
@@ -73,7 +74,8 @@ const seal   = Object.seal;
 const types = assign({
     mix:     Mix,
     samples: SampleSet,
-    sink:    Sink
+    sink:    Sink,
+    tick:    Tick
 }, constructors);
 
 

@@ -1,13 +1,14 @@
 
-import get       from '../../../../fn/modules/get.js';
-import mix       from '../../../../fn/modules/mix.js';
-import Stream    from '../../../../fn/modules/stream/stream.js';
-import nothing   from '../../../../fn/modules/nothing.js';
-import overload  from '../../../../fn/modules/overload.js';
-import Privates  from '../../../../fn/modules/privates.js';
-import remove    from '../../../../fn/modules/remove.js';
-import Tree      from '../tree/node.js';
-import GraphNode from './node.js';
+import get        from '../../../../fn/modules/get.js';
+import mix        from '../../../../fn/modules/mix.js';
+import Stream     from '../../../../fn/modules/stream/stream.js';
+import nothing    from '../../../../fn/modules/nothing.js';
+import overload   from '../../../../fn/modules/overload.js';
+import Privates   from '../../../../fn/modules/privates.js';
+import remove     from '../../../../fn/modules/remove.js';
+import Collection from '../streams/collection.js';
+import Tree       from '../streams/tree.js';
+import AudioObject from './audio-object.js';
 
 import { log }   from '../print.js';
 
@@ -30,6 +31,9 @@ const properties = {
 };
 
 export default function Objects(stage, data = [], context, merger, transport) {
+    // Intitialise as collection
+    Collection.call(this);
+
     // Objects that should be passed onto child nodes
     const privates = Privates(this);
     privates.stage     = stage;
@@ -53,7 +57,7 @@ assign(Objects, {
     },*/
 
     types: {
-        default: GraphNode
+        default: AudioObject
     }
 });
 
@@ -67,7 +71,7 @@ define(Objects.prototype, {
     }
 });
 
-assign(Objects.prototype, {
+assign(Objects.prototype, Collection.prototype, {
     create: overload((object) => typeof object, {
         object: function(data) {
             const privates    = Privates(this);
@@ -78,12 +82,10 @@ assign(Objects.prototype, {
         string: function(type, ...params) {
             const privates    = Privates(this);
             const Constructor = this.constructor.types[type] || this.constructor.types.default;
-            return this.pipe(new Constructor(privates.stage, type, ...params));
+            return this.pipe(new Constructor(privates.stage, type, params[0], params[1], params[2], privates.context, privates.merger, privates.transport));
         }
     }),
 
-    find:    Tree.prototype.find,
-    findAll: Tree.prototype.findAll,
     push:    Tree.prototype.push,
     pipe:    Tree.prototype.pipe,
 

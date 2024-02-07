@@ -33,6 +33,8 @@ import noop     from '../../fn/modules/noop.js';
 import { floatToFrequency, toNoteNumber } from '../../midi/modules/data.js';
 import { dB48 } from '../modules/constants.js';
 import { hold } from '../modules/param.js';
+import parseFrequency from '../modules/parse/parse-frequency.js';
+import parseGain      from '../modules/parse/parse-gain.js';
 
 const assign = Object.assign;
 
@@ -48,18 +50,18 @@ export const defaults = {
 
 // Tick
 
-export default function Tick(audio, options) {
+export default function Tick(context, options) {
     if (!Tick.prototype.isPrototypeOf(this)) {
-        return new Tick(audio, options);
+        return new Tick(context, options);
     }
 
     var settings   = assign({}, defaults, options);
 
-    var oscillator = audio.createOscillator();
-    var filter     = audio.createBiquadFilter();
-    var gain       = audio.createGain();
-    var output     = audio.createGain();
-    //var merger     = audio.createChannelMerger(2);
+    var oscillator = context.createOscillator();
+    var filter     = context.createBiquadFilter();
+    var gain       = context.createGain();
+    var output     = context.createGain();
+    //var merger     = context.createChannelMerger(2);
 
     //NodeGraph.call(this, {
     //	nodes: [
@@ -118,7 +120,7 @@ export default function Tick(audio, options) {
     }
 
     oscillator.type = 'square';
-    oscillator.frequency.setValueAtTime(300, audio.currentTime);
+    oscillator.frequency.setValueAtTime(300, context.currentTime);
     oscillator.start();
     oscillator.connect(filter);
 
@@ -129,22 +131,19 @@ export default function Tick(audio, options) {
     //output.connect(merger, 0, 0);
     //output.connect(merger, 0, 1);
 
-    this.gain = output.gain;
-
+    this.gain      = output.gain;
     this.resonance = settings.resonance;
     this.decay     = settings.decay;
     //this.gain      = settings.gain;
 
-    /**
-    .start(time, note, velocity)
-    Todo: move parameters to be properties of tick object, echoing other signal generators
-    **/
-    this.start = function(time, number, level) {
-        var frequency = typeof number === 'string' ?
-            floatToFrequency(440, toNoteNumber(number)) :
-            floatToFrequency(440, number) ;
 
-        schedule(time || audio.currentTime, frequency, level, this.decay, this.resonance);
+    /**
+    .start(time, frequency, gain)
+    **/
+    this.start = function(time, frequency = 440, gain = 0.125) {
+        frequency = parseFrequency(frequency);
+        gain      = parseGain(gain);
+        schedule(time || context.currentTime, frequency, gain, this.decay, this.resonance);
         return this;
     };
 

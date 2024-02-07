@@ -21,7 +21,8 @@ import PlayHead      from './sequencer/play-head.js';
 
 import Input         from '../nodes/input.js';
 import Instrument    from '../nodes/instrument.js';
-//import Metronome     from '../nodes/metronome.js';
+import Metronome     from '../nodes/metronome.js';
+import Tick          from '../nodes/tick.js';
 import Tone          from '../nodes/tone.js';
 
 import { log, printGroup, printGroupEnd }     from './print.js';
@@ -36,6 +37,7 @@ const defaults = {
 };
 
 const properties = {
+    version:           { value: 0 },
     mediaChannelCount: { enumerable: true },
     transport:         {},
     objects:           { enumerable: true },
@@ -48,6 +50,8 @@ const properties = {
 assign(constructors, {
     'input':      Input,
     'instrument': Instrument,
+    'metronome':  Metronome,
+    'tick':       Tick,
     'tone':       Tone
 });
 
@@ -119,12 +123,11 @@ export default function Soundstage(objects = defaults.objects, connectors = [], 
     /** .mediaChannelCount **/
     properties.mediaChannelCount.value = settings.mediaChannelCount || 2;
 
-    // Setup the objects graph
     /** .objects **/
-    properties.objects.value = new Objects(this, objects, context, merger, transport);
     /** .connectors **/
+    /** .pipes TODO **/
+    properties.objects.value = new Objects(this, objects, context, merger, transport);
     properties.connectors.value = new Connectors(properties.objects.value, connectors);
-    /* TODO .pipes **/
 
     // Define properties
     define(this, properties);
@@ -134,20 +137,13 @@ export default function Soundstage(objects = defaults.objects, connectors = [], 
     // .sequences
     // .startTime
     // .stopTime
-    // .start()
     // .stop()
     Sequencer.call(this, context, events, sequences);
-
-    // Create metronome.
-    //this.metronome = new Metronome(context, data.metronome, this);
-    //this.metronome.start(0);
 
     if (window.DEBUG) { printGroupEnd(); }
 }
 
 assign(Soundstage, {
-    version: 1,
-
     from: (data) => {
         if (data && isDefined(data.version) && data.version !== Soundstage.version) {
             throw new Error('Soundstage: no adapter for data version ' + data.version);
@@ -253,11 +249,16 @@ define(Soundstage.prototype, {
     Setting .metronome to true will create a metronome node (if there inspect
     not already one in the graph, and then start it.
     **/
-
-/*    metronome: {
+    /*
+    metronome: {
         enumerable: true,
 
         get: function() {
+            const privates = Privates(this);
+            if (!privates.metronome) {
+                privates.metronome = this.nodes.create('metronome');
+            }
+
             const node = this.nodes.find(matches({ type: 'metronome' }));
             if (!node) { return false; }
             const metronome = node.data;
@@ -283,8 +284,36 @@ define(Soundstage.prototype, {
                 metronome.stop(metronome.context.currentTime);
             }
         }
-    }
-*/
+    }*/
+
+    /**
+    .metronome
+    A boolean indicating the state of a stage's metronome object.
+    **/
+    metronome: {
+        get: function() {
+            const privates = Privates(this);
+            return privates.metronome && !privates.metronome.mute;
+        },
+
+        set: function(value) {
+            if (!!value === !!this.metronome) { return; }
+
+            const privates = Privates(this);
+
+            if (value) {
+                if (!privates.metronome) {
+                    privates.metronome          = this.objects.create('metronome');
+                    privates.metronomeConnector = this.connectors.create(privates.metronome, 'output');
+                }
+            }
+            else {
+                if (privates.metronome) {
+                    privates.metronome.remove();
+                }
+            }
+        }
+    },
 });
 
 assign(Soundstage.prototype, Sequencer.prototype, /*Graph.prototype,*/ {

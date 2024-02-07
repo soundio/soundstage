@@ -3,7 +3,7 @@
 import { printGroup, printGroupEnd, log } from './print.js';
 import Privates  from '../../fn/modules/privates.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
-import Playable  from './play-node.js';
+import Playable  from '../modules/playable.js';
 import NodeGraph from './graph.js';
 
 if (!NodeGraph.prototype.get) {

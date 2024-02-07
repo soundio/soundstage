@@ -4,11 +4,11 @@ import Privates from '../../fn/modules/privates.js';
 import Stream   from '../../fn/modules/stream.js';
 import Clock    from './clock.js';
 
-import { roundBeat }            from './utilities.js';
-import { automate, getValueAtTime, getAutomation } from './automate__.js';
+import { automate, getValueAtTime } from './automate__.js';
+import { getAutomation } from './param.js';
 import { connect, disconnect }  from './connect.js';
 import { barAtBeat, beatAtBar } from './sequencer/meter.js';
-import { beatAtTimeOfAutomation, timeAtBeatOfAutomation } from './sequencer/location.js';
+import { beatAtTimeOfAutomation, timeAtBeatOfAutomation } from './param.js';
 
 
 const assign = Object.assign;
@@ -18,6 +18,12 @@ const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 const defaultRateEvent  = Object.freeze({ time: 0, value: 2, curve: 'step', beat: 0 });
 const defaultMeterEvent = Object.freeze({ 0: 0, 1: 'meter', 2: 4, 3: 1 });
 
+
+/*function roundBeat(n) {
+    // Mitigate floating-point rounding errors by rounding to the nearest
+    // trillionth
+    return Math.round(1000000000000 * n) / 1000000000000;
+}*/
 
 function invertNodeFromNode(inputNode) {
     // Divide input by 8 to give us a bit of headroom. For rate, we're looking
@@ -95,7 +101,7 @@ assign(Transport.prototype, Clock.prototype, {
         //console.log('transport.beatAtTime', this.startTime, defaultRateEvent, events);
         const startBeat = this.startLocation || (this.startLocation = beatAtTimeOfAutomation(events, defaultRateEvent, this.startTime));
         const timeBeat  = beatAtTimeOfAutomation(events, defaultRateEvent, time, this.startTime);
-        return roundBeat(timeBeat - startBeat);
+        return Math.fround(timeBeat - startBeat);
     },
 
     timeAtBeat: function(beat) {

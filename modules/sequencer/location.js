@@ -1,7 +1,4 @@
 
-var freeze = Object.freeze;
-var automationDefaultEvent = freeze({ time: 0, curve: 'step', value: 1, beat: 0 });
-
 export function beatAtTimeStep(value0, time) {
     // value0 = start rate
     // time   = current time
@@ -72,68 +69,7 @@ export function rateAtBeatExponential(value0, value1, beats, beat) {
 
 
 /**
-beatAtTimeAutomation(e0, e1, time)
-
-Returns the rate beat at a given `time`.
-**/
-
-function beatAtTimeAutomation(e0, e1, time) {
-    // Returns beat relative to e0[0], where l is location from e0 time
-    return time === e0.time ? 0 :
-        e1 && e1.curve === "exponential" ?
-            beatAtTimeExponential(e0.value, e1.value, e1.time - e0.time, time - e0.time) :
-            beatAtTimeStep(e0.value, time - e0.time) ;
-}
-
-export function beatAtTimeOfAutomation(events, seed = automationDefaultEvent, time) {
-    let b = seed.beat || 0;
-    let n = -1;
-
-    while (events[++n] && events[n].time < time) {
-        b = events[n].beat || (
-            events[n].beat = b + beatAtTimeAutomation(seed, events[n], events[n].time)
-        );
-        seed = events[n];
-    }
-
-    return b + beatAtTimeAutomation(seed, events[n], time);
-}
-
-
-/**
-timeAtBeatAutomation(e0, e1, beat)
-
-Returns the time of a given rate `beat`.
-**/
-
-function timeAtBeatAutomation(e0, e1, beat) {
-    // Returns time relative to e0 time, where b is beat from e0[0]
-    return beat === e0.beat ? 0 :
-        e1 && e1.curve === "exponential" ?
-            timeAtBeatExponential(e0.value, e1.value, e1.beat - e0.beat, beat - e0.beat) :
-            timeAtBeatStep(e0.value, beat - (e0.beat || 0)) ;
-}
-
-export function timeAtBeatOfAutomation(events, seed = automationDefaultEvent, beat) {
-    let b = seed.beat || 0;
-    let n = -1;
-
-    while (events[++n]) {
-        b = events[n].beat || (
-            events[n].beat = b + beatAtTimeAutomation(seed, events[n], events[n].time)
-        );
-
-        if (b > beat) { break; }
-        seed = events[n];
-    }
-
-    return seed.time + timeAtBeatAutomation(seed, events[n], beat);
-}
-
-
-/**
 .locationAtBeat(beat)
-
 Returns the location of a given `beat`.
 **/
 
@@ -160,7 +96,6 @@ export function locationAtBeat(events, event, beat) {
 
 /**
 .beatAtLocation(location)
-
 Returns the beat at a given `location`.
 **/
 

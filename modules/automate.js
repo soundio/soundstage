@@ -1,9 +1,8 @@
 
-import { hold } from './param.js';
-
-const automation = Symbol('Soundstage.automation');
+import { hold, getAutomation } from './param.js';
 
 const curves = {
+    // time = event[0], value = event[1], curve = event[2], duration = event[3]
     'step':        (param, event) => param.setValueAtTime(event.value, event.time),
     'linear':      (param, event) => param.linearRampToValueAtTime(event.value, event.time),
     'exponential': (param, event) => param.exponentialRampToValueAtTime(event.value, event.time),
@@ -11,12 +10,6 @@ const curves = {
     'curve':       (param, event) => param.setValueCurveAtTime(event.value, event.time, event.duration),
     'hold':        hold
 };
-
-function getAutomation(param) {
-    // Use an expando to store automation events. Automation events are stored
-    // as Float32 numbers.
-    return param[automation] || (param[automation] = new Float32Array(64));
-}
 
 function automateParam(param, time, value, curve, duration) {
     const events = getAutomation(param);
