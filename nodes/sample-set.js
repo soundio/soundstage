@@ -45,7 +45,7 @@ import { requestData }      from '../modules/request/request-data.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
 import { fadeInFromTime, fadeOutToTime, releaseAtTime } from '../modules/param.js';
 import NodeGraph from './graph.js';
-import Playable  from '../modules/playable.js';
+import Playable  from '../modules/mixins/playable.js';
 
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;

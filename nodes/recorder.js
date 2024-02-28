@@ -2,7 +2,7 @@
 import noop     from '../../fn/modules/noop.js';
 import nothing  from '../../fn/modules/nothing.js';
 import Privates from '../../fn/modules/privates.js';
-import Playable from '../modules/playable.js';
+import Playable from '../modules/mixins/playable.js';
 
 const define = Object.defineProperties;
 const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;

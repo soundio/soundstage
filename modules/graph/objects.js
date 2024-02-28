@@ -6,8 +6,8 @@ import nothing    from '../../../../fn/modules/nothing.js';
 import overload   from '../../../../fn/modules/overload.js';
 import Privates   from '../../../../fn/modules/privates.js';
 import remove     from '../../../../fn/modules/remove.js';
-import Collection from '../streams/collection.js';
-import Tree       from '../streams/tree.js';
+import Collection from '../mixins/collection.js';
+import Tree       from '../mixins/tree.js';
 import AudioObject from './audio-object.js';
 
 import { log }   from '../print.js';
@@ -61,17 +61,9 @@ assign(Objects, {
     }
 });
 
-define(Objects.prototype, {
-    length: {
-        get: function() {
-            let n = -1;
-            while (this[++n]);
-            return n;
-        }
-    }
-});
+mix(Objects.prototype, Collection.prototype);
 
-assign(Objects.prototype, Collection.prototype, {
+assign(Objects.prototype, {
     create: overload((object) => typeof object, {
         object: function(data) {
             const privates    = Privates(this);
@@ -87,9 +79,5 @@ assign(Objects.prototype, Collection.prototype, {
     }),
 
     push:    Tree.prototype.push,
-    pipe:    Tree.prototype.pipe,
-
-    toJSON: function() {
-        return Array.from(this);
-    }
+    pipe:    Tree.prototype.pipe
 });

@@ -20,7 +20,7 @@ const json = JSON.stringify(playable);   // {}
 ```
 **/
 
-import { logGroup, logGroupEnd }  from './print.js';
+import { logGroup, logGroupEnd }  from '../print.js';
 
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;

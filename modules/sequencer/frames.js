@@ -3,7 +3,7 @@ import id       from '../../../fn/modules/id.js';
 import Stream, { pipe, stop } from '../../../fn/modules/stream/stream.js';
 import remove   from '../../../fn/modules/remove.js';
 import config   from '../../config.js';
-import Playable from '../playable.js';
+import Playable from '../mixins/playable.js';
 
 const assign       = Object.assign;
 const create       = Object.create;
@@ -120,7 +120,7 @@ FrameStream.prototype = assign(create(Stream.prototype), Playable.prototype, {
         // Register for frames
         listen(this);
 
-        // Connect this to output (sets this[0] and output.input)
+        // Connect this to output (sets this[0] and output[-1])
         return pipe(this, output);
     },
 

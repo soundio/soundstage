@@ -9,7 +9,7 @@ import Stream, { pipe, stop } from '../../../fn/modules/stream.js';
 import { noteToFrequency }    from '../../../midi/modules/data.js';
 
 import Event, { isRateEvent, getDuration } from '../event.js';
-import Playable                            from '../playable.js';
+import Playable                            from '../mixins/playable.js';
 import { beatAtLocation, locationAtBeat }  from './location.js';
 import { getValueAtTime }                  from '../automate__.js';
 import { print }                           from '../print.js';

@@ -5,6 +5,7 @@ import id       from '../../fn/modules/id.js';
 import last     from '../../fn/modules/last.js';
 import overload from '../../fn/modules/overload.js';
 
+import Event             from './event.js';
 import { getAutomation } from './param.js';
 import { isAudioContext, timeAtDomTime } from './context.js';
 import config from '../config.js';
@@ -78,69 +79,40 @@ const curves = {
 };
 
 const createEvent = overload(id, {
-    'exponential': (curve, param, event0, event1, time, value) => {
-        // Make an event object to be stored in param$automationEvents
-        const event = {
-            time:  time,
-            value: Math.fround(value)
-        };
-
+    'exponential': (curve, param, e0, e1, time, value) => {
         // Deal with exponential curves starting or ending with value 0. Swap them
         // for step curves, which is what they tend towards for low values.
         // Todo: deal with -ve values.
-        if (event.value <= config.minExponentialValue) {
-            event.time  = event0 ? event0.time : 0 ;
-            event.curve = "step";
+        if (event[2] <= config.minExponentialValue) {
+            time  = e0 ? e0[0] : 0 ;
+            curve = "step";
         }
-        else if (event0 && event0.value < config.minExponentialValue) {
-            event.curve = "step";
+        else if (e0 && e0[2] < config.minExponentialValue) {
+            curve = "step";
         }
         else {
-            event.curve = "exponential";
+            curve = "exponential";
         }
 
-        return event;
+        return new Event(time, curve, Math.fround(value));
     },
 
     'hold': function(curve, param, event0, event1, time) {
         // Set a curve of the same type as the next to this time and value
-        return event1 && event1.curve === 'linear' ? {
-            time:  time,
-            curve: 'linear',
-            value: Math.fround(getValueBetweenEvents(event0, event1, time))
-        } :
-
-        event1 && event1.curve === 'exponential' ? {
-            time:  time,
-            curve: 'exponential',
-            value: Math.fround(getValueBetweenEvents(event0, event1, time))
-        } :
-
-        event0 && event0.curve === 'target' ? {
-            time:  time,
-            curve: 'step',
-            value: getValueAtTime(param, time)
-        } : {
-            time: time
-        } ;
+        return event1 && event1.curve === 'linear' ?
+            new Event(time, 'linear', Math.fround(getValueBetweenEvents(event0, event1, time))) :
+        event1 && event1.curve === 'exponential' ?
+            new Event(time, 'exponential', Math.fround(getValueBetweenEvents(event0, event1, time))) :
+        event0 && event0.curve === 'target' ?
+            new Event(time, 'step', getValueAtTime(param, time)) :
+        new Event(time) ;
     },
 
-    'target': (curve, param, event0, event1, time, value, duration) => {
-        return {
-            time:     time,
-            curve:    'target',
-            value:    Math.fround(value),
-            duration: duration
-        };
-    },
+    'target': (curve, param, event0, event1, time, value, duration) =>
+        new Event(time, 'target', Math.fround(value), duration),
 
-    'default': (curve, param, event0, event1, time, value, duration) => {
-        return {
-            time:     time,
-            curve:    curve,
-            value:    Math.fround(value)
-        };
-    }
+    'default': (curve, param, event0, event1, time, value, duration) =>
+        new Event(time, curve, Math.fround(value))
 });
 
 const mutateEvents = choose({

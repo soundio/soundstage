@@ -21,7 +21,7 @@ defining voices for instruments.
 **/
 
 import NodeGraph            from './graph.js';
-import Playable             from '../modules/playable.js';
+import Playable             from '../modules/mixins/playable.js';
 import { attackAtTime, releaseAtTime } from '../modules/param.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
 import { dB60 }             from '../modules/constants.js';
@@ -29,6 +29,15 @@ import { dB60 }             from '../modules/constants.js';
 const assign = Object.assign;
 const define = Object.defineProperties;
 const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
+
+const defaults = {
+    type:      'sine',
+    frequency: 440,
+    detune:    0,
+    //gain:      1,
+    attack:    0.002,
+    release:   0.006
+};
 
 const graph = {
     nodes: [
@@ -61,15 +70,6 @@ const graph = {
     },
 
     output: 'output'
-};
-
-const defaults = {
-    type:      'sine',
-    frequency: 440,
-    detune:    0,
-    //gain:      1,
-    attack:    0.002,
-    release:   0.006
 };
 
 const properties = {

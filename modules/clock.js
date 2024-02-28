@@ -1,6 +1,6 @@
 
 import Privates from '../../fn/modules/privates.js';
-import Playable from './playable.js';
+import Playable from './mixins/playable.js';
 
 const DEBUG  = false;//window.DEBUG;
 

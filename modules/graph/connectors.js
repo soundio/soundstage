@@ -8,7 +8,7 @@ import overload  from '../../../../fn/modules/overload.js';
 import Privates  from '../../../../fn/modules/privates.js';
 import remove    from '../../../../fn/modules/remove.js';
 
-import Collection from '../streams/collection.js';
+import Collection from '../mixins/collection.js';
 import Connector  from './connector.js';
 import { log }    from '../print.js';
 

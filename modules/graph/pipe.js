@@ -1,5 +1,5 @@
 
-import { unpipe, removeOutput } from '../streams/node.js';
+import { unpipe, removeOutput } from '../mixins/node.js';
 
 const assign = Object.assign;
 const define = Object.defineProperties;

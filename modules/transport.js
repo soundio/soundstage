@@ -5,10 +5,9 @@ import Stream   from '../../fn/modules/stream.js';
 import Clock    from './clock.js';
 
 import { automate, getValueAtTime } from './automate__.js';
-import { getAutomation } from './param.js';
 import { connect, disconnect }  from './connect.js';
 import { barAtBeat, beatAtBar } from './sequencer/meter.js';
-import { beatAtTimeOfAutomation, timeAtBeatOfAutomation } from './param.js';
+import { getAutomation, beatAtTimeOfAutomation, timeAtBeatOfAutomation } from './param.js';
 
 
 const assign = Object.assign;
@@ -156,7 +155,7 @@ assign(Transport.prototype, Clock.prototype, {
         console.log(time, beat, n, meters[n]);
         return meters[n - 1];
     },
-
+/*
     sequence: function(toEventsBuffer) {
         const privates = Privates(this);
         ++privates.sequenceCount;
@@ -190,7 +189,7 @@ assign(Transport.prototype, Clock.prototype, {
         })
         .done(() => --privates.sequenceCount);
     },
-
+*/
     // Todo: work out how stages are going to .connect(), and
     // sort out how to access rate (which comes from Transport(), BTW)
     connect: function(target, outputName, targetChan) {
@@ -241,7 +240,6 @@ define(Transport.prototype, {
 
     // Duration of one process cycle. At 44.1kHz this works out just
     // shy of 3ms.
-
     blockDuration: {
         get: function() {
             return 128 / this.context.sampleRate;

@@ -3,7 +3,7 @@ import id            from '../../fn/modules/id.js';
 import isDefined     from '../../fn/modules/is-defined.js';
 import nothing       from '../../fn/modules/nothing.js';
 import matches       from '../../fn/modules/matches.js';
-import mix           from '../../fn/modules/mix.js';
+import mixin         from '../../fn/modules/mix.js';
 import Privates      from '../../fn/modules/privates.js';
 import config        from '../config.js';
 import requestMedia  from './request/request-media.js';
@@ -12,16 +12,19 @@ import { connect, disconnect } from './connect.js';
 import constructors  from './graph/constructors.js';
 import Objects       from './graph/objects.js';
 import Connectors    from './graph/connectors.js';
-import Playable, { IDLE } from './playable.js';
+import Playable, { IDLE } from './mixins/playable.js';
 import Sequencer     from './sequencer/sequencer.js';
 import Transport     from './transport.js';
 // TODO: get frames form transport? Give plugins access to Frames via transport?
 import Frames        from './sequencer/frames.js';
 import PlayHead      from './sequencer/play-head.js';
 
+import NodeGraph     from '../nodes/graph.js';
 import Input         from '../nodes/input.js';
 import Instrument    from '../nodes/instrument.js';
 import Metronome     from '../nodes/metronome.js';
+import Mix           from '../nodes/mix.js';
+import Sample        from '../nodes/sample-set.js';
 import Tick          from '../nodes/tick.js';
 import Tone          from '../nodes/tone.js';
 
@@ -51,8 +54,17 @@ assign(constructors, {
     'input':      Input,
     'instrument': Instrument,
     'metronome':  Metronome,
+    'mix':        Mix,
     'tick':       Tick,
     'tone':       Tone
+});
+
+// Assign nodes to NodeGraph
+assign(NodeGraph.types, {
+    'mix':     Mix,
+    'samples': Sample,
+    'tick':    Tick,
+    'tone':    Tone
 });
 
 function createOutputMerger(context, target) {
@@ -153,7 +165,7 @@ assign(Soundstage, {
     }
 });
 
-mix(Soundstage.prototype, Sequencer.prototype/*, Graph.prototype, Meter.prototype*/);
+mixin(Soundstage.prototype, Sequencer.prototype/*, Graph.prototype, Meter.prototype*/);
 
 define(Soundstage.prototype, {
     /**

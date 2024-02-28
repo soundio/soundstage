@@ -1,11 +1,126 @@
 
+//import Event from './event.js';
+
+const $automation  = Symbol('soundstage-automation');
 const fadeDuration = 0.012;
+const defaultAutomationEvent = Object.freeze([0, 'step', 1]);
+
+const interpolate = {
+    // Automation curves as described at:
+    // http://webaudio.github.io/web-audio-api/#h4_methods-3
+    step:        (value1, value2, time1, time2, time) => time < time2 ? value1 : value2,
+    linear:      (value1, value2, time1, time2, time) => value1 + (value2 - value1) * (time - time1) / (time2 - time1),
+    exponential: (value1, value2, time1, time2, time) => value1 * Math.pow(value2 / value1, (time - time1) / (time2 - time1)),
+    target:      (value1, value2, time1, time2, time, duration) => time < time2 ? value1 : value2 + (value1 - value2) * Math.pow(Math.E, (time2 - time) / duration),
+    /* Todo */
+    curve:       (value1, value2, time1, time2, time, duration) => {}
+};
+
+const curves = {
+    // event = [time, curve, value, duration]
+    'step':        (param, event) => param.setValueAtTime(event[2], event[0]),
+    'linear':      (param, event) => param.linearRampToValueAtTime(event[2], event[0]),
+    'exponential': (param, event) => param.exponentialRampToValueAtTime(event[2], event[0]),
+    'target':      (param, event) => param.setTargetAtTime(event[2], event[0], event[3]),
+    'curve':       (param, event) => param.setValueCurveAtTime(event[2], event[0], event[3]),
+    'hold':        (param, event) => hold(param, event[0])
+};
 
 
-/** isAudioParam(object) **/
+/**
+isAudioParam(object)
+**/
+
 export function isAudioParam(object) {
     return window.AudioParam && AudioParam.prototype.isPrototypeOf(object);
 }
+
+
+/**
+automate(param, time, curve, value, duration)
+**/
+
+export function automate(param, time, curve, value, duration) {
+    const events = getAutomation(param);
+
+    let n = events.length;
+    while (events[--n] && events[n][0] >= time);
+
+    // Before and after events
+    const event0 = events[n];
+    const event1 = events[n + 1];
+
+    // TODO: Create an event where needed
+    // createEvent(time, curve, param, event0, event1, , value, duration);
+
+    if (event1) {
+        console.log('TODO insert between events');
+    }
+    else {
+        // Store event
+        const event = duration ?
+            [time, curve, value, duration] :
+            [time, curve, value] ;
+
+        events.push(event);
+
+        // Automate the change based on the curve
+        curves[curve](param, event);
+    }
+}
+
+
+/**
+getAutomation(param)
+Returns automation events for param.
+**/
+
+export function getAutomation(param) {
+    if (window.DEBUG && !isAudioParam(param)) {
+        throw new Error('Cannot get automation, param not an AudioParam ' + JSON.stringify(param));
+    }
+
+    // Lets use an expando *sigh*.
+    return param[$automation] || (param[$automation] = []);
+}
+
+
+/**
+hold(param, time)
+**/
+
+export const hold = AudioParam.prototype.cancelAndHoldAtTime ?
+    // Use prototype method
+    (param, time) => param.cancelAndHoldAtTime(time) :
+
+    // FF has no param.cancelAndHoldAtTime() (despite it being in the spec for,
+    // like, forever), try and work around it
+    (param, time) => {
+        // Set a curve of the same type as what was the next event at this
+        // time and value. TODO: get the curve and intermediate value from
+        // next set event.
+        const events = getAutomation(param);
+        let n = -1;
+        while (events[++n] && events[n][0] <= time);
+        const event1 = events[n];
+        const curve  = event1 ? event1[1] : 'step' ;
+        const value  = event1 ? getValueAtTime() : 0 ;
+
+        // Cancel values
+        param.cancelScheduledValues(time);
+
+        // Truncate curve
+        if (curve === 'linear') {
+            param.linearRampToValueAtTime(value, time);
+        }
+        else if (curve === 'exponential') {
+            param.exponentialRampToValueAtTime(value, time);
+        }
+        else if (curve === 'step') {
+            param.setValueAtTime(value, time);
+        }
+    } ;
+
 
 /**
 fadeInFromTime(context, param, duration, time)
@@ -134,71 +249,11 @@ export function releaseAtTime(context, param, gain, duration, time) {
 }
 
 
-/**
-hold(param, time)
-**/
-export const hold = AudioParam.prototype.cancelAndHoldAtTime ?
-    // Use prototype method
-    (param, time) => param.cancelAndHoldAtTime(time) :
-
-    // FF has no param.cancelAndHoldAtTime() (despite it being in the spec for,
-    // like, forever), try and work around it
-    (param, time) => {
-        // Set a curve of the same type as what was the next event at this
-        // time and value. TODO: get the curve and intermediate value from
-        // next set event.
-        const curve = 'step';
-        const value = 0;
-
-        // Cancel values
-        param.cancelScheduledValues(time);
-
-        // Truncate curve
-        if (curve === 'linear') {
-            param.linearRampToValueAtTime(value, time);
-        }
-        else if (curve === 'exponential') {
-            param.exponentialRampToValueAtTime(value, time);
-        }
-        else if (curve === 'step') {
-            param.setValueAtTime(value, time);
-        }
-    } ;
-
-
-
-
-
-
-
-
-
 
 
 // ------ -------- ------ ---------- -----
 
 import { beatAtTimeStep, beatAtTimeExponential, timeAtBeatStep, timeAtBeatExponential } from './sequencer/location.js';
-
-const freeze      = Object.freeze;
-const $automation = Symbol('soundstage-automation');
-const defaultAutomationEvent = freeze({ time: 0, curve: 'step', value: 1, beat: 0 });
-
-
-/**
-getAutomation(param)
-Returns automation events for param.
-**/
-
-export function getAutomation(param) {
-    if (window.DEBUG && !isAudioParam(param)) {
-        throw new Error('Cannot get automation, param not an AudioParam ' + JSON.stringify(param));
-    }
-
-    // Todo: I would love to use a WeakMap to store data about AudioParams,
-    // but FF refuses to allow AudioParams as WeakMap keys. So... lets use
-    // an expando.
-    return param[$automation] || (param[$automation] = []);
-}
 
 
 /**
@@ -208,19 +263,19 @@ Returns the rate beat at a given `time`.
 
 function beatAtTimeAutomation(e0, e1, time) {
     // Returns beat relative to e0[0], where l is location from e0 time
-    return time === e0.time ? 0 :
-        e1 && e1.curve === "exponential" ?
-            beatAtTimeExponential(e0.value, e1.value, e1.time - e0.time, time - e0.time) :
-            beatAtTimeStep(e0.value, time - e0.time) ;
+    return time === e0[0] ? 0 :
+        e1 && e1[1] === "exponential" ?
+            beatAtTimeExponential(e0[2], e1[2], e1[0] - e0[0], time - e0[0]) :
+            beatAtTimeStep(e0[2], time - e0[0]) ;
 }
 
 export function beatAtTimeOfAutomation(events, seed = defaultAutomationEvent, time) {
     let b = seed.beat || 0;
     let n = -1;
 
-    while (events[++n] && events[n].time < time) {
+    while (events[++n] && events[n][0] < time) {
         b = events[n].beat || (
-            events[n].beat = b + beatAtTimeAutomation(seed, events[n], events[n].time)
+            events[n].beat = b + beatAtTimeAutomation(seed, events[n], events[n][0])
         );
         seed = events[n];
     }
@@ -237,9 +292,9 @@ Returns the time of a given rate `beat`.
 function timeAtBeatAutomation(e0, e1, beat) {
     // Returns time relative to e0 time, where b is beat from e0[0]
     return beat === e0.beat ? 0 :
-        e1 && e1.curve === "exponential" ?
-            timeAtBeatExponential(e0.value, e1.value, e1.beat - e0.beat, beat - e0.beat) :
-            timeAtBeatStep(e0.value, beat - (e0.beat || 0)) ;
+        e1 && e1[1] === "exponential" ?
+            timeAtBeatExponential(e0[2], e1[2], e1.beat - e0.beat, beat - e0.beat) :
+            timeAtBeatStep(e0[2], beat - (e0.beat || 0)) ;
 }
 
 export function timeAtBeatOfAutomation(events, seed = defaultAutomationEvent, beat) {
@@ -248,15 +303,65 @@ export function timeAtBeatOfAutomation(events, seed = defaultAutomationEvent, be
 
     while (events[++n]) {
         b = events[n].beat || (
-            events[n].beat = b + beatAtTimeAutomation(seed, events[n], events[n].time)
+            events[n].beat = b + beatAtTimeAutomation(seed, events[n], events[n][0])
         );
 
         if (b > beat) { break; }
         seed = events[n];
     }
 
-    return seed.time + timeAtBeatAutomation(seed, events[n], beat);
+    return seed[0] + timeAtBeatAutomation(seed, events[n], beat);
 }
 
+function getValueBetweenEvents(event1, event2, time) {
+    return interpolate[event2[1]](event1[2], event2[2], event1[0], event2[0], time, event1[3]);
+}
 
+function getEventsValueAtEvent(events, n, time) {
+    var event = events[n];
+    return event[1] === "target" ?
+        interpolate.target(getEventsValueAtEvent(events, n - 1, event[0]), event[2], 0, event[0], time, event[3]) :
+        event[2] ;
+}
 
+export function getEventsValueAtTime(events, time) {
+    var n = events.length;
+
+    while (events[--n] && events[n][0] >= time);
+
+    var event0 = events[n];
+    var event1 = events[n + 1];
+
+    // Time is before the first event in events
+    if (!event0) {
+        return 0;
+    }
+
+    // Time is at or after the last event in events
+    if (!event1) {
+        return getEventsValueAtEvent(events, n, time);
+    }
+
+    if (event1[0] === time) {
+        // Scan through to find last event at this time
+        while (events[++n] && events[n][0] === time);
+        return getEventsValueAtEvent(events, n - 1, time) ;
+    }
+
+    if (time < event1[0]) {
+        return event1[1] === "linear" || event1[1] === "exponential" ?
+            getValueBetweenEvents(event0, event1, time) :
+            getEventsValueAtEvent(events, n, time) ;
+    }
+}
+
+export function getValueAtTime(param, time) {
+    var events = getAutomation(param);
+
+    if (!events || events.length === 0) {
+        return param.value;
+    }
+
+    // Round to 32-bit floating point
+    return Math.fround(getEventsValueAtTime(events, time));
+}

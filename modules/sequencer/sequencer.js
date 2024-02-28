@@ -2,7 +2,7 @@
 import id           from '../../../fn/modules/id.js';
 import mix          from '../../../fn/modules/mix.js';
 import Privates     from '../../../fn/modules/privates.js';
-import Playable     from '../playable.js';
+import Playable     from '../mixins/playable.js';
 import Frames       from './frames.js';
 import PlayHead     from './play-head.js';
 

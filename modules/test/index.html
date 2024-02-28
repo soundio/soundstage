@@ -43,6 +43,36 @@
                     [3, 'note', 240, 0.25, 0.2],
                 ]
             }, {
+                id: 2,
+                type: 'instrument',
+                node: {
+                    voice: {
+                        nodes: [
+                            { id: 'piano', type: 'samples', data: { src: 'https://sound.stephen.band/samples/steinway-piano/samples.json' } },
+                            //{ id: 'tick', type: 'tick', data: { gain: '-36dB' } },
+                            { id: 'mix', type: 'mix',  data: { gain: 1, pan: 0 } }
+                        ],
+
+                        connections: [
+                            { source: 'piano', target: 'mix' },
+                            //{ source: 'tick',  target: 'mix' }
+                        ],
+
+                        commands: [
+                            { target: 'piano' }
+                        ],
+
+                        properties: {},
+                        output: 'mix'
+                    }
+                },
+                events: [
+                    [0, 'note', 320, 0.5,  0.2],
+                    [1, 'note', 240, 0.25, 0.2],
+                    [2, 'note', 240, 0.25, 0.2],
+                    [3, 'note', 240, 0.25, 0.2],
+                ]
+            }, {
                 id:   'output',
                 type: 'output',
                 node: {
@@ -51,9 +81,12 @@
             }],
 
             connectors: [
-                [1, 'output']
+                [1, 'output'],
+                [2, 'output']
             ]
         });
+
+
 
         /*const stage = Soundstage.from({
             objects: [{

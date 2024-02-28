@@ -1,7 +1,6 @@
 
 import { log, logGroup, logGroupEnd } from './print.js';
-import { automato__ }    from './automate__.js';
-import { getAutomation } from './param.js';
+import { automate, getAutomation } from './param.js';
 
 const DEBUG = false;
 
@@ -20,8 +19,8 @@ function assignSetting(node, key, value, notify) {
         // purge old automation events. Keep an eye, might be a bit aggressive
         getAutomation(node[key]).length = 0;
 
-        // node, name, time, curve, value, duration, notify, context
-        automato__(node, key, node.context.currentTime, 'step', value, null, notify);
+        // param, time, curve, value, duration
+        automate(node[key], node.context.currentTime, 'step', value);
     }
 
     // Or an AudioNode?

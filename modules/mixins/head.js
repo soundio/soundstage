@@ -120,8 +120,8 @@ assign(Head.prototype, {
         this.startTime = time;
 
         // Input may not exist yet
-        if (this.input) {
-            this.input.start.apply(this.input, arguments);
+        if (this[-1]) {
+            this[-1].start.apply(this[-1], arguments);
         }
 
         return this;
@@ -163,8 +163,8 @@ assign(Head.prototype, {
 
         // Use cached rates if we have them
         const rates    = this.rates || this.events.filter(isRateEvent);
-        const headTime = this.input.beatAtTime ?
-            this.input.beatAtTime(time) :
+        const headTime = this[-1].beatAtTime ?
+            this[-1].beatAtTime(time) :
             time - this.startTime ;
 
         return beatAtLocation(rates, rate0, headTime - this.startTime);
@@ -179,8 +179,8 @@ assign(Head.prototype, {
         const rates    = this.rates || this.events.filter(isRateEvent);
         const headTime = locationAtBeat(rates, rate0, beat);
 
-        return this.input.timeAtBeat ?
-            this.input.timeAtBeat(this.startTime + headTime) :
+        return this[-1].timeAtBeat ?
+            this[-1].timeAtBeat(this.startTime + headTime) :
             this.startTime + headTime ;
     }
 });

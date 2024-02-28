@@ -14,7 +14,7 @@ import Sequence    from './sequencer/sequence.js';
 
 import { print } from './print.js';
 import { getDejitterTime }   from './context.js';
-import Playable, { IDLE, PLAYING } from './playable.js';
+import Playable, { IDLE, PLAYING } from './mixins/playable.js';
 import { automate, getValueAtTime } from './automate__.js';
 import { isRateEvent, getDuration } from './event.js';
 import { timeAtBeatOfEvents } from './sequencer/location.js';

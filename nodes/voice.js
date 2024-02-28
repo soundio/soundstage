@@ -32,7 +32,7 @@ import Privates    from '../../fn/modules/privates.js';
 import denormalise from '../../fn/modules/denormalise.js';
 import toType      from '../../fn/modules/to-type.js';
 import NodeGraph   from './graph.js';
-import Playable    from '../modules/playable.js';
+import Playable    from '../modules/mixins/playable.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
 import { floatToFrequency, toNoteNumber } from '../../midi/modules/data.js';
 import { create } from '../modules/graph/constructors.js';

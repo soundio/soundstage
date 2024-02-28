@@ -208,9 +208,7 @@ const constructEventType = overload(arg(1), {
 	},
 
 	default: function() {
-		this[0] = parseFloat32(arguments[0]);
-		this[1] = arguments[1];
-		this[2] = arguments[2];
+		assign(this, arguments);
 	}
 });
 

@@ -72,15 +72,15 @@ assign(Tree.prototype, {
         while (this[++n]);
 
         // Pipe
-        if (output.stop) { output.input = this; }
+        if (output.stop) { output[-1] = this; }
         this[n] = output;
         return output;
     },
 
     remove: function() {
         // Don't stop input, unpipe() this from it
-        if (this.input) {
-            unpipe(this.input, this);
+        if (this[-1]) {
+            unpipe(this[-1], this);
         }
 
         return this;
@@ -91,13 +91,13 @@ assign(Tree.prototype, {
         if (this.status === 'done') { return this; }
 
         // Dont propagate stop up to other nodes, just remove
-        if (this.constructor === this.input.constructor) {
-            unpipe(this.input, this);
+        if (this.constructor === this[-1].constructor) {
+            unpipe(this[-1], this);
             return stop(this);
         }
 
         // Do propagate up to other inputs (this is to stop Frames)
-        this.input.stop.apply(this.input, arguments);
+        this[-1].stop.apply(this[-1], arguments);
         return this;
     },
 

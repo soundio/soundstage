@@ -59,10 +59,7 @@ import Privates                  from '../../fn/modules/privates.js';
 import { logGroup, logGroupEnd } from '../modules/print.js';
 import { connect, disconnect }   from '../modules/connect.js';
 import constructors              from '../modules/graph/constructors.js';
-import Mix                       from './mix.js';
-import SampleSet                 from './sample-set.js';
 import Sink                      from './sink.js';
-import Tick                      from './tick.js';
 
 import { log }   from './print.js';
 
@@ -71,12 +68,7 @@ const assign = Object.assign;
 const define = Object.defineProperties;
 const seal   = Object.seal;
 
-const types = assign({
-    mix:     Mix,
-    samples: SampleSet,
-    sink:    Sink,
-    tick:    Tick
-}, constructors);
+const types = assign({ sink: Sink }, constructors);
 
 
 function create(type, context, settings, transport) {

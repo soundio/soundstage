@@ -8,7 +8,7 @@ import Privates from '../../../../fn/modules/privates.js';
 import remove   from '../../../../fn/modules/remove.js';
 import { floatToFrequency, toNoteNumber } from '../../../../midi/modules/data.js';
 
-import Node     from '../streams/node.js';
+import Node     from '../mixins/node.js';
 import { create }           from '../graph/constructors.js';
 import { automateParamAtTime, automatePropertyAtTime } from '../automate__.js';
 import { isAudioParam }     from '../param.js';

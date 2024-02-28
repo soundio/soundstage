@@ -12,7 +12,7 @@ A noise object generates noise.
 **/
 
 import Privates  from '../../fn/modules/privates.js';
-import Playable  from '../modules/playable.js';
+import Playable  from '../modules/mixins/playable.js';
 import NodeGraph from './graph.js';
 
 import { assignSettingz__ } from '../modules/assign-settings.js';

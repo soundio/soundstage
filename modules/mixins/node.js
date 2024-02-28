@@ -29,8 +29,7 @@ function createId() {
 
 /**
 pipe(stream)
-Connect stream to output. Sets up `stream[0]` and `output.input` (if output is
-`.stop()`able).
+Connect stream to output.
 **/
 
 export function pipe(stream, output) {

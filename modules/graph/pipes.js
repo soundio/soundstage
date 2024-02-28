@@ -4,7 +4,7 @@ import mix       from '../../../../fn/modules/mix.js';
 import overload  from '../../../../fn/modules/overload.js';
 import Privates  from '../../../../fn/modules/privates.js';
 
-import Collection from '../streams/collection.js';
+import Collection from '../mixins/collection.js';
 import Pipe       from './pipe.js';
 import { log }    from '../print.js';
 
