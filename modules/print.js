@@ -31,7 +31,7 @@ export const log = window.console ?
     } :
     noop ;
 
-export const logGroup = window.console ?
+export const group = window.console ?
     function(name, message, text = '', ...args) {
         if (typeof text === 'string') {
             text = truncate(48, text);
@@ -40,6 +40,6 @@ export const logGroup = window.console ?
     } :
     noop ;
 
-export const logGroupEnd = window.console ?
+export const groupEnd = window.console ?
     console.groupEnd.bind(console) :
     noop ;

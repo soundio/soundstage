@@ -46,6 +46,7 @@ import { assignSettingz__ } from '../modules/assign-settings.js';
 import { fadeInFromTime, fadeOutToTime, releaseAtTime } from '../modules/param.js';
 import NodeGraph from './graph.js';
 import Playable  from '../modules/mixins/playable.js';
+import { log, group, groupEnd }   from '../modules/print.js';
 
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;
@@ -89,11 +90,21 @@ const properties = {
                 privates.src     = src;
                 privates.regions = sampleMap.data;
 
+                if (window.DEBUG) { console.log(); }
+
+                group('Loading', 'samples');
+
                 // Populate buffer cache with buffer data
                 return Promise.all(privates.regions.map((region) =>
                     requestBuffer(context, region.src)
                     .then((buffer) => cache[region.src] = buffer)
                 ));
+
+                groupEnd();
+            })
+            .then((o) => { ;
+                console.log('Loaded');
+                return o;
             })
             .catch((e) => {
                 throw new Error('Sample src "' + src + '" not found. ' + e.message);
@@ -213,7 +224,7 @@ function startSources(sources, destination, detuneNode, map, time, frequency = 4
 
     sources.length = 0;
 
-console.log('NOTE ----------');
+//console.log('NOTE ----------');
 
     // Neuter velocity 0s - they dont seem to get filtered below
     return gain === 0 ? sources : map
@@ -242,7 +253,7 @@ console.log('NOTE ----------');
         source.region     = region;
         source.bufferNode = setupBufferNode(context, source, detuneNode, region, buffer, time, frequency);
 
-console.log('START', gain, region.src);
+console.log('Sample', time, frequency, gain, region.src);
 
         startSource(context, source, source.bufferNode, region.attack, time);
 
@@ -287,6 +298,7 @@ export default function Sample(context, settings, transport) {
 
     // Setup
     Sample.reset(this, arguments);
+    Sample.load();
 }
 
 Sample.reset = function reset(node, args) {
@@ -299,6 +311,7 @@ assign(Sample.prototype, Playable.prototype, NodeGraph.prototype, {
     start: function(time, frequency = defaults.frequency, gain = defaults.gain) {
         // Wait for src and buffers to load
         if (this.promise) {
+console.log('Sample loading, note promised', time, frequency, gain);
             this.promise.then(() => this.start(time, frequency, gain));
             return this;
         }

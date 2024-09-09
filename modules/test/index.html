@@ -1,6 +1,4 @@
 <!DOCTYPE html>
-<!-- Literal template "/Users/stephband/Sites/cruncher/editor.html.literal" -->
-
 <html lang="en">
 <head>
     <title>Test</title>
@@ -32,7 +30,7 @@
         import Soundstage from '../soundstage.js';
 
         const stage = Soundstage.from({
-            objects: [{
+            objects: [/*{
                 id: 1,
                 type: 'tick',
                 node: {},
@@ -42,7 +40,7 @@
                     [2, 'note', 240, 0.25, 0.2],
                     [3, 'note', 240, 0.25, 0.2],
                 ]
-            }, {
+            }, */{
                 id: 2,
                 type: 'instrument',
                 node: {
@@ -64,13 +62,23 @@
 
                         properties: {},
                         output: 'mix'
-                    }
+                    },
+
+                    gain: 1
                 },
                 events: [
-                    [0, 'note', 320, 0.5,  0.2],
-                    [1, 'note', 240, 0.25, 0.2],
-                    [2, 'note', 240, 0.25, 0.2],
-                    [3, 'note', 240, 0.25, 0.2],
+                    [0, 'note', 42, 0.75, 0.2],
+                    [1, 'note', 49, 0.75, 0.2],
+                    [2, 'note', 49, 0.75, 0.2],
+                    [3, 'note', 49, 0.75, 0.2],
+                    [4, 'note', 42, 0.75, 0.2],
+                    [5, 'note', 49, 0.75, 0.2],
+                    [6, 'note', 49, 0.75, 0.2],
+                    [7, 'note', 49, 0.75, 0.2],
+                    [8, 'note', 42, 0.75, 0.2],
+                    [9, 'note', 49, 0.75, 0.2],
+                    [10, 'note', 49, 0.75, 0.2],
+                    [11, 'note', 49, 0.75, 0.2],
                 ]
             }, {
                 id:   'output',
@@ -81,7 +89,7 @@
             }],
 
             connectors: [
-                [1, 'output'],
+                //[1, 'output'],
                 [2, 'output']
             ]
         });
@@ -131,7 +139,9 @@
         window.stage = stage;
 
         events('click', document.getElementById('start')).each((e) => {
-            stage.start(context.currentTime + 0.4).stop(context.currentTime + 5);
+            stage
+            .start(context.currentTime + 0.4)
+            .stop(context.currentTime + 15);
         });
     </script>
 </body>

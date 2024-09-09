@@ -1,5 +1,5 @@
 
-import { log, logGroup, logGroupEnd } from './print.js';
+import { log, group, groupEnd } from './print.js';
 import { automate, getAutomation } from './param.js';
 
 const DEBUG = false;
@@ -36,7 +36,7 @@ function assignSetting(node, key, value, notify) {
 }
 
 export function assignSettings(node, defaults, settings, ignored) {
-    if (DEBUG) { logGroup('assign', node.constructor.name, (settings ? Object.keys(settings).join(', ') : '')); }
+    if (DEBUG) { group('assign', node.constructor.name, (settings ? Object.keys(settings).join(', ') : '')); }
 
     const keys = {};
 
@@ -67,11 +67,11 @@ export function assignSettings(node, defaults, settings, ignored) {
         }
     }
 
-    if (DEBUG) { logGroupEnd(); }
+    if (DEBUG) { groupEnd(); }
 }
 
 export function assignSettingz__(node, settings, ignored) {
-    if (DEBUG) { logGroup('assign', node.constructor.name, (settings ? Object.keys(settings).join(', ') : '')); }
+    if (DEBUG) { group('assign', node.constructor.name, (settings ? Object.keys(settings).join(', ') : '')); }
 
     var key;
 
@@ -89,7 +89,7 @@ export function assignSettingz__(node, settings, ignored) {
         }
     }
 
-    if (DEBUG) { logGroupEnd(); }
+    if (DEBUG) { groupEnd(); }
 
     return node;
 }

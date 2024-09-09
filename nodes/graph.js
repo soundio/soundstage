@@ -56,7 +56,7 @@ output by the `.connect()` and `.disconnect()` methods.
 **/
 
 import Privates                  from '../../fn/modules/privates.js';
-import { logGroup, logGroupEnd } from '../modules/print.js';
+import { group, groupEnd } from '../modules/print.js';
 import { connect, disconnect }   from '../modules/connect.js';
 import constructors              from '../modules/graph/constructors.js';
 import Sink                      from './sink.js';
@@ -136,7 +136,7 @@ function createConnection(nodes, data) {
 }
 
 export default function NodeGraph(context, data, transport) {
-    if (DEBUG) { logGroup('mixin ', 'GraphNode', data.nodes && data.nodes.map((n) => n.type).join(', ')); }
+    if (DEBUG) { group('mixin ', 'GraphNode', data.nodes && data.nodes.map((n) => n.type).join(', ')); }
 
     const privates = Privates(this);
     privates.outputId = data.output || 'output' ;
@@ -206,7 +206,7 @@ export default function NodeGraph(context, data, transport) {
     seal(nodes);
     data.connections && data.connections.reduce(createConnection, nodes);
 
-    if (DEBUG) { logGroupEnd(); }
+    if (DEBUG) { groupEnd(); }
 }
 
 assign(NodeGraph, { types });

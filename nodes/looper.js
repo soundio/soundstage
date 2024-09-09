@@ -11,7 +11,7 @@ const looper = stage.createNode('looper', {
 Creates a node that records and loops audio.
 **/
 
-import { print, logGroup, logGroupEnd } from './print.js';
+import { print, group, groupEnd } from './print.js';
 import Privates from '../../fn/modules/privates.js';
 import NodeGraph from './graph.js';
 import Playable from './play-node.js';
@@ -82,7 +82,7 @@ const properties = {
 
 export default class Looper extends GainNode {
     constructor(context, settings, transport) {
-        if (DEBUG) { logGroup(new.target === Looper ? 'Node' : 'mixin ', 'Looper'); }
+        if (DEBUG) { group(new.target === Looper ? 'Node' : 'mixin ', 'Looper'); }
 
         // Init gain node
         super(context, settings);
@@ -120,7 +120,7 @@ export default class Looper extends GainNode {
         // Connect sources to output
         this.sources.forEach((source) => source.connect(this.get('wet')));
 
-        if (DEBUG) { logGroupEnd(); }
+        if (DEBUG) { groupEnd(); }
     }
 }
 

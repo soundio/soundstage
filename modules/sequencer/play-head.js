@@ -198,7 +198,6 @@ assign(PlayHead.prototype, {
         let n = -1, event;
         while (event = buffer[++n]) distribute(this, this.target, event, b2);
         buffer.length = 0;
-
         return buffer;
     },
 

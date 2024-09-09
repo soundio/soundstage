@@ -38,7 +38,7 @@ AudioParam of the child node `'filter'`.
 
 import isDefined from '../../fn/modules/is-defined.js';
 import Privates  from '../../fn/modules/privates.js';
-import { logGroup, logGroupEnd } from './print.js';
+import { group, groupEnd } from './print.js';
 import Voice, { defaults as voiceDefaults } from './voice.js';
 import NodeGraph from './graph.js';
 import Pool from '../modules/pool.js';
@@ -101,7 +101,7 @@ function isIdle(node) {
 
 export default class Instrument extends GainNode {
     constructor(context, settings, transport) {
-        if (DEBUG) { logGroup(new.target === Instrument ? 'Node' : 'mixin ', 'Instrument'); }
+        if (DEBUG) { group(new.target === Instrument ? 'Node' : 'mixin ', 'Instrument'); }
 
         // Init gain node
         super(context, settings);
@@ -145,7 +145,7 @@ export default class Instrument extends GainNode {
         // TODO: if this includes voice property, this.voice is overridden, not good
         assignSettingz__(this, defaults);
 
-        if (DEBUG) { logGroupEnd(); }
+        if (DEBUG) { groupEnd(); }
     }
 }
 
@@ -165,16 +165,14 @@ assign(Instrument.prototype, NodeGraph.prototype, {
     ```
     **/
 
-    start: function(time, note, velocity = 1) {
+    start: function(time, note, gain = 1) {
         if (!isDefined(note)) {
             throw new Error('Attempt to .start() a note without passing a note name.')
         }
 
-        const privates = Privates(this);
-
-        return privates.voices
-        .create(this.context, this.voice)
-        .start(time, note, velocity);
+        return Privates(this).voices
+            .create(this.context, this.voice)
+            .start(time, note, gain);
     },
 
     /**

@@ -16,10 +16,10 @@ export const log = window.console ?
     function(name, message, ...args) { console.log('%c' + name + ' %c' + message, 'color: #b5002f; font-weight: 600;', 'color: #8e9e9d; font-weight: 300;', ...args); } :
     noop ;
 
-export const logGroup = window.console ?
+export const group = window.console ?
     function(name, message, ...args) { console.groupCollapsed('%c' + name + ' %c' + message, 'color: #b5002f; font-weight: 600;', 'color: #8e9e9d; font-weight: 300;', ...args); } :
     noop ;
 
-export const logGroupEnd = window.console ?
+export const groupEnd = window.console ?
     console.groupEnd.bind(console) :
     noop ;

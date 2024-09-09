@@ -1,4 +1,4 @@
-import { logGroup, logGroupEnd } from './print.js';
+import { group, groupEnd } from './print.js';
 import Privates     from '../../fn/modules/privates.js';
 import NodeGraph    from './graph.js';
 import Recorder     from './recorder.js';
@@ -43,7 +43,7 @@ const properties = {
 
 export default class Track extends GainNode {
     constructor(context, settings, transport) {
-        if (DEBUG) { logGroup(new.target === Track ? 'Node' : 'mixin ', 'Track'); }
+        if (DEBUG) { group(new.target === Track ? 'Node' : 'mixin ', 'Track'); }
 
         // Init gain node
         super(context, settings);
@@ -66,7 +66,7 @@ export default class Track extends GainNode {
         this.wet = this.get('wet').gain;
         this.sources = [];
 
-        if (DEBUG) { logGroupEnd(); }
+        if (DEBUG) { groupEnd(); }
     }
 }
 
