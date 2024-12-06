@@ -10,7 +10,7 @@ import element, { getInternals } from '../../../dom/modules/element.js';
 import events                    from '../../../dom/modules/events.js';
 import request                   from '../../../dom/modules/request.js';
 import { getSequenceDuration }   from '../../modules/sequencer/get-duration.js'
-import Soundstage                from '../../modules/soundstage.js';
+import Soundstage                from '../../modules/stage.js';
 
 
 export default element('soundstage-player', {

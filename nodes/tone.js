@@ -34,27 +34,22 @@ const defaults = {
     type:      'sine',
     frequency: 440,
     detune:    0,
-    //gain:      1,
     attack:    0.002,
     release:   0.006
 };
 
 const graph = {
-    nodes: [
-        { id: 'osc',    type: 'oscillator', data: { type: 'sine', frequency: 440, detune: 0 }},
-        { id: 'output', type: 'gain',       data: { gain: 0 }}
-    ],
-
-    connections: [
-        { source: 'osc',  target: 'output' },
-    ],
-
+    nodes: {
+        osc:    { type: 'oscillator', data: { type: 'sine', frequency: 440, detune: 0 }},
+        output: { type: 'gain',       data: { gain: 0 }}
+    },
+    connects: ['osc', 'output'],
     properties: {
         /**
         .type
         A string. One of `'sine'`, `'square'`, `'sawtooth'` or `'triangle'`.
         **/
-        type:      'osc.type',
+        type: 'osc.type',
 
         /**
         .frequency
@@ -66,53 +61,26 @@ const graph = {
         .detune
         An AudioParam representing a deviation from frequency in cents.
         **/
-        detune:    'osc.detune'
-    },
+        detune: 'osc.detune',
 
-    output: 'output'
-};
+        /**
+        .attack
+        **/
+        attack:  { value: defaults.attack,  writable: true },
 
-const properties = {
-    /**
-    .gain
-    A float, nominally in the range `0–1`, that is read on calling `.start()`
-    to set the gain of the tone. Changes to `.gain` during playback have no
-    effect.
-    **/
-/*
-    gain: {
-        value:    defaults.gain,
-        writable: true
-    },
-*/
-    /**
-    .attack
-    **/
-
-    attack: {
-        value:    defaults.attack,
-        writable: true
-    },
-
-    /**
-    .release
-    **/
-
-    release: {
-        value:    defaults.release,
-        writable: true
+        /**
+        .release
+        **/
+        release: { value: defaults.release, writable: true }
     }
 };
 
-export default function Tone(context, options, transport) {
-    // Set up the node graph
+export default function Tone(context, settings, transport) {
+    // Set up the node graph and define .context, .connect, .disconnect, .get
     NodeGraph.call(this, context, graph, transport);
 
-    // Define .context, .startTime and .stopTime
+    // Define .startTime and .stopTime
     Playable.call(this, context);
-
-    // Define type
-    define(this, properties);
 
 	// Set up
     this.get('osc').start(context.currentTime);
@@ -136,7 +104,7 @@ assign(Tone.prototype, NodeGraph.prototype, Playable.prototype, {
     Start the tone at `time`.
     **/
 
-    start: function(time, frequency = defaults.frequency, gain = defaults.gain) {
+    start: function(time, frequency = 440, gain = 1) {
         Playable.prototype.start.apply(this, arguments);
         this.get('osc').frequency.setValueAtTime(frequency, this.startTime);
         attackAtTime(this.context, this.get('output').gain, gain, this.attack, time);

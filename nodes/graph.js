@@ -14,7 +14,7 @@ const graph = new NodeGraph(context, {
         data: {}
     }],
 
-    connections: [{
+    connects: [{
         source: 'id.name',
         target: 'id.name'
     }],
@@ -23,7 +23,7 @@ const graph = new NodeGraph(context, {
         name: 'id.name'
     },
 
-    output: 'id',
+    output: 'id'
 });
 ```
 
@@ -55,6 +55,9 @@ Finally, the `output` property is the id of a child node that is used as an
 output by the `.connect()` and `.disconnect()` methods.
 **/
 
+import id                        from '../../fn/modules/id.js';
+import overload                  from '../../fn/modules/overload.js';
+import toType                    from '../../fn/modules/to-type.js';
 import Privates                  from '../../fn/modules/privates.js';
 import { group, groupEnd } from '../modules/print.js';
 import { connect, disconnect }   from '../modules/connect.js';
@@ -71,22 +74,19 @@ const seal   = Object.seal;
 const types = assign({ sink: Sink }, constructors);
 
 
-function create(type, context, settings, transport) {
+function create(context, type, settings, transport) {
     const Constructor = types[type];
 
-    if (!Constructor) {
-        throw new Error('Soundstage: NodeGraph cannot create node of unregistered type "' + type + '"');
-    }
+    if (!Constructor) throw new Error('NodeGraph() – cannot create node of unregistered type "' + type + '"');
 
     // Todo: Legacy from async nodes... warn if we encounter one of these
     // If the constructor has a preload fn, it has special things
-    // to prepare (such as loading AudioWorklets) before it can
-    // be used.
+    // to prepare (such as loading AudioWorklets) before it can be used.
     if (Constructor.preload) {
-        console.warn('Soundstage: node contructor for "' + type + '" has a preload function, which is Todo, because not properly implemented yet');
+        console.warn('Soundstage – node type "' + type + '" contructor has a static .preload() function... TODO not properly implemented yet');
         Constructor.preload(basePath, context).then(() => {
-            log('Node', Node.name, 'preloaded');
-            return Node;
+            log('Node', Constructor.name, 'preloaded');
+            return Constructor;
         }) ;
     }
 
@@ -135,114 +135,159 @@ function createConnection(nodes, data) {
     return nodes;
 }
 
+function createConnect(nodes, source, target) {
+    // Split paths such as env.gain.0 to ['env', 'gain', 0]
+    const srcPath = source.split('.');
+    const src     = nodes[srcPath[0]];
+    const srcChan = !srcPath[1] ? 0 :
+        parseInt(srcPath[1], 10) ;
+
+    const tgtPath = target.split('.');
+    const tgtChan = !srcPath[1] ? 0 :
+        /^\d+$/.test(srcPath[1]) ? parseInt(srcPath[1], 10) :
+        undefined ;
+
+    const tgt = tgtChan === undefined ?
+        nodes[tgtPath[0]][srcPath[1]] :
+        nodes[tgtPath[0]] ;
+
+    // There is a special case when source is 'this'. NodeGraph defines
+    // the node's .connect() method, but we need the original AudioNode.connect()
+    // because we don't want the output of the graph, but the output of `this`.
+    if (srcPath[0] === 'this') {
+        AudioNode.prototype.connect.call(src, tgt, srcChan, tgtChan);
+    }
+    else {
+        connect(src, tgt, srcChan, tgtChan);
+    }
+}
+
+const toDescriptor = overload(toType, {
+    // Definition is a property descriptor already
+    object: id,
+
+    // Definition is a path string, get param from nodes
+    string: (path, nodes) => {
+        const [id, name] = path.split('.');
+        const node = nodes[id];
+
+        if (!node || !(name in node)) throw new Error('NodeGraph() – ' + path + ' object not found');
+
+        const param = node[name];
+
+        // If param is an AudioParam assign it as the property, otherwise
+        // create a getter/setter descriptor to the original property
+        return param.setValueAtTime ? {
+            value: param,
+            enumerable: true
+        } : {
+            get: () => node[name],
+            set: (value) => node[name] = value,
+            enumerable: true
+        } ;
+    }
+});
+
+
+
 export default function NodeGraph(context, data, transport) {
     if (DEBUG) { group('mixin ', 'GraphNode', data.nodes && data.nodes.map((n) => n.type).join(', ')); }
 
     const privates = Privates(this);
-    privates.outputId = data.output || 'output' ;
 
-    // Create nodes
-    const nodes = privates.nodes = data.nodes && data.nodes.reduce(function(nodes, data) {
-        nodes[data.id] = create(data.type, context, data.data, transport);
-        return nodes;
-    }, {});
+    // Create nodes { id: node } object
+    const nodes = data.nodes && (
+        // Legacy (?) data.nodes is an array
+        typeof data.nodes.length === 'number' ? (console.log('NodeGraph data.nodes array deprecated, define as object { id: data }', this),
+            data.nodes.reduce((nodes, { id, type, data }) => {
+                nodes[id] = create(context, type, data, transport);
+                return nodes;
+            }, { this: this, self: this })) :
+        // New data.nodes is an object
+        Object.entries(data.nodes).reduce((nodes, [id, { type, data }]) => {
+            nodes[id] = create(context, type, data, transport);
+            return nodes;
+        }, { this: this, self: this })
+    );
 
-    // Include this in the graph if it is an audio node
-    if (AudioNode.prototype.isPrototypeOf(this)) {
-        nodes['self'] = this;
-    }
+    // Reference to output node, by default the node at nodes.output
+    const output = nodes[data.output || 'output'] ;
 
-    // Otherwise make it quack like an audio node
-    else {
-        const output = nodes[privates.outputId];
-        define(this, {
+    privates.nodes  = nodes;
+    privates.output = output;
 
-            /**
-            .context
-            The AudioContext object.
-            **/
+    // If `this` is not one already, make it quack like an AudioNode
+    if (!AudioNode.prototype.isPrototypeOf(this)) define(this, {
+        /**
+        .context
+        The AudioContext object.
+        **/
+        context: { value: context },
 
-            context: { value: context },
-
-            /**
-            .numberOfOutputs
-            The number of outputs.
-            **/
-
-            numberOfOutputs: { value: output ? output.numberOfOutputs : 0 }
-        });
-    }
+        /**
+        .numberOfOutputs
+        The number of outputs.
+        **/
+        numberOfOutputs: { value: output ? output.numberOfOutputs : 0 }
+    });
 
     if (data.params) {
         console.warn('Graph "params" is now "properties"', data);
         data.properties = data.params;
     }
 
+    // Define properties defined in data to `this`
     if (data.properties) {
-        Object.entries(data.properties).forEach((entry) => {
-            const prop  = entry[0];
-            const path  = entry[1].split('.');
-            const node  = nodes[path[0]];
-            const name  = path[1];
-            const param = node[name];
-
-            if (!(name in node)) {
-                console.warn('Property "'+ name +'" not found in node.');
-            }
-
-            Object.defineProperty(this, prop, param.setValueAtTime ? {
-                // Property is an AudioParam
-                value: param,
-                enumerable: true
-            } : {
-                // Property is a getter/setter proxy to the original property
-                get: () => node[name],
-                set: (value) => node[name] = value,
-                enumerable: true
-            });
-        });
+        for (name in data.properties) {
+            Object.defineProperty(this, name, toDescriptor(data.properties[name], nodes));
+        }
     }
 
+    // Do we really need to?
     seal(nodes);
-    data.connections && data.connections.reduce(createConnection, nodes);
+
+    // Connect nodes together
+    // Legacy
+    if (data.connections) {
+        console.log('NodeGraph data.connections deprecated, use data.connects');
+        data.connections.reduce(createConnection, nodes);
+    }
+
+    // New
+    if (data.connects) {
+        const connects = data.connects;
+        let n = -1;
+        while (++n < connects.length) createConnect(nodes, connects[n], connects[++n]);
+    }
 
     if (DEBUG) { groupEnd(); }
 }
 
-assign(NodeGraph, { types });
+assign(NodeGraph, { types, constructors: types });
 
 assign(NodeGraph.prototype, {
     /**
-    .connect(target)
-    Connect node to target. In Soundstage calling this method directly is
-    discouraged: the graph cannot track changes to your connections if you use
-    it. Instead, call `stage.createConnection(node, target)`.
+    .connect(target[, channel, targetChannel])
+    Connect node to `target`.
     **/
-
     connect: function() {
-        const privates = Privates(this);
-        const output = this.get(privates.outputId);
+        const { output } = Privates(this);
         return output.connect.apply(output, arguments);
     },
 
     /**
     .disconnect(target)
-    Disconnect node from target. In Soundstage calling this method directly is
-    discouraged: the graph cannot track changes to your connections if you use
-    it. Instead, call `stage.removeConnector(node, target)`.
+    Disconnect `target` from node.
     **/
-
     disconnect: function() {
-        const privates = Privates(this);
-        const output = this.get(privates.outputId);
+        const { output } = Privates(this);
         return output.disconnect.apply(output, arguments);
     },
 
     /**
     .get(id)
-    Returns a child node by its id.
+    Returns a node from the graph by its `id`.
     **/
-
     get: function(id) {
         const privates = Privates(this);
         return privates.nodes && privates.nodes[id];

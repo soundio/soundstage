@@ -11,7 +11,7 @@ import { print } from './modules/print.js';
 
 print(' - http://github.com/soundio/soundstage');
 
-import Soundstage from './modules/soundstage.js';
+import Soundstage from './modules/stage.js';
 import { register } from './modules/graph/constructors.js';
 
 import Input      from './nodes/input.js';

@@ -17,10 +17,9 @@ const voice = new Voice(context, {
 });
 ```
 
-A voice is an arbitrary graph of nodes intended to be used as a sound generator.
+A voice is an arbitrary graph of nodes used as a monophonic sound generator.
 Voices are normally created and started on the fly by a polyphonic Instrument,
-but may also be useful for game sound or interface hits where monophony is
-enough.
+but may also be used directly as a monophonic source.
 **/
 
 import { clamp }   from '../../fn/modules/clamp.js';
@@ -35,7 +34,9 @@ import NodeGraph   from './graph.js';
 import Playable    from '../modules/mixins/playable.js';
 import { assignSettingz__ } from '../modules/assign-settings.js';
 import { floatToFrequency, toNoteNumber } from '../../midi/modules/data.js';
-import { create } from '../modules/graph/constructors.js';
+import { create }  from '../modules/graph/constructors.js';
+import Tone        from './tone.js';
+import Mix         from './mix.js';
 
 const assign = Object.assign;
 const define = Object.defineProperties;
@@ -107,7 +108,7 @@ export function createNode(context, type, settings) {
 }
 
 const properties = {
-	active:  { writable: true, value: undefined }
+	active:  { writable: true }
 };
 
 
@@ -132,10 +133,7 @@ function Voice(context, data, transport) {
     .detune
     AudioParam Todo: description
     **/
-    const detune = create('constant', context, {
-        offset: 0
-    });
-
+    const detune = create('constant', context, { offset: 0 });
     this.detune = detune.offset;
 
     // Connect detune to all detuneable nodes
@@ -150,13 +148,18 @@ function Voice(context, data, transport) {
 	detune.start(context.currentTime);
 
     /**
+    .expression
+    AudioParam Todo: description
+    **/
+    /*const expression = create('constant', context, { offset: 0 });
+    this.expression = expression.offset;
+    expression.start(context.currentTime);*/
+
+    /**
     .modulation
     AudioParam Todo: description
     **/
-    const modulation = create('constant', context, {
-        offset: 0
-    });
-
+    const modulation = create('constant', context, { offset: 0 });
     this.modulation = modulation.offset;
     modulation.start(context.currentTime);
 
@@ -285,7 +288,7 @@ assign(Voice.prototype, Playable.prototype, NodeGraph.prototype, {
 
         // Quick out
         if (!commands) { return this; }
-
+//console.log('S', note, velocity);
         // Loop forward through commands
         let n = -1;
         let stopTime = 0;
@@ -296,7 +299,7 @@ assign(Voice.prototype, Playable.prototype, NodeGraph.prototype, {
             if (!target) {
                 throw new Error('Command target "' + id + '" not found in nodes');
             }
-
+//console.log(target, commands[n]);
             setPropertiesAndParams(target, commands[n].data/*, frequencyRatio, velocityRatio*/);
             target.start(this.startTime, frequency, velocity);
 

@@ -1,6 +1,6 @@
 import run        from '../../fn/modules/test.js';
 import context    from '../modules/context.js';
-import Soundstage from '../modules/soundstage.js';
+import Soundstage from '../modules/stage.js';
 
 // Event types
 //

@@ -9,6 +9,7 @@ import remove     from '../../fn/modules/remove.js';
 import toType     from '../../fn/modules/to-type.js';
 import { bytesToSignedFloat }   from '../../midi/modules/maths.js';
 import { toType as toTypeMIDI } from '../../midi/modules/data.js';
+import { createMessage } from '../../midi/modules/message.js';
 import parseFloat64   from './parse/parse-float-64.js';
 import parseFloat32   from './parse/parse-float-32.js';
 import parseFrequency from './parse/parse-frequency.js';
@@ -100,7 +101,8 @@ const assign  = Object.assign;
 const define  = Object.defineProperties;
 const getData = get('data');
 
-
+/* TEMP */
+const tuning = 440;
 const pitchBendRange = 2;
 
 const lengths = {
@@ -120,11 +122,6 @@ const lengths = {
 	default:          5
 };
 
-function pitchToFloat(message) {
-	return bytesToSignedFloat(message[1], message[2]) * pitchBendRange;
-}
-
-const tuning = 440; /* TEMP */
 const constructEventType = overload(arg(1), {
 	// Event types
 	//
@@ -240,32 +237,29 @@ assign(Event, {
 		return new Event(...arguments);
 	},
 
-	from: overload(toType, {
-		string: (data) => Event.parse(data),
-		object: (data) => Event.of.apply(Event, data)
+	from: function(data) {
+		return new Event(...data);
+	},
+
+	fromMIDI: overload(toTypeMIDI, {
+		pitch:        (message) => Event.of(0, 'pitch', bytesToSignedFloat(message[1], message[2]) * pitchBendRange),
+		pc:           (message) => Event.of(0, 'program', message[1]),
+		channeltouch: (message) => Event.of(0, 'touch', 'all', message[1] / 127),
+		polytouch:    (message) => Event.of(0, 'touch', message[1], message[2] / 127),
+		default:      (message) => Event.of(0, toTypeMIDI(message), message[1], message[2] / 127)
 	}),
 
-	fromMIDI: overload(compose(toTypeMIDI, getData), {
-		pitch: function(e) {
-			return Event.of(e.timeStamp, 'pitch', pitchToFloat(e.data));
-		},
-
-		pc: function(e) {
-			return Event.of(e.timeStamp, 'program', e.data[1]);
-		},
-
-		channeltouch: function(e) {
-			return Event.of(e.timeStamp, 'touch', 'all', e.data[1] / 127);
-		},
-
-		polytouch: function(e) {
-			return Event.of(e.timeStamp, 'touch', e.data[1], e.data[2] / 127);
-		},
-
-		default: function(e) {
-			return Event.of(e.timeStamp, toTypeMIDI(e.data), e.data[1], e.data[2] / 127) ;
-		}
+	fromMIDIEvent: overload((e) => toTypeMIDI(e.data), {
+		pitch:        (e) => Event.of(e.timeStamp, 'pitch', bytesToSignedFloat(message[1], message[2]) * pitchBendRange),
+		pc:           (e) => Event.of(e.timeStamp, 'program', e.data[1]),
+		channeltouch: (e) => Event.of(e.timeStamp, 'touch', 'all', e.data[1] / 127),
+		polytouch:    (e) => Event.of(e.timeStamp, 'touch', e.data[1], e.data[2] / 127),
+		default:      (e) => Event.of(e.timeStamp, toTypeMIDI(e.data), e.data[1], e.data[2] / 127)
 	}),
+
+	note:  (number, force=0.5, duration=0.2) => new Event(0, 'note', number, force, duration),
+	start: (number, force=0.5) =>  new Event(0, 'start', number, force),
+	stop:  (number) =>             new Event(0, 'stop', number),
 
 	parse: function(string) {
 		const data = string.split(/\s+/);
@@ -293,15 +287,6 @@ assign(Event.prototype, {
 });
 
 define(Event.prototype, {
-	/*
-	.beat
-	The event beat. An alias for `event[0]`.
-	*/
-	beat: {
-		get: function() { console.trace('IM DEPRECATING event.beat'); return this[0]; },
-		set: function(beat) { this[0] = beat; }
-	},
-
 	/**
 	.type
 	The event type. An alias for `event[1]`.
@@ -329,19 +314,21 @@ Event(time, type, ...)
 A constructor for event objects for internal use.
 **/
 
-export default assign(Pool(Event, reset, isIdle), {
-	of:        Event.of,
-	from:      Event.from,
-	fromMIDI:  Event.fromMIDI,
-	parse:     Event.parse,
-	stringify: Event.stringify
-});
+export default Pool(Event, reset, isIdle);
 
 
 // Type checkers
 
 export function isNoteEvent(event) {
 	return event[1] === 'note';
+}
+
+export function isNoteStart(event) {
+	return event[1] === 'noteon';
+}
+
+export function isNoteStop(event) {
+	return event[1] === 'noteoff';
 }
 
 export function isParamEvent(event) {

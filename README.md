@@ -52,7 +52,7 @@ can be imported into an html document:
 
 ```html
 <script type="module">
-    import Soundstage from './soundstage/build/soundstage.js'
+    import Soundstage from './soundstage/build/stage.js'
     // Do something with Soundstage ...
 </script>
 ```
