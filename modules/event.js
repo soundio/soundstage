@@ -238,7 +238,7 @@ assign(Event, {
 	},
 
 	from: function(data) {
-		return new Event(...data);
+		return assign(new Event(), data);
 	},
 
 	fromMIDI: overload(toTypeMIDI, {

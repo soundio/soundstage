@@ -15,7 +15,10 @@ import NodeGraph from './graph.js';
 
 const graph = {
     nodes: [
-        { id: 'pan', type: 'pan', data: { pan: 0 }}
+        { id: 'pan', type: 'pan', data: { pan: 0 }},
+        /* TEMP */
+        { id: 'invert', type: 'gain', data: { gain: 1 }}
+        /* ---- */
     ],
 
     connections: [
@@ -32,7 +35,8 @@ const graph = {
         .pan
         AudioParam controlling stereo pan position.
         **/
-        pan: 'pan.pan'
+        pan:    'pan.pan',
+        invert: 'invert.gain'
     },
 
 	output: 'pan'

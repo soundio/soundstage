@@ -171,7 +171,7 @@ const toDescriptor = overload(toType, {
         const [id, name] = path.split('.');
         const node = nodes[id];
 
-        if (!node || !(name in node)) throw new Error('NodeGraph() – ' + path + ' object not found');
+        if (!node || !(name in node)) throw new Error('Graph() – param not found at path "' + path + '"');
 
         const param = node[name];
 
