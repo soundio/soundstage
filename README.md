@@ -2,8 +2,7 @@
 
 Soundstage is a tool for creating and playing Web Audio processing graphs. It provides an object model
 for creating, manipulating and observing audio graphs, a sequencing engine for event
-recording and playback, and a JSONify-able structure for copying and transferring
-Soundstage projects.
+recording and playback, and a JSONify-able structure for copying and transferring projects.
 
 > **Warning**<br/>
 > Soundstage is currently undergoing a reworking after a bit of a hiatus. It
