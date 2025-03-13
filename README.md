@@ -1,8 +1,8 @@
 # Soundstage
 
-Soundstage is an object model for Web Audio processing graphs. It provides an API
-for creating, manipulating and observing graphs, a sequencing engine for event
-record and playback, and a JSONify-able structure for import and export of
+Soundstage is a tool for creating and playing Web Audio processing graphs. It provides an object model
+for creating, manipulating and observing audio graphs, a sequencing engine for event
+recording and playback, and a JSONify-able structure for copying and transferring
 Soundstage projects.
 
 > **Warning**<br/>
