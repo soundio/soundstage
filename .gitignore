@@ -11,6 +11,7 @@ Thumbs.db
 node_modules/
 archive/
 npm-debug.log
+CLAUDE.md
 
 # Rust (for wasm-pack)
 Cargo.lock
