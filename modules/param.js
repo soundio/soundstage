@@ -1,367 +1,231 @@
 
-//import Event from './event.js';
+// Polyfill param.cancelAndHoldAtTime()
+import './param/cancel-and-hold.js';
 
-const $automation  = Symbol('soundstage-automation');
-const fadeDuration = 0.012;
-const defaultAutomationEvent = Object.freeze([0, 'step', 1]);
-
-const interpolate = {
-    // Automation curves as described at:
-    // http://webaudio.github.io/web-audio-api/#h4_methods-3
-    step:        (value1, value2, time1, time2, time) => time < time2 ? value1 : value2,
-    linear:      (value1, value2, time1, time2, time) => value1 + (value2 - value1) * (time - time1) / (time2 - time1),
-    exponential: (value1, value2, time1, time2, time) => value1 * Math.pow(value2 / value1, (time - time1) / (time2 - time1)),
-    target:      (value1, value2, time1, time2, time, duration) => time < time2 ? value1 : value2 + (value1 - value2) * Math.pow(Math.E, (time2 - time) / duration),
-    /* Todo */
-    curve:       (value1, value2, time1, time2, time, duration) => {}
-};
-
-const curves = {
-    // event = [time, curve, value, duration]
-    'step':        (param, event) => param.setValueAtTime(event[2], event[0]),
-    'linear':      (param, event) => param.linearRampToValueAtTime(event[2], event[0]),
-    'exponential': (param, event) => param.exponentialRampToValueAtTime(event[2], event[0]),
-    'target':      (param, event) => param.setTargetAtTime(event[2], event[0], event[3]),
-    'curve':       (param, event) => param.setValueCurveAtTime(event[2], event[0], event[3]),
-    'hold':        (param, event) => hold(param, event[0])
-};
+// Imports
+import Events from './events.js';
+import { t30, t60, t90 } from './constants.js';
 
 
-/**
-isAudioParam(object)
-**/
+const TYPENUMBERS = Events.TYPENUMBERS;
+
+
+const assign = Object.assign;
+
 
 export function isAudioParam(object) {
     return window.AudioParam && AudioParam.prototype.isPrototypeOf(object);
 }
 
-
-/**
-automate(param, time, curve, value, duration)
-**/
-
-export function automate(param, time, curve, value, duration) {
-    const events = getAutomation(param);
-
-    let n = events.length;
-    while (events[--n] && events[n][0] >= time);
-
-    // Before and after events
-    const event0 = events[n];
-    const event1 = events[n + 1];
-
-    // TODO: Create an event where needed
-    // createEvent(time, curve, param, event0, event1, , value, duration);
-
-    if (event1) {
-        console.log('TODO insert between events');
-    }
-    else {
-        // Store event
-        const event = duration ?
-            [time, curve, value, duration] :
-            [time, curve, value] ;
-
-        events.push(event);
-
-        // Automate the change based on the curve
-        curves[curve](param, event);
-    }
+export function isAudioParamLike(object) {
+    return !!object.setValueAtTime;
 }
 
 
 /**
-getAutomation(param)
-Returns automation events for param.
+attackAtTime(param, value, duration, time)
+
+Implements a truncated exponential attack to `value` over `duration`, where the
+exponential curve hits 1/e^-1 (63%) of its target value at `duration` and is
+held there.
+
+(Some useful information about this common approach can be found in Musical
+Applications of Microprocessors chapter 18. And more on Stack Exchange:
+https://dsp.stackexchange.com/questions/2555/help-with-equations-for-exponential-adsr-envelope)
 **/
 
-export function getAutomation(param) {
-    if (window.DEBUG && !isAudioParam(param)) {
-        throw new Error('Cannot get automation, param not an AudioParam ' + JSON.stringify(param));
-    }
+const targetFactor = Math.E / (Math.E - 1);
 
-    // Lets use an expando *sigh*.
-    return param[$automation] || (param[$automation] = []);
-}
-
-
-/**
-hold(param, time)
-**/
-
-export const hold = AudioParam.prototype.cancelAndHoldAtTime ?
-    // Use prototype method
-    (param, time) => param.cancelAndHoldAtTime(time) :
-
-    // FF has no param.cancelAndHoldAtTime() (despite it being in the spec for,
-    // like, forever), try and work around it
-    (param, time) => {
-        // Set a curve of the same type as what was the next event at this
-        // time and value. TODO: get the curve and intermediate value from
-        // next set event.
-        const events = getAutomation(param);
-        let n = -1;
-        while (events[++n] && events[n][0] <= time);
-        const event1 = events[n];
-        const curve  = event1 ? event1[1] : 'step' ;
-        const value  = event1 ? getValueAtTime() : 0 ;
-
-        // Cancel values
-        param.cancelScheduledValues(time);
-
-        // Truncate curve
-        if (curve === 'linear') {
-            param.linearRampToValueAtTime(value, time);
-        }
-        else if (curve === 'exponential') {
-            param.exponentialRampToValueAtTime(value, time);
-        }
-        else if (curve === 'step') {
-            param.setValueAtTime(value, time);
-        }
-    } ;
-
-
-/**
-fadeInFromTime(context, param, duration, time)
-Linearly fades param to `1` from `time` over `duration` seconds. Returns the end
-time, `time + duration`.
-**/
-export function fadeInFromTime(context, param, gain, duration, time) {
+export function attackAtTime(param, value, duration, time) {
     if (!duration) {
-        param.setValueAtTime(gain, time);
+        param.setValueAtTime(value, time);
         return time;
     }
 
     param.setValueAtTime(0, time);
-    param.linearRampToValueAtTime(gain, time + duration);
+    param.setTargetAtTime(value * targetFactor, time, duration);
+    param.setValueAtTime(value, time + duration);
     return time + duration;
 }
 
-/**
-fadeInToTime(context, param, duration, time)
-TODO
-Linearly fades param to `1` to `time` over `duration` seconds (or shorter if
-`context.currentTime` is greater than `time - duration`). Returns `time`.
-**/
-export function fadeInToTime(context, param, time) {
-    // TODO
-    const t0 = context.currentTime;
-    const t1 =
-        // No fade, currentTime is already ahead of time
-        time - t0 < 0 ? time :
-        // Not enough time for fadeDuration, fade from currentTime to time
-        time - t0 < fadeDuration ? t0 :
-        // Start fade fadeDuration before time
-        time - fadeDuration ;
-
-    if (time === t1) {
-        param.setValueAtTime(1, time);
-    }
-    else {
-        hold(param, t1);
-        param.linearRampToValueAtTime(1, time);
-    }
-
-    return time;
-}
 
 /**
-fadeOutAtTime(context, param, time)
-Linearly fades param to `0` from `time` over 12ms.
-**/
-export function fadeOutAtTime(context, param, time) {
-    return fadeOutToTime(context, param, time + fadeDuration);
-}
+releaseAtTime30(param, duration, time)
+releaseAtTime60(param, duration, time)
+releaseAtTime90(param, duration, time)
 
-/**
-fadeOutToTime(context, param, time)
-Linearly fades param to `0` at `time` over 12ms.
-**/
-export function fadeOutToTime(context, param, time) {
-    const t0 = context.currentTime;
-    const t1 =
-        // No fade, currentTime is already ahead of time
-        time - t0 < 0 ? time :
-        // Not enough time for fadeDuration, fade from currentTime to time
-        time - t0 < fadeDuration ? t0 :
-        // Start fade fadeDuration before time
-        time - fadeDuration ;
+Implements an exponential decay to 0 curve where the curve passes -30dB, -60dB
+or -90dB respectively at `duration` after `time`. In Chrome (at least) the -90dB
+curve hits 0 by the end of duration. This may be an internal browser optimisation.
+Regardless, it's a very useful curve for envelope releases.
 
-    if (time === t1) {
-        param.setValueAtTime(0, time);
-    }
-    else {
-        hold(param, t1);
-        param.linearRampToValueAtTime(0, time);
-    }
-
-    return time;
-}
-
-/**
-attackAtTime(context, param, gain, duration, time)
-Exponentially fades to `gain` at `time + duration`, then linearly to 0. Returns
-time at which param reaches 0.
+In all cases the time returned is the time at which the curve hits -90dB.
 **/
 
-// TODO
-export function attackAtTime(context, param, gain, duration, time) {
+export function releaseAtTime30(param, duration, time) {
     if (!duration) {
-        // Protect against clicks by fading out
-        return fadeInFromTime(context, param, gain, fadeDuration, time);
-    }
-
-    const t1 = time + duration;
-
-    param.setValueAtTime(0, time);
-    param.linearRampToValueAtTime(gain, t1);
-
-    return t1;
-}
-
-/**
-releaseAtTime(context, param, gain, duration, time)
-Exponentially fades to `gain` at `time + duration`, then linearly to 0. Returns
-time at which param reaches 0.
-**/
-
-export function releaseAtTime(context, param, gain, duration, time) {
-    if (duration === undefined) {
-        // Protect against clicks by fading out
-        return fadeOutToTime(context, param, time);
-    }
-
-    if (duration === 0) {
         param.setValueAtTime(0, time);
         return time;
     }
 
-    const t1 = time + duration;
-    // TODO: this 1,125 factor ought to be researched, im just guessin'
-    const t2 = time + (duration * 1.125);
-
-    hold(param, time);
-    param.exponentialRampToValueAtTime(gain, t1);
-    param.linearRampToValueAtTime(0, t2);
-
-    return t2;
+    const n = duration / t30;
+    param.cancelAndHoldAtTime(time);
+    param.setTargetAtTime(0, time, n);
+    return time + duration;
 }
 
-
-
-
-// ------ -------- ------ ---------- -----
-
-import { beatAtTimeStep, beatAtTimeExponential, timeAtBeatStep, timeAtBeatExponential } from './sequencer/location.js';
-
-
-/**
-beatAtTimeAutomation(e0, e1, time)
-Returns the rate beat at a given `time`.
-**/
-
-function beatAtTimeAutomation(e0, e1, time) {
-    // Returns beat relative to e0[0], where l is location from e0 time
-    return time === e0[0] ? 0 :
-        e1 && e1[1] === "exponential" ?
-            beatAtTimeExponential(e0[2], e1[2], e1[0] - e0[0], time - e0[0]) :
-            beatAtTimeStep(e0[2], time - e0[0]) ;
-}
-
-export function beatAtTimeOfAutomation(events, seed = defaultAutomationEvent, time) {
-    let b = seed.beat || 0;
-    let n = -1;
-
-    while (events[++n] && events[n][0] < time) {
-        b = events[n].beat || (
-            events[n].beat = b + beatAtTimeAutomation(seed, events[n], events[n][0])
-        );
-        seed = events[n];
+export function releaseAtTime60(param, duration, time) {
+    if (!duration) {
+        param.setValueAtTime(0, time);
+        return time;
     }
 
-    return b + beatAtTimeAutomation(seed, events[n], time);
+    const n = duration / t60;
+    param.cancelAndHoldAtTime(time);
+    param.setTargetAtTime(0, time, n);
+    return time + duration;
+}
+
+export function releaseAtTime90(param, duration, time) {
+    if (!duration) {
+        param.setValueAtTime(0, time);
+        return time;
+    }
+
+    const n = duration / t90;
+    param.cancelAndHoldAtTime(time);
+    param.setTargetAtTime(0, time, n);
+    return time + duration;
 }
 
 
 /**
-timeAtBeatAutomation(e0, e1, beat)
-Returns the time of a given rate `beat`.
+rateToOctave(rate)
+rateToPitch(rate)
+rateToDetune(rate)
+Functions for converting from rate gains to octaves, pitches in semitones or
+detune in cents.
 **/
 
-function timeAtBeatAutomation(e0, e1, beat) {
-    // Returns time relative to e0 time, where b is beat from e0[0]
-    return beat === e0.beat ? 0 :
-        e1 && e1[1] === "exponential" ?
-            timeAtBeatExponential(e0[2], e1[2], e1.beat - e0.beat, beat - e0.beat) :
-            timeAtBeatStep(e0[2], beat - (e0.beat || 0)) ;
+/**
+octaveToRate(octave)
+pitchToRate(pitch)
+detuneToRate(cents)
+Functions for converting octaves, pitches in semitones and detune in cents
+to rate gains.
+**/
+
+export const rateToOctave = Math.log2;
+
+export function rateToPitch(rate) {
+    return 12 * rateToOctave(rate);
 }
 
-export function timeAtBeatOfAutomation(events, seed = defaultAutomationEvent, beat) {
-    let b = seed.beat || 0;
-    let n = -1;
-
-    while (events[++n]) {
-        b = events[n].beat || (
-            events[n].beat = b + beatAtTimeAutomation(seed, events[n], events[n][0])
-        );
-
-        if (b > beat) { break; }
-        seed = events[n];
-    }
-
-    return seed[0] + timeAtBeatAutomation(seed, events[n], beat);
+export function rateToDetune(rate) {
+    return 1200 * rateToOctave(rate);
 }
 
-function getValueBetweenEvents(event1, event2, time) {
-    return interpolate[event2[1]](event1[2], event2[2], event1[0], event2[0], time, event1[3]);
+export function octaveToRate(octave) {
+    return Math.pow(2, octave);
 }
 
-function getEventsValueAtEvent(events, n, time) {
-    var event = events[n];
-    return event[1] === "target" ?
-        interpolate.target(getEventsValueAtEvent(events, n - 1, event[0]), event[2], 0, event[0], time, event[3]) :
-        event[2] ;
+export function pitchToRate(pitch) {
+    return octaveToRate(pitch / 12);
 }
 
-export function getEventsValueAtTime(events, time) {
-    var n = events.length;
-
-    while (events[--n] && events[n][0] >= time);
-
-    var event0 = events[n];
-    var event1 = events[n + 1];
-
-    // Time is before the first event in events
-    if (!event0) {
-        return 0;
-    }
-
-    // Time is at or after the last event in events
-    if (!event1) {
-        return getEventsValueAtEvent(events, n, time);
-    }
-
-    if (event1[0] === time) {
-        // Scan through to find last event at this time
-        while (events[++n] && events[n][0] === time);
-        return getEventsValueAtEvent(events, n - 1, time) ;
-    }
-
-    if (time < event1[0]) {
-        return event1[1] === "linear" || event1[1] === "exponential" ?
-            getValueBetweenEvents(event0, event1, time) :
-            getEventsValueAtEvent(events, n, time) ;
-    }
+export function detuneToRate(cents) {
+    return octaveToRate(cents / 1200);
 }
 
-export function getValueAtTime(param, time) {
-    var events = getAutomation(param);
 
-    if (!events || events.length === 0) {
-        return param.value;
+
+export const schedulers = {
+    set:         (param, time, value) => param.setValueAtTime(value, time),
+    linear:      (param, time, value) => param.linearRampToValueAtTime(value, time),
+    exponential: (param, time, value) => param.exponentialRampToValueAtTime(value, time),
+    target:      (param, time, value, duration) => param.setTargetAtTime(value, time, duration),
+    curve:       (param, time, value, duration) => param.setValueCurveAtTime(value, time, duration),
+    hold:        (param, time) => param.cancelAndHoldAtTime(time),
+    cancel:      (param, time) => param.cancelScheduledValues(time)
+};
+
+assign(schedulers, {
+    [TYPENUMBERS.set]:         schedulers.set,
+    [TYPENUMBERS.linear]:      schedulers.linear,
+    [TYPENUMBERS.exponential]: schedulers.exponential,
+    [TYPENUMBERS.target]:      schedulers.target,
+    [TYPENUMBERS.curve]:       schedulers.curve,
+    [TYPENUMBERS.hold]:        schedulers.hold,
+    [TYPENUMBERS.cancel]:      schedulers.cancel
+});
+
+
+/**
+scheduleEvents(param, time, events, rate, scale)
+Schedule events (without adding them to automation tracking). Returns time at
+which the schedule is finished. Where the last event is a `"target"` event, time
+returned is the t60 time for that events time constant, regardless of whether the
+event value is `0`.
+**/
+
+function scheduleEvents(param, time, events, rate = 1, scale = 1) {
+    if (!events.length) return time;
+
+    let event, t, c, v, d;
+    for (event of events) {
+        t = time + event[0] / rate;
+        c = event[1] ;
+        v = event[2] * scale;
+        d = event[3] / rate;
+        // param, time, value, duration
+        schedulers[c](param, t, v, d);
     }
 
-    // Round to 32-bit floating point
-    return Math.fround(getEventsValueAtTime(events, time));
+    // Return time that schedule is finished
+    return c === 'target' ? t + d * t60 :
+        c === 'curve' ? t + d :
+        t ;
+}
+
+/**
+scheduleFloat32(param, time, events, rate, scale)
+Schedule events (without adding them to internal automation tracking) from a
+Float32Array of the form `[time, curve, value, duration, ...]`. Returns time at
+which the schedule is finished (where the last event is a `"target"` event,
+time returned is the equivalent t60 time for that event's time constant).
+**/
+
+function scheduleFloat32(param, time, events, rate = 1, scale = 1) {
+    if (!events.length) return time;
+
+    let event, t, c, v, d;
+    let n = -4;
+    while (events[n += 4] !== undefined) {
+        t = time + event[n] / rate;
+        c = event[n + 1];
+        v = event[n + 2] * scale;
+        d = event[n + 3] / rate;
+        // param, time, value, duration
+        schedulers[c](param, t, v, d);
+    }
+
+    // Return time that schedule is finished
+    return c === 3 ? t + d * t60 :
+        c === 4 ? t + d :
+        t ;
+}
+
+/**
+schedule(param, time, events, rate, scale)
+Schedule events from an array of events or an array of Float32 numbers.
+**/
+
+export function schedule(param, time, events, rate, scale) {
+    time = typeof events[0] === 'number' ?
+        scheduleFloat32(param, time, events, rate, scale) :
+        scheduleEvents(param, time, events, rate, scale) ;
+
+    // If param has a signal invalidate it
+    if (param.signal) param.signal.invalidateUntil(time);
+    return time;
 }

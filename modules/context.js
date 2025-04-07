@@ -1,12 +1,11 @@
 
-import { print } from './print.js';
+import cache   from 'fn/cache.js';
+import { log } from './log.js';
 
-// Safari still requires a prefixed AudioContext
-window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
 // Crude polyfill for systems without getOutputTimeStamp()
 if (!AudioContext.prototype.getOutputTimestamp) {
-    console.log('Polyfill AudioContext.getOutputTimestamp()');
+    log('Polyfill', 'AudioContext.getOutputTimestamp()');
 
     AudioContext.prototype.getOutputTimestamp = function() {
         return {
@@ -20,74 +19,102 @@ else /*if (isSafari)*/ {
     // getOutputTimestamp()... can we sanitise it?
 }
 
-export const context = new window.AudioContext();
-context.destination.channelInterpretation = "discrete";
-context.destination.channelCount = context.destination.maxChannelCount;
 
-if (context.baseLatency === undefined) {
-    // Assume 128 * 2 buffer length, as it is in Chrome on MacOS
-    context.baseLatency = 256 / context.sampleRate;
+// Safari does not provide context.outputLatency
+if (!('outputLatency' in AudioContext.prototype)) {
+    log('Polyfill', 'AudioContext.outputLatency');
+
+    // Just a quick guess for now. You'll never get this short a latency on
+    // Windows, more like 0.02 - no ASIO drivers, see.
+    Object.defineProperty(AudioContext.prototype, 'outputLatency', {
+        get: function() {
+            return 128 / this.sampleRate;
+        }
+    });
 }
 
-/*
-if (!context.outputLatency) {
-    // Just a quick guess.
-    // You'll never get this on Windows, more like 0.02 - no ASIO drivers, see.
-    context.outputLatency = 128 / context.sampleRate;
-    context.outputLatencyEstimated = true;
-}
-*/
 
-/*
-In Chrome (at least) contexts are suspended by default according to
-Chrome's autoplay policy:
+/** createContext() **/
 
-https://developers.google.com/web/updates/2018/11/web-audio-autoplay
-*/
+// Event types that allow a context to resume
+const types = ['pointerdown', 'mousedown', 'keydown', 'touchstart', 'contextmenu'];
 
-if (context.state === 'suspended') {
-    print('Audio context suspended', 'User interaction required');
-
-    // Listen for user events, resume the context when one is detected.
-    const types = ['pointerdown', 'mousedown', 'keydown', 'touchstart', 'contextmenu'];
-
-    const add = (fn, type) => {
-        document.addEventListener(type, fn);
-        return fn;
-    };
-
-    const remove = (fn, type) => {
-        document.removeEventListener(type, fn);
-        return fn;
-    };
-
-    const fn = (e) => {
-        context
-        .resume()
-        .then(() => {
-            if (resumed) { return; }
-            print('Audio context resumed', 'Event type "' + e.type + '"');
-            resumed = true;
-            types.reduce(remove, fn);
-        });
-    };
-
-    let resumed = false;
-
-    types.reduce(add, fn);
+function add(fn, type) {
+    document.addEventListener(type, fn);
+    return fn;
 }
 
-// Todo: remove default
-export default context;
+function remove(fn, type) {
+    document.removeEventListener(type, fn);
+    return fn;
+}
+
+export const createContext = cache(() => {
+    const context = new AudioContext();
+
+    if (context.state === 'suspended') {
+        log('AudioContext', 'suspended', 'user interaction required');
+        let resumed = false;
+
+        function handle(e) {
+            context
+            .resume()
+            .then(() => {
+                if (resumed) { return; }
+                log('AudioContext', 'resumed', '"' + e.type + '"');
+                resumed = true;
+                types.reduce(remove, handle);
+            });
+        }
+
+        // Listen for user events, resume the context when one is detected
+        types.reduce(add, handle);
+    }
+
+    return context;
+});
+
+
+/** isAudioContext() **/
 
 export function isAudioContext(object) {
     return window.AudioContext && window.AudioContext.prototype.isPrototypeOf(object);
 }
 
 
+/**  **/
+
+export function timeAtDomTime(context, domTime) {
+    var stamp = context.getOutputTimestamp();
+//console.log(stamp.performanceTime / 1000, stamp.contextTime);
+    return stamp.contextTime + (domTime - stamp.performanceTime) / 1000;
+}
+
+export function domTimeAtTime(context, time) {
+    var stamp = context.getOutputTimestamp();
+//console.log(stamp.performanceTime / 1000, stamp.contextTime);
+    return stamp.performanceTime + (time - stamp.contextTime) * 1000;
+}
+
+export function getPerformanceLatency(context) {
+        // The time from the earliest we may schedule something to it getting
+        // passed to destination, one quantum's duration
+    return 128 / context.sampleRate
+        // The time it takes for destination to pass out to the audio output device
+        + context.baseLatency
+        // The time the audio output device takes to process and play it
+        + context.outputLatency;
+}
 
 
 
+
+
+
+
+
+
+/*
 function stampTimeAtDomTime(stamp, domTime) {
     return stamp.contextTime + (domTime - stamp.performanceTime) / 1000;
 }
@@ -169,7 +196,7 @@ getDejitterTime(context)
 Returns a time just ahead of context.currentTime that compensates
 for block jitter caused by cueing everything to currentTime.
 */
-
+/*
 let discrepancy = 0;
 export function getDejitterTime(context) {
     // FOR SOME REASON THERE IS a 200ms discrepancy betweeen this currentTime
@@ -211,4 +238,4 @@ export function getDejitterTime(context) {
     }
 
     return time ;*/
-}
+/*}*/

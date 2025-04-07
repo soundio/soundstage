@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beat Oscillator Test</title>
+    
+    <script type="importmap">{
+        "imports": {
+            "bolt/":       "../../../bolt/",
+            "dom/":        "../../../dom/modules/",
+            "fn/":         "../../../fn/modules/",
+            "forms/":      "../../../form-elements/",
+            "literal/":    "../../../literal/",
+            "midi/":       "../../../midi/modules/",
+            "soundstage/": "../../../soundstage/"
+        }
+    }</script>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        h1 {
+            margin-bottom: 2rem;
+        }
+        
+        #output {
+            background-color: #f4f4f4;
+            padding: 1rem;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            margin-bottom: 2rem;
+        }
+        
+        canvas {
+            width: 100%;
+            height: 300px;
+            border: 1px solid #ccc;
+            margin-bottom: 1rem;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        button {
+            padding: 0.5rem 1rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>Beat Oscillator Test</h1>
+    
+    <div class="controls">
+        <button id="btnMario">Load Mario Preset</button>
+        <button id="btnDoor">Load Door Preset</button>
+    </div>
+    
+    <canvas id="waveformCanvas"></canvas>
+    <canvas id="eventsCanvas"></canvas>
+    
+    <div id="output">Loading Beat Oscillator module...</div>
+    
+    <script type="module">
+        import BeatOscillator, { PRESETS } from '../beat-oscillator.js';
+        
+        // Create console logger
+        const output = document.getElementById('output');
+        const originalConsole = {
+            log: console.log,
+            error: console.error
+        };
+        
+        console.log = function(...args) {
+            originalConsole.log(...args);
+            output.textContent += args.join(' ') + '\n';
+        };
+        
+        console.error = function(...args) {
+            originalConsole.error(...args);
+            output.textContent += 'ERROR: ' + args.join(' ') + '\n';
+        };
+        
+        // Initialize the oscillator
+        const oscillator = new BeatOscillator({ harmonics: 64 });
+        window.oscillator = oscillator;
+        
+        // UI elements
+        const waveformCanvas = document.getElementById('waveformCanvas');
+        const eventsCanvas = document.getElementById('eventsCanvas');
+        const btnMario = document.getElementById('btnMario');
+        const btnDoor = document.getElementById('btnDoor');
+        
+        // Set up canvas contexts
+        const waveformCtx = waveformCanvas.getContext('2d');
+        const eventsCtx = eventsCanvas.getContext('2d');
+        
+        // Resize canvas for proper resolution
+        function resizeCanvas(canvas) {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            return canvas;
+        }
+        
+        window.addEventListener('resize', () => {
+            resizeCanvas(waveformCanvas);
+            resizeCanvas(eventsCanvas);
+            drawCurrentPattern();
+        });
+        
+        resizeCanvas(waveformCanvas);
+        resizeCanvas(eventsCanvas);
+        
+        // Draw the waveform
+        function drawWaveform() {
+            const { width, height } = waveformCanvas;
+            waveformCtx.clearRect(0, 0, width, height);
+            
+            // Draw axes
+            waveformCtx.strokeStyle = '#ccc';
+            waveformCtx.beginPath();
+            waveformCtx.moveTo(0, height / 2);
+            waveformCtx.lineTo(width, height / 2);
+            waveformCtx.stroke();
+            
+            // Can't draw if no coefficients yet
+            try {
+                // Draw the waveform
+                waveformCtx.strokeStyle = '#0066cc';
+                waveformCtx.lineWidth = 2;
+                waveformCtx.beginPath();
+                
+                const steps = width;
+                for (let i = 0; i < steps; i++) {
+                    const x = (i / steps) * 2 * Math.PI;
+                    const value = oscillator.evaluate(x);
+                    const y = height / 2 - value * (height / 3);
+                    
+                    if (i === 0) {
+                        waveformCtx.moveTo(i * (width / steps), y);
+                    } else {
+                        waveformCtx.lineTo(i * (width / steps), y);
+                    }
+                }
+                
+                waveformCtx.stroke();
+                
+                // Draw the derivative
+                waveformCtx.strokeStyle = '#ff6600';
+                waveformCtx.lineWidth = 1;
+                waveformCtx.beginPath();
+                
+                for (let i = 0; i < steps; i++) {
+                    const x = (i / steps) * 2 * Math.PI;
+                    const value = oscillator.evaluateDerivative(x);
+                    const y = height / 2 - value * (height / 10);
+                    
+                    if (i === 0) {
+                        waveformCtx.moveTo(i * (width / steps), y);
+                    } else {
+                        waveformCtx.lineTo(i * (width / steps), y);
+                    }
+                }
+                
+                waveformCtx.stroke();
+            } catch (error) {
+                console.error('Cannot draw waveform:', error.message);
+            }
+        }
+        
+        // Draw the events
+        async function drawEvents() {
+            try {
+                const events = await oscillator.getEvents();
+                const { width, height } = eventsCanvas;
+                
+                eventsCtx.clearRect(0, 0, width, height);
+                
+                // Draw time axis
+                eventsCtx.strokeStyle = '#ccc';
+                eventsCtx.beginPath();
+                eventsCtx.moveTo(0, height - 20);
+                eventsCtx.lineTo(width, height - 20);
+                eventsCtx.stroke();
+                
+                // Draw the events
+                eventsCtx.fillStyle = '#0066cc';
+                
+                for (const event of events) {
+                    const x = (event.time / (2 * Math.PI)) * width;
+                    const barHeight = Math.min(event.velocity * 100, height - 30);
+                    
+                    eventsCtx.fillRect(
+                        x - 2,
+                        height - 20 - barHeight,
+                        4,
+                        barHeight
+                    );
+                }
+                
+                // Draw time markers
+                eventsCtx.fillStyle = '#333';
+                eventsCtx.textAlign = 'center';
+                eventsCtx.font = '12px sans-serif';
+                
+                for (let i = 0; i <= 8; i++) {
+                    const x = (i / 8) * width;
+                    eventsCtx.fillText(`${i * Math.PI/4}π`, x, height - 5);
+                    
+                    eventsCtx.beginPath();
+                    eventsCtx.moveTo(x, height - 20);
+                    eventsCtx.lineTo(x, height - 15);
+                    eventsCtx.stroke();
+                }
+                
+                // Show event count
+                eventsCtx.fillStyle = '#333';
+                eventsCtx.textAlign = 'left';
+                eventsCtx.fillText(`${events.length} events detected`, 10, 20);
+                
+            } catch (error) {
+                console.error('Cannot draw events:', error.message);
+            }
+        }
+        
+        // Draw both visualizations
+        function drawCurrentPattern() {
+            drawWaveform();
+            drawEvents();
+        }
+        
+        // Button handlers
+        btnMario.addEventListener('click', async () => {
+            output.textContent = 'Loading Mario preset...\n';
+            try {
+                await oscillator.fromPreset(PRESETS.MARIO);
+                console.log('Mario preset loaded successfully');
+                drawCurrentPattern();
+            } catch (error) {
+                console.error(error);
+            }
+        });
+        
+        btnDoor.addEventListener('click', async () => {
+            output.textContent = 'Loading Door preset...\n';
+            try {
+                await oscillator.fromPreset(PRESETS.DOOR);
+                console.log('Door preset loaded successfully');
+                drawCurrentPattern();
+            } catch (error) {
+                console.error(error);
+            }
+        });
+        
+        // Initialize with a default pattern
+        async function init() {
+            try {
+                await oscillator.ready();
+                console.log('Beat Oscillator module loaded successfully');
+                
+                await oscillator.fromPreset(PRESETS.MARIO);
+                console.log('Mario preset loaded by default');
+                
+                drawCurrentPattern();
+            } catch (error) {
+                console.error('Initialization error:', error);
+            }
+        }
+        
+        init();
+    </script>
+</body>
+</html>

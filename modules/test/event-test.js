@@ -1,35 +1,28 @@
 
 import run      from '../../../fn/modules/test.js';
 import context  from '../context.js';
-import Event, { isNoteEvent } from '../event.js';
+import Events, { isStartEvent } from '../events.js';
 
-run('Event.of()', [0, 'note', 0, 'note', 64, 0.2, 1, true], function(test, done) {
-    const event = Event.of(0, 'note', 64, 0.2, 1);
+run('Events.event()', [0, 1, 64, 0.2], function(test, done) {
+    const event = Events.event(0, 'start', 64, 0.2);
 
-    test(event.beat);
-    test(event.type);
     test(event[0]);
     test(event[1]);
     test(event[2]);
     test(event[3]);
-    test(event[4]);
-    test(isNoteEvent(event));
+    test(isStartEvent(event));
 
     done();
 }, 1);
 
-run('Event.from()', [[1, 'param', 'gain', 0.5, 'exponential'], 1, 'param', 1, 'param', 'gain', 0.5, 'exponential', false], function(test, done) {
-    const event = Event.from([1, 'param', 'gain', 0.5, 'exponential']);
+run('Events.from()', [[1, 'gain.exponential', 0.5, 0], 1, 1, 0.5, 0, false], function(test, done) {
+    const event = Events.from([1, 'gain.exponential', 0.5, 0]);
 
-    test(event.originalEvent);
-    test(event.beat);
-    test(event.type);
     test(event[0]);
     test(event[1]);
     test(event[2]);
     test(event[3]);
-    test(event[4]);
-    test(isNoteEvent(event));
+    test(isStartEvent(event));
 
     done();
 }, 1);

@@ -1,180 +1,88 @@
 
-/**
-Tick(context, settings)
-
-```
-const tick = stage.createNode('tick', {
-    resonance:         // Todo
-    decay:             // Todo
-    gain: 1            // Output gain nominally in the range `0–1`
-});
-```
-
-A tick object is a signal generator that emits a 'tick' sound on `.start()`.
-Used inside the metronome.
-**/
-
-/**
-.resonance
-A float?? Todo.
-**/
-
-/**
-.decay
-A float?? Todo.
-**/
-
-/**
-.gain
-An AudioParam representing output gain.
-**/
-
-import noop     from '../../fn/modules/noop.js';
-import { floatToFrequency, toNoteNumber } from '../../midi/modules/data.js';
-import { dB48 } from '../modules/constants.js';
-import { hold } from '../modules/param.js';
+import Graph          from '../modules/graph.js';
 import parseFrequency from '../modules/parse/parse-frequency.js';
 import parseGain      from '../modules/parse/parse-gain.js';
-
-const assign = Object.assign;
-
-
-// Define
+import { attackAtTime, releaseAtTime60 } from '../modules/param.js';
 
 export const defaults = {
     gain:      0.25,
-    decay:     0.06,
+    attack:    0.001,
+    release:   0.06,
     resonance: 22
 };
 
+const graph = {
+    nodes: {
+        osc:    { type: 'oscillator',    data: { channelCount: 1, type: 'square', frequency: 440, detune: 0 }},
+        filter: { type: 'biquad-filter', data: { channelCount: 1 }},
+        gain:   { type: 'gain',          data: { channelCount: 1, gain: 0 }},
+        output: { type: 'gain',          data: { channelCount: 1, gain: 1 }}
+    },
 
-// Tick
+    connections: [
+        'osc',    'filter',
+        'filter', 'gain',
+        'gain',   'output'
+    ],
 
-export default function Tick(context, options) {
-    if (!Tick.prototype.isPrototypeOf(this)) {
-        return new Tick(context, options);
+    properties: {
+        gain: 'output.gain'
+    }
+};
+
+export default class Tick extends Graph {
+    constructor(context, settings = {}) {
+        // Set up the node graph and define .context, .connect, .disconnect, .get
+        super(context, graph);
+
+        // Set up
+        this.get('osc').start(context.currentTime);
+        this.attack    = settings.attack    ?? defaults.attack;
+        this.release   = settings.release   ?? defaults.release;
+        this.resonance = settings.resonance ?? defaults.resonance;
     }
 
-    var settings   = assign({}, defaults, options);
-
-    var oscillator = context.createOscillator();
-    var filter     = context.createBiquadFilter();
-    var gain       = context.createGain();
-    var output     = context.createGain();
-    //var merger     = context.createChannelMerger(2);
-
-    //NodeGraph.call(this, {
-    //	nodes: [
-    //		{ id: 'oscillator', type: 'oscillator',    settings: { channelCount: 1 } },
-    //		{ id: 'filter',     type: 'biquad-filter', settings: { channelCount: 1 } },
-    //		{ id: 'gain',       type: 'gain',          settings: { channelCount: 1 } },
-    //		{ id: 'output',     type: 'gain',          settings: { channelCount: 1 } },
-    //	],
-    //
-    //	connections: [
-    //		{ source: 'oscillator', target: 'filter' },
-    //		{ source: 'filter',     target: 'gain' },
-    //		{ source: 'gain',       target: 'output' },
-    //	]
-    //})
-
-    oscillator.channelCount = 1;
-    filter.channelCount     = 1;
-    gain.channelCount       = 1;
-    output.channelCount     = 1;
-
-    function schedule(time, frequency, level, decay, resonance) {
-        var attackTime = time > 0.002 ? time - 0.002 : 0 ;
-
-        // Todo: Feature test setTargetAtTime in the AudioObject namespace.
-        // Firefox is REALLY flakey at setTargetAtTime. More often than not
-        // it acts like setValueAtTime. Avoid using it where possible.
-
-        oscillator.frequency.setValueAtTime(frequency, attackTime);
-        oscillator.frequency.exponentialRampToValueAtTime(frequency / 1.06, time + decay);
-
-        hold(filter.frequency, attackTime);
-        filter.frequency.setValueAtTime(frequency * 1.1, attackTime);
-        filter.frequency.exponentialRampToValueAtTime(frequency * 4.98, time);
-        //filter.frequency.setTargetAtTime(frequency + 300, time + 0.003, 0.0625);
-        filter.frequency.exponentialRampToValueAtTime(frequency * 1.5, time + decay);
-
-        hold(filter.Q, attackTime);
-        filter.Q.setValueAtTime(0, attackTime);
-        filter.Q.linearRampToValueAtTime(resonance, time);
-        //filter.Q.setTargetAtTime(0, time + 0.05, 0.0625);
-        filter.Q.linearRampToValueAtTime(0, time + decay);
-
-        hold(gain.gain, attackTime);
-        gain.gain.setValueAtTime(0, attackTime);
-        gain.gain.linearRampToValueAtTime(level, time);
-        //gain.gain.setTargetAtTime(0, time, decay);
-        gain.gain.exponentialRampToValueAtTime(dB48, time + decay);
-        // Todo: work out the gradient of the exponential at time + decay,
-        // us it to schedule the linear ramp of the same gradient.
-        gain.gain.linearRampToValueAtTime(0, time + decay * 1.25);
-    }
-
-    function unschedule(time, decay) {
-        hold(gain.gain, time + decay * 1.25);
-    }
-
-    oscillator.type = 'square';
-    oscillator.frequency.setValueAtTime(300, context.currentTime);
-    oscillator.start();
-    oscillator.connect(filter);
-
-    filter.connect(gain);
-
-    gain.gain.value = 0;
-    gain.connect(output);
-    //output.connect(merger, 0, 0);
-    //output.connect(merger, 0, 1);
-
-    this.gain      = output.gain;
-    this.resonance = settings.resonance;
-    this.decay     = settings.decay;
-    //this.gain      = settings.gain;
-
-
-    /**
-    .start(time, frequency, gain)
-    **/
-    this.start = function(time, frequency = 440, gain = 0.125) {
+    start(time = this.context.currentTime, frequency = 440, gain = 0.125) {
         frequency = parseFrequency(frequency);
         gain      = parseGain(gain);
-        schedule(time || context.currentTime, frequency, gain, this.decay, this.resonance);
+
+        const o = this.get('osc');
+        const f = this.get('filter');
+        const g = this.get('gain');
+        const attack    = this.attack;
+        const release   = this.release;
+        const resonance = this.resonance;
+
+        o.frequency.cancelAndHoldAtTime(time);
+        o.frequency.setValueAtTime(frequency, time);
+        o.frequency.exponentialRampToValueAtTime(frequency / 1.06, time + release);
+
+        f.frequency.cancelAndHoldAtTime(time);
+        f.frequency.setValueAtTime(frequency * 1.1, time);
+        f.frequency.exponentialRampToValueAtTime(frequency * 4.98, time);
+        f.frequency.exponentialRampToValueAtTime(frequency * 1.5, time + release);
+
+        f.Q.cancelAndHoldAtTime(time);
+        f.Q.setValueAtTime(0, time);
+        f.Q.linearRampToValueAtTime(resonance, time + attack);
+        releaseAtTime60(f.Q, release, time + attack);
+
+        g.gain.cancelAndHoldAtTime(time);
+        g.gain.setValueAtTime(0, time);
+        g.gain.linearRampToValueAtTime(gain, time + attack);
+        releaseAtTime60(g.gain, release, time + attack);
+
         return this;
-    };
+    }
 
-    //this.stop = function(time) {
-    //	// Don't. It's causing problems. I think we'll simply live with the
-    //	// fact that the metronome doesn't stop immediately when you stop
-    //	// the sequencer.
-    //	//unschedule(time, this.decay);
-    //	return this;
-    //};
+    stop() {
+        return this;
+    }
 
-    this.destroy = function() {
-        oscillator.disconnect();
-        filter.disconnect();
-        gain.disconnect();
-        output.disconnect();
-    };
-
-    this.connect = function() {
-        return output.connect.apply(output, arguments);
-    };
-
-    this.disconnect = function() {
-        return output.disconnect.apply(output, arguments);
-    };
+    static config = {
+        gain:      GainNode.config.gain,
+        resonance: { min: 0,       max: 22,   law: 'log-24db' },
+        attack:    { min: 0.00005, max: 0.05, law: 'log-24db', unit: 's' },
+        release:   { min: 0.001,   max: 1,    law: 'log-48db', unit: 's' }
+    }
 }
-
-
-/**
-.stop()
-A noop method, provided to echo the interface of other generators.
-**/
-
-Tick.prototype.stop = noop;

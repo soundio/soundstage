@@ -11,58 +11,112 @@ const mix = stage.createNode('mix', {
 **/
 
 
-import NodeGraph from './graph.js';
+import Graph from '../modules/graph.js';
+
+const fadeDuration = 0.008;
 
 const graph = {
-    nodes: [
-        { id: 'pan', type: 'pan', data: { pan: 0 }},
-        /* TEMP */
-        { id: 'invert', type: 'gain', data: { gain: 1 }}
-        /* ---- */
-    ],
+    nodes: {
+        gain:  { type: 'gain',          data: { gain: 0 }},
+        pan:   { type: 'stereo-panner', data: { pan: 0 }},
+        meter: { type: 'meter' }
+    },
 
     connections: [
-        { source: 'self', target: 'pan' }
+        'this', 'gain',
+        'gain', 'pan',
+        'pan',  'meter'
     ],
 
     properties: {
-        /**
-        .gain
-        AudioParam controlling gain.
-        **/
+        /** .gain
+        AudioParam controlling gain. **/
+        gain: 'gain.gain',
 
-        /**
-        .pan
-        AudioParam controlling stereo pan position.
-        **/
-        pan:    'pan.pan',
-        invert: 'invert.gain'
+        /** .pan
+        AudioParam controlling stereo pan position. **/
+        pan:  'pan.pan'
     },
 
 	output: 'pan'
 };
 
+
 export default class Mix extends GainNode {
+    #value = 1;
+    #pregain;
+    #mute;
+
     constructor(context, options, transport) {
         // Init gain node
-        super(context, options);
+        super(context, { gain: 0 });
+
+        // Privatise gain param before calling Graph, which redefines .gain param
+        this.#pregain = this.gain;
 
         // Set up the node graph
-        NodeGraph.call(this, context, graph, transport);
+        Graph.call(this, context, graph, options, transport);
     }
 
-    // Inherit from NodeGraph. We don't seem able to do this with Object.assign
-    // to prototype. Another stupid limitation of class syntax? Who the hell
-    // thought forcing class syntax on AudioNodes was a good idea?
-    get() {
-        return NodeGraph.prototype.get.apply(this, arguments);
+    /**
+    .invert
+    Boolean.
+    **/
+    get invert() {
+        return this.#value < 0;
     }
 
-    connect() {
-        return NodeGraph.prototype.connect.apply(this, arguments);
+    set invert(boolean) {
+        this.#value = boolean ? -1 : 1 ;
+
+        if (!this.mute) {
+            const param = this.#pregain;
+            const time  = this.context.currentTime;
+            param.setValueAtTime(-this.#value, time);
+            param.linearRampToValueAtTime(this.#value, time + fadeDuration);
+        }
     }
 
-    disconnect() {
-        return NodeGraph.prototype.disconnect.apply(this, arguments);
+    /**
+    .mute
+    Boolean.
+    **/
+    get mute() {
+        return this.#mute;
+        //return this.#pregain.value === 0;
+        // We can't use this because it is not instant. I wish we could do
+        // something like getValueAtTime(this.#pregain, time + fadeDuration)
     }
+
+    set mute(boolean) {
+        const param = this.#pregain;
+        const time  = this.context.currentTime;
+
+        if (boolean) {
+            //this.#pregain.value = 0;
+            param.setValueAtTime(this.#value, time);
+            param.linearRampToValueAtTime(0, time + fadeDuration);
+        }
+        else {
+            //this.#pregain.value = this.#value;
+            param.setValueAtTime(0, time);
+            param.linearRampToValueAtTime(this.#value, time + fadeDuration);
+        }
+
+        this.#mute = !!boolean;
+    }
+
+    static name = 'MixNode';
+
+    static config = {
+        pan: StereoPannerNode.config.pan
+    };
 }
+
+Object.defineProperties(Mix.prototype, {
+    invert:     { enumerable: true },
+    mute:       { enumerable: true },
+    get:        { value: Graph.prototype.get },
+    connect:    { value: Graph.prototype.connect },
+    disconnect: { value: Graph.prototype.disconnect }
+});

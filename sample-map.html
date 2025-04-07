@@ -1,0 +1,480 @@
+<head>
+    <meta charset="utf-8" />
+    <meta name="author" content="@stephband" />
+    <meta name="description" content="TODO" />
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
+    <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
+
+    <style>
+        @import '../bolt/elements/html.css';
+        @import '../bolt/elements/form.css';
+        @import '../bolt/elements/table.css';
+        @import '../bolt/elements/type.css';
+        @import '../bolt/elements/label.css';
+        @import '../bolt/elements/form.css';
+        @import '../bolt/elements/focus.css';
+        @import '../bolt/elements/svg.css';
+        @import '../bolt/classes/invisible.css';
+        @import '../bolt/classes/block.css';
+        @import '../bolt/classes/striped-table.css';
+        @import '../bolt/classes/button.css';
+        @import '../bolt/classes/thumb.css';
+        @import '../bolt/classes/atoms.css';
+        @import '../bolt/classes/color.css';
+        @import './elements/waveform-canvas/element.css';
+        @import './elements/dynamics-canvas/element.css';
+        @import './elements/stage-object/classes/char-thumb.css';
+        @import './elements/stage-object/types/audio.css';
+
+        html, body {
+            font-family: system-ui;
+            font-size: 0.875rem;
+        }
+
+        body { padding: 1.5rem; }
+
+        canvas[is="waveform-canvas"] {
+            width: 10rem;
+            height: 1.875rem;
+            background: #f5f5f5;
+            --waveform-fill: oklch(30% 0.0958 113.68 / 80.06%);
+            color: black;
+            background-color: #b8c246;
+        }
+
+        canvas[is="waveform-canvas"],
+        canvas[is="dynamics-canvas"] {
+            box-shadow: none;
+        }
+
+        .controls {
+            margin: 10px 0;
+        }
+
+        button {
+            margin-right: 5px;
+        }
+
+        .char-thumb {
+            background: var(--knob-background);
+        }
+
+        .striped-table {
+            font-size: 0.9375rem;
+        }
+
+        body > .striped-table {
+            margin-left: -0.75rem;
+            margin-right: -0.75rem;
+        }
+
+        td { white-space: nowrap; }
+        th > select { margin: 0; }
+        td > [type="number"] { margin: -0.1875rem 0; display: inline-block; border-color: transparent; background-color: transparent; width: 2.75rem; text-align: right; padding-left: 0; padding-right: 0; text-indent: 0; }
+        td > [is="waveform-canvas"] { margin: -0.1875rem 0; border-radius: 0; }
+        td > [is="dynamics-canvas"] { margin: -0.1875rem 0; border-radius: 0; }
+        tr:first-child > td > [is="waveform-canvas"] { border-top-left-radius:    0.375rem; border-top-right-radius:    0.375rem; }
+        tr:last-child  > td > [is="waveform-canvas"] { border-bottom-left-radius: 0.375rem; border-bottom-right-radius: 0.375rem; }
+        tr:first-child > td > [is="dynamics-canvas"] { border-top-left-radius:    0.375rem; border-top-right-radius:    0.375rem; }
+        tr:last-child  > td > [is="dynamics-canvas"] { border-bottom-left-radius: 0.375rem; border-bottom-right-radius: 0.375rem; }
+
+        /* Hide number arrows */
+        /* Chrome, Safari, Edge, Opera */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+
+        /* Firefox */
+        input[type=number] {
+          -moz-appearance: textfield;
+        }
+
+
+        .striped-table > tbody > tr > th,
+        .striped-table > tbody > tr > td {
+            padding-top:    0.1875rem;
+            padding-bottom: 0.1875rem;
+        }
+
+        .auto-button {
+            --size: 1.875rem;
+            margin: -0.1875rem 0;
+            color: white;
+            background-color: grey;
+            border-radius: 0.1875rem;
+        }
+
+        .number-input {
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        svg {
+            stroke: none;
+        }
+
+        .range-key.white-key {
+            fill: oklch(70% 0.0958 113.68 / 80.06%);
+        }
+
+        .range-key.black-key {
+            fill: oklch(25% 0.0958 113.68 / 80.06%);
+        }
+
+        .code-text {
+            font-family: system-ui;
+            font-size: 0.875rem;
+        }
+
+        .black-key {
+            fill: #999999;
+        }
+
+        .white-key {
+            fill: white;
+        }
+
+        select, input {
+            --size: 1.875rem;
+            font-size: 0.875rem;
+            margin: 0;
+        }
+
+        label + [type="number"] { margin: 0; }
+
+        label {
+            white-space: nowrap;
+        }
+
+        .unit-abbr { font-size: 0.875em; }
+    </style>
+
+    <script>
+        window.DEBUG = { literal: false, MIDI: false };
+    </script>
+
+    <script type="importmap">{
+        "imports": {
+            "bolt/":       "../../../bolt/",
+            "dom/":        "../../../dom/modules/",
+            "fn/":         "../../../fn/modules/",
+            "forms/":      "../../../form-elements/",
+            "literal/":    "../../../literal/",
+            "midi/":       "../../../midi/modules/",
+            "soundstage/": "../../../soundstage/"
+        }
+    }</script>
+
+    <template id="region-tr">
+        <tr data-src="${ data.src }" title="${ toNoteName(frequencyToFloat(data.frequency)) } : ${ toDrumName(frequencyToFloat(data.frequency)) }">
+            <!-- src -->
+            <td class="code-text">${ data.src && /\/[^\/]+$/.exec(decodeURI(data.src)) }</td>
+            <!-- sample rate -->
+            <td class="code-text right-align">${ requestBuffer(data.src).then((buffer) => (buffer.sampleRate / 1000)) }<abbr class="unit-abbr">k</abbr></td>
+            <!-- duration -->
+            <td class="code-text right-align">${ requestBuffer(data.src).then((buffer) => toMetricPrecision(1, buffer.duration) + 's') }</td>
+            <!-- waveform -->
+            <td><canvas is="waveform-canvas" width="160" height="30" scale="db">${ requestBuffer(data.src).then((buffer) => element.data = buffer) }</canvas></td>
+            <!-- play -->
+            <td><button type="button" class="char-thumb thumb size-24" name="play" data-char="▶">Play</button></td>
+            <!-- note -->
+            <td class="code-text right-align">${ frequencyToFloat(data.frequency).toFixed(0) }</td>
+            <!-- frequency -->
+            <td class="code-text right-align">${ data.frequency.toFixed(1) }<abbr class="unit-abbr">Hz</abbr></td>
+            <!-- note range -->
+            <td title="${ data.noterange.map((note) => note + ' (' + toNoteName(note) + ')').join(' - ') }">
+                ${ safe(svgKeyboard) }
+                <!-- Highlight keys on keyboard -->
+                ${ requestAnimationFrame(() => {
+                    const range = data.noterange;
+                    let n = range[0] - 1;
+                    while (++n < range[range.length - 1]) element.querySelector('[data-pitch="' + n + '"]').classList.add('range-key');
+                }), '' }
+            </td>
+            <!-- gain -->
+            <td class="code-text right-align">
+                <input type="number" name="gain" step="0.1" value="${ dB(data.gain).toFixed(1) }" /><abbr class="unit-abbr">dB</abbr>
+            </td>
+            <!-- levels -->
+            <td class="code-text">
+                <canvas is="dynamics-canvas" min="0.003981071705534973" max="1.9952623149688795">${ (() => {
+                    // Peak values in data property (shown semi-transparent)
+                    element.data = [data.peak];
+                    // RMS values shown at full opacity
+                    element.rms = [data.rms];
+                    // LUFS marker shown as blue line
+                    element.lufs = [data.lufs];
+                    // True peak marker shown with gradient
+                    element.peaks = [data.truePeak]
+                })() }</canvas>
+            </td>
+            <!-- peak -->
+            <td class="code-text right-align ${ data.peak > 1 ? 'error-fg' : '' }">${ data.peak && dB(data.peak).toFixed(1) }<abbr class="unit-abbr">dB</abbr></td>
+            <!-- normalise -->
+            <td><button type="button" class="char-thumb thumb size-24" name="normalise-gain" data-char="⤒">Normalise</button></td>
+            <!-- gain range -->
+            <td>
+                <canvas is="dynamics-canvas" min="0.003981071705534973" max="1">${ (() => {
+                    if (data.gainrange && data.gainrange.length === 2) {
+                        element.ranges = [data.gainrange];
+                        // Bit of a bug, but this canvas requires some .data
+                        element.data = [0];
+                    }
+                    else if (data.gainrange && data.gainrange.length === 4) {
+                        element.ranges = [[data.gainrange[1], data.gainrange[2]], [data.gainrange[0], data.gainrange[3]]];
+                        // Bit of a bug, but this canvas requires some .data
+                        element.data = [0, 0];
+                    }
+                })() }</canvas>
+            </td>
+            <!-- attack -->
+            <td class="code-text right-align">
+                <input type="number" name="attack" min="0" max="" step="0.2" value="${ (data.attack * 1000).toFixed(1) }" /><abbr class="unit-abbr">ms</abbr>
+            </td>
+            <!-- release -->
+            <td class="code-text right-align">
+                <input type="number" name="release" min="0" max="" step="1" value="${ (data.release * 1000).toFixed(0) }" /><abbr class="unit-abbr">ms</abbr>
+            </td>
+            <!-- mute -->
+            <td class="code-text right-align">
+                <input type="number" name="mute" min="0" max="" step="0.5" value="${ (data.mute * 1000).toFixed(1) }" /><abbr class="unit-abbr">ms</abbr>
+            </td>
+            <td class="code-text right-align">
+                <input type="number" name="group" min="0" step="1" value="${ data.group }" />
+            </td>
+        </tr>
+    </template>
+</head>
+
+<body>
+    <h1>Sample map editor</h1>
+
+    <div class="controls">
+        <button id="analyze-btn" class="button">Analyze Audio and Calculate Gains</button>
+    </div>
+
+    <template is="literal-html" src="./nodes/test/sample-map-data.js">
+        <input type="url" name="src" value="${ data.sampleMap.src }" />
+
+        <table class="striped-table">
+            <thead>
+                <tr>
+                    <th style="width: auto;">src</th>
+                    <th class="right-align" style="width: 3rem;">rate</th>
+                    <th class="right-align" style="width: 4.5rem;">duration</th>
+                    <th style="width: 10rem;">waveform</th>
+                    <th style="width: 1.875rem;"></th>
+                    <th class="right-align" style="width: 4.5rem;">note</th>
+                    <th class="right-align" style="width: 4.5rem;">freq</th>
+                    <th style="width: 16rem;">note range</th>
+                    <th class="right-align" style="width: 4.5rem;">gain</th>
+                    <th style="width: 7.875rem;">levels</th>
+                    <th class="right-align" style="width: 4.5rem;">peak</th>
+                    <th style="width: 1.875rem;"></th>
+                    <th style="width: 7.875rem;">gain range</th>
+                    <th class="right-align" style="width: 4.5rem;">attack</th>
+                    <th class="right-align" style="width: 4.5rem;">release</th>
+                    <th class="right-align" style="width: 4.5rem;">mute</th>
+                    <th class="right-align" style="width: 3rem;">group</th>
+                </tr>
+            </thead>
+            <tbody>
+                <template>${ data.sampleMap.regions && data.sampleMap.regions.map(include('#region-tr')) }</template>
+            </tbody>
+            <tfoot>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th><button type="button" class="char-thumb thumb size-24" name="play-all" data-char="▶">Play</button></th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th>
+                    <label>Analysis</label>
+                    <input type="number" name="analysis-duration" value="${ data.analysisDuration * 1000 }" step="100" min="100" max="10000" style="width: 70px;" title="Duration of audio to analyze (in milliseconds). Integrated LUFS requires at least 3000ms." />
+                </th>
+                <th>
+                    <label>Normalisation</label>
+                    <select name="normalisation" class="number-input" value="${ data.normalisation }">
+                        <option value="lufs" default>Short LUFS -18dB</option>
+                        <option value="integrated-lufs" disabled="${ data.analysisDuration < 3 }">Integrated LUFS -23dB</option>
+                        <option value="rms">RMS -24dB</option>
+                        <option value="truepeak">True Peak 0dB</option>
+                    </select>
+                </th>
+                <th></th>
+                <th>
+                    <label>&nbsp;</label>
+                    <button type="button" class="char-thumb thumb size-24" name="normalise-gain-all" data-char="⤒">Normalise all</button>
+                </th>
+                <th></th>
+                <th></th>
+                <th></th>
+            </tfoot>
+        </table>
+    </template>
+
+    <script type="module">
+    import './elements/waveform-canvas/element.js';
+    import './elements/dynamics-canvas/element.js';
+    import './elements/literal/scope.js';
+    import '../literal/literal-html/module.js';
+
+    import noop          from 'fn/noop.js';
+    import overload      from 'fn/overload.js';
+    import dB            from 'fn/to-db.js';
+    import toGain        from 'fn/to-gain.js';
+    import matches       from 'fn/matches.js';
+    import events        from 'dom/events.js';
+    import Literal       from 'literal/module.js';
+    import requestBuffer from './modules/request-buffer.js';
+    import data          from './nodes/test/sample-map-data.js';
+
+
+    let lufsTarget        = -18; // Short-term LUFS target (percussion, drums, piano)
+    let integratedTarget  = -23; // Integrated LUFS target (organs, sustained sounds)
+    let rmsTarget         = toGain(-24);
+    let truepeakTarget    = toGain(0);
+
+
+    // Set default normalization method if not already set
+    if (data.normalisation === undefined) {
+        data.normalisation = 'lufs';
+    }
+
+    const normalisations = {
+        lufs: (region) => {
+            // Short-term LUFS for percussive content
+            const gainDiff = lufsTarget - region.lufs;
+            return Math.pow(10, gainDiff / 20);
+        },
+
+        'integrated-lufs': (region) => {
+            // Integrated LUFS for sustained content like organs
+            const gainDiff = integratedTarget - region.lufs;
+            return Math.pow(10, gainDiff / 20);
+        },
+
+        rms: (region) => rmsTarget / region.rms,
+        truepeak: (region) => truepeakTarget / region.truePeak
+    };
+
+    function normaliseRegionGain(region, method = 'rms') {
+        // Validate integrated LUFS selection
+        if (method === 'integrated-lufs' && data.analysisDuration < 3) {
+            console.warn('Integrated LUFS requires at least 3 seconds of analysis. Using Short LUFS instead.');
+            method = 'lufs';
+        }
+
+        // Calculate gain factor based on selected method
+        const gainFactor = normalisations[method](region);
+
+        // Apply gain adjustment
+        region.gain = region.gain * gainFactor;
+
+        // Update analytics to reflect new gain
+        if (region.peak !== undefined)     region.peak     = region.peak * gainFactor;
+        if (region.truePeak !== undefined) region.truePeak = region.truePeak * gainFactor;
+        if (region.rms !== undefined)      region.rms      = region.rms * gainFactor;
+        if (region.lufs !== undefined)     region.lufs     = region.lufs + 20 * Math.log10(gainFactor);
+    }
+
+    async function playRegion(region) {
+        const context = data.sampleMap.context;
+
+        return requestBuffer(context, region.src).then((buffer) => {
+            const source = new AudioBufferSourceNode(context, { buffer });
+            const gain   = new GainNode(context, region);
+            source.connect(gain);
+            gain.connect(context.destination);
+            source.start();
+            return new Promise((resolve, reject) => source.onended = resolve);
+        });
+    }
+
+    events('input', document.body).each(overload((e) => e.target.name, {
+        "analysis-duration": (e) => {
+            data.analysisDuration = parseFloat(e.target.value) / 1000;
+        },
+
+        "normalisation": (e) => {
+            const method = e.target.value;
+
+            // Validate integrated LUFS selection
+            if (method === 'integrated-lufs' && data.analysisDuration < 3) {
+                console.warn('Integrated LUFS requires at least 3 seconds of analysis. Using Short LUFS instead.');
+                e.target.value = 'lufs';
+                data.normalisation = 'lufs';
+            } else {
+                data.normalisation = method;
+            }
+        },
+
+        "src": (e) => data.sampleMap.src = e.target.value,
+
+        "gain": (e) => {
+            const src     = e.target.closest('[data-src]').dataset.src;
+            const region  = data.sampleMap.regions.find(matches({ src }));
+            region.gain = toGain(parseFloat(e.target.value));
+        },
+
+        "attack": (e) => {
+            const src     = e.target.closest('[data-src]').dataset.src;
+            const region  = data.sampleMap.regions.find(matches({ src }));
+            region.attack = parseFloat(e.target.value) / 1000;
+        },
+
+        "release": (e) => {
+            const src     = e.target.closest('[data-src]').dataset.src;
+            const region  = data.sampleMap.regions.find(matches({ src }));
+            region.release = parseFloat(e.target.value) / 1000;
+        },
+
+        "mute": (e) => {
+            const src     = e.target.closest('[data-src]').dataset.src;
+            const region  = data.sampleMap.regions.find(matches({ src }));
+            region.mute = parseFloat(e.target.value) / 1000;
+        },
+
+        "group": (e) => {
+            const src     = e.target.closest('[data-src]').dataset.src;
+            const region  = data.sampleMap.regions.find(matches({ src }));
+            region.group = parseInt(e.target.value, 10);
+        }
+    }));
+
+    events('click', document.body).each(overload((e) => e.target.name, {
+        "play": (e) => {
+            const src     = e.target.closest('[data-src]').dataset.src;
+            const region  = data.sampleMap.regions.find(matches({ src }));
+            playRegion(region);
+        },
+
+        "play-all": async (e) => {
+            const regions = data.sampleMap.regions;
+            let n = -1;
+            while (++n < regions.length) await playRegion(regions[n]);
+        },
+
+        "normalise-gain": (e) => {
+            const row = e.target.closest('[data-src]');
+            const src = row.dataset.src;
+            const region = data.sampleMap.regions.find(matches({ src }));
+
+            // Use the global normalization method
+            normaliseRegionGain(region, data.normalisation);
+        },
+
+        "normalise-gain-all": (e) => {
+            // Use the global normalization method
+            data.sampleMap.regions.forEach(region => normaliseRegionGain(region, data.normalisation));
+        },
+
+        default: noop
+    }));
+    </script>
+</body>

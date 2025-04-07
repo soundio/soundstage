@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="author" content="@stephband" />
+    <meta name="description" content="Looper Test" />
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
+    <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
+    <title>Looper Test</title>
+
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            max-width: calc(100% - 40px);
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        h1, h2 {
+            margin-top: 1.5em;
+        }
+
+        canvas[is="waveform-canvas"] {
+            display: block;
+            width: 100%;
+            height: 120px;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            --waveform-fill: oklch(30% 0.0958 113.68 / 80.06%);
+            margin-bottom: 20px;
+        }
+    </style>
+
+    <script>
+        window.DEBUG = { literal: false, MIDI: false };
+    </script>
+
+    <script type="importmap">{
+        "imports": {
+            "bolt/":       "../../../bolt/",
+            "dom/":        "../../../dom/modules/",
+            "fn/":         "../../../fn/modules/",
+            "forms/":      "../../../form-elements/",
+            "literal/":    "../../../literal/",
+            "midi/":       "../../../midi/modules/",
+            "soundstage/": "../../../soundstage/"
+        }
+    }</script>
+</head>
+
+<body>
+    <h1>Looper Test</h1>
+
+    <canvas is="waveform-canvas" id="waveform" width="1024" height="200" type="peak" scale="linear"></canvas>
+    <p id="marker"></p>
+
+    <script type="module">
+    import { createContext } from './modules/context.js';
+    import Transport from './modules/transport.js';
+    import Noise  from './nodes/noise.js';
+    import Looper from './nodes/looper.js';
+    import './elements/waveform-canvas/element.js';
+
+    // Set up audio context and recorder
+    const context = createContext();
+    const canvas = document.getElementById('waveform');
+    const marker = document.getElementById('marker');
+
+    function createNoise(context) {
+        // Create two oscillators with slightly different frequencies for L/R channels
+        //const noise1 = new Noise(context, { type: 'pink' });
+        //const noise2 = new Noise(context, { type: 'pink' });
+        //const noise1 = new ConstantSourceNode(context, { offset: 1 });
+        //const noise2 = new ConstantSourceNode(context, { offset: 1 });
+        const noise1 = context.createOscillator();
+        const noise2 = context.createOscillator();
+        noise1.frequency.value = 8;
+        noise2.frequency.value = 12;
+        noise1.start();
+        noise2.start();
+
+        // Create a merger to combine them into a stereo signal
+        const merger = context.createChannelMerger(2);
+
+        // Connect oscillators to specific channels of the merger
+        noise1.connect(merger, 0, 0); // Left channel
+        noise2.connect(merger, 0, 1); // Right channel
+
+        return merger;
+    }
+window.context = context;
+    Looper.preload(context).then(() => {
+        const transport = new Transport(context);
+        const noise  = createNoise(context);
+        const looper = new Looper(context, {}, transport);
+window.looper = looper;
+
+        noise.connect(looper);
+        looper.connect(context.destination);
+
+        let f = 0;
+        const interval = setInterval(() => {
+            ++f;
+
+            if (f === 1) {
+                console.log(1, '-----------------');
+
+                console.log(1, transport.status, transport.beat, looper.loops.length);
+            }
+
+            if (f === 2) {
+                console.log(2, '-----------------');
+                looper.record(context.currentTime - 0.25);
+                looper.start(context.currentTime);
+
+                const loop = looper.loops[looper.loops.length - 1];
+                marker.before(loop.buffer.duration, ' – ', transport.tempo);
+                canvas.data = loop.buffer;
+                canvas.style.width      = 100 * loop.duration / 0.4 + '%';
+                canvas.style.marginLeft = 100 * loop.offset / 0.4 + '%';
+                console.log(2, transport.status, transport.beat, looper.loops.length);
+            }
+
+            if (f === 3) {
+                console.log(3, '-----------------');
+                looper.record(context.currentTime - 0.2);
+                looper.start(context.currentTime);
+                const loop = looper.loops[looper.loops.length - 1];
+
+                const c = canvas.cloneNode(true);
+                marker.before(c, loop.buffer.duration, ' – ', transport.tempo);
+                c.data = loop.buffer;
+                c.style.width      = 100 * loop.duration / 0.4 + '%';
+                c.style.marginLeft = 100 * loop.offset / 0.4 + '%';
+                console.log(3, transport.status, transport.beat, looper.loops.length);
+            }
+
+            if (f === 4) {
+                console.log(4, '-----------------');
+                looper.stop();
+                console.log(4, transport.status, transport.beat, looper.loops.length);
+            }
+
+            if (f === 5) {
+                console.log(5, '-----------------');
+                looper.start();
+                console.log(5, transport.status, transport.beat, looper.loops.length);
+            }
+
+            if (f === 6) {
+                console.log(5, '-----------------');
+                looper.stop();
+                console.log(5, transport.status, transport.beat, looper.loops.length);
+            }
+
+            if (f === 7) {
+                clearInterval(interval);
+            }
+        }, 300);
+    });
+    </script>
+</body>
+</html>

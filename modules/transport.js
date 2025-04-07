@@ -1,28 +1,33 @@
 
-import id       from '../../fn/modules/id.js';
-import Privates from '../../fn/modules/privates.js';
-import Stream   from '../../fn/modules/stream.js';
-import Clock    from './clock.js';
-
-import { automate, getValueAtTime } from './automate__.js';
+import id       from 'fn/id.js';
+import Signal   from 'fn/signal.js';
+import Stream   from 'fn/stream.js';
+import Playable from './playable.js';
+import Times    from './transport/times.js';
+import Frames   from './transport/frames.js';
+import Sink     from '../nodes/sink.js';
 import { connect, disconnect }  from './connect.js';
-import { barAtBeat, beatAtBar } from './sequencer/meter.js';
-import { getAutomation, beatAtTimeOfAutomation, timeAtBeatOfAutomation } from './param.js';
+import { barAtBeat, beatAtBar } from './transport/meter.js';
+import Events   from './events.js';
+import {
+    automate,
+    getAutomation,
+    purgeAutomation,
+    getValueAtTime,
+    beatAtTimeOfAutomation,
+    timeAtBeatOfAutomation
+} from './automation.js';
 
 
 const assign = Object.assign;
 const define = Object.defineProperties;
 const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
-const defaultRateEvent  = Object.freeze({ time: 0, value: 2, curve: 'step', beat: 0 });
+// Protect against accessing window.frames – a precaution for debugging
+const frames = null;
+
 const defaultMeterEvent = Object.freeze({ 0: 0, 1: 'meter', 2: 4, 3: 1 });
 
-
-/*function roundBeat(n) {
-    // Mitigate floating-point rounding errors by rounding to the nearest
-    // trillionth
-    return Math.round(1000000000000 * n) / 1000000000000;
-}*/
 
 function invertNodeFromNode(inputNode) {
     // Divide input by 8 to give us a bit of headroom. For rate, we're looking
@@ -57,81 +62,135 @@ function invertNodeFromNode(inputNode) {
 Transport(context)
 **/
 
-export default function Transport(context) {
-    // Clock
-    // .context
-    // .startTime
-    // .startLocation
-    // .stopTime
-    // .start()
-    // .stop()
-    Clock.call(this, context);
+export default class Transport extends Playable {
+    #times;
+    #meters;
+    #node;
+    #beatsCache = {};
+    #beat = 0;
+    #rate = 2;
+    #computeRate = Signal.compute(() => {
+        // What a polava, but we are swapping signals responsible for .tempo
+        // on start/stop, and we need the signal graph to remain aware.
+        // We probably outa make .status a TimedSignal ... in Playable?
+        return this.status === 'running' ?
+            this.#node.offset.signal ? this.#node.offset.signal.value :
+            this.#node.offset.value :
+        this.#rate;
+    });
 
-    // Private
-    const privates = Privates(this);
-    privates.meters        = [defaultMeterEvent];
-    privates.sequenceCount = 0;
+    constructor(context) {
+        // .context
+        // .startTime
+        // .stopTime
+        // .start()
+        // .stop()
+        super(context);
 
-    // A rate of 2 = 120bpm
-    const rateNode = new window.ConstantSourceNode(context, { offset: 2 });
-    const beatNode = invertNodeFromNode(rateNode);
+        this.startLocation;
 
-    // .rate - AudioParam
-    this.rate = rateNode.offset;
-    rateNode.start(0);
+        // Private
+        this.#meters = [defaultMeterEvent];
 
-    // .outputs – Object - This may be moved/renamed/done something with
-    this.outputs = {
-        rate: rateNode,
-        beat: beatNode
-    };
-}
+        // A rate of 2 = 120bpm
+        const sink = new Sink(context);
+        const rate = new ConstantSourceNode(context, { offset: 2 });
+        rate.connect(sink);
+        rate.start(0);
+        this.#node = rate;
+        this.rate = rate.offset;
 
-assign(Transport.prototype, Clock.prototype, {
-    create: function() {
-        // Create a frames stream... or IS this a frames stream???
-    },
+        // A stream of cue frames controlled by transport. The fn is a bit
+        // annoying, it's only there to keep #times private inside frames
+        this.frames = new Frames(this, () => this.#times);
+    }
 
-    beatAtTime: function(time) {
-        if (time < 0) { throw new Error('Location: beatAtLoc(loc) does not accept -ve values.'); }
+    /**
+    .beatAtTime(time)
+    Returns the transport beat position at the specified `time`.
+    **/
+    beatAtTime(time) {
+        if (window.DEBUG && time < 0) { throw new Error('Transport.beatAtTime() does not accept -ve values'); }
 
-        const events    = getAutomation(this.rate);
-        // Cache startLocation as it is highly likely to be needed again
-        //console.log('transport.beatAtTime', this.startTime, defaultRateEvent, events);
-        const startBeat = this.startLocation || (this.startLocation = beatAtTimeOfAutomation(events, defaultRateEvent, this.startTime));
-        const timeBeat  = beatAtTimeOfAutomation(events, defaultRateEvent, time, this.startTime);
-        return Math.fround(timeBeat - startBeat);
-    },
+        // If we are not running we will always be and have always been at this beat
+        if (this.status === 'idle') return this.#beat;
 
-    timeAtBeat: function(beat) {
-        if (beat < 0) { throw new Error('Location: locAtBeat(beat) does not accept -ve values.'); }
+        const automation = getAutomation(this.#node.offset);
+        // Keep the cache clean by ensuring we are dealing with 32bit time
+        return beatAtTimeOfAutomation(automation, Math.fround(time), this.#beatsCache);// - startBeat;
+    }
 
-        const events    = getAutomation(this.rate);
-        // Cache startLocation as it is highly likely to be needed again
-        //console.log('timeAtBeat()', beat, startBeat);
-        const startBeat = this.startLocation || (this.startLocation = beatAtTimeOfAutomation(events, defaultRateEvent, this.startTime));
-        return timeAtBeatOfAutomation(events, defaultRateEvent, startBeat + beat);
-    },
+    /**
+    .timeAtBeat(beat)
+    Converts a beat position to a time value, taking into account the transport's
+    rate parameter and start time. Returns the time at the specified `beat`.
+    **/
+    timeAtBeat(beat) {
+        if (this.status === 'idle') {
+            // If we are not running .timeAtBeat() makes no sense, but ask a
+            // nonsense question get a nonsense answer. If beat before this.#beat
+            // it must have been forever ago...
+            return beat < this.#beat ? -Infinity :
+                // If it's ahead it must be forever ahead
+                beat > this.#beat ? Infinity :
+                // And if beat is equal to this.#beat, and we'll always be at
+                // this beat, well, I don't have a number for that but I guess
+                // we're there now so let's return now
+                this.context.currentTime ;
+        }
 
-    beatAtBar: function(bar) {
-        const privates = Privates(this);
-        const meters   = privates.meters;
-        return beatAtBar(meters, bar);
-    },
+        if (window.DEBUG && beat < 0) { throw new Error('Transport.timeAtBeat() does not accept -ve values.'); }
+        const automation = getAutomation(this.#node.offset);
+        return timeAtBeatOfAutomation(automation, beat, this.#beatsCache);
+    }
 
-    barAtBeat: function(beat) {
-        const privates = Privates(this);
-        const meters   = privates.meters;
-        return barAtBeat(meters, beat);
-    },
+    /**
+    .beatAtBar(bar)
+    Converts a bar number to a beat position, using the transport's meter settings.
+    Returns the beat position at the start of the specified `bar`.
+    **/
+    beatAtBar(bar) {
+        return beatAtBar(this.#meters, bar);
+    }
 
-    rateAtTime: function(time) {
-        return getValueAtTime(this.rate);
-    },
+    /**
+    .barAtBeat(beat)
+    Converts a beat position to a bar number, using the transport's meter settings.
+    Returns the bar containing the specified `beat`.
+    **/
+    barAtBeat(beat) {
+        return barAtBeat(this.#meters, beat);
+    }
 
-    setMeterAtBeat: function(beat, bar, div) {
-        const privates = Privates(this);
-        const meters   = privates.meters;
+    /**
+    .rateAtTime(time)
+    Returns the transport's rate (in beats per second) at the specified `time`,
+    accounting for any automation.
+    **/
+    rateAtTime(time) {
+        return getValueAtTime(this.#node.offset, time);
+    }
+
+    /**
+    .getMeterAtBeat(beat)
+    Returns the meter event active at the specified `beat` position.
+    **/
+    getMeterAtBeat(beat) {
+        const meters = this.#meters;
+        let n = -1;
+        while(++n < meters.length && meters[n][0] <= beat);
+console.log(beat, n, meters[n]);
+        return meters[n - 1];
+    }
+
+    /**
+    .setMeterAtBeat(beat, bar, div)
+    Sets the meter at the specified `beat` position. Removes any subsequent meter
+    events and adds a new meter event at the specified beat with the given `bar`
+    and `div` division settings.
+    **/
+    setMeterAtBeat(beat, bar, div) {
+        const meters = this.#meters;
 
         // Shorten meters to time
         let n = -1;
@@ -144,119 +203,186 @@ assign(Transport.prototype, Clock.prototype, {
 
         meters.push({ 0: beat, 1: 'meter', 2: bar, 3: div });
         return true;
-    },
-
-    getMeterAtTime: function(time) {
-        const { meters } = Privates(this);
-        const beat = this.beatAtTime(time);
-
-        let n = -1;
-        while(++n < meters.length && meters[n][0] <= beat);
-        console.log(time, beat, n, meters[n]);
-        return meters[n - 1];
-    },
-/*
-    sequence: function(toEventsBuffer) {
-        const privates = Privates(this);
-        ++privates.sequenceCount;
-
-        return Frames
-        .from(this.context)
-        .map((frame) => {
-            // Filter out frames before startTime
-            if (frame.t2 <= this.startTime) {
-                return;
-            }
-
-            // If this.stopTime is not undefined or old
-            // and frame is after stopTime
-            if (this.stopTime > this.startTime
-                && frame.t1 >= this.stopTime) {
-                return;
-            }
-
-            // Trancate b1 to startTime and b2 to stopTime
-            frame.b1 = this.beatAtTime(frame.t1 < this.startTime ? this.startTime : frame.t1);
-            frame.b2 = this.beatAtTime(this.stopTime > this.startTime && frame.t2 > this.stopTime ? this.stopTime : frame.t2);
-
-            return frame;
-        })
-        .map(toEventsBuffer)
-        .flatMap(id)
-        .map((event) => {
-            event.time = this.timeAtBeat(event[0]);
-            return event;
-        })
-        .done(() => --privates.sequenceCount);
-    },
-*/
-    // Todo: work out how stages are going to .connect(), and
-    // sort out how to access rate (which comes from Transport(), BTW)
-    connect: function(target, outputName, targetChan) {
-        return outputName === 'rate' ?
-            connect(this.rate, target, 0, targetChan) :
-            connect() ;
-    },
-
-    disconnect: function(outputName, target, outputChan, targetChan) {
-        if (outputName !== 'rate') { return; }
-        if (!target) { return; }
-        disconnect(this.rate, target, 0, targetChan);
     }
-});
 
-define(Transport.prototype, {
-    status: getOwnPropertyDescriptor(Clock.prototype, 'status'),
+    /**
+    .getMeterAtTime(time)
+    Returns the meter event active at the specified `time`.
+    **/
+    getMeterAtTime(time) {
+        return this.getMeterAtBeat(this.beatAtTime(time));
+    }
 
-    beat: {
-        get: function() {
-            return this.playing ?
-                this.beatAtTime(this.context.currentTime) :
-                0 ;
+
+    /**
+    .start(time)
+    Starts the transport at the specified `time` (or immediately at `context.currentTime`
+    if no time is provided). The transport status becomes `'cued'` or `'running'`
+    depending on whether the start time is in the future or past/present.
+    Also starts the permanent frames stream at transport.frames2.
+    **/
+    start(time) {
+        Playable.start(this, time);
+console.log('Transport.start()', this.startTime);
+        // Replace the beats cache with the new start beat
+        const beat = this.#beat;
+        this.#beatsCache = { [this.startTime]: beat };
+
+        // Purge automation and set a new rate automation event
+        purgeAutomation(this.#node.offset);
+        automate(this.#node.offset, this.startTime, Events.TYPENUMBERS.set, this.#rate);
+
+        // Reset the frames stream's current time to match transport's start time
+        this.frames.currentTime = this.startTime;
+
+        // Play first frame immediately for any consumer whose .startTime is
+        // before the times stream .currentTime
+        //if (this.startTime <= times.currentTime) this.frames.push(times.currentTime);
+
+        // Start piping time updates to the frames stream
+        const times = this.#times = Times.from(this.context);
+        times.pipe(this.frames);
+        return this;
+    }
+
+    /**
+    .stop(time)
+    Stops the transport at the specified `time` (or immediately at `context.currentTime`
+    if no time is provided). The transport status becomes `'idle'` once `.stopTime` is
+    reached.
+    Also stops the permanent frames stream at transport.frames2.
+    **/
+    stop(time) {
+        Playable.stop(this, time);
+console.log('Transport.stop()', this.stopTime);
+        this.#beat = this.beatAtTime(this.stopTime);
+        this.#rate = getValueAtTime(this.#node.offset, this.stopTime);
+        automate(this.#node.offset, this.stopTime, Events.TYPENUMBERS.set, 0);
+
+        // If we need to stop immediately. Otherwise, the frames stream's push
+        // method stops when it reaches .stopTime
+        if (this.stopTime <= this.context.currentTime) this.#times.stop();
+        return this;
+    }
+
+
+    /**
+    .beat
+    Gets and sets the current beat position. While transport is running, returns
+    the live beat position. When stopped, returns the position where playback
+    stopped or 0. Can only be set when transport is stopped.
+    **/
+    get beat() {
+        return this.beatAtTime(this.context.currentTime);
+    }
+
+    set beat(beat) {
+        if (typeof beat !== 'number') {
+            throw new Error(`Transport attempt to set .beat – not a number (${ beat })`);
         }
-    },
 
-    bar: {
-        get: function() {
-            return this.playing ?
-                this.barAtBeat(this.beat) :
-                0 ;
+        if (this.status === 'running') {
+            throw new Error(`Transport .beat cannot be set while transport is running (TODO)`);
         }
-    },
 
-    tempo: {
-        get: function() {
-            return getValueAtTime(this.context.currentTime, this.rate.value) * 60;
-        },
+        this.#beat = beat;
+    }
 
-        set: function(tempo) {
-            var privates = Privates(this);
+    /**
+    .bar
+    Gets the current bar position based on the current beat and meter settings.
+    **/
+    get bar() {
+        return this.barAtBeat(this.beat);
+    }
 
-            //getValueAtTime(this.rate, context.currentTime);
-            // param, time, curve, value, duration, notify, context
-            automate(this.rate.value, this.context.currentTime, 'step', tempo / 60, 0, privates.notify, this.context);
+    /**
+    .rate
+    Gets and sets the current rate.
+    **/
+    /* get rate() {
+        return this.status === 'running' ?
+            getValueAtTime(this.#node.offset, this.context.currentTime) :
+            this.#rate ;
+    }
+
+    set rate(rate) {
+        if (typeof rate !== 'number') {
+            throw new Error(`Transport attempt to set .rate – not a number (${ rate })`);
         }
-    },
 
-    // Duration of one process cycle. At 44.1kHz this works out just
-    // shy of 3ms.
-    blockDuration: {
-        get: function() {
-            return 128 / this.context.sampleRate;
+        if (this.status === 'running') {
+            automate(this.#node.offset, this.context.currentTime, 'step', rate);
         }
-    },
-
-    frameDuration: {
-        get: function() {
-                console.log('TODO: REPAIR frameDuration');
-    //        return Privates(this).timer.duration;
+        else {
+            this.#rate = rate;
         }
-    },
+    } */
 
-    frameLookahead: {
-        get: function() {
-            console.log('TODO: REPAIR frameLookahead');
-    //        return Privates(this).timer.lookahead;
+    /**
+    .tempo
+    Gets and sets the tempo in beats per minute (BPM). The internal rate is
+    stored in beats per second, so the value is converted to/from BPM when
+    getting/setting.
+    **/
+    get tempo() {
+        /*return (this.status === 'running' ?
+            //getValueAtTime(this.#node.offset, this.context.currentTime) :
+            this.#node.offset.signal ? this.#node.offset.signal.value :
+            this.#node.offset.value :
+        this.#rate) * 60 ;*/
+        return this.#computeRate.value * 60;
+    }
+
+    set tempo(tempo) {
+        if (typeof tempo !== 'number') {
+            throw new Error(`Transport: attempt to set .tempo – not a number (${ tempo })`);
+        }
+
+        if (this.status === 'running') {
+            automate(this.#node.offset, this.context.currentTime, Events.TYPENUMBERS.set, tempo / 60);
+            // As far as I understand, automate() should be updating this.#node.offset.signal,
+            // thus invalidating #computeRate, but that's not happening, probably because the
+            // latest compute was done without .status 'running', so #computeRate is not
+            // currently dependent on this.#node.offset.signal ... oooof. .status should be a
+            // signal? But it would have to be a TimedSignal because it depends on
+            // context.currentTime. Wow, this is mad.
+            this.#computeRate.invalidate();
+        }
+        else {
+            this.#rate = tempo / 60;
+            this.#computeRate.invalidate();
         }
     }
-});
+
+    // TEMP
+    automate(time, rate, type = Events.TYPENUMBERS.set) {
+console.log('Transport.automate() rate:', rate, ' BPM:', rate * 60);
+        automate(this.#node.offset, time, type, rate);
+        return this;
+    }
+
+    /**
+    .connect(target[, output, input])
+    Connects the transport rate to the `target`. The optional `output` and `input`
+    parameters specify the output and input indices to connect.
+    **/
+    connect() {
+        const node = this.#node;
+        return node.connect.apply(node, arguments);
+    }
+
+    /**
+    .disconnect(target[, output, input])
+    Disconnects the transport rate node from the `target`. The optional `output`
+    and `input` parameters specify the output and input indices to disconnect.
+    **/
+    disconnect() {
+        const node = this.#node;
+        return node.disconnect.apply(node, arguments);
+    }
+
+    static from(context) {
+        return new Transport(context);
+    }
+}

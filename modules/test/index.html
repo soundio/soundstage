@@ -18,13 +18,49 @@
         window.addEventListener('load', () => window.requestAnimationFrame(() => document.documentElement.classList.remove('loading')));
     </script>
 
-    <link rel="stylesheet" href="../../module.css" />
+    <script type="importmap">{
+        "imports": {
+            "bolt/":       "../../../bolt/",
+            "dom/":        "../../../dom/modules/",
+            "fn/":         "../../../fn/modules/",
+            "forms/":      "../../../form-elements/",
+            "literal/":    "../../../literal/",
+            "midi/":       "../../../midi/modules/",
+            "soundstage/": "../../../soundstage/"
+        }
+    }</script>
+
+    <style>
+    @import '../../../bolt/elements/html.css';
+    @import '../../../bolt/elements/form.css';
+    @import '../../../bolt/elements/table.css';
+    @import '../../../bolt/elements/type.css';
+    @import '../../../bolt/elements/label.css';
+    @import '../../../bolt/elements/form.css';
+    @import '../../../bolt/elements/focus.css';
+    @import '../../../bolt/elements/svg.css';
+    @import '../../../bolt/classes/invisible.css';
+    @import '../../../bolt/classes/block.css';
+    @import '../../../bolt/classes/striped-table.css';
+    @import '../../../bolt/classes/button.css';
+    @import '../../../bolt/classes/thumb.css';
+    @import '../../../bolt/classes/atoms.css';
+    @import '../../../bolt/classes/text.css';
+    @import '../../../bolt/classes/color.css';
+
+    body { padding: 1.25rem; }
+    </style>
 </head>
 
 <body class="3x-grid grid">
+    <script type="module">
+    import './events-test.js';
+    </script>
+
     <h1>Test Soundstage</h1>
     <button type="button" value="" id="start">Start tests</button>
-    <script type="module">
+
+    <!--script type="module">
         import events     from '../../../dom/modules/events.js';
         import context    from '../context.js';
         import Soundstage from '../stage.js';
@@ -143,6 +179,6 @@
             .start(context.currentTime + 0.4)
             .stop(context.currentTime + 15);
         });
-    </script>
+    </script-->
 </body>
 </html>

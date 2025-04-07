@@ -3,7 +3,7 @@ import get            from '../../../fn/modules/get.js';
 import id             from '../../../fn/modules/id.js';
 import capture        from '../../../fn/modules/capture.js';
 import overload       from '../../../fn/modules/overload.js';
-import Event          from '../event.js';
+import Events         from '../events.js';
 import parseEvent     from './parse-event.js';
 import parseFrequency from './parse-frequency.js';
 import parseGain      from './parse-gain.js';
@@ -34,8 +34,9 @@ const parseEvents = capture(/^\s*([-\d\.e]+)\s+(\w+)\s+/, {
         event[1] = captures[2];
         // parameters
         parseEvent(event, captures);
+console.log('PP', event);
         // Convert to event object
-        data.push(Event.from(event));
+        data.push(Events.from(event));
         return data;
     },
 

@@ -1,6 +1,6 @@
 
-import isDefined        from '../../fn/modules/is-defined.js';
-import { print, log }   from './print.js';
+import isDefined        from 'fn/is-defined.js';
+import { log }   from './log.js';
 import { isAudioParam } from './param.js';
 
 const DEBUG = false;//window.DEBUG;
@@ -36,19 +36,19 @@ function targetToString(node) {
 export function connect(source, target, sourceChan, targetChan) {
     if (!source) {
         if (DEBUG) { throw new Error('Trying to connect to source ' + source); }
-        else { print('Trying to connect to undefined source. Dropping connection.'); }
+        else { log('Object', 'connect', 'Trying to connect to undefined source. Dropping connection.'); }
         return;
     }
 
     if (!target) {
         if (DEBUG) { throw new Error('Trying to connect to target ' + target); }
-        else { print('Trying to connect to undefined target. Dropping connection.'); }
+        else { log('Object', 'connect', 'Trying to connect to undefined target. Dropping connection.'); }
         return;
     }
 
     if (!isAudioParam(target) && !target.numberOfInputs) {
         if (DEBUG) { throw new Error('Trying to connect target with no inputs.'); }
-        else { print('Cannot connect to target with no inputs'); }
+        else { log('Object', 'connect', 'Cannot connect to target with no inputs'); }
         return;
     }
 
@@ -59,7 +59,7 @@ export function connect(source, target, sourceChan, targetChan) {
                     sourceChan + ') on output node {numberOfOutputs: ' + source.numberOfOutputs);
             }
             else {
-                print('Trying to .connect() from a non-existent output (' +
+                log('Object', 'connect', 'Trying to .connect() from a non-existent output (' +
                     sourceChan + ') on output node {numberOfOutputs: ' + source.numberOfOutputs + '}. Dropping connection.');
             }
             return;
@@ -67,25 +67,28 @@ export function connect(source, target, sourceChan, targetChan) {
 
         if (isDefined(targetChan)) {
             if (targetChan >= target.numberOfInputs) {
-                print('Trying to .connect() to a non-existent input (' +
+                log('Object', 'connect', 'Trying to .connect() to a non-existent input (' +
                     targetChan + ') on input node {numberOfInputs: ' + target.numberOfInputs + '}. Dropping connection.');
                 return;
             }
         }
 
-        source.connect(target, sourceChan, targetChan);
+        if (targetChan) source.connect(target, sourceChan, targetChan);
+        else source.connect(target, sourceChan);
+
         if (DEBUG) { log('connect', '', sourceToString(source), sourceChan, '–', targetToString(target), targetChan); }
     }
     else if (isDefined(targetChan)) {
         sourceChan = 0;
 
         if (targetChan >= target.numberOfInputs) {
-            print('Trying to .connect() to a non-existent input (' +
+            log('Object', 'connect', 'Trying to .connect() to a non-existent input (' +
                 targetChan + ') on input node {numberOfInputs: ' + target.numberOfInputs + '}. Dropping connection.');
             return;
         }
 
         source.connect(target, sourceChan, targetChan);
+
         if (DEBUG) { log('connect', '', sourceToString(source), sourceChan, '–', targetToString(target), targetChan); }
     }
     else {
@@ -99,12 +102,12 @@ export function connect(source, target, sourceChan, targetChan) {
 
 export function disconnect(source, target, sourceChan, targetChan, connections) {
     if (!source) {
-        print('Trying to .disconnect() from an object without output "' + outName + '".');
+        log('Object', 'connect', 'Trying to .disconnect() from an object without output "' + outName + '".');
         return;
     }
 
     if (!target) {
-        print('disconnected', source.id, source.object, target.id, target.object);
+        log('Object', 'connect', 'disconnected', source.id, source.object, target.id, target.object);
         return;
     }
 
@@ -116,7 +119,7 @@ export function disconnect(source, target, sourceChan, targetChan, connections) 
     //        disconnectDestination(source, outName, outputNode, inputNode, outputNumber, inputNumber, connections);
     //    }
     //    else {
-    //        print('Cant disconnect when features.disconnectParameters is false and connections object is not passed to disconenct.')
+    //        log('Object', 'connect', 'Cant disconnect when features.disconnectParameters is false and connections object is not passed to disconenct.')
     //        return;
     //    }
     //}

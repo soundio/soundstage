@@ -1,7 +1,27 @@
+
+# General OS/Editor Files
 .DS_Store
-.nova/*
-archive/*
-node_modules/*
-edit/*
+Thumbs.db
+*.swp
+*.swo
+*.swn
+.idea/
+.vscode/
+.nova/
+node_modules/
+archive/
 npm-debug.log
-local/*
+
+# Rust (for wasm-pack)
+Cargo.lock
+*.rs.bk
+pkg/
+target/
+
+# WebAssembly Build Artifacts
+*.wasm
+*.js.map
+*.tsbuildinfo
+
+# Deno
+deno.lock

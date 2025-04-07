@@ -1,136 +1,75 @@
-/*
-// Meter decay
-var decay = 0.96;
 
-// Number of processing windows to hold clip state
-var hold = 20;
+// Maths
+const abs = Math.abs;
 
-var cache = [];
+// For RMS metering we implement a constant filter approach. This value sets
+// the duration of a roughly equivalent RMS window, were we to be using an RMS
+// window, which we are not.
+const rmsTime = 0.333;
+
+// Calculate time constant
+const tc = 1 - Math.exp(-1 / (sampleRate * rmsTime));
 
 
-
-function initMeter(audio, scope) {
-	var node = audio.createScriptProcessor(512);
-
-	// Script nodes should be kept in memory to avoid Chrome bugs
-	cache.push(node);
-
-	node.onaudioprocess = function(e) {
-		process(node, scope, e.inputBuffer);
-	};
-
-	// Script nodes do nothing unless connected in Chrome due to a bug. This
-	// will have no effect, since we don't pass the input to the output.
-	node.connect(audio.destination);
-
-	node.channelCountMode = "explicit";
-	node.channelInterpretation = "discrete";
-
-	node.destroy = function(){
-		this.disconnect();
-		this.onaudioprocess = null;
-	};
-
-	return node;
+function toGain(n) {
+    return Math.pow(10, n / 20);
 }
 
-function process(node, scope, inputBuffer) {
-	var n = node.channelCount;
-	var clip = scope.clip > 0 ? --scope.clip : 0 ;
-	var buffer, level;
-
-	while (n--) {
-		buffer = inputBuffer.getChannelData(n);
-		level = scope.peak ? updateLevelPeak(buffer, clip) : updateLevelRMS(buffer, clip);
-		scope.levels[n] = Math.max(level, scope.levels[n] * decay);
-		clip = clip || updateClip(buffer, clip);
-	}
-
-	scope.clip = clip;
-}
-
-function updateLevelRMS(buffer, clip) {
-	var length = buffer.length;
-	var sum = 0;
-	var x, i;
-
-	// RMS the samples
-	for (i = 0; i < length; i++) {
-		x = buffer[i];
-		sum += x * x;
-	}
-
-	return Math.sqrt(sum / length);
-}
-
-function updateLevelPeak(buffer, clip) {
-	return Math.max.apply(Math, buffer);
-}
-
-function updateClip(buffer, clip) {
-	var length = buffer.length;
-	var x0, x1, i;
-
-	for (i = 0; i < length; i++) {
-		if (!clip) {
-			x0 = buffer[i];
-			x1 = buffer[i - 1];
-
-			// In a 16 bit system, 1 - 1 / 65536 = 0.9999847, so reasonably
-			// >0.9999 is more or less within 1 step of peak value. It's not
-			// counted as peaking until two such values are detected in row.
-			if (x0 > 0.9999  && x1 > 0.9999 ||
-				x0 < -0.9999 && x1 < -0.9999) {
-				clip = hold;
-			}
-		}
-	}
-
-	return clip;
-}
-
-*/
-
-
-
-
-const messageInterval = 0.033333333;
-const output = {};
-
-function max(maxes, input, i) {
-	const m = Math.max.apply(Math, input.map(Math.abs));
-
-	if (maxes[i] === undefined || m > maxes[i]) {
-		maxes[i] = m;
-	}
-
-	return maxes;
-}
 
 class Meter extends AudioWorkletProcessor {
     constructor() {
         super();
-        this.lastTime = currentTime + messageInterval;
-        this.results  = { connectedChannelCount: 0 };
-		this.maxes = [];
+
+        const dbPerSecond   = -11.8;
+        const gainPerSecond = toGain(dbPerSecond);
+        this.decay   = Math.pow(gainPerSecond, 1 / sampleRate);
+
+        // Level below which meter level is considered 0
+        this.gainMin = toGain(-90);
+
+        // Levels are a Float32Array created from a SharedArrayBuffer passed
+        // from the main thread
+        this.levels = null;
+        this.port.onmessage = (e) => {
+            if (e.data) this.levels = new Float32Array(e.data);
+        };
     }
 
     process(inputs) {
-		// There is but one input
-		const input = inputs[0];
+        // There is but one input
+        const input = inputs[0];
 
-		let chan = input.length;
-		while (chan--) {
-			max(this.maxes, input[chan], chan);
-		}
+        // If no input is connected, do nothing
+        if (!input || input.length === 0) return true;
 
-		// Throttle messages to wait every messageInterval seconds
-		if (currentTime > this.lastTime) {
-			output.peaks = this.maxes;
-			this.port.postMessage(output);
-			this.maxes.fill(0);
-			this.lastTime += messageInterval;
-		}
+        // If we don't have the shared array yet, do nothing
+        const levels = this.levels;
+        if (!levels) return true;
+
+        let chan = -1, decay = this.decay;
+        let channel, sample, s, i, j, k, l;
+        while (channel = input[++chan]) {
+            s = -1;
+            while (++s < channel.length) {
+                sample = abs(channel[s]);
+                i = chan * 3;     // Index for held peak
+                j = i + 1;        // Index for decaying peak
+                k = i + 2;        // Index for RMS
+
+                // Hold – store the max sample level
+                if (sample > levels[i]) levels[i] = sample;
+
+                // Peak – with decay
+                levels[j] =
+                    sample > levels[j] ? sample :
+                    levels[j] > this.gainMin ? decay * levels[j] :
+                    0 ;
+
+                // RMS – square the channel sample, apply a first-order low pass
+                // filter to the squared value
+                levels[k] = tc * sample * sample + (1 - tc) * levels[k];
+            }
+        }
 
         return true;
     }

@@ -1,204 +1,128 @@
 
-function drawBg(box, ctx, color) {
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.rect.apply(ctx, box);
-    ctx.closePath();
-    ctx.fill();
-}
+const assign        = Object.assign;
+const axisStyle     = { strokeStyle: "rgba(0,0,0,0.4)", lineWidth: 0.5 };
+const axisZeroStyle = { strokeStyle: "black", lineWidth: 1 };
+const plotStyle     = { strokeStyle: "white", lineWidth: 1 };
+const waveformStyle = { strokeStyle: "white", lineWidth: 1 };
 
-export function drawXLine(ctx, box, valueBox, x, color) {
-    ctx.strokeStyle = color;
-    ctx.lineWidth   = '1';
-    ctx.lineCap     = 'round';
+export function plotYAxis(ctx, box, style) {
+    let [x, y, w, h] = box;
+
+    // y lines
+    let n = 2;
     ctx.beginPath();
-    var xPx = box[0] + box[2] * (x - valueBox[0]) / valueBox[2];
-    ctx.moveTo(xPx, box[1]);
-    ctx.lineTo(xPx, box[1] + box[3]);
-    ctx.closePath();
+    while ((n /= 2) > 0.008) {
+        ctx.moveTo(x,     y - n * h);
+        ctx.lineTo(x + w, y - n * h);
+        ctx.moveTo(x,     y + n * h);
+        ctx.lineTo(x + w, y + n * h);
+    }
+    assign(ctx, axisStyle, style);
     ctx.stroke();
-}
-
-/**
-drawY(ctx, box, y, color)
-
-Draws a line at y position.
-
-ctx:   canvas context
-box:   array of 4 numbers describing view box
-y:     y position
-color: color
-**/
-
-export function drawY(ctx, box, y, color) {
-    ctx.strokeStyle = color;
-    ctx.beginPath();
-    ctx.moveTo(box[0], box[1] + (box[3] / 2) - (y * box[3] / 2));
-    ctx.lineTo(box[0] + box[2], box[1] + (box[3] / 2) - (y * box[3] / 2));
     ctx.closePath();
-    ctx.stroke();
-}
 
-export function drawYLine(ctx, box, valueBox, y, color) {
-    ctx.strokeStyle = color;
-    ctx.lineWidth   = '1';
-    ctx.lineCap     = 'round';
+    // y=0 line
     ctx.beginPath();
-    ctx.moveTo(box[0], box[1] + (box[3]) - (y * box[3]));
-    ctx.lineTo(box[0] + box[2], box[1] + (box[3]) - (y * box[3]));
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + w, y);
+    assign(ctx, axisZeroStyle, style);
+    ctx.stroke();
     ctx.closePath();
-    ctx.stroke();
 }
 
-/**
-drawYAxisAmplitude(ctx, box, color)
+export function plotBeats(ctx, box, duration, events, index, style) {
+    let [x, y, w, h] = box;
+    let beat = 0;
+    let div  = 1;
 
-Draws Y axis lines from -1 to 1 ready to plot waveforms.
-
-ctx:   canvas context
-box:   array of 4 numbers describing view box
-color: color
-**/
-
-export function drawYAxisAmplitude(ctx, box, color) {
-    ctx.lineWidth   = '1';
-    ctx.lineCap     = 'round';
-
-    drawY(ctx, box,  1,       color + '66');  //  0dB
-    drawY(ctx, box,  0.5,     color + '22');  // -6dB
-    drawY(ctx, box,  0.25,    color + '22');  // -12dB
-    drawY(ctx, box,  0.125,   color + '22');  // -18dB
-    drawY(ctx, box,  0.0625,  color + '22');  // -24dB
-    drawY(ctx, box,  0.03125, color + '22');  // -30dB
-    drawY(ctx, box,  0,       color);
-    drawY(ctx, box, -0.03125, color + '22');
-    drawY(ctx, box, -0.0625,  color + '22');
-    drawY(ctx, box, -0.125,   color + '22');
-    drawY(ctx, box, -0.25,    color + '22');
-    drawY(ctx, box, -0.5,     color + '22');
-    drawY(ctx, box, -1,       color + '66');
-}
-
-/**
-drawPoint(ctx, box, x, y, color)
-
-Draws a data point.
-
-ctx:   canvas context
-box:   array of 4 numbers describing view box
-x:     data points per px
-y:     array of data points
-color: color
-**/
-
-export function drawPoint(box, ctx, x, y, color) {
-    ctx.strokeStyle = color;
-    ctx.fillStyle = color;
-    ctx.lineWidth = 1;
+    // x lines
     ctx.beginPath();
-    ctx.arc(x, y, 2, 0, 2 * Math.PI);
-    ctx.closePath();
-    ctx.stroke();
-    ctx.fill();
-}
 
-/**
-drawCurve(ctx, box, rate, data, color)
+    // Plot lines from
+    let i = -1, event;
+    while (event = events[++i]) if (event[1] === 'meter') {
+        // Draw lines up to and including event time
+        if (div) while ((beat += div) <= event[0] && beat < duration) {
+            ctx.moveTo(w * beat / duration, y + -1.5 * h);
+            ctx.lineTo(w * beat / duration, y + 1.5 * h);
+        }
 
-Draws a filled automation curve.
-
-ctx:   canvas context
-box:   array of 4 numbers describing view box
-rate:  data points per px
-data:  array of data points
-color: base color
-**/
-
-export function drawCurve(ctx, box, rate, data, color) {
-    let n = 0;
-
-    ctx.lineWidth   = '1';
-    ctx.lineCap     = 'round';
-    ctx.beginPath();
-    ctx.moveTo(
-        box[0],
-        box[1] + (box[3] / 2) - (data[n] * box[3] / 2)
-    );
-
-    while (++n < data.length) {
-        ctx.lineTo(
-            box[0] + n / rate,
-            box[1] + (box[3] / 2) - (data[n] * box[3] / 2)
-        );
+        // Update position
+        beat = event[0];
+        div  = event[index];
     }
 
-    // Stroke the waveform
-    ctx.strokeStyle = color;
-    ctx.stroke();
-
-    // Now complete its area and then fill it
-    ctx.lineTo(
-        box[0] + box[2],
-        box[1] + box[3] / 2
-    );
-
-    ctx.lineTo(
-        box[0],
-        box[1] + box[3] / 2
-    );
-
-    //ctx.closePath();
-    ctx.fillStyle = color + '2b';
-    ctx.fill();
-}
-
-/**
-drawCurvePositive(ctx, box, rate, data, color)
-
-Draws a filled automation curve.
-
-ctx:   canvas context
-box:   array of 4 numbers describing view box
-rate:  data points per px
-data:  array of data points
-color: base color
-**/
-
-export function drawCurvePositive(ctx, box, rate, data, color) {
-    let n = 0;
-
-    ctx.lineWidth   = '2';
-    ctx.lineCap     = 'round';
-
-    ctx.beginPath();
-    ctx.moveTo(
-        box[0],
-        box[1] + (box[3]) - (data[n] * box[3])
-    );
-
-    while (++n < data.length) {
-        ctx.lineTo(
-            box[0] + n / rate,
-            box[1] + (box[3]) - (data[n] * box[3])
-        );
+    // Fill lines to end of duration
+    while ((beat += div) < duration) {
+        ctx.moveTo(w * beat / duration, y + -1.5 * h);
+        ctx.lineTo(w * beat / duration, y + 1.5 * h);
     }
 
-    // Stroke the waveform
-    ctx.strokeStyle = color;
+    assign(ctx, axisStyle, style);
     ctx.stroke();
-
-    // Now complete its area and then fill it
-    ctx.lineTo(
-        box[0] + box[2],
-        box[1] + box[3]
-    );
-
-    ctx.lineTo(
-        box[0],
-        box[1] + box[3]
-    );
-
-    ctx.fillStyle = color + '2b';
-    ctx.fill();
     ctx.closePath();
+}
+
+export function plotMeter(ctx, box, duration, events, index, style) {
+    // Plot division lines
+    plotBeats(ctx, box, duration, events, 3, style);
+    // Plot bar lines
+    plotBeats(ctx, box, duration, events, 2, { strokeStyle: 'rgba(0,0,0,0.5)' });
+}
+
+export function plot(ctx, box, points, style) {
+    const [x, y, w, h] = box;
+    let n = -1;
+    ctx.beginPath();
+    ctx.moveTo(points[++n] * w + x, points[++n] * h + y);
+    while(points[++n] !== undefined) ctx.lineTo(points[n] * w + x, points[++n] * h + y);
+    assign(ctx, plotStyle, style);
+    ctx.stroke();
+    ctx.closePath();
+}
+
+export function plotWaveform(ctx, box, samples, style) {
+    let [x, y, w, h] = box;
+    let dx = w / samples.length;
+    let n = -1;
+    ctx.beginPath();
+    ctx.moveTo(x, samples[++n] * h + y);
+    while(samples[++n] !== undefined) ctx.lineTo(x += dx, samples[n] * h + y);
+    // Return to y=samples[0] at the end, as waveform is a repeating series
+    ctx.lineTo(x += dx, samples[0] * h + y);
+    assign(ctx, waveformStyle, style);
+    ctx.stroke();
+    ctx.closePath();
+}
+
+export function plotSamples(ctx, box, samples, style) {
+    let [x, y, w, h] = box;
+    let dx = w / samples.length;
+    let n = -1;
+    ctx.beginPath();
+    ctx.moveTo(x, samples[++n] * h + y);
+    while(samples[++n] !== undefined) ctx.lineTo(x += dx, samples[n] * h + y);
+    // Return to y=0 at the end
+    ctx.lineTo(x += dx, 0 * h + y);
+    assign(ctx, waveformStyle, style);
+    ctx.stroke();
+    ctx.closePath();
+}
+
+export function plotBuffer(ctx, box, buffer, style) {
+    let n = -1;
+    while(++n < buffer.numberOfChannels) plotWaveform(ctx, box, buffer.getChannelData(n), style);
+}
+
+export function plotSignpost(ctx, box, x, y, style) {
+    plot(ctx, box, [
+        // Draw a wee signpost
+        x, 0,
+        x,         y - 0.02,
+        x - 0.004, y - 0.02,
+        x - 0.004, y + 0.02,
+        x + 0.004, y + 0.02,
+        x + 0.004, y - 0.02,
+        x,         y - 0.02
+    ], style);
 }

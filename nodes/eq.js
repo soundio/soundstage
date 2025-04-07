@@ -13,58 +13,54 @@ const eq = stage.createNode('eq');
 An array of biquad-filter nodes.
 **/
 
-import NodeGraph from './graph.js';
-import Chain     from './chain.js';
-import { assignSettings } from '../modules/assign-settings.js';
+import Graph from '../modules/graph.js';
 
-const assign = Object.assign;
+const assign     = Object.assign;
+const config     = BiquadFilterNode.config;
+const gainConfig = GainNode.config;
 
 const graph = {
-    nodes: [
-        { id: 'output', type: 'gain', data: {} }
+    nodes: {
+        0:      { type: 'biquad-filter', data: { type: 'highpass',  frequency: 80,   Q: 0.78 }},
+        1:      { type: 'biquad-filter', data: { type: 'peaking',   frequency: 240,  gain: 0 }},
+        2:      { type: 'biquad-filter', data: { type: 'peaking',   frequency: 2000, gain: 0 }},
+        3:      { type: 'biquad-filter', data: { type: 'highshelf', frequency: 6000, gain: 0 }},
+    },
+
+    connections: [
+        '0', '1',
+        '1', '2',
+        '2', '3',
+        '3', 'output'
     ],
 
-    connections: [],
+    properties: {
+        /** .low **/
+        'low-type':     '0.type',
+        'low-freq':     '0.frequency',
+        'low-Q':        '0.Q',
+        'low-gain':     '0.gain',
 
-    output: 'output'
-};
+        /** .lomid **/
+        'lomid-type':   '1.type',
+        'lomid-freq':   '1.frequency',
+        'lomid-Q':      '1.Q',
+        'lomid-gain':   '1.gain',
 
-const defaults = {
-    nodes: [{
-        type: 'biquad-filter',
-        node: {
-            type: 'highpass',
-            frequency: 80,
-            Q: 0.78
-        }
-    }, {
-        type: 'biquad-filter',
-        node: {
-            type: 'peaking',
-            frequency: 240,
-            gain: 0
-        }
-    }, {
-        type: 'biquad-filter',
-        node: {
-            type: 'peaking',
-            frequency: 2000,
-            gain: 0
-        }
-    }, {
-        type: 'biquad-filter',
-        node: {
-            type: 'highshelf',
-            frequency: 6000,
-            gain: 0
-        }
-    }],
+        /** .himid **/
+        'himid-type':   '2.type',
+        'himid-freq':   '2.frequency',
+        'himid-Q':      '2.Q',
+        'himid-gain':   '2.gain',
 
-    output: 1
-};
+        /** .high **/
+        'high-type':    '3.type',
+        'high-freq':    '3.frequency',
+        'high-Q':       '3.Q',
+        'high-gain':    '3.gain'
+    },
 
-const constructors = {
-    'biquad-filter': BiquadFilterNode
+    output: '3'
 };
 
 export default class EQ extends GainNode {
@@ -72,15 +68,40 @@ export default class EQ extends GainNode {
         super(context, options);
 
         // Set up the graph
-        NodeGraph.call(this, context, graph, transport);
+        Graph.call(this, context, graph, transport);
+    }
 
-        this.output = this.get('output').gain;
+    static config = {
+        /** .level **/
+        'gain':         gainConfig.gain,
 
-        assignSettings(this, defaults, options);
+        /** .low **/
+        'low-type':     config.type,
+        'low-freq':     config.frequency,
+        'low-Q':        config.Q,
+        'low-gain':     config.gain,
 
-        // Set up a nodes chain
-        Chain.call(this, context, options || defaults, transport, constructors);
+        /** .lomid **/
+        'lomid-type':   config.type,
+        'lomid-freq':   config.frequency,
+        'lomid-Q':      config.Q,
+        'lomid-gain':   config.gain,
+
+        /** .himid **/
+        'himid-type':   config.type,
+        'himid-freq':   config.frequency,
+        'himid-Q':      config.Q,
+        'himid-gain':   config.gain,
+
+        /** .high **/
+        'high-type':    config.type,
+        'high-freq':    config.frequency,
+        'high-Q':       config.Q,
+        'high-gain':    config.gain
     }
 }
 
-assign(EQ.prototype, Chain.prototype, NodeGraph.prototype);
+Object.defineProperties(EQ.prototype, {
+    connect:    { value: Graph.prototype.connect },
+    disconnect: { value: Graph.prototype.disconnect }
+});

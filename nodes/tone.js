@@ -20,22 +20,21 @@ It is unusual to create tones directly, but they are an essential component for
 defining voices for instruments.
 **/
 
-import NodeGraph            from './graph.js';
-import Playable             from '../modules/mixins/playable.js';
-import { attackAtTime, releaseAtTime } from '../modules/param.js';
-import { assignSettingz__ } from '../modules/assign-settings.js';
-import { dB60 }             from '../modules/constants.js';
+import Graph                from '../modules/graph.js';
+import Playable             from '../modules/playable.js';
+import { attackAtTime, releaseAtTime60 } from '../modules/param.js';
+//import { assignSettingz__ } from '../modules/assign-settings.js';
 
 const assign = Object.assign;
 const define = Object.defineProperties;
-const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
 const defaults = {
     type:      'sine',
     frequency: 440,
     detune:    0,
-    attack:    0.002,
-    release:   0.006
+    attack:    0.01,
+    // The t60 decay time
+    release:   0.06
 };
 
 const graph = {
@@ -43,7 +42,7 @@ const graph = {
         osc:    { type: 'oscillator', data: { type: 'sine', frequency: 440, detune: 0 }},
         output: { type: 'gain',       data: { gain: 0 }}
     },
-    connects: ['osc', 'output'],
+    connections: ['osc', 'output'],
     properties: {
         /**
         .type
@@ -55,7 +54,7 @@ const graph = {
         .frequency
         An AudioParam representing frequency in Hz.
         **/
-        frequency: 'osc.frequency',
+        //frequency: 'osc.frequency',
 
         /**
         .detune
@@ -66,62 +65,67 @@ const graph = {
         /**
         .attack
         **/
-        attack:  { value: defaults.attack,  writable: true },
+        //attack:  { value: defaults.attack,  writable: true },
 
         /**
         .release
         **/
-        release: { value: defaults.release, writable: true }
+        //release: { value: defaults.release, writable: true }
     }
 };
 
-export default function Tone(context, settings, transport) {
-    // Set up the node graph and define .context, .connect, .disconnect, .get
-    NodeGraph.call(this, context, graph, transport);
+export default class Tone extends Graph {
+    constructor(context, settings = defaults, transport) {
+        // Set up the node graph and define .context, .connect, .disconnect, .get
+        super(context, graph, transport);
 
-    // Define .startTime and .stopTime
-    Playable.call(this, context);
+        this.attack  = settings.attack  ?? defaults.attack;
+        this.release = settings.release ?? defaults.release;
 
-	// Set up
-    this.get('osc').start(context.currentTime);
-    Tone.reset(this, arguments);
-}
+        // Define .startTime and .stopTime
+        Playable.call(this, context);
 
-Tone.reset = function(node, args) {
-    const settings = args[1];
-    Playable.reset(node, args);
-    assignSettingz__(node, assign({}, defaults, settings));
-};
+        // Set up
+        this.get('osc').start(context.currentTime);
+        Tone.reset(this, arguments);
+    }
 
-// Mixin property definitions
-define(Tone.prototype, {
-    status: getOwnPropertyDescriptor(Playable.prototype, 'status')
-});
-
-assign(Tone.prototype, NodeGraph.prototype, Playable.prototype, {
     /**
     .start(time, frequency, gain)
     Start the tone at `time`.
     **/
-
-    start: function(time, frequency = 440, gain = 1) {
+    start(time, frequency = 440, gain = 1) {
         Playable.prototype.start.apply(this, arguments);
         this.get('osc').frequency.setValueAtTime(frequency, this.startTime);
-        attackAtTime(this.context, this.get('output').gain, gain, this.attack, time);
+        attackAtTime(this.get('output').gain, gain, this.attack, this.startTime);
         return this;
-    },
+    }
 
     /**
     .stop(time)
     Stop the tone at `time`.
     **/
-
-    stop: function(time) {
+    stop(time) {
         Playable.prototype.stop.apply(this, arguments);
-        this.stopTime = releaseAtTime(this.context, this.get('output').gain, dB60, this.release, time);
+        this.stopTime = releaseAtTime60(this.get('output').gain, this.release, this.stopTime)
         return this;
     }
-});
 
-// Publish Tone for use in node graphs
-NodeGraph.types.tone = Tone;
+    static reset(node, args) {
+        const settings = args[1];
+        Playable.reset(node, args);
+        //assignSettingz__(node, assign({}, defaults, settings));
+    }
+
+    static config = {
+        type:    OscillatorNode.config.type,
+        detune:  OscillatorNode.config.detune,
+        attack:  { min: 0, max: 30, law: 'log-72db', unit: 's' },
+        release: { min: 0, max: 60, law: 'log-72db', unit: 's' }
+    }
+}
+
+// Mixin property definitions
+define(Tone.prototype, {
+    status: Object.getOwnPropertyDescriptor(Playable.prototype, 'status'),
+});

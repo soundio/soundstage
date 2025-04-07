@@ -25,18 +25,15 @@ you have expensive speakers attached. They are capable of producing DC signal.
 </p>
 **/
 
-import last     from '../../fn/modules/last.js';
-import Playable from '../modules/mixins/playable.js';
-import { automate, getValueAtTime, validateParamEvent } from '../modules/automate__.js';
-import config from '../config.js';
-import { assignSettingz__ } from '../modules/assign-settings.js';
+import Graph    from '../modules/graph.js';
+import Playable from '../modules/playable.js';
+import { t60 }  from '../modules/constants.js';
+import { schedule } from '../modules/param.js';
+//import config from '../config.js';
+//import { assignSettingz__ } from '../modules/assign-settings.js';
 
 const assign = Object.assign;
 const define = Object.defineProperties;
-const getDefinition = Object.getOwnPropertyDescriptor;
-
-// Time multiplier to wait before we accept target value has 'arrived'
-const targetDurationFactor = config.targetDurationFactor;
 
 const properties = {
     /** .attack
@@ -80,44 +77,51 @@ const properties = {
 };
 
 const defaults = {
-    attack: [
-        [0.008, 'linear', 1]
+    attack:  [
+        // Ramp to 1 in 18ms
+        [0,     'target', Math.E / (Math.E - 1), 0.018],
+        [0.018, 'step',   1]
     ],
-
     release: [
-        [0.008, 'linear', 0]
+        // Ramp to -60dB in 120ms
+        [0, 'target', 0, 0.12 / t60]
     ],
-
-    offset: 0,
-    gain: 1,
-    rate: 1
+    offset:  0,
+    gain:    1,
+    rate:    1
 };
 
-function cueAutomation(param, events, time, gain, rate) {
-    var event;
-    automate(param, time, 'hold');
+const graph = {
+    nodes: {
+        constant: { type: 'constant', data: { offset: 0 } },
+        output:   { type: 'gain', data: { gain: 1, numberOfChannels: 1 } }
+    },
 
-    for (event of events) {
-        validateParamEvent(event);
+    connections: ['constant', 'output']
+};
 
-        // param, time, curve, value, decay
-        automate(param, time + event[0] / rate, event[1], event[2] * gain, event[3]);
-    }
-}
+export default class Envelope extends Graph {
+    #output;
 
-export default class Envelope extends ConstantSourceNode {
-    constructor(context, settings) {
-        super(context);
-        super.start.call(this, context.currentTime);
+    constructor(context, settings = defaults, transport) {
+        // Set up the node graph and define .context, .connect, .disconnect, .get
+        super(context, graph, transport);
 
         // Define .start(), .stop(), .startTime and .stopTime
         Playable.call(this, context);
 
+        this.attack  = settings.attack  ?? defaults.attack.slice();
+        this.release = settings.release ?? defaults.release.slice();
+        this.gain = 1;
+        this.rate = 1;
+
+        this.get('constant').start(context.currentTime);
+
         // Properties
-        define(this, properties);
+        //define(this, properties);
 
         // Set properties and params
-        assignSettingz__(this, assign({}, defaults, settings));
+        //assignSettingz__(this, assign({}, defaults, settings));
     }
 
     /**
@@ -125,28 +129,22 @@ export default class Envelope extends ConstantSourceNode {
     Start playback of envelope at `time`.
     Returns envelope.
     **/
-
     start(time) {
-        if (!this.attack || this.attack.length === 0) {
-            return this;
-        }
-
+        // Update this.startTime
         Playable.prototype.start.apply(this, arguments);
-        cueAutomation(this.offset, this.attack, this.startTime, this.gain, this.rate, 'ConstantSource.offset');
 
-        // If attack ends with value 0 we may set a stopTime already, even if it
-        // is to be overridden later with a call to .stop(), helping guarantee
-        // the pooled object will be released even without release events
-        const event = last(this.attack);
+        if (!this.attack || this.attack.length === 0) return this;
 
-        if (event[2] === 0) {
-            this.stopTime = time + (
-                event[1] === 'target' ?
-                    event[0] + event[3] * targetDurationFactor :
-                    event[0]
-            );
-        }
+        // Reset offset, used for attack, to 0, and output gain, used for
+        // release phase, to 1
+        const c = this.get('constant');
+        const o = this.get('output');
 
+        c.offset.setValueAtTime(0, this.startTime);
+        o.gain.setValueAtTime(1, this.startTime);
+
+        // Cue attack phase on offset
+        schedule(c.offset, this.startTime, this.attack, this.rate, this.gain);
         return this;
     }
 
@@ -155,35 +153,33 @@ export default class Envelope extends ConstantSourceNode {
     Stop playback of envelope at `time`.
     Returns envelope.
     **/
-
     stop(time) {
-        if (!this.release || this.release.length === 0) {
-            return this;
-        }
-
+        // Update this.stopTime
         Playable.prototype.stop.apply(this, arguments);
 
-        // Use the current signal as the start gain of the release
-        const gain = getValueAtTime(this.offset, this.stopTime);
-        cueAutomation(this.offset, this.release, this.stopTime, gain, this.rate, 'ConstantSource.offset');
+        if (!this.release || this.release.length === 0) return this;
 
-        // Update stopTime to include release tail
-        const event = last(this.release);
+        // Stop further attack automation
+        const c = this.get('constant');
+        const o = this.get('output');
 
-        if (event[2] !== 0) {
-            console.warn('Envelope.release does not end with value 0. Envelope will never stop.', this);
-            this.stopTime = Infinity;
-        }
-        else {
-            this.stopTime += event[1] === 'target' ?
-                event[0] + event[3] * targetDurationFactor :
-                event[0] ;
-        }
+        // Arrest attack phase (or should we allow it to continue? Good question.)
+        c.offset.cancelAndHoldAtTime(this.stopTime);
 
+        // Cue release phase on gain, update stopTime to include release tail
+        this.stopTime = schedule(o.gain, this.stopTime, this.release, this.rate, 1);
         return this;
+    }
+
+    static config = {
+        gain:    { min: 0.25,   max: 4,  law: 'log' },
+        rate:    { min: 0.0625, max: 16, law: 'log' },
+        attack:  { display: 'envelope' },
+        release: { display: 'envelope' }
     }
 }
 
+// Mixin property definitions
 define(Envelope.prototype, {
-    playing: getDefinition(Playable.prototype, 'status')
+    status: Object.getOwnPropertyDescriptor(Playable.prototype, 'status'),
 });

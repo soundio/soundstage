@@ -47,61 +47,71 @@ AudioParam controlling dry gain.
 AudioParam controlling effect gain.
 **/
 
-import NodeGraph from './graph.js';
-import { validateOscillatorType } from '../oscillator.js';
+import Graph from '../modules/graph.js';
+//import { validateOscillatorType } from '../oscillator.js';
 
 const assign = Object.assign;
 
 const graph = {
-    nodes: [
-        { id: 'splitter',   type: 'splitter',   data: { numberOfOutputs: 2 } },
-        { id: 'fbMerger',   type: 'merger',     data: { numberOfInputs: 2 } },
-        { id: 'fbSplitter', type: 'splitter',   data: { numberOfOutputs: 2 } },
-        { id: 'fb',         type: 'gain',       data: { channelCount: 2, gain: 0.0625 } },
-        { id: 'osc',        type: 'oscillator', data: { type: 'triangle', frequency: 0.333333333 } },
-        { id: 'ldepth',     type: 'gain',       data: { channelCount: 1, channelCountMode: 'explicit', gain: 0 } },
-        { id: 'rdepth',     type: 'gain',       data: { channelCount: 1, channelCountMode: 'explicit', gain: 0 } },
-        { id: 'ldelay',     type: 'delay',      data: { channelCount: 1, maxDelayTime: 4 } },
-        { id: 'rdelay',     type: 'delay',      data: { channelCount: 1, maxDelayTime: 4 } },
-        { id: 'wet',        type: 'gain',       data: { channelCount: 2, gain: 0.707106781 } },
-        { id: 'dry',        type: 'gain',       data: { channelCount: 2, gain: 0.707106781 } },
-        { id: 'merger',     type: 'merger',     data: { numberOfInputs: 2 } },
-        { id: 'output',     type: 'gain',       data: { channelCount: 2, gain: 1 } },
-        { id: 'depth',      type: 'constant',   data: { offset: 0.0015609922621756954 } },
-        { id: 'delay',      type: 'constant',   data: { offset: 0.012 } },
-        { id: 'inverter',   type: 'gain',       data: { channelCount: 1, channelCountMode: 'explicit', gain: -1 } }
-    ],
+    nodes: {
+        splitter:   { type: 'channel-splitter', data: { numberOfOutputs: 2 } },
+        fbMerger:   { type: 'channel-merger',   data: { numberOfInputs: 2 } },
+        fbSplitter: { type: 'channel-splitter', data: { numberOfOutputs: 2 } },
+        fb:         { type: 'gain',             data: { channelCount: 2, gain: 0.0625 } },
+        osc:        { type: 'oscillator',       data: { type: 'triangle', frequency: 0.333333333 } },
+        ldepth:     { type: 'gain',             data: { channelCount: 1, channelCountMode: 'explicit', gain: 0 } },
+        rdepth:     { type: 'gain',             data: { channelCount: 1, channelCountMode: 'explicit', gain: 0 } },
+        ldelay:     { type: 'delay',            data: { channelCount: 1, maxDelayTime: 4 } },
+        rdelay:     { type: 'delay',            data: { channelCount: 1, maxDelayTime: 4 } },
+        merger:     { type: 'channel-merger',   data: { numberOfInputs: 2 } },
+        output:     { type: 'gain',             data: { channelCount: 2, gain: 1 } },
+        depth:      { type: 'constant',         data: { offset: 0.0015609922621756954 } },
+        delay:      { type: 'constant',         data: { offset: 0.012 } },
+        inverter:   { type: 'gain',             data: { channelCount: 1, channelCountMode: 'explicit', gain: -1 } },
+        wet:        { type: 'gain',             data: { channelCount: 2, gain: 0 } },
+        dry:        { type: 'gain',             data: { channelCount: 2, gain: 1 } },
+        mix:        { type: 'constant',         data: { offset: 0.5 } },
+        invmix:     { type: 'gain',             data: { gain: -1 } }
+    },
 
     connections: [
-        { source: 'splitter.0',   target: 'ldelay' },
-        { source: 'splitter.1',   target: 'rdelay' },
-        { source: 'ldelay',       target: 'fbMerger.0' },
-        { source: 'rdelay',       target: 'fbMerger.1' },
-        { source: 'fbMerger',     target: 'fb' },
-        { source: 'fb',           target: 'fbSplitter' },
-        { source: 'fbSplitter.1', target: 'ldelay' },
-        { source: 'fbSplitter.0', target: 'rdelay' },
-        { source: 'osc',          target: 'ldepth' },
-        { source: 'osc',          target: 'rdepth' },
-        { source: 'ldepth',       target: 'ldelay.delayTime' },
-        { source: 'rdepth',       target: 'rdelay.delayTime' },
-        { source: 'ldelay',       target: 'merger.0' },
-        { source: 'rdelay',       target: 'merger.1' },
-        { source: 'merger',       target: 'wet' },
-        { source: 'wet',          target: 'output' },
-        { source: 'dry',          target: 'output' },
-        { source: 'depth',        target: 'ldepth.gain' },
-        { source: 'depth',        target: 'inverter' },
-        { source: 'inverter',     target: 'rdepth.gain' },
-        { source: 'delay',        target: 'ldelay.delayTime' },
-        { source: 'delay',        target: 'rdelay.delayTime' },
+        'this',         'splitter',
+        'this',         'dry',
+        'splitter.0',   'ldelay',
+        'splitter.1',   'rdelay',
+        'ldelay',       'fbMerger.0',
+        'rdelay',       'fbMerger.1',
+        'fbMerger',     'fb',
+        'fb',           'fbSplitter',
+        'fbSplitter.1', 'ldelay',
+        'fbSplitter.0', 'rdelay',
+        'osc',          'ldepth',
+        'osc',          'rdepth',
+        'ldepth',       'ldelay.delayTime',
+        'rdepth',       'rdelay.delayTime',
+        'ldelay',       'merger.0',
+        'rdelay',       'merger.1',
+        'merger',       'wet',
+        'wet',          'output',
+        'dry',          'output',
+        'depth',        'ldepth.gain',
+        'depth',        'inverter',
+        'inverter',     'rdepth.gain',
+        'delay',        'ldelay.delayTime',
+        'delay',        'rdelay.delayTime',
+        'mix',          'wet.gain',
+        'mix',          'invmix',
+        'invmix',       'dry.gain'
     ],
 
     properties: {
-        type: 'osc.type'
-    },
-
-    output: 'output'
+        type:      'osc.type',
+        frequency: 'osc.frequency',
+        feedback:  'fb.gain',
+        depth:     'depth.offset',
+        delay:     'delay.offset',
+        mix:       'mix.offset'
+    }
 };
 
 export default class Flanger extends GainNode {
@@ -109,47 +119,24 @@ export default class Flanger extends GainNode {
         super(context, options);
 
         // Set up the graph
-        NodeGraph.call(this, context, graph, transport);
-
-        // Connect input (this) into graph
-        GainNode.prototype.connect.call(this, this.get('splitter'));
-        GainNode.prototype.connect.call(this, this.get('dry'));
-
-        this.frequency = this.get('osc').frequency;
-        this.feedback  = this.get('fb').gain;
-        this.depth     = this.get('depth').offset;
-        this.delay     = this.get('delay').offset;
-        this.dry       = this.get('dry').gain;
-        this.wet       = this.get('wet').gain;
+        Graph.call(this, context, graph, transport);
 
         this.get('osc').start(context.currentTime);
         this.get('depth').start(context.currentTime);
         this.get('delay').start(context.currentTime);
+        this.get('mix').start(context.currentTime);
+    }
+
+    static config = {
+        gain:          { min: 0,               max: 1,    law: 'log-24db', default: 1,     display: 'db', unit: 'dB' },
+        type:          OscillatorNode.config.type,
+        delay:         { min: 0,               max: 1,    law: 'log-24db', default: 0.012, unit: 's' },
+        frequency:     { min: 0.015625,        max: 128,  law: 'log',      default: 3,     unit: 'Hz' },
+        depth:         { min: 0,               max: 0.25, law: 'log-24db', default: 0.0015609922621756954, display: 'db', unit: 'dB' },
+        feedback:      { min: 0,               max: 1,    law: 'log-24db', default: 0.1,   display: 'db', unit: 'dB' },
+        wet:           { min: 0,               max: 1,    law: 'log-24db', default: 1,     display: 'db', unit: 'dB' },
+        dry:           { min: 0,               max: 1,    law: 'log-24db', default: 1,     display: 'db', unit: 'dB' }
     }
 }
 
-assign(Flanger.prototype, NodeGraph.prototype);
-
-/*
-define(Flanger.prototype, {
-    type: {
-        enumerable: true,
-        get: function() {
-            return this.get('osc').type;
-        },
-        set: function(value) {
-            validateOscillatorType(value);
-            this.get('osc').type = value;
-        }
-    }
-})
-*/
-
-Flanger.defaults  = {
-	'delay':         { min: 0,      max: 1,    transform: 'quadratic',   value: 0.012 },
-	'frequency':     { min: 0.0625, max: 256,  transform: 'logarithmic', value: 3 },
-	'depth':         { min: 0,      max: 0.25, transform: 'cubic',       value: 0.0015609922621756954 },
-	'feedback':      { min: 0,      max: 1,    transform: 'cubic',       value: 0.1 },
-	'wet':           { min: 0,      max: 1,    transform: 'cubic',       value: 1 },
-	'dry':           { min: 0,      max: 1,    transform: 'cubic',       value: 1 }
-};
+assign(Flanger.prototype, Graph.prototype);

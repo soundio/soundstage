@@ -3,111 +3,30 @@
 Noise(context, settings)
 
 ```
-const noise = stage.createNode('noise', {
-    type: 'sine',      // String 'white', 'pink', 'brown'
+const noise = stage.create('noise', {
+    type: 'pink',   // String 'white', 'pink', 'brown'
 });
 ```
 
 A noise object generates noise.
 **/
 
-import Privates  from '../../fn/modules/privates.js';
-import Playable  from '../modules/mixins/playable.js';
-import NodeGraph from './graph.js';
-
-import { assignSettingz__ } from '../modules/assign-settings.js';
-
 const assign = Object.assign;
 const define = Object.defineProperties;
-const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
 
 // Duration of noise to generate
-const bufferDuration = 4;
-
-const defaults = {
-    type:      'white',
-//    mix:       1,
-//    pan:       0
-};
-
-const graph = {
-    nodes: [
-        { id: 'source', type: 'buffer-source', data: { detune: 0, loopStart: 0, loopEnd: bufferDuration, loop: true }},
-        { id: 'gain',   type: 'gain',   data: { gain: 0 }}
-//		{ id: 'mix',    type: 'mix',    data: { gain: 1, pan: 0 }}
-    ],
-
-    connections: [
-        { source: 'source', target: 'gain' },
-//        { source: 'gain',   target: 'mix' }
-    ],
-
-    properties: {
-//        mix:       'mix.gain',
-//        pan:       'mix.pan'
-    },
-
-    output: 'gain'
-};
-
-const properties = {
-    /**
-    .type
-    One of the strings `'white'`, `'pink'` or `'brown'` describing the
-    <i>colour</i> of noise to generate.
-    **/
-    type: {
-        enumerable: true,
-
-        get: function() {
-            return Privates(this).type;
-        },
-
-        set: function(value) {
-            // If type is unrecognised, or has not changed, do nothing
-            if (!/white|pink|brown/.test(value) || this.type === value) {
-                return;
-            }
-
-            // Fill buffer with noise
-            // Todo: pink noise, brown noise, some clues about noise here:
-            // https://noisehack.com/generate-noise-web-audio-api/
-            const buffer = this.get('source').buffer;
-            let n = buffer.numberOfChannels;
-            while (n--) {
-                const channel = buffer.getChannelData(n);
-                generators[value](channel);
-            }
-
-            Privates(this).type = value;
-        }
-    },
-
-    gain: {
-        value:    1,
-        writable: true
-    },
-
-    channelCount: {
-        enumerable: true,
-
-        get: function() {
-            return this.get('source').buffer.numberOfChannels;
-        }
-    }
-};
+const bufferDuration = 6;
+const defaults       = { type: 'pink' };
+const bufferDefaults = { detune: 0, loopStart: 0, loopEnd: bufferDuration, loop: true };
 
 const generators = {
     white: function generateWhiteNoise(channel) {
         let m = channel.length;
-        while (m--) {
-            channel[m] = Math.random() * 2 - 1;
-        }
+        while (m--) channel[m] = Math.random() * 2 - 1;
     },
 
     // https://noisehack.com/generate-noise-web-audio-api/
     pink: function generatePinkNoise(channel) {
-        // http://noisehack.com/generate-noise-web-audio-api/
         var b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
         const length = channel.length;
         var i, white;
@@ -144,57 +63,63 @@ const generators = {
     }
 };
 
-export default function Noise(context, options, transport) {
-    // Set up the node graph
-    NodeGraph.call(this, context, graph, transport);
+export default class Noise extends AudioBufferSourceNode {
+    #buffer;
+    #type;
 
-    // Define .startTime and .stopTime
-    Playable.call(this, context);
+    constructor(context, options = {}) {
+        const channelCount = options.channelCount || 1;
+        const buffer = new AudioBuffer({
+            length: bufferDuration * context.sampleRate * channelCount,
+            sampleRate: context.sampleRate,
+            numberOfChannels: channelCount
+        });
 
-    // Define .type and .channelCount
-    define(this, properties);
+        // Set up the node graph
+        super(context, assign({ buffer }, bufferDefaults));
 
-    // Define params
-    const source = this.get('source');
-    const channelCount = options.channelCount || 1;
+        this.#buffer = buffer;
 
-    source.buffer = new AudioBuffer({
-        length: bufferDuration * context.sampleRate * channelCount,
-        sampleRate: context.sampleRate,
-        numberOfChannels: channelCount
-    });
+        // Start playing
+        this.start(context.currentTime);
+        Noise.reset(this, arguments);
+    }
 
-    // Expose params
-//    this.mix = this.get('mix').gain;
-//    this.pan = this.get('mix').pan;
+    get type() {
+        return this.#type;
+    }
 
-    // Start playing
-    source.start(context.currentTime);
-    this.reset(context, options);
+    set type(value) {
+        // If type is unrecognised, or has not changed, do nothing
+        if (!/white|pink|brown/.test(value) || this.#type === value) return;
+
+        // Fill buffer with noise
+        const buffer = this.#buffer;
+        let n = buffer.numberOfChannels;
+        while (n--) {
+            const channel = buffer.getChannelData(n);
+            generators[value](channel);
+        }
+
+        this.#type = value;
+    }
+
+    static reset(node, [context, options]) {
+        assign(node, defaults, options);
+    }
+
+    static config = {
+        type:         { values: ['white', 'pink', 'brown'] },
+        playbackRate: { min: 0, max: 1, law: 'log-36db' }
+    }
 }
 
-// Mix in property definitions
 define(Noise.prototype, {
-    status: getOwnPropertyDescriptor(Playable.prototype, 'status')
-});
-
-assign(Noise.prototype, NodeGraph.prototype, Playable.prototype, {
-    reset: function(context, options) {
-        Playable.reset(this, arguments);
-        // Here type is assigned and the buffer is filled with noise
-        assignSettingz__(this, assign({}, defaults, options));
-    },
-
-    start: function(time) {
-        // Frequency is unused
-        Playable.prototype.start.apply(this, arguments);
-        this.get('gain').gain.setValueAtTime(this.gain, this.startTime);
-        return this;
-    },
-
-    stop: function(time) {
-        Playable.prototype.stop.apply(this, arguments);
-        this.get('gain').gain.setValueAtTime(0, this.stopTime);
-        return this;
-    }
+    type:      { enumerable: true },
+    /* Hide AudioBufferSourceNode parameters */
+    buffer:    { enumerable: false },
+    detune:    { enumerable: false },
+    loop:      { enumerable: false },
+    loopStart: { enumerable: false },
+    loopEnd:   { enumerable: false }
 });
