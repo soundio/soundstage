@@ -12,13 +12,10 @@ export of sound designs.
 > document must be served with Cross Origin Isolation and the workers with
 > Cross Origin Embedder Policy.
 
-
-## Build Soundstage
-
 The build process requires [Deno](https://deno.land/manual/getting_started/installation)
 to be installed.
 
-Compile rust to WASM and Build the Soundstage module to the `build/` directory:
+Compile rust to WASM and build Soundstage to the `build/` directory:
 
 ```console
 cd soundstage/
@@ -26,16 +23,30 @@ make rust
 make modules
 ```
 
-The built version includes dependencies and does not require dependency repos to
-be served alongside the Soundstage repo. Also, DEBUG messages are disabled. It
-can be imported into an html document:
+
+## Use Soundstage
+
+Import Soundstage:
 
 ```html
 <script type="module">
     import Soundstage from './soundstage/build/stage.js'
-    // Do something with Soundstage ...
+
+    const stage = await Stage.load({
+        nodes: [
+            { id: 1, type: 'audio-in' },
+            { id: 2, type: 'delay', data: { delayTime: 0.6 } },
+            { id: 3, type: 'audio-out' },
+        ],
+
+        connections: [
+            1, 0, 2, 0,
+            2, 0, 3, 0
+        ]
+    });
 </script>
 ```
+
 <!--
 ## Build documentation
 
