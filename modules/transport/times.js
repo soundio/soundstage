@@ -1,12 +1,42 @@
 
+import compileWorker from 'fn/compile-worker.js';
 import Stream   from 'fn/stream.js';
 import remove   from 'fn/remove.js';
 import { rslashfilename } from '../regexp.js';
 import { log } from '../log.js';
 
 
-const workerURL    = import.meta.url.replace(rslashfilename, '/times.worker.js');
-const worker       = new Worker(workerURL);
+/*
+A timer launched in a worker is not subject to being paused when a browser tab
+becomes not visible. This allows us to continue scheduling events at a
+reasonable rate. We compile the worker from a string to guard against Cross
+Origin issues.
+*/
+
+const worker = compileWorker(`
+    let count = 0;
+    let interval;
+
+    const commands = {
+        start: (data) => {
+            interval = setInterval(
+                () => this.postMessage(++count),
+                data.duration * 1000
+            );
+        },
+
+        stop: () => {
+            clearInterval(interval);
+            interval = undefined;
+        }
+    };
+
+    this.onmessage = (e) => {
+        commands[e.data.command](e.data);
+    };
+`);
+
+
 const startMessage = { command: 'start' };
 const stopMessage  = { command: 'stop' };
 const streams      = [];
@@ -69,7 +99,6 @@ export default class TimesStream extends Stream {
         Stream.push(this, time);
         this.currentTime = time;
     }
-
 
     // Handle context "statechange" event
     handleEvent(e) {
