@@ -8,18 +8,27 @@ export of sound designs.
 
 ## Setup
 
-> **Note** Soundstage includes a number of workers and audio worklets. The
-> document must be served with Cross Origin Isolation and the workers with
-> Cross Origin Embedder Policy.
+> **Note** Soundstage includes a number of workers and audio worklets, and uses
+> SharedArrayBuffers. The document must be served with Cross Origin Isolation
+> and the workers with Cross Origin Embedder Policy.
 
-The build process requires [Deno](https://deno.land/manual/getting_started/installation)
-to be installed.
-
-Compile rust to WASM and build Soundstage to the `build/` directory:
+Install Rustup (Rust toolchain manager) and wasm-pack (for WebAssembly compilation):
 
 ```console
-cd soundstage/
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+cargo install wasm-pack
+```
+
+Compile rust to WASM:
+
+```console
 make rust
+```
+
+The build process requires [Deno](https://deno.land/manual/getting_started/installation)
+to be installed. Build modules to `build/`:
+
+```console
 make modules
 ```
 
