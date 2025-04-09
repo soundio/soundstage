@@ -59,14 +59,14 @@ export default class Mix extends GainNode {
     }
 
     /**
-    .invert
+    .phase
     Boolean.
     **/
-    get invert() {
+    get phase() {
         return this.#value < 0;
     }
 
-    set invert(boolean) {
+    set phase(boolean) {
         this.#value = boolean ? -1 : 1 ;
 
         if (!this.mute) {
@@ -114,7 +114,7 @@ export default class Mix extends GainNode {
 }
 
 Object.defineProperties(Mix.prototype, {
-    invert:     { enumerable: true },
+    phase:     { enumerable: true },
     mute:       { enumerable: true },
     get:        { value: Graph.prototype.get },
     connect:    { value: Graph.prototype.connect },
