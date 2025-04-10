@@ -48,7 +48,7 @@ output by the `.connect()` and `.disconnect()` methods.
 
 import id                      from 'fn/id.js';
 import toType                  from 'fn/to-type.js';
-import Playable                from './playable.js';
+import Playable                from './playable-2.js';
 import { connect, disconnect } from './connect.js';
 import { create }              from './nodes.js';
 import enumerableToJSON        from './object/enumerable-to-json.js';

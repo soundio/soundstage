@@ -155,7 +155,7 @@ export default class StageObject {
         }
     }
 
-    stop() {
+    destroy() {
         let n;
         for (n in this.inputs)  if (/^\d/.test(n)) this.inputs[n].stop();
         for (n in this.outputs) if (/^\d/.test(n)) this.outputs[n].stop();

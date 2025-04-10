@@ -2,7 +2,7 @@
 import id       from 'fn/id.js';
 import Signal   from 'fn/signal.js';
 import Stream   from 'fn/stream.js';
-import Playable from './playable.js';
+import Playable from './playable-2.js';
 import Times    from './transport/times.js';
 import Frames   from './transport/frames.js';
 import Sink     from '../nodes/sink.js';
@@ -222,7 +222,7 @@ console.log(beat, n, meters[n]);
     Also starts the permanent frames stream at transport.frames2.
     **/
     start(time) {
-        Playable.start(this, time);
+        super.start(time);
 console.log('Transport.start()', this.startTime);
         // Replace the beats cache with the new start beat
         const beat = this.#beat;
@@ -253,7 +253,7 @@ console.log('Transport.start()', this.startTime);
     Also stops the permanent frames stream at transport.frames2.
     **/
     stop(time) {
-        Playable.stop(this, time);
+        super.stop(time);
 console.log('Transport.stop()', this.stopTime);
         this.#beat = this.beatAtTime(this.stopTime);
         this.#rate = getValueAtTime(this.#node.offset, this.stopTime);

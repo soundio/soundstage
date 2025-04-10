@@ -1,6 +1,6 @@
 
 import Graph          from '../modules/graph.js';
-import Playable       from '../modules/playable.js';
+import Playable       from '../modules/playable-2.js';
 import StageObject    from '../modules/object.js';
 import { create }     from '../modules/nodes.js';
 import parseFrequency from '../modules/parse/parse-frequency.js';
@@ -14,8 +14,9 @@ export default class Metronome extends StageObject {
 
     constructor(id, data, context, transport) {
         super(id, data);
+        // Mix in .start(), .stop(), .status
+        new Playable(context, this);
 
-        Playable.call(this, context);
         this.node = create(context, 'tick');
         this.#transport = transport;
 

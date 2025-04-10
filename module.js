@@ -245,9 +245,9 @@ console.log(`Adding route ${ setting.id } "${ setting.type }" to distributor`, d
 
 define(Soundstage.prototype, {
     connections: { value: nothing, writable: false },
-    parameters:  { value: nothing, writable: false }
+    parameters:  { value: nothing, writable: false },
+    status: Object.getOwnPropertyDescriptor(Sequencer.prototype, 'status')
 });
-
 
 
 

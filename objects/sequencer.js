@@ -5,6 +5,7 @@ import noop        from 'fn/noop.js';
 import Stream      from 'fn/stream/stream.js';
 import Distributor from '../modules/object/distributor.js';
 import Playable    from '../modules/playable.js';
+import StatusSignal from '../modules/status-signal.js';
 import Sequence    from '../modules/sequence.js';
 import StageObject from '../modules/object.js';
 import Events      from '../modules/events.js';
@@ -15,16 +16,19 @@ const define = Object.defineProperties;
 
 
 export default class Sequencer extends StageObject {
+    #status;
     #sequences = {};
 
     constructor(transport, settings) {
         super(undefined, 1, { size: 1024 });
+        Playable.call(this, transport.context);
+        this.#status = new StatusSignal(transport.context, this);
 
         define(this, {
-            context:   { value: transport.context },
             // An odd one - to support data observer proxies returning proxies
             // on 'get', a property must be writable or configurable. TODO: Really
-            // this is a problem that should be addressed in fn/data.js
+            // this is a problem that should be addressed in fn/data.js, but
+            // there is not a good answer to this
             transport: { value: transport, writable: true }
         });
 
@@ -67,6 +71,7 @@ export default class Sequencer extends StageObject {
         // If transport is not running run it
         if (transport.status === 'idle') transport.start(this.startTime);
 
+        this.#status.invalidateUntil(this.startTime);
         return this;
     }
 
@@ -84,10 +89,12 @@ console.log('Sequencer.stop()', this.stopTime);
         Playable.stop(this, time);
         const transport = this.transport;
         for (id in this.#sequences) this.stop(transport.beatAtTime(this.stopTime), id);
-        return;
+
+        this.#status.invalidateUntil(this.stopTime);
+        return this;
+    }
+
+    get status() {
+        return this.#status.value;
     }
 }
-
-define(Sequencer.prototype, {
-    status: Object.getOwnPropertyDescriptor(Playable.prototype, 'status'),
-});
