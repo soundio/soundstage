@@ -4,14 +4,16 @@ let mediaRequest;
 
 export default function requestMedia() {
     if (!mediaRequest) {
-        mediaRequest = new Promise((accept, reject) => navigator.getUserMedia ?
-            navigator.getUserMedia({
-                audio: { optional: [{ echoCancellation: false }] }
-            }, accept, reject) :
-            reject({
-                message: 'navigator.getUserMedia: ' + !!navigator.getUserMedia
-            })
-        );
+        mediaRequest = navigator.mediaDevices.getUserMedia({
+            audio: {
+                // MediaTrackCnstrints object
+                // https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackConstraints
+                echoCancellation: false,
+                autoGainControl:  false,
+                noiseSuppression: false,
+                channelCount: { min: 1, max: 32 }
+            }
+        });
     }
 
     return mediaRequest;

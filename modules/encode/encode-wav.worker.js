@@ -1,15 +1,6 @@
 
 import compileWorker from '../compile-worker.js';
 
-/**
-encodeWAV(channels, sampleRate, numberOfFrames, bitDepth, float)
-Encode audio data to WAV format. `channels` is an array of Float32Arrays containing
-planar audio data, `sampleRate` is the sample rate in Hz, `numberOfFrames` is the
-number of samples per channel. `bitDepth` can be 16, 24, or 32 (default 16), and
-`float` is a boolean to use floating point format (only valid with 32-bit depth).
-Returns a Uint8Array of WAV file data.
-**/
-
 export default compileWorker(`
 function writeString(view, offset, string) {
     for (let i = 0; i < string.length; i++) {
