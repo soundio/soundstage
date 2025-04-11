@@ -55,6 +55,11 @@ const version = '0.1';
 const types = {};
 
 
+
+console.log('<<', import.meta.url)
+
+
+
 let id = 0;
 
 function generateId(objects) {

@@ -95,3 +95,7 @@ console.log('Sequencer.stop()', this.stopTime);
         return this;
     }
 }
+
+define(Sequencer.prototype, {
+    status: Object.getOwnPropertyDescriptor(Playable.prototype, 'status')
+})
