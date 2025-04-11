@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Converts all .wav files to .m4a and stores them in the same location.
 # Run the script with:
 # ./wav-to-m4a.sh --vbr 3
 # Or:
