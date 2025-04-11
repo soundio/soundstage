@@ -78,10 +78,10 @@ export default class Sequence extends Stream {
         // Sequence ain't started yet, do nothing
         if (frame.b2 < this.startLocation) return;
 
-        const events     = this.events;
-        const rates      = this.#rates;
-        const buffer     = this.#buffer;
+        const events = this.events;
+        const rates  = this.#rates;
         const distributor = this.distributor;
+        let buffer = this.#buffer;
 
         // Find frame start location
         const l1 = frame.b1 < this.startLocation ?
