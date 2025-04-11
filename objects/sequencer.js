@@ -4,7 +4,7 @@ import matches     from 'fn/matches.js';
 import noop        from 'fn/noop.js';
 import Stream      from 'fn/stream/stream.js';
 import Distributor from '../modules/object/distributor.js';
-import Playable    from '../modules/playable.js';
+import Playable    from '../modules/playable-2.js';
 import StatusSignal from '../modules/status-signal.js';
 import Sequence    from '../modules/sequence.js';
 import StageObject from '../modules/object.js';
@@ -21,8 +21,9 @@ export default class Sequencer extends StageObject {
 
     constructor(transport, settings) {
         super(undefined, 1, { size: 1024 });
-        Playable.call(this, transport.context);
-        this.#status = new StatusSignal(transport.context, this);
+
+        // Mix in playable
+        new Playable(transport.context, this);
 
         define(this, {
             // An odd one - to support data observer proxies returning proxies
@@ -92,9 +93,5 @@ console.log('Sequencer.stop()', this.stopTime);
 
         this.#status.invalidateUntil(this.stopTime);
         return this;
-    }
-
-    get status() {
-        return this.#status.value;
     }
 }

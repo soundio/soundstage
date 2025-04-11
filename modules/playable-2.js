@@ -149,4 +149,12 @@ export default class Playable extends id {
     get status() {
         return this.#status.value;
     }
+
+    static start(object, time) {
+
+    }
+
+    static stop(object, time) {
+
+    }
 }

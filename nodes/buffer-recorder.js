@@ -116,8 +116,11 @@ export default class BufferRecorder extends AudioWorkletNode {
             }
         }
 
+
+        if (!fadeDuration) return output;
         // TODO! Think about crossfades, and fold this logic into the loops
         // above if possible
+
 
         // Get fadeLength's audio from before startIndex
         if (fadeIndex < startIndex) {

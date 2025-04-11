@@ -1,6 +1,6 @@
 
 import Stream      from 'fn/stream.js';
-import Playable    from '../modules/playable.js';
+import Playable    from '../modules/playable-2.js';
 import StageObject from '../modules/object.js';
 import { log }     from '../modules/log.js';
 
@@ -12,11 +12,14 @@ A dummy object that logs method calls and event inputs.
 **/
 
 export default class Logger extends StageObject {
-    constructor(id) {
+    constructor(id, data, context, transport) {
         super(id, {
             size: 1,
             0: Stream.each((event) => log('Logger', `#${ this.id } input`, event.toString()))
         }, 0);
+
+        // Mix in playable
+        new Playable(transport.context, this);
     }
 
     record(time) {
