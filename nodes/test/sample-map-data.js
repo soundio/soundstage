@@ -139,7 +139,7 @@ data.sampleMap = sampleMap;
 
 import Stage from '../../../module.js';
 
-const stage = Stage.from({
+const stage = Stage.load({
     objects: [
         { id: 1, type: 'midi-in' },
         { id: 3, type: 'polyphonic', data: {

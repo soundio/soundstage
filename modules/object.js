@@ -70,7 +70,7 @@ export default class StageObject {
             }
             // It's a property
             else {
-                if (!isMutableProperty(this, name)) continue;
+                if (!isMutableProperty(name, this)) continue;
                 signal = Signal.fromProperty(name, this);
             }
 
