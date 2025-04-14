@@ -41,7 +41,7 @@ export function connect(source, target, sourceChan, targetChan) {
     }
 
     if (!target) {
-        if (DEBUG) { throw new Error('Trying to connect to target ' + target); }
+        if (window.DEBUG) { throw new Error('Trying to connect to target ' + target); }
         else { log('Object', 'connect', 'Trying to connect to undefined target. Dropping connection.'); }
         return;
     }

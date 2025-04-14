@@ -87,7 +87,8 @@ export default class Monophonic extends Graph {
     constructor(context, settings = defaults, transport) {
         //const privates = Privates(this);
         super(context, graph, transport);
-        Playable.call(this, context);
+        // Mix in playable
+        new Playable(context, this);
 
         this.get('pitch').start(context.currentTime);
         this.get('modulation').start(context.currentTime);
@@ -158,3 +159,7 @@ export default class Monophonic extends Graph {
         return node.startTime !== undefined && node.context.currentTime > node.stopTime;
     }
 }
+
+define(Monophonic.prototype, {
+    status: Object.getOwnPropertyDescriptor(Playable.prototype, 'status'),
+});

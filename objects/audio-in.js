@@ -1,7 +1,7 @@
 
 import weakCache    from 'fn/weak-cache.js';
 import requestMedia from '../modules/request-media.js';
-import StageObject  from '../modules/object.js';
+import AudioObject  from '../modules/audio-object.js';
 
 // Cached so that we guarantee one splitter per context
 const createInputSplitter = weakCache((context) => {
@@ -16,10 +16,9 @@ const createInputSplitter = weakCache((context) => {
     return splitter;
 });
 
-export default class AudioIn extends StageObject {
-    constructor(id, setting = {}, context) {
-        super(id, { size: 0 }, { size: 0 });
-        this.context = context;
-        this.node    = createInputSplitter(context);
+export default class AudioIn extends AudioObject {
+    constructor(transport, setting = {}) {
+        super(transport);
+        this.node = createInputSplitter(transport.context);
     }
 }

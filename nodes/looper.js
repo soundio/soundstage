@@ -152,7 +152,8 @@ export default class Looper extends BufferRecorder {
     constructor(context, options, transport) {
         // Init node
         super(context);
-
+        // Mix in playable
+        new Playable(context, this);
         // Set up the node graph
         Graph.call(this, context, graph, options);
 

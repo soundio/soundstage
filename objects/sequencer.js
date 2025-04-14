@@ -4,7 +4,7 @@ import matches     from 'fn/matches.js';
 import noop        from 'fn/noop.js';
 import Stream      from 'fn/stream/stream.js';
 import Distributor from '../modules/object/distributor.js';
-import Playable    from '../modules/playable-2.js';
+import Playable    from '../modules/playable.js';
 import StatusSignal from '../modules/status-signal.js';
 import Sequence    from '../modules/sequence.js';
 import StageObject from '../modules/object.js';
@@ -19,8 +19,8 @@ export default class Sequencer extends StageObject {
     #status;
     #sequences = {};
 
-    constructor(transport, settings) {
-        super(undefined, 1, { size: 1024 });
+    constructor(transport, settings = {}) {
+        super(1, 1024);
 
         // Mix in playable
         new Playable(transport.context, this);
@@ -43,13 +43,13 @@ export default class Sequencer extends StageObject {
             // Something else?
             ((value) => { throw new TypeError('Sequencer() does not accept object for settings.events'); })(settings.events):
             // Create an empty events array
-            new Events({ size: 0, maxSize: 1024 }) ;
+            new Events({ size: 0, maxSize: 128 }) ;
 
         this.sequences  = settings.sequences || [];
     }
 
     start(time, id = 0) {
-        Playable.start(this, time);
+        Playable.prototype.start.call(this, time);
 
         const transport = this.transport;
         const events = id ?
@@ -87,7 +87,7 @@ export default class Sequencer extends StageObject {
         }
 
 console.log('Sequencer.stop()', this.stopTime);
-        Playable.stop(this, time);
+        Playable.prorotype.stop.call(this, time);
         const transport = this.transport;
         for (id in this.#sequences) this.stop(transport.beatAtTime(this.stopTime), id);
 
@@ -98,4 +98,4 @@ console.log('Sequencer.stop()', this.stopTime);
 
 define(Sequencer.prototype, {
     status: Object.getOwnPropertyDescriptor(Playable.prototype, 'status')
-})
+});

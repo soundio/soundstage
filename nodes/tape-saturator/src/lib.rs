@@ -86,7 +86,7 @@ impl TapeProcessor {
         );
         
         // 3. Apply magnetic tape saturation with hysteresis
-        let saturated = self.apply_tape_saturation(pre_emphasized);
+        let saturated = self.apply_tape_saturator(pre_emphasized);
         
         // 4. Apply de-emphasis (restore frequency balance)
         // Time constant similar to pre-emphasis
@@ -100,7 +100,7 @@ impl TapeProcessor {
         de_emphasized
     }
     
-    fn apply_tape_saturation(&mut self, input: f32) -> f32 {
+    fn apply_tape_saturator(&mut self, input: f32) -> f32 {
         // Bias the input to avoid DC offset issues
         let input_abs = input.abs();
         let input_sign = input.signum();

@@ -71,15 +71,15 @@ MIDIIn()
 **/
 
 export default class MIDIIn extends StageObject {
-    constructor(id, data = {}, context) {
+    constructor(transport, settings = {}) {
         const ports   = {};
         const inputs  = { size: 0 };
         const outputs = { size: 16, names };
 
-        super(id, inputs, outputs);
+        super(inputs, outputs);
 
-        this.context = context;
-        this.data    = Data.of(data);
+        this.context = transport.context;
+        this.data    = Data.of(settings);
 
         Signal.tick(() => {
             const id = this.data.port;

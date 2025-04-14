@@ -27,7 +27,7 @@ function initializeModule() {
 BeatOscillator(id, settings, transport)
 Generates rhythmic patterns based on Fourier analysis. Uses zero-crossings of a Fourier series to create beats with specific velocities.
 **/
-export default class BeatOscillator extends PlayableObject {
+export default class BeatOscillator extends Playable {
     constructor(id, settings = {}, transport) {
         super(settings);
 

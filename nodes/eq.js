@@ -28,10 +28,10 @@ const graph = {
     },
 
     connections: [
+        'this', '0',
         '0', '1',
         '1', '2',
-        '2', '3',
-        '3', 'output'
+        '2', '3'
     ],
 
     properties: {

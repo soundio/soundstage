@@ -16,4 +16,4 @@ The AudioWorkletNode should expose AudioParams for:
 "Hysteresis Depth" – A k-rate parameter adjusting how much the tape remembers previous saturation states, making it behave more or less like real magnetic tape.
 "Saturation Hardness" – A k-rate parameter adjusting the 'softness' to 'hardness' of the saturation curve, where 'soft' means more gentle, warm saturation and 'hard' means more aggressive, crunchy saturation.
 
-Think step-by-step. Remember that `fetch` is not available inside AudioWorkletProcessor. Write a 'tape-saturation.js' file for the AudioWorkletNode, a 'tape-saturation.worklet.js' file for the AudioWorkletProcessor, and a 'lib.rs' file for the model.
+Think step-by-step. Remember that `fetch` is not available inside AudioWorkletProcessor. Write a 'tape-saturator.js' file for the AudioWorkletNode, a 'tape-saturator.worklet.js' file for the AudioWorkletProcessor, and a 'lib.rs' file for the model.

@@ -11,7 +11,7 @@ const defaults = {};
 /* Harmoniser */
 
 export default class Harmoniser extends StageObject {
-    constructor(id, data = {}) {
+    constructor(transport, settings = {}) {
         const inputs = {
             0: Stream.each(overload(get(1), {
                 noteon: function(noteon) {
@@ -80,7 +80,7 @@ export default class Harmoniser extends StageObject {
         const outputs = { size: 8 };
 
         // extends StageObject
-        super(id, inputs, outputs);
-        this.data = data;
+        super(inputs, outputs);
+        //this.data = data;
     }
 }

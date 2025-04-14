@@ -49,6 +49,8 @@ export default class Loop extends Graph {
     constructor(context, settings) {
         // Set up the node graph
         super(context, graph, settings);
+        // Mix in playable
+        new Playable(context, this);
 
         define(this, props);
 
@@ -71,7 +73,7 @@ export default class Loop extends Graph {
     }
 
     start(time) {
-        Playable.start(this, time);
+        Playable.prototype.start.call(this, time);
 
         const output = this.get('gain');
         const source = new AudioBufferSourceNode(this.context, {
@@ -110,7 +112,7 @@ export default class Loop extends Graph {
     }
 
     stop(time) {
-        Playable.stop(this, time);
+        Playable.prototype.stop.call(this, time);
 
         //Schedule a gain fade out
         if (FADEDURATION && this.stopTime > this.context.currentTime) {

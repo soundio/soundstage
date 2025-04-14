@@ -131,7 +131,7 @@ export default function Graph(context, graph, settings) {
         .context
         The AudioContext object.
         **/
-        context: { value: context },
+        //context: { value: context },
 
         /**
         .numberOfOutputs
@@ -261,5 +261,3 @@ Graph.update = function update(graphable, graph) {
         while (++n < connections.length) createConnection(nodes, connections[n], connections[++n]);
     }
 }
-
-log('Graph', 'pre-registered', Object.keys(constructors).join(', '));

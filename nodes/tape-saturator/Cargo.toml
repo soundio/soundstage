@@ -1,5 +1,5 @@
 [package]
-name = "tape-saturation"
+name = "tape-saturator"
 version = "0.1.0"
 edition = "2024"
 

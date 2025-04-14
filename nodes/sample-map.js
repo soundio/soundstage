@@ -165,7 +165,8 @@ export default class Sample extends Graph {
         }
 
         super(context, graph);
-        Playable.call(this, context);
+        // Mix in Playable
+        new Playable(context, this);
 
         define(this, properties);
         this.#sources = { length: 0 };

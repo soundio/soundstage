@@ -14,13 +14,13 @@ const defaults = {
 /* Button */
 
 export default class Button extends StageObject {
-    constructor(id, settings = {}, context) {
+    constructor(transport, settings = {}) {
         const inputs  = { size: 0 };
         const outputs = { size: 1 };
 
         // extends Object
-        super(id, inputs, outputs);
-        this.context = context;
+        super(inputs, outputs);
+        this.context = transport.context;
         this.data    = assign(settings, defaults);
     }
 }

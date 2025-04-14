@@ -83,7 +83,7 @@ export default class Tone extends Graph {
         this.release = settings.release ?? defaults.release;
 
         // Define .startTime and .stopTime
-        Playable.call(this, context);
+        new Playable(context, this);
 
         // Set up
         this.get('osc').start(context.currentTime);

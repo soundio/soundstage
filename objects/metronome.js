@@ -1,23 +1,24 @@
 
 import Graph          from '../modules/graph.js';
-import Playable       from '../modules/playable-2.js';
-import StageObject    from '../modules/object.js';
+import Playable       from '../modules/playable.js';
+import AudioObject    from '../modules/audio-object.js';
 import { create }     from '../modules/nodes.js';
 import parseFrequency from '../modules/parse/parse-frequency.js';
 import parseGain      from '../modules/parse/parse-gain.js';
 
 const define = Object.defineProperties;
 
-export default class Metronome extends StageObject {
+export default class Metronome extends AudioObject {
     #transport;
     #playstream;
 
-    constructor(id, data, context, transport) {
-        super(id, data);
-        // Mix in .start(), .stop(), .status
-        new Playable(context, this);
+    constructor(transport) {
+        super(transport);
 
-        this.node = create(context, 'tick');
+        // Mix in .start(), .stop(), .status
+        new Playable(transport.context, this);
+
+        this.node = create(transport.context, 'tick');
         this.#transport = transport;
 
         this.pitchOnBar  = 600;

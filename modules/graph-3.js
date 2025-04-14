@@ -47,27 +47,24 @@ output by the `.connect()` and `.disconnect()` methods.
 **/
 
 import id                      from 'fn/id.js';
-import toType                  from 'fn/to-type.js';
-import Playable                from './playable.js';
 import { connect, disconnect } from './connect.js';
 import { create }              from './nodes.js';
-import enumerableToJSON        from './object/enumerable-to-json.js';
 import { log }                 from './log.js';
 
 
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
-const seal   = Object.seal;
 
 
 function createConnection(nodes, source, target) {
-    // Split paths such as env.gain.0 to ['env', 'gain', 0]
+    // Split source path
     const srcPath = source.split('.');
     const src     = nodes[srcPath[0]];
     const srcChan = !srcPath[1] ? 0 :
         parseInt(srcPath[1], 10) ;
 
+    // Split target path
     const tgtPath = target.split('.');
     const tgtChan = !tgtPath[1] ? 0 :
         /^\d+$/.test(tgtPath[1]) ? parseInt(tgtPath[1], 10) :
@@ -93,71 +90,24 @@ function disconnectNode(node) {
     node.disconnect && node.disconnect();
 }
 
-export default class Graph extends Playable {
+export default class Graph extends id {
     #nodes;
-    #starts = [];
-    #stops  = [];
 
-    constructor(context, graph, settings) {
-        super(context);
+    constructor(context, graph, object) {
+        if (window.DEBUG && !(graph && graph.nodes)) {
+            throw new Error('Graph() called with no graph definition object');
+        }
+
+        // Allow graph to be used as a mixin
+        super(object);
 
         // Create nodes
         this.#nodes = Object
         .entries(graph.nodes)
         .reduce((nodes, [id, { type, data, start, stop }]) => {
-            const node = nodes[id] = create(context, type, data);
-
-            if (start) this.#starts.push(node, start[0], start[1], start[2]);
-            if (stop)  this.#stops.push(node, stop[0], stop[1], stop[2]);
-
+            nodes[id] = create(context, type, data);
             return nodes;
-        }, { this: this });
-
-        // Reference to output node, the node at nodes.output
-        const output = this.#nodes.output;
-
-        // If `this` is not one already, make it quack like an AudioNode
-        define(this, {
-            numberOfOutputs: { value: output ? output.numberOfOutputs : 0 }
-        });
-
-        // Define properties on `this` based on graph.properties
-        /*let n = -1, name;
-        for (name in graph.properties) {
-            let definition;
-
-            const object = typeof graph.properties[name] === 'string' ? {
-                    path: graph.properties[name],
-                    enumerable: true
-                } :
-                graph.properties[name] ;
-
-            // Property definition is an object
-            if (object.path) {
-                const [id, key] = object.path.split('.');
-                const node      = id === 'this' ? this : nodes[id] ;
-                const param     = node[key];
-
-                definition = param.setValueAtTime ?
-                    assign({ value: param }, object) :
-                    assign({ get: () => node[key], set: (value) => node[key] = value }, object) ;
-            }
-            else {
-                definition = object;
-            }
-
-            Object.defineProperty(this, name, definition);
-        }
-
-        // Update param and property values from settings
-        for (name in settings) {
-            if (typeof this[name] === 'object' && this[name].setValueAtTime) {
-                this[name].value = settings[name];
-            }
-            else {
-                this[name] = settings[name];
-            }
-        }*/
+        }, this instanceof AudioNode ? { this: this } : {});
 
         // Connect nodes together
         if (graph.connections) {
@@ -168,57 +118,12 @@ export default class Graph extends Playable {
     }
 
     /**
-    .start(time, rate, gain)
-    **/
-    start(time, rate, gain) {
-        super.start(time);
-
-        const starts = this.#starts;
-
-        let n = -4, node;
-        while (node = starts[n += 4]) {
-            if (starts[n + 1]) node.start(this.startTime, rate, gain);
-            if (starts[n + 2]) node[starts[n + 2]].setValueAtTime(rate, time);
-            if (starts[n + 3]) node[starts[n + 3]].setValueAtTime(gain, time);
-        }
-
-        return this;
-    }
-
-    /**
-    .stop(time, rate, gain)
-    **/
-    stop(time, rate, gain) {
-        super.stop(time);
-
-        const stops = this.#stops;
-        let stopTime = this.stopTime;
-        let n = -4, node;
-        while (node = stops[n += 4]) {
-            if (stops[n + 1]) node.stop(this.stopTime, rate, gain);
-            if (stops[n + 2]) node[starts[n + 2]].setValueAtTime(rate, this.stopTime);
-            if (stops[n + 3]) node[starts[n + 3]].setValueAtTime(gain, this.stopTime);
-            stopTime = node.stopTime > stopTime ?
-                node.stopTime :
-                stopTime ;
-        }
-
-        // Update .stopTime to latest
-        this.stopTime = stopTime;
-        return this;
-    }
-
-    /**
-    .connect(target[, channel, targetChannel])
+    .connect(target)
+    .connect(target, output, input)
     Connect node to `target`.
     **/
     connect() {
         const output = this.#nodes.output;
-
-        if (DEBUG && this === output) {
-            console.warn('Graph nodes where `this` is the output should not delegate to Graph.prototype.connect()');
-        }
-
         return output.connect.apply(output, arguments);
     }
 
@@ -232,14 +137,6 @@ export default class Graph extends Playable {
     }
 
     /**
-    .get(id)
-    Returns a node from the graph by its `id`.
-    **/
-    get(id) {
-        return this.#nodes && this.#nodes[id];
-    }
-
-    /**
     .destroy()
     Disconnects all nodes in the graph.
     **/
@@ -249,9 +146,10 @@ export default class Graph extends Playable {
     }
 
     /**
-    .toJSON()
+    Graph.get(id, object)
+    Access node with `id` in `object` that has a node graph.
     **/
-    toJSON() {
-        return enumerableToJSON(this);
+    static get(id, object) {
+        return object.#nodes && object.#nodes[id];
     }
 }

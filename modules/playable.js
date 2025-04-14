@@ -20,13 +20,12 @@ const json = JSON.stringify(playable);   // {}
 ```
 **/
 
+import id from 'fn/id.js';
+import StatusSignal, { IDLE, CUED, PLAYING } from './status-signal.js';
+
 const DEBUG  = window.DEBUG;
 const assign = Object.assign;
 const define = Object.defineProperties;
-
-export const IDLE    = 'idle';
-export const CUED    = 'cued';
-export const PLAYING = 'running';
 
 const properties = {
     /**
@@ -34,15 +33,13 @@ const properties = {
     An AudioContext or similar object that must have a `.currentTime` property.
     This property is not enumerable.
     **/
-
-    //context: { writable: true },
+    context: { writable: true },
 
     /**
     .startTime
     The time at which playback was last scheduled to start, or `undefined`.
     This property is not enumerable.
     **/
-
     startTime: { writable: true },
 
     /**
@@ -50,26 +47,36 @@ const properties = {
     The time at which playback was last scheduled to stop, or `undefined`.
     This property is not enumerable.
     **/
-
     stopTime:  { writable: true }
 };
 
-export default function Playable(context) {
-    // Define this.context
-    if (!this.context) {
-        define(this, { context: { value: context } });
+// Using id() as a base class lets us use this class as a mixin because
+// calling `super(object)` sets `object` as `this`, allowing us to pass in
+// objects to be extended with this classes' fields. At the same time calling
+// `super(undefined)` means this class acts as a normal base class that creates
+// a new object.
+
+export default class Playable extends id {
+    #status;
+
+    constructor (context, object) {
+        // Sets object as this, allowing Playable to be called as a mixin, or if
+        // object is undefined, this is what this normally is
+        super(object);
+
+        properties.context.value = context;
+        define(this, properties);
+        this.#status = new StatusSignal(context, this);
     }
 
-    define(this, properties);
-}
+    /*
+    static reset(node) {
+        node.startTime = undefined;
+        node.stopTime  = undefined;
+        return node;
+    }
+    */
 
-Playable.reset = function(node) {
-    node.startTime = undefined;
-    node.stopTime  = undefined;
-    return node;
-};
-
-assign(Playable.prototype, {
     /**
     .start(time)
 
@@ -79,8 +86,7 @@ assign(Playable.prototype, {
 
     Returns the playable.
     **/
-
-    start: function(time) {
+    start(time) {
         time = time === undefined ?
             this.context.currentTime :
             Math.fround(time) ;
@@ -91,8 +97,9 @@ assign(Playable.prototype, {
 
         this.startTime = Math.fround(time);
         this.stopTime  = undefined;
+        this.#status.invalidateUntil(this.startTime);
         return this;
-    },
+    }
 
     /**
     .stop(time)
@@ -103,8 +110,7 @@ assign(Playable.prototype, {
 
     Returns the playable.
     **/
-
-    stop: function(time) {
+    stop(time) {
         time = time === undefined ?
             this.context.currentTime :
             Math.fround(time);
@@ -115,11 +121,10 @@ assign(Playable.prototype, {
 
         // Clamp stopTime to startTime
         this.stopTime = time > this.startTime ? time : this.startTime ;
+        this.#status.invalidateUntil(this.stopTime);
         return this;
     }
-});
 
-define(Playable.prototype, {
     /**
     .status
 
@@ -135,33 +140,14 @@ define(Playable.prototype, {
     - `.startTime` is a number greater than `context.currentTime`
     - `.stopTime` is `undefined`, or a number greater than `.startTime`
 
-    The status is `'playing'` when both:
+    The status is `'running'` when both:
 
     - `.startTime` is a number less than or equal to `context.currentTime`
     - `.stopTime` is `undefined` or a number greater than `context.currentTime`
 
     This property is not enumerable.
     **/
-
-    status: {
-        get: function() {
-            const time = this.context.currentTime;
-            return this.startTime === undefined ? IDLE :
-                time < this.startTime ? CUED :
-                this.stopTime === undefined ? PLAYING :
-                time < this.stopTime ? PLAYING :
-                IDLE ;
-        }
+    get status() {
+        return this.#status.value;
     }
-});
-
-// Helper functions
-assign(Playable, {
-    start: function(playable, time) {
-        return Playable.prototype.start.call(playable, time);
-    },
-
-    stop: function(playable, time) {
-        return Playable.prototype.stop.call(playable, time);
-    }
-});
+}

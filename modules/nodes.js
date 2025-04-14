@@ -129,7 +129,7 @@ export function register(name, constructor) {
         throw new Error('Cannot register node type "' + name + '", it already exists');
     }
 
-    if (window.DEBUG) log('Graph', 'register', name);
+    if (window.DEBUG) log('Nodes', 'register', name);
 
     constructors[name] = constructor;
 }

@@ -23,7 +23,7 @@ import Tone           from './nodes/tone.js';
 import Looper         from './nodes/looper.js';
 import Saturator      from './nodes/saturator.js';
 import BufferRecorder from './nodes/buffer-recorder.js';
-import TapeSaturation from './nodes/tape-saturation.js';
+import TapeSaturator from './nodes/tape-saturator.js';
 
 import AudioObject     from './objects/audio.js';
 import AudioIn         from './objects/audio-in.js';
@@ -46,18 +46,13 @@ nodes.register('tone',       Tone);
 nodes.register('looper',     Looper);
 nodes.register('saturator',  Saturator);
 nodes.register('buffer-recorder', BufferRecorder);
-nodes.register('tape-saturation', TapeSaturation);
+nodes.register('tape-saturator', TapeSaturator);
 
 
 const assign  = Object.assign;
 const define  = Object.defineProperties;
 const version = '0.1';
 const types = {};
-
-
-
-console.log('<<', import.meta.url)
-
 
 
 let id = 0;
@@ -138,9 +133,7 @@ export default class Soundstage extends Sequencer {
         // Create objects
         objects.forEach((setting) => {
             const object = this.create(setting.type, setting.node || setting.data, setting.id);
-
 console.log(`Adding route ${ setting.id } "${ setting.type }" to distributor`, distributor);
-
             distributor[setting.id] = object.input(0);
         });
 
@@ -195,10 +188,11 @@ console.log(`Adding route ${ setting.id } "${ setting.type }" to distributor`, d
         // Warning! Soundstage may be a Data proxy at this point, make sure we are
         // dealing with an unproxied stage
         const stage  = Data.objectOf(this);
-        const object = new types[type](id, data, stage.context, stage.transport);
+        const object = new types[type](stage.transport, data);
+        define(object, { id: { value: id, enumerable: true } });
 
         // Push to Data proxy of objects so that changes are observed
-        Data.of(this.objects).push(object.done(() => remove(this.objects, object)));
+        //Data.of(this.objects).push(object.done(() => remove(this.objects, object)));
 
         log('Soundstage', 'create', type);
         return object;
@@ -225,7 +219,7 @@ console.log(`Adding route ${ setting.id } "${ setting.type }" to distributor`, d
         }, super.toJSON());
     }
 
-    static from(data = {}) {
+    static load(data = {}) {
         const context = createContext();
         return nodes
         .preload(context)
@@ -233,6 +227,11 @@ console.log(`Adding route ${ setting.id } "${ setting.type }" to distributor`, d
             if (preloaded.length) log('Soundstage', 'preloaded', preloaded.map(get('name')).join(', '));
             return new Soundstage(context, data.objects, data.pipes, data.connections, data.events, data.sequences);
         });
+    }
+
+    static from(data) {
+        console.log('Stage.from() renamed to Stage.load()');
+        return Stage.load(data);
     }
 
     static types = types;
@@ -256,18 +255,19 @@ define(Soundstage.prototype, {
 
 
 
-Soundstage.register(MidiInObject, MidiOutObject, AudioIn, AudioOut, TransformObject, MetronomeObject);
+Soundstage.register(MidiInObject, MidiOutObject, AudioIn, AudioOut, TransformObject, MetronomeObject, Sequencer);
 
 Soundstage.register.apply(Soundstage,
     Object
     .entries(nodes.constructors)
     .map(([type, Node]) =>
-        define(class extends AudioObject {
-            constructor(id, data = {}, context, transport) {
-                super(id, { type, data }, context, transport);
-            }
-        }, {
-            name: { value: Node.name.replace(/(?:Source)?Node$/, '') }
+        define(
+            class extends AudioObject {
+                constructor(transport, settings) {
+                    super(transport, { type, data: settings });
+                }
+            },
+            { name: { value: Node.name.replace(/(?:Source)?Node$/, '') }
         })
     )
 );

@@ -40,7 +40,7 @@ function mergeEvents(events, incomes) {
 export default class RhythmSynth extends StageObject {
     #events;
 
-    constructor(id, data = {}) {
+    constructor(transport, settings = {}) {
         // extends StageNode super(id, inputs, outputs)
         const inputs = {
             0: Stream.each(overload(get(1), {
@@ -51,10 +51,10 @@ export default class RhythmSynth extends StageObject {
             size: 1
         };
         const outputs = { size: 1 };
-        super(id, inputs, outputs);
+        super(inputs, outputs);
 
-        this.duration = data.duration || 1;
-        this.events   = data.events;
+        this.duration = settings.duration || 1;
+        this.events   = settings.events;
 
         const output0 = this.output(0);
         let h = 0;

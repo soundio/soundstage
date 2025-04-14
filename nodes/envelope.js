@@ -103,12 +103,11 @@ const graph = {
 export default class Envelope extends Graph {
     #output;
 
-    constructor(context, settings = defaults, transport) {
+    constructor(context, settings = defaults) {
         // Set up the node graph and define .context, .connect, .disconnect, .get
-        super(context, graph, transport);
-
-        // Define .start(), .stop(), .startTime and .stopTime
-        Playable.call(this, context);
+        super(context, graph);
+        // Mix in playable
+        new Playable(context, this);
 
         this.attack  = settings.attack  ?? defaults.attack.slice();
         this.release = settings.release ?? defaults.release.slice();

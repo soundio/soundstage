@@ -32,14 +32,13 @@ function updateInputs(inputs, port) {
 }
 
 export default class MIDIOut extends StageObject {
-    constructor(id, data = {}) {
+    constructor(transport, settings = {}) {
         const ports   = {};
         const inputs  = { size: 16, names };
         const outputs = { size: 0 };
 
-        super(id, inputs, outputs);
-
-        this.data = Data.of(data);
+        super(inputs, outputs);
+        this.data = Data.of(settings);
 
         Signal.tick(() => {
             const id = this.data.port;

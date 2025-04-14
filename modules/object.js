@@ -1,11 +1,12 @@
 
-import Signal      from 'fn/signal.js';
-import Stream      from 'fn/stream/stream.js';
-import toDashCase  from 'fn/to-dash-case.js';
-import Distributor from './object/distributor.js';
-import ParamSignal from './param-signal.js';
+import Signal            from 'fn/signal.js';
+import Stream            from 'fn/stream/stream.js';
+import isMutableProperty from 'fn/is-mutable-property.js'
+import toDashCase        from 'fn/to-dash-case.js';
+import Distributor       from './object/distributor.js';
+import enumerableToJSON  from './object/enumerable-to-json.js';
+import ParamSignal       from './param-signal.js';
 import { isAudioParamLike } from './param.js';
-import enumerableToJSON from './object/enumerable-to-json.js';
 
 
 const assign = Object.assign;
@@ -16,27 +17,12 @@ const descriptors = {
 };
 
 
-// Manege ids
-
-const ids = [];
-
-let id = 0;
-
-function generateId() {
-    let id = 0;
-    while (++id && ids.includes(id));
-    return id;
-}
-
-
 /** StageObject() **/
 
 export default class StageObject {
     #parameters;
 
-    constructor(id = generateId(), inputs = { size: 1 }, outputs = { size: 1 }) {
-        this.id = id;
-
+    constructor(inputs = { size: 1 }, outputs = { size: 1 }) {
         // Define inputs and outputs... TODO SORT OUT INPUTS / OUTPUTS API, its horrible
         descriptors.inputs.value  = typeof inputs === 'number'  ? {
             size: inputs,
@@ -51,9 +37,6 @@ export default class StageObject {
         let n;
         for (n in this.inputs)  if (/^\d/.test(n)) this.inputs[n].object  = this;
         for (n in this.outputs) if (/^\d/.test(n)) this.outputs[n].object = this;
-
-        // Maintain a registry of used ids
-        ids.push(this.id);
     }
 
     get type() {
@@ -84,13 +67,12 @@ export default class StageObject {
             if (value instanceof AudioBuffer) continue;
 
             // It's an AudioParam
-            if (isAudioParamLike(value)) {
+            if (value && isAudioParamLike(value)) {
                 signal = ParamSignal.from(name, this);
             }
             // It's a property
             else {
-                descriptor = Object.getOwnPropertyDescriptor(this, name);
-                if (descriptor && !descriptor.writable && !descriptor.set) continue;
+                if (!isMutableProperty(this, name)) continue;
                 // It's either readable or a property of its prototype, we can't
                 // distinguish
                 signal = Signal.fromProperty(name, this);
@@ -123,44 +105,11 @@ export default class StageObject {
         return outputs[o] || (outputs[o] = assign(Stream.of(), { object: this }));
     }
 
-    connect(inputObject, outputName = 0, inputName = 0) {
-        //log('Connect', connections[c] + '-' + connections[c + 1] + ' to ' + connections[c + 2] + '-' + connections[c + 3]);
-        const outputNode = this.node;
-        if (!outputNode) throw new Error('Object.connect() attempt to connect object ' + this.id + ' with no audio outputs');
-        const inputNode  = inputObject.node;
-        if (!inputNode) throw new Error('Object.connect() attempt to connect to object ' + inputObject.id + ' with no audio inputs');
-
-        // Keep record of connections
-        outputNode.connect(inputNode, outputName, inputName);
-        this.connections = this.connections || [];
-        this.connections.push(this.id, outputName, inputObject.id, inputName);
-    }
-
-    disconnect(inputObject, outputName = 0, inputName = 0) {
-        //log('Connect', connections[c] + '-' + connections[c + 1] + ' to ' + connections[c + 2] + '-' + connections[c + 3]);
-        const outputNode = this.node;
-        if (!outputNode) throw new Error('Object.connect() attempt to disconnect from object ' + this.id + ' with no audio outputs');
-        const inputNode  = inputObject.node;
-        if (!inputNode) throw new Error('Object.connect() attempt to disconnect object ' + inputObject.id + ' with no audio inputs');
-
-        // Keep record of connections
-        outputNode.disconnect(inputNode, outputName, inputName);
-        const connections = this.connections;
-        // Cycle through connections and remove reference(s) to this connection
-        let c = connections.length;
-        while (connections[c -= 4]) if (connections[c] === this.id && connections[c + 2] === inputObject.id) {
-            if (connections[c + 1] === outputName && connections[c + 3] === inputName) {
-                connections.splice(c, 4);
-            }
-        }
-    }
-
     destroy() {
         let n;
         for (n in this.inputs)  if (/^\d/.test(n)) this.inputs[n].stop();
         for (n in this.outputs) if (/^\d/.test(n)) this.outputs[n].stop();
-        // Call .done(fn) observer functions
-        return Stream.stop(this);
+        return this;
     }
 
     toJSON() {
@@ -169,6 +118,5 @@ export default class StageObject {
 }
 
 define(StageObject.prototype, {
-    type: { enumerable: true },
-    done: { value: Stream.prototype.done }
+    type: { enumerable: true }
 });

@@ -2,8 +2,8 @@
 import overload from 'fn/overload.js';
 import { rslashfilename } from '../modules/regexp.js';
 
-const wasmURL    = import.meta.url.replace(rslashfilename, '/tape-saturation/pkg/tape_saturation_bg.wasm');
-const workletURL = import.meta.url.replace(rslashfilename, '/tape-saturation.worklet.js');
+const wasmURL    = import.meta.url.replace(rslashfilename, '/tape-saturator/pkg/tape_saturator_bg.wasm');
+const workletURL = import.meta.url.replace(rslashfilename, '/tape-saturator.worklet.js');
 
 let wasmBuffer;
 
@@ -11,7 +11,7 @@ function toDataType(e) {
     return e.data?.type;
 }
 
-export default class TapeSaturation extends AudioWorkletNode {
+export default class TapeSaturator extends AudioWorkletNode {
     constructor(context, options = {}) {
         const defaultOptions = {
             numberOfInputs: 1,
@@ -21,7 +21,7 @@ export default class TapeSaturation extends AudioWorkletNode {
             channelInterpretation: 'speakers'
         };
 
-        super(context, 'tape-saturation', defaultOptions);
+        super(context, 'tape-saturator', defaultOptions);
         this.port.postMessage(wasmBuffer);
 
         // Create properties for each parameter
@@ -36,7 +36,7 @@ export default class TapeSaturation extends AudioWorkletNode {
         // Add port message handler
         this.port.onmessage = overload(toDataType, {
             'wasm-module-loaded': (e) => console.log('WASM module loaded successfully in worklet'),
-            'error':              (e) => console.error('TapeSaturation error from worklet:', e.data)
+            'error':              (e) => console.error('TapeSaturator error from worklet:', e.data)
         });
     }
 

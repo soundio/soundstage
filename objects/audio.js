@@ -13,9 +13,9 @@ import Events from '../modules/events.js';
 
 
 export default class Audio extends StageObject {
-    constructor(id, setting = {}, context, transport) {
-        super(id, 1, 0);
-        this.node = nodes.create(context, setting.type, setting.data, transport);
+    constructor(transport, settings) {
+        super(1, 0);
+        this.node = nodes.create(transport.context, settings.type, settings.data, transport);
     }
 
     async saveAudioBuffers(fn) {
@@ -24,3 +24,5 @@ export default class Audio extends StageObject {
             null ;
     }
 }
+
+

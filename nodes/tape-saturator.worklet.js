@@ -1,5 +1,5 @@
 
-import initWasm, * as wasm_bindgen from './tape-saturation/pkg/tape_saturation.js';
+import initWasm, * as wasm_bindgen from './tape-saturator/pkg/tape_saturator.js';
 
 function createProcessors(processors, channelCount) {
     while (processors.length < channelCount) {
@@ -9,8 +9,8 @@ function createProcessors(processors, channelCount) {
     }
 }
 
-// tape-saturation.worklet.js
-class TapeSaturationProcessor extends AudioWorkletProcessor {
+// tape-saturator.worklet.js
+class TapeSaturatorProcessor extends AudioWorkletProcessor {
     static get parameterDescriptors() {
         return [{
             name: 'drive',
@@ -59,8 +59,6 @@ class TapeSaturationProcessor extends AudioWorkletProcessor {
 
     async handleMessage(e) {
         try {
-            console.log('Initializing WASM module with buffer');
-
             // Initialize the WASM module
             await initWasm(e.data);
 
@@ -138,4 +136,4 @@ class TapeSaturationProcessor extends AudioWorkletProcessor {
     }
 }
 
-registerProcessor('tape-saturation', TapeSaturationProcessor);
+registerProcessor('tape-saturator', TapeSaturatorProcessor);
