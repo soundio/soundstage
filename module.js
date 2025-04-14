@@ -75,7 +75,8 @@ function isPipedTo(stream1, stream2) {
 }
 
 function getPipesFromObject(pipes = [], object) {
-    return Object.entries(object.outputs).reduce((pipes, [outputKey, output]) => {
+    const outputs = Soundstage.getOutputs(object);
+    return Object.entries(outputs).reduce((pipes, [outputKey, output]) => {
         // Ignore non-numeric output indexes ('size', 'names', etc.)
         if (!/^\d/.test(outputKey)) return pipes;
         // Loop over outputs
@@ -83,11 +84,11 @@ function getPipesFromObject(pipes = [], object) {
         while (input = output[++o]) {
             const inputObject = input.object;
             let inputKey;
-            for (inputKey in inputObject.inputs) {
+            for (inputKey in Soundstage.getInputs(inputObject)) {
                 // Ignore non-numeric input indexes ('size', 'names', etc.)
                 if (!/^\d/.test(inputKey)) continue;
                 // Check if output stream is piped to this input stream
-                if (!isPipedTo(output, inputObject.inputs[inputKey])) continue;
+                if (!isPipedTo(output, inputObject.input(inputKey))) continue;
                 // Push the numbers into the pipes array
                 pipes.push(object.id, parseInt(outputKey, 10), inputObject.id, parseInt(inputKey, 10));
             }

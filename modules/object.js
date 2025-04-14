@@ -11,32 +11,30 @@ import { isAudioParamLike } from './param.js';
 
 const assign = Object.assign;
 const define = Object.defineProperties;
-const descriptors = {
-    inputs:  {},
-    outputs: {}
-};
 
 
 /** StageObject() **/
 
 export default class StageObject {
+    #inputs;
+    #outputs;
     #parameters;
 
-    constructor(inputs = { size: 1 }, outputs = { size: 1 }) {
+    constructor(inputs = 1, outputs = 1) {
         // Define inputs and outputs... TODO SORT OUT INPUTS / OUTPUTS API, its horrible
-        descriptors.inputs.value  = typeof inputs === 'number'  ? {
+        this.#inputs = typeof inputs === 'number'  ? {
             size: inputs,
             0:    new Distributor(this)
         } : inputs ;
 
-        descriptors.outputs.value = typeof outputs === 'number' ? { size: outputs } : outputs ;
-
-        define(this, descriptors);
+        this.#outputs = typeof outputs === 'number' ? {
+            size: outputs
+        } : outputs ;
 
         // Give them all a reference to this
         let n;
-        for (n in this.inputs)  if (/^\d/.test(n)) this.inputs[n].object  = this;
-        for (n in this.outputs) if (/^\d/.test(n)) this.outputs[n].object = this;
+        for (n in this.#inputs)  if (/^\d/.test(n)) this.#inputs[n].object  = this;
+        for (n in this.#outputs) if (/^\d/.test(n)) this.#outputs[n].object = this;
     }
 
     get type() {
@@ -73,8 +71,6 @@ export default class StageObject {
             // It's a property
             else {
                 if (!isMutableProperty(this, name)) continue;
-                // It's either readable or a property of its prototype, we can't
-                // distinguish
                 signal = Signal.fromProperty(name, this);
             }
 
@@ -86,34 +82,42 @@ export default class StageObject {
     }
 
     input(i = 0) {
-        if (i >= this.inputs.size) {
-            console.warn('StageObject attempt to get .input(' + i + '), object has ' + this.inputs.size + ' inputs');
+        if (i >= this.#inputs.size) {
+            console.warn('StageObject attempt to get .input(' + i + '), object has ' + this.#inputs.size + ' inputs');
         }
 
         // Actually inputs perhaps should not be created dynamically, because if
         // an input is needed it must do something ... ?
-        const inputs = this.inputs;
+        const inputs = this.#inputs;
         return inputs[i] || (inputs[i] = assign(Stream.of(), { object: this }));
     }
 
     output(o = 0) {
-        if (o >= this.outputs.size) {
-            console.warn('StageObject attempt to get .output(' + o + '), object has ' + this.outputs.size + ' outputs');
+        if (o >= this.#outputs.size) {
+            console.warn('StageObject attempt to get .output(' + o + '), object has ' + this.#outputs.size + ' outputs');
         }
 
-        const outputs = this.outputs;
+        const outputs = this.#outputs;
         return outputs[o] || (outputs[o] = assign(Stream.of(), { object: this }));
     }
 
     destroy() {
         let n;
-        for (n in this.inputs)  if (/^\d/.test(n)) this.inputs[n].stop();
-        for (n in this.outputs) if (/^\d/.test(n)) this.outputs[n].stop();
+        for (n in this.#inputs)  if (/^\d/.test(n)) this.#inputs[n].stop();
+        for (n in this.#outputs) if (/^\d/.test(n)) this.#outputs[n].stop();
         return this;
     }
 
     toJSON() {
         return enumerableToJSON(this);
+    }
+
+    static getInputs(object) {
+        return object.#inputs;
+    }
+
+    static getOutputs(object) {
+        return object.#outputs;
     }
 }
 

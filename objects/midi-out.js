@@ -43,24 +43,27 @@ export default class MIDIOut extends StageObject {
         Signal.tick(() => {
             const id = this.data.port;
             this.port = ports[id];
-            updateInputs(this.inputs, this.port);
+            const inputs = StageObject.getInputs(this);
+            updateInputs(inputs, this.port);
         });
 
         MIDIOutputs.each((port) => {
             ports[port.id] = port;
             if (this.data.id === port.id) {
                 this.port = port;
-                updateInputs(this.inputs, this.port);
+                const inputs = StageObject.getInputs(this);
+                updateInputs(inputs, this.port);
             }
         });
     }
 
     input(n = 0) {
-        if (n >= this.inputs.size) {
+        const inputs = StageObject.getInputs(this);
+
+        if (n >= inputs.size) {
             throw new Error('StageObject attempt to get .input(' + n + '), object has ' + this.outputs.size + ' outputs');
         }
 
-        const inputs = this.inputs;
         return inputs[n] || (inputs[n] = assign(
             new MIDIDistributor(undefined, n + 1, (event) => console.log(event)),
             { object: this }
