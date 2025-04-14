@@ -72,7 +72,7 @@ export default class StageObject {
             }
             // It's a property
             else {
-                if (!isMutableProperty(this, name)) continue;
+                if (!isMutableProperty(name, this)) continue;
                 // It's either readable or a property of its prototype, we can't
                 // distinguish
                 signal = Signal.fromProperty(name, this);

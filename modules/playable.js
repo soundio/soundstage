@@ -56,6 +56,8 @@ const properties = {
 // `super(undefined)` means this class acts as a normal base class that creates
 // a new object.
 
+export { IDLE, CUED, PLAYING };
+
 export default class Playable extends id {
     #status;
 
