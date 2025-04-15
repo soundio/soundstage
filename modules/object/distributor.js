@@ -37,8 +37,9 @@ function distribute(object, event) {
     console.warn('Object', `event dropped and I don't know why`, event);
 }
 
-export default class DistributorInput {
+export default class DistributorInput extends Stream {
     constructor(object) {
+        super()
         this.object = object;
     }
 

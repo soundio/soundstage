@@ -6,8 +6,10 @@ import nothing        from 'fn/nothing.js';
 import toDashCase     from 'fn/to-dash-case.js';
 import Transport      from './modules/transport.js';
 import * as nodes     from './modules/nodes.js';
+import AudioObject    from './modules/audio-object.js';
 import Sequencer      from './objects/sequencer.js';
 import { createContext } from './modules/context.js';
+import { isAudioParam } from './modules/param.js';
 import { log }        from './modules/log.js';
 
 import Envelope       from './nodes/envelope.js';
@@ -23,9 +25,8 @@ import Tone           from './nodes/tone.js';
 import Looper         from './nodes/looper.js';
 import Saturator      from './nodes/saturator.js';
 import BufferRecorder from './nodes/buffer-recorder.js';
-import TapeSaturator from './nodes/tape-saturator.js';
+import TapeSaturator  from './nodes/tape-saturator.js';
 
-import AudioObject     from './objects/audio.js';
 import AudioIn         from './objects/audio-in.js';
 import AudioOut        from './objects/audio-out.js';
 import MidiInObject    from './objects/midi-in.js';
@@ -33,29 +34,26 @@ import MidiOutObject   from './objects/midi-out.js';
 import TransformObject from './objects/transform.js';
 import MetronomeObject from './objects/metronome.js';
 
-nodes.register('envelope',   Envelope);
-nodes.register('eq',         EQ);
-nodes.register('flanger',    Flanger);
-nodes.register('meter',      Meter);
-nodes.register('mix',        Mix);
-nodes.register('noise',      Noise);
-nodes.register('polyphonic', Polyphonic);
-nodes.register('sample',     SampleMap);
-nodes.register('tick',       Tick);
-nodes.register('tone',       Tone);
-nodes.register('looper',     Looper);
-nodes.register('saturator',  Saturator);
+nodes.register('envelope',        Envelope);
+nodes.register('eq',              EQ);
+nodes.register('flanger',         Flanger);
+nodes.register('meter',           Meter);
+nodes.register('mix',             Mix);
+nodes.register('noise',           Noise);
+nodes.register('polyphonic',      Polyphonic);
+nodes.register('sample',          SampleMap);
+nodes.register('tick',            Tick);
+nodes.register('tone',            Tone);
+nodes.register('looper',          Looper);
+nodes.register('saturator',       Saturator);
 nodes.register('buffer-recorder', BufferRecorder);
-nodes.register('tape-saturator', TapeSaturator);
-
+nodes.register('tape-saturator',  TapeSaturator);
 
 const assign  = Object.assign;
 const define  = Object.defineProperties;
 const version = '0.1';
-const types = {};
+const types   = {};
 
-
-let id = 0;
 
 function generateId(objects) {
     let id = 0;
@@ -134,7 +132,6 @@ export default class Soundstage extends Sequencer {
         // Create objects
         objects.forEach((setting) => {
             const object = this.create(setting.type, setting.node || setting.data, setting.id);
-console.log(`Adding route ${ setting.id } "${ setting.type }" to distributor`, distributor);
             distributor[setting.id] = object.input(0);
         });
 
@@ -150,6 +147,7 @@ console.log(`Adding route ${ setting.id } "${ setting.type }" to distributor`, d
             const input      = inputNode.input(pipes[++n]);
 
             output.pipe(input);
+            console.log(output, input);
         }
 
         // Connect nodes to one another
@@ -193,6 +191,7 @@ console.log(`Adding route ${ setting.id } "${ setting.type }" to distributor`, d
         define(object, { id: { value: id, enumerable: true } });
 
         // Push to Data proxy of objects so that changes are observed
+        Data.of(this.objects).push(object);
         //Data.of(this.objects).push(object.done(() => remove(this.objects, object)));
 
         log('Soundstage', 'create', type);
@@ -230,11 +229,6 @@ console.log(`Adding route ${ setting.id } "${ setting.type }" to distributor`, d
         });
     }
 
-    static from(data) {
-        console.log('Stage.from() renamed to Stage.load()');
-        return Stage.load(data);
-    }
-
     static types = types;
 
     static register() {
@@ -255,20 +249,27 @@ define(Soundstage.prototype, {
 });
 
 
-
 Soundstage.register(MidiInObject, MidiOutObject, AudioIn, AudioOut, TransformObject, MetronomeObject, Sequencer);
+
 
 Soundstage.register.apply(Soundstage,
     Object
     .entries(nodes.constructors)
-    .map(([type, Node]) =>
-        define(
+    .map(([type, Node]) => {
+        return define(
             class extends AudioObject {
                 constructor(transport, settings) {
-                    super(transport, { type, data: settings });
+                    super(transport);
+                    // Give audio object a single node
+                    this.node = new Node(transport.context, settings);
+                    // Expose params
+                    let name;
+                    for (name in this.node) {
+                        if (isAudioParam(this.node[name])) this[name] = this.node[name];
+                    }
                 }
             },
             { name: { value: Node.name.replace(/(?:Source)?Node$/, '') }
         })
-    )
+    })
 );

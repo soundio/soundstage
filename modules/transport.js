@@ -69,15 +69,6 @@ export default class Transport extends Playable {
     #beatsCache = {};
     #beat = 0;
     #rate = 2;
-    #computeRate = Signal.compute(() => {
-        // What a polava, but we are swapping signals responsible for .tempo
-        // on start/stop, and we need the signal graph to remain aware.
-        // We probably outa make .status a TimedSignal ... in Playable?
-        return this.status === 'running' ?
-            this.#node.offset.signal ? this.#node.offset.signal.value :
-            this.#node.offset.value :
-        this.#rate;
-    });
 
     constructor(context) {
         // .context
@@ -326,12 +317,11 @@ console.log('Transport.stop()', this.stopTime);
     getting/setting.
     **/
     get tempo() {
-        /*return (this.status === 'running' ?
-            //getValueAtTime(this.#node.offset, this.context.currentTime) :
-            this.#node.offset.signal ? this.#node.offset.signal.value :
-            this.#node.offset.value :
-        this.#rate) * 60 ;*/
-        return this.#computeRate.value * 60;
+        return (this.status === 'running' ?
+            this.#node.offset.signal ?
+                this.#node.offset.signal.value :
+                this.#node.offset.value :
+            this.#rate) * 60 ;
     }
 
     set tempo(tempo) {
@@ -341,25 +331,10 @@ console.log('Transport.stop()', this.stopTime);
 
         if (this.status === 'running') {
             automate(this.#node.offset, this.context.currentTime, Events.TYPENUMBERS.set, tempo / 60);
-            // As far as I understand, automate() should be updating this.#node.offset.signal,
-            // thus invalidating #computeRate, but that's not happening, probably because the
-            // latest compute was done without .status 'running', so #computeRate is not
-            // currently dependent on this.#node.offset.signal ... oooof. .status should be a
-            // signal? But it would have to be a TimedSignal because it depends on
-            // context.currentTime. Wow, this is mad.
-            this.#computeRate.invalidate();
         }
         else {
             this.#rate = tempo / 60;
-            this.#computeRate.invalidate();
         }
-    }
-
-    // TEMP
-    automate(time, rate, type = Events.TYPENUMBERS.set) {
-console.log('Transport.automate() rate:', rate, ' BPM:', rate * 60);
-        automate(this.#node.offset, time, type, rate);
-        return this;
     }
 
     /**

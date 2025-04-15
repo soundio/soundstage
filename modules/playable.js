@@ -1,30 +1,25 @@
 
 /**
-Playable(context)
+Playable(context),
+Playable(context, object)
 
 Takes a `context` object (an object with a `.currentTime` property) and
-constructs an object that implements the playable API: `.start()` and `.stop()`
-methods and a `.status` property.
+constructs an object with the playable API: `.start()` and `.stop()`
+methods and a `.status` property. Where a second parameter `object` is passed
+in Playable is applied as a mixin to `object`.
 
-```js
-const playable = new Playable(context);
-```
-
-A playable may be started and stopped repeatedly, but may not be started when
-already started, nor stopped when already stopped.
+A Playable may be started and stopped repeatedly, but may not be started when
+already started, nor stopped when already stopped. The `.status` property is
+backed by a Signal so accessing `.status` while evaluating a signal binds
+that signal as a dependency in the signal graph.
 
 Playable properties are non-enumerable, so they do not stringify to JSON.
-
-```js
-const json = JSON.stringify(playable);   // {}
-```
 **/
 
 import id from 'fn/id.js';
 import StatusSignal, { IDLE, CUED, PLAYING } from './status-signal.js';
 
 const DEBUG  = window.DEBUG;
-const assign = Object.assign;
 const define = Object.defineProperties;
 
 const properties = {
@@ -50,34 +45,23 @@ const properties = {
     stopTime:  { writable: true }
 };
 
-// Using id() as a base class lets us use this class as a mixin because
-// calling `super(object)` sets `object` as `this`, allowing us to pass in
-// objects to be extended with this classes' fields. At the same time calling
-// `super(undefined)` means this class acts as a normal base class that creates
-// a new object.
 
 export { IDLE, CUED, PLAYING };
 
+
+// Using id as a base class lets us use this class as a mixin.
 export default class Playable extends id {
     #status;
 
     constructor (context, object) {
-        // Sets object as this, allowing Playable to be called as a mixin, or if
-        // object is undefined, this is what this normally is
+        // Set object as this, allowing Playable to be called as a mixin
         super(object);
-
+        // Define .context, .startTime, .stopTime
         properties.context.value = context;
         define(this, properties);
+        // Set up status signal
         this.#status = new StatusSignal(context, this);
     }
-
-    /*
-    static reset(node) {
-        node.startTime = undefined;
-        node.stopTime  = undefined;
-        return node;
-    }
-    */
 
     /**
     .start(time)
@@ -97,8 +81,9 @@ export default class Playable extends id {
             throw new Error('Attempt to start a ' + this.constructor.name + ' at ' + time.toFixed(3) + 's that is cued or playing');
         }
 
-        this.startTime = Math.fround(time);
+        this.startTime = time;
         this.stopTime  = undefined;
+        // Invalidate status signal until startTime
         this.#status.invalidateUntil(this.startTime);
         return this;
     }
@@ -123,6 +108,7 @@ export default class Playable extends id {
 
         // Clamp stopTime to startTime
         this.stopTime = time > this.startTime ? time : this.startTime ;
+        // Invalidate status signal until stopTime
         this.#status.invalidateUntil(this.stopTime);
         return this;
     }
@@ -151,5 +137,15 @@ export default class Playable extends id {
     **/
     get status() {
         return this.#status.value;
+    }
+
+    /**
+    Playable.reset()
+    Supports pooled playables.
+    **/
+    static reset(object) {
+        object.startTime = undefined;
+        object.stopTime  = undefined;
+        return object;
     }
 }

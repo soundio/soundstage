@@ -58,3 +58,4 @@ export default class AudioObject extends StageObject {
         Graph.prototype.destroy.apply(this);
     }
 }
+

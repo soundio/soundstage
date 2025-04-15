@@ -5,7 +5,6 @@ import noop        from 'fn/noop.js';
 import Stream      from 'fn/stream/stream.js';
 import Distributor from '../modules/object/distributor.js';
 import Playable    from '../modules/playable.js';
-import StatusSignal from '../modules/status-signal.js';
 import Sequence    from '../modules/sequence.js';
 import StageObject from '../modules/object.js';
 import Events      from '../modules/events.js';

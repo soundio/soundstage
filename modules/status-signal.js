@@ -1,5 +1,6 @@
 
 import { TimedSignal } from 'fn/signal.js';
+//import { IDLE, CUED, PLAYING } from '';
 
 export const IDLE    = 'idle';
 export const CUED    = 'cued';
@@ -13,18 +14,19 @@ future after a call to `invalidateUntil(time)`.
 
 export default class StatusSignal extends TimedSignal {
     constructor(context, object) {
-        super('startTime', object);
+        super('status');
         this.context = context;
+        this.object  = object;
     }
 
-    /**
-    .value
-    Getting `.value` gets the object's value. If there's an evaluating signal,
-    it becomes dependent on this ParamSignal. The signal remains invalid until
-    the `.getTime()` reaches `.invalidateUntil(time)` time.
-    **/
-    get value() {
-        const startTime = super.value;
+    // Override TimedSignal.getTime()
+    getTime() {
+        return this.context.currentTime;
+    }
+
+    // Override .evaluate
+    evaluate() {
+        const startTime = this.object.startTime;
         const stopTime  = this.object.stopTime;
         const time      = this.context.currentTime;
 
@@ -34,10 +36,5 @@ export default class StatusSignal extends TimedSignal {
             stopTime === undefined ? PLAYING :
             time < stopTime ? PLAYING :
             IDLE;
-    }
-
-    // Override TimedSignal.getTime()
-    getTime() {
-        return this.context.currentTime;
     }
 }

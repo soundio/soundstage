@@ -49,7 +49,6 @@ function distribute(port, channel, event) {
     port.send(message, time);
 }
 
-
 export default class MIDIDistributor {
     constructor(port, channel = 1, fn = noop) {
         this.port    = port;
