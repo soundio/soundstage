@@ -84,6 +84,7 @@ export default class StageObject {
     input(i = 0) {
         if (i >= this.#inputs.size) {
             console.warn('StageObject attempt to get .input(' + i + '), object has ' + this.#inputs.size + ' inputs');
+            return null;
         }
 
         // Actually inputs perhaps should not be created dynamically, because if
@@ -95,6 +96,7 @@ export default class StageObject {
     output(o = 0) {
         if (o >= this.#outputs.size) {
             console.warn('StageObject attempt to get .output(' + o + '), object has ' + this.#outputs.size + ' outputs');
+            return null;
         }
 
         const outputs = this.#outputs;

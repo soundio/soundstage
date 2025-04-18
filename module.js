@@ -153,7 +153,6 @@ export default class Soundstage extends Sequencer {
             const input      = inputNode.input(pipes[++n]);
 
             output.pipe(input);
-            console.log(output, input);
         }
 
         // Connect nodes to one another
