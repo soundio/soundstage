@@ -94,12 +94,19 @@ export default class Graph extends id {
     #nodes;
 
     constructor(context, graph, object) {
-        if (window.DEBUG && !(graph && graph.nodes)) {
+        /*if (window.DEBUG && !(graph && graph.nodes)) {
             throw new Error('Graph() called with no graph definition object');
-        }
+        }*/
 
         // Allow graph to be used as a mixin
         super(object);
+
+        // It may be, for the time being, that an object inherits from Graph but
+        // does not declare a graph, as it implements it's own nodes.
+        if (!graph || !graph.nodes) {
+            this.#nodes = {};
+            return;
+        }
 
         // Create nodes
         this.#nodes = Object

@@ -100,7 +100,8 @@ function getPipesFromObjects(objects) {
 }
 
 function getConnectionsFromObject(connections = [], object) {
-    if (object.connections) connections.push.apply(connections, object.connections);
+    const objectConnections = AudioObject.getConnections(object);
+    if (objectConnections) connections.push.apply(connections, objectConnections);
     return connections;
 }
 
@@ -108,16 +109,21 @@ function getConnectionsFromObjects(objects) {
     return objects.reduce(getConnectionsFromObject, []);
 }
 
+function destroy(object) {
+    object.destroy();
+}
+
 
 /** Soundstage() **/
 
 export default class Soundstage extends Sequencer {
-    constructor(context = createContext(), objects = [], pipes = [], connections = [], events, sequences) {
+    constructor(context = createContext(), objects = [], pipes = [], connections = [], events, sequences, name = '') {
         const transport = new Transport(context);
 
         super(transport, { events, sequences });
 
         define(this, {
+            name:     { value: name, enumerable: true, writable: true },
             context: { value: context },
             // An odd one - to support data observer proxies returning proxies
             // on 'get', a property must be writable or configurable. TODO: Really
@@ -211,6 +217,12 @@ export default class Soundstage extends Sequencer {
         }));
     }
 
+    destroy() {
+        super.destroy();
+        this.objects.forEach(destroy);
+        return this;
+    }
+
     toJSON() {
         return assign({
             version,
@@ -225,7 +237,7 @@ export default class Soundstage extends Sequencer {
         .preload(context)
         .then((preloaded) => {
             if (preloaded.length) log('Soundstage', 'preloaded', preloaded.map(get('name')).join(', '));
-            return new Soundstage(context, data.objects, data.pipes, data.connections, data.events, data.sequences);
+            return new Soundstage(context, data.objects, data.pipes, data.connections, data.events, data.sequences, data.name);
         });
     }
 
@@ -260,8 +272,8 @@ Soundstage.register.apply(Soundstage,
             class extends AudioObject {
                 constructor(transport, settings) {
                     super(transport);
-                    // Give audio object a single node
-                    this.node = new Node(transport.context, settings);
+                    // Give audio object a single node, make the property non-enumerable
+                    define(this, { node: { value: new Node(transport.context, settings) }});
                     // Expose params
                     let name;
                     for (name in this.node) {

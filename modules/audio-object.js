@@ -5,6 +5,8 @@ import StageObject from './object.js';
 const define = Object.defineProperties;
 
 export default class AudioObject extends StageObject {
+    #connections;
+
     constructor(transport, graph) {
         // Events inputs and outputs
         super(1, 0);
@@ -13,7 +15,7 @@ export default class AudioObject extends StageObject {
         define(this, { transport: { value: transport } });
 
         // Mix in audio Graph
-        if (graph) new Graph(transport.context, graph, this);
+        new Graph(transport.context, graph, this);
     }
 
     connect(inputObject, outputName = 0, inputName = 0) {
@@ -27,8 +29,8 @@ export default class AudioObject extends StageObject {
 
         // Keep record of connections
         outputNode.connect(inputNode, outputName, inputName);
-        this.connections = this.connections || [];
-        this.connections.push(this.id, outputName, inputObject.id, inputName);
+        this.#connections = this.#connections || [];
+        this.#connections.push(this.id, outputName, inputObject.id, inputName);
     }
 
     disconnect(inputObject, outputName = 0, inputName = 0) {
@@ -42,7 +44,7 @@ export default class AudioObject extends StageObject {
 
         // Keep record of connections
         outputNode.disconnect(inputNode, outputName, inputName);
-        const connections = this.connections;
+        const connections = this.#connections;
 
         // Cycle through connections and remove reference(s) to this connection
         let c = connections.length;
@@ -57,5 +59,12 @@ export default class AudioObject extends StageObject {
         super.destroy();
         Graph.prototype.destroy.apply(this);
     }
+
+    static getConnections(object) {
+        return object instanceof AudioObject && object.#connections;
+    }
 }
 
+define(AudioObject.prototype, {
+    node: { writable: true }
+});
