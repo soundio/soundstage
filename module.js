@@ -137,7 +137,7 @@ export default class Soundstage extends Sequencer {
 
         // Create objects
         objects.forEach((setting) => {
-            const object = this.create(setting.type, setting.node || setting.data, setting.id);
+            const object = this.create(setting.type, setting, setting.id);
             distributor[setting.id] = object.input(0);
         });
 
@@ -176,7 +176,7 @@ export default class Soundstage extends Sequencer {
         return this.objects.find((object) => object.id === id);
     }
 
-    create(type, data, id = generateId(this.objects)) {
+    create(type, settings, id = generateId(this.objects)) {
         if (window.DEBUG && !types[type]) {
             throw new Error('Soundstage.create() cannot create object of unregistered type "' + type + '"');
         }
@@ -191,9 +191,15 @@ export default class Soundstage extends Sequencer {
 
         // Warning! Soundstage may be a Data proxy at this point, make sure we are
         // dealing with an unproxied stage
-        const stage  = Data.objectOf(this);
+        const data  = settings.node || settings.data;
+        const stage = Data.objectOf(this);
+
+        // Create object
         const object = new types[type](stage.transport, data);
-        define(object, { id: { value: id, enumerable: true } });
+        define(object, {
+            id:    { value: id, enumerable: true },
+            style: { value: settings.style, writable: true }
+        });
 
         // Push to Data proxy of objects so that changes are observed
         Data.of(this.objects).push(object);
