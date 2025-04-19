@@ -1,5 +1,5 @@
 
-import Stream           from 'fn/stream/stream.js';
+import { Consumer } from 'fn/stream/stream.js';
 import Events, { toName, toNameNumber, toTypeNumber, toRoute } from '../events.js';
 import { ADDRESSBITS, ADDRESSMASK, NAMEBITS, TYPEBITS, NAMETYPEMASK } from '../events/address.js';
 import { isAudioParam } from '../param.js';
@@ -37,7 +37,7 @@ function distribute(object, event) {
     console.warn('Object', `event dropped and I don't know why`, event);
 }
 
-export default class DistributorInput extends Stream {
+export default class DistributorInput extends Consumer {
     constructor(object) {
         super()
         this.object = object;
@@ -91,8 +91,3 @@ export default class DistributorInput extends Stream {
         }
     }
 }
-
-assign(DistributorInput.prototype, {
-    stop: Stream.prototype.stop,
-    done: Stream.prototype.done
-});

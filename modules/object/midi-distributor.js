@@ -1,7 +1,7 @@
 
 import noop              from 'fn/noop.js';
 import overload          from 'fn/overload.js';
-import Stream            from 'fn/stream/stream.js';
+import { Consumer }      from 'fn/stream/stream.js';
 import { createMessage } from 'midi/message.js';
 import Events            from '../events.js';
 
@@ -49,8 +49,9 @@ function distribute(port, channel, event) {
     port.send(message, time);
 }
 
-export default class MIDIDistributor {
+export default class MIDIDistributor extends Consumer {
     constructor(port, channel = 1, fn = noop) {
+        super();
         this.port    = port;
         this.channel = channel;
         this.fn      = fn;
@@ -89,6 +90,6 @@ export default class MIDIDistributor {
 
     stop() {
         this.midi && this.midi.removeEventListener('statechange', this);
-        return Stream.prototype.stop(this);
+        return super.stop(this);
     }
 }

@@ -72,23 +72,23 @@ function isPipedTo(stream1, stream2) {
     while (stream2[--n]) if (stream2[n] === stream1) return true;
 }
 
-function getPipesFromObject(pipes = [], object) {
-    const outputs = Soundstage.getOutputs(object);
-    return Object.entries(outputs).reduce((pipes, [outputKey, output]) => {
+function getPipesFromObject(pipes = [], inputObject) {
+    const inputs = Soundstage.getInputs(inputObject);
+    return Object.entries(inputs).reduce((pipes, [inputKey, input]) => {
         // Ignore non-numeric output indexes ('size', 'names', etc.)
-        if (!/^\d/.test(outputKey)) return pipes;
+        if (!/^\d/.test(inputKey)) return pipes;
         // Loop over outputs
-        let o = -1, input;
-        while (input = output[++o]) {
-            const inputObject = input.object;
-            let inputKey;
-            for (inputKey in Soundstage.getInputs(inputObject)) {
+        let i = 0, output;
+        while (output = input[--i]) {
+            const outputObject = output.object;
+            let outputKey;
+            for (outputKey in Soundstage.getOutputs(outputObject)) {
                 // Ignore non-numeric input indexes ('size', 'names', etc.)
-                if (!/^\d/.test(inputKey)) continue;
-                // Check if output stream is piped to this input stream
-                if (!isPipedTo(output, inputObject.input(inputKey))) continue;
+                if (!/^\d/.test(outputKey)) continue;
+                // Check if output stream is piped to this input stream... why are we checking this tho?
+                if (!isPipedTo(outputObject.output(outputKey), input)) continue;
                 // Push the numbers into the pipes array
-                pipes.push(object.id, parseInt(outputKey, 10), inputObject.id, parseInt(inputKey, 10));
+                pipes.push(outputObject.id, parseInt(outputKey, 10), inputObject.id, parseInt(inputKey, 10));
             }
         }
         return pipes;
@@ -196,8 +196,10 @@ export default class Soundstage extends Sequencer {
 
         // Create object
         const object = new types[type](stage.transport, data);
+        // Assign properties
         define(object, {
             id:    { value: id, enumerable: true },
+            // TEMP: Support sound.io object UI
             style: { value: settings.style, writable: true }
         });
 
@@ -261,29 +263,45 @@ export default class Soundstage extends Sequencer {
 
 define(Soundstage.prototype, {
     connections: { value: nothing, writable: false },
+    pipes:       { value: nothing, writable: false },
     parameters:  { value: nothing, writable: false },
     status: Object.getOwnPropertyDescriptor(Sequencer.prototype, 'status')
 });
 
-
-Soundstage.register(MidiInObject, MidiOutObject, AudioIn, AudioOut, TransformObject, MetronomeObject, Sequencer);
-
+Soundstage.register(
+    MidiInObject,
+    MidiOutObject,
+    AudioIn,
+    AudioOut,
+    TransformObject,
+    MetronomeObject,
+    Sequencer
+);
 
 Soundstage.register.apply(Soundstage,
     Object
     .entries(nodes.constructors)
     .map(([type, Node]) => {
         return define(
-            class extends AudioObject {
+            class NodeObject extends AudioObject {
                 constructor(transport, settings) {
                     super(transport);
                     // Give audio object a single node, make the property non-enumerable
-                    define(this, { node: { value: new Node(transport.context, settings) }});
-                    // Expose params
+                    define(this, {
+                        node: { value: new Node(transport.context, settings) }
+                    });
+
+                    // Expose params of node
                     let name;
-                    for (name in this.node) {
-                        if (isAudioParam(this.node[name])) this[name] = this.node[name];
+                    for (name in this.node) if (isAudioParam(this.node[name])) {
+                        this[name] = this.node[name];
                     }
+                }
+
+                destroy() {
+                    super.destroy();
+                    // Destroy the single node
+                    this.node.disconnect();
                 }
             },
             { name: { value: Node.name.replace(/(?:Source)?Node$/, '') }
