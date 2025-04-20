@@ -67,7 +67,8 @@ export default class StageObject {
 
             // It's an AudioParam
             if (value && isAudioParamLike(value)) {
-                signal = ParamSignal.from(name, this);
+                signal = new ParamSignal(this.transport.context, value);
+                signal.name = name;
             }
             // It's a property
             else {

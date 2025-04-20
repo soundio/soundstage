@@ -10,43 +10,43 @@ future after a call to `invalidateUntil(time)`.
 **/
 
 export default class ParamSignal extends TimedSignal {
-    constructor(name, node) {
-        if (!(node[name] instanceof AudioParam)) {
-            throw new Error(`Signal.param() node.${ name } is not an AudioParam`);
+    constructor(context, param) {
+        if (!(param instanceof AudioParam)) {
+            throw new Error(`Signal.param() param is not an AudioParam`);
         }
-
-        const context = node.context;
-        const param   = node[name];
 
         // Return signal already cached on param
         if (param.signal instanceof ParamSignal) return param.signal;
 
-        super('value', param);
+        super();
         this.context = context;
+        this.param   = param;
 
-        // Cache param on signal
+        // Cache signal on param
         param.signal = this;
     }
 
-    static from(name, node) {
-        //const context = node.context;
-        //const param   = node[name];
-        return new ParamSignal(name, node);
+    // Overrides TimedSignal.evaluate()
+    evaluate() {
+        return this.param.value;
     }
 
     // Overrides TimedSignal.getTime()
-
     getTime() {
         return this.context.currentTime;
     }
 
+    static from(name, node) {
+        return new ParamSignal(node.context, node[name]);
+    }
+
+    /*
     stop() {
         delete this.param.signal;
         return super.stop();
     }
 
     // Helper methods for scheduling observable automation
-
     setValueAtTime(value, time) {
         this.object.setValueAtTime(value, time);
         if (this.scheduledTime > time) return;
@@ -102,8 +102,7 @@ export default class ParamSignal extends TimedSignal {
         this.scheduledTime = time;
         this.invalidateUntil(time);
     }
+    */
 }
 
-Signal.param = (name, node) => {
-    return new ParamSignal(name, node);
-}
+Signal.param = ParamSignal.from;

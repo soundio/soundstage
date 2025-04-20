@@ -278,6 +278,46 @@ Soundstage.register(
     Sequencer
 );
 
+
+// TEMP FOR WAVESHAPER
+import id from 'fn/id.js';
+import * as curves from './nodes/waveshaper/curves.js';
+
+const waveshapes = assign({
+    // Linear
+    linear: id,
+    // tanh TODO needs to be scaled as tanh(1) is less than 1
+    tanh: Math.tanh,
+    // atan TODO needs to be scaled?
+    atan: (x) => Math.atan(x * 0.5 * Math.PI),
+    // poly3
+    poly3: (x) => 1.5 * x - 0.5 * Math.pow(x, 3),
+    // sin
+    sine: (x) => Math.sin(x * 0.5 * Math.PI)
+}, curves);
+
+function updateCurve(name, curve, parameters, normalised) {
+    // Get the waveshaper function
+    const fn = waveshapes[name];
+    if (!fn) throw new Error(`Saturator: "${ name }" is not a valid waveshape`);
+
+    // Apply normalisation if requested
+    const normal = normalised ?
+        calculateRMSNormal(fn) :
+        1 ;
+
+    // Generate the curve
+    let n = curve.length;
+    while (n--) {
+        const x = (2 * n / (curve.length - 1) - 1);
+        curve[n] = normal * fn(x, parameters);
+    }
+
+    return curve;
+}
+
+
+
 Soundstage.register.apply(Soundstage,
     Object
     .entries(nodes.constructors)
@@ -286,6 +326,7 @@ Soundstage.register.apply(Soundstage,
             class NodeObject extends AudioObject {
                 constructor(transport, settings) {
                     super(transport);
+
                     // Give audio object a single node, make the property non-enumerable
                     define(this, {
                         node: { value: new Node(transport.context, settings) }
@@ -296,6 +337,29 @@ Soundstage.register.apply(Soundstage,
                     for (name in this.node) if (isAudioParam(this.node[name])) {
                         this[name] = this.node[name];
                     }
+
+                    // Expose node-specific properties
+                    if (type === 'wave-shaper') {
+                        let curve = 'linear', normalise;
+
+                        define(this, {
+                            curve: {
+                                get: function() { return curve; },
+                                set: function(name) {
+                                    if (!waveshapes[name]) {
+                                        throw new Error(`Saturator: curve "${ name }" not a waveshape`);
+                                    }
+
+                                    // Update the curve and store the RMS value
+                                    this.node.curve = updateCurve(name, this.node.curve, this.coefficients, normalise);
+                                    curve = name;
+                                },
+                                enumerable: true
+                            }
+                        });
+
+                        this.node.curve = updateCurve('linear', new Float32Array(8192), this.coefficients, normalise);
+                    }
                 }
 
                 destroy() {
@@ -303,6 +367,10 @@ Soundstage.register.apply(Soundstage,
                     // Destroy the single node
                     this.node.disconnect();
                 }
+
+                static config = type === 'wave-shaper' ?
+                    { curve: { values: Object.keys(waveshapes), default: 'linear' }} :
+                    Node.config ;
             },
             { name: { value: Node.name.replace(/(?:Source)?Node$/, '') }
         })
