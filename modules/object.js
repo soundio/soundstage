@@ -21,6 +21,11 @@ export default class StageObject {
     #parameters;
 
     constructor(inputs = 1, outputs = 1) {
+        // Define type as non-mutable property
+        define(this, {
+            type: { value: toDashCase(this.constructor.name), enumerable: true }
+        });
+
         // Define inputs and outputs... TODO SORT OUT INPUTS / OUTPUTS API, its horrible
         this.#inputs = typeof inputs === 'number'  ? {
             size: inputs,
@@ -35,10 +40,6 @@ export default class StageObject {
         let n;
         for (n in this.#inputs)  if (/^\d/.test(n)) this.#inputs[n].object  = this;
         for (n in this.#outputs) if (/^\d/.test(n)) this.#outputs[n].object = this;
-    }
-
-    get type() {
-        return toDashCase(this.constructor.name);
     }
 
     /**
