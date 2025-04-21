@@ -8,7 +8,6 @@ import MeterNode   from '../nodes/meter.js';
 
 export default class Meter extends NodeObject {
     constructor(transport, settings = {}) {
-        // Create the Meter node and pass it to NodeObject constructor
         const node = new MeterNode(transport.context, settings);
         super(transport, node);
     }

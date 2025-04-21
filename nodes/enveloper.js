@@ -1,8 +1,8 @@
 import overload from '../../fn/modules/overload.js';
 import { rslashfilename } from '../modules/regexp.js';
 
-// Reuse the same WASM module as the compressor
-const wasmURL    = import.meta.url.replace(rslashfilename, '/compressor/pkg/compressor_bg.wasm');
+// Reuse the same WASM module as the dynamics processor
+const wasmURL    = import.meta.url.replace(rslashfilename, '/dynamics/pkg/dynamics_bg.wasm');
 const workletURL = import.meta.url.replace(rslashfilename, '/enveloper.worklet.js');
 
 let wasmBuffer;

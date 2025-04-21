@@ -67,7 +67,7 @@ class DynamicsProcessorProcessor extends AudioWorkletProcessor {
             
             this.wasmModule = wasmModule;
             
-            // Create the processor
+            // Create the processor - the class is still named DynamicsProcessor in the Rust code
             this.processor = wasm.DynamicsProcessor.new(sampleRate);
             
             // Set default parameters

@@ -1,9 +1,9 @@
 [package]
-name = "compressor"
+name = "dynamics"
 version = "0.1.0"
 authors = ["Soundio Team"]
 edition = "2024"
-description = "WASM-based audio compressor/expander with multiple algorithms"
+description = "WASM-based audio dynamics processor with compression, expansion, and gating"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

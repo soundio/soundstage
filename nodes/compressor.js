@@ -1,7 +1,7 @@
 import overload from '../../fn/modules/overload.js';
 import { rslashfilename } from '../modules/regexp.js';
 
-const wasmURL    = import.meta.url.replace(rslashfilename, '/compressor/pkg/compressor_bg.wasm');
+const wasmURL    = import.meta.url.replace(rslashfilename, '/dynamics/pkg/dynamics_bg.wasm');
 const workletURL = import.meta.url.replace(rslashfilename, '/compressor.worklet.js');
 
 let wasmBuffer;
