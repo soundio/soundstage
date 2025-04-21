@@ -1,53 +1,37 @@
-
 /**
-Polyphonic(context, settings)
+Polyphonic(transport, settings)
 
 ```
-const Polyphonic = stage.createNode('Polyphonic', {
+const polyphonic = new Polyphonic(transport, {
     voice: {
         // Inherited from Graph
         nodes: [...],
-
         connections: [...],
-
         commands: [...],
-
         properties: {...},
-
         output: 'id',
     }
 });
 ```
 
 A Polyphonic is a polyphonic controller for multiple voice nodes. The `voice`
-property of a Polyphonic describes an arbitrary node graph that is used to
-build and play a voice node each time `Polyphonic.start()` is called.
+property describes an arbitrary node graph that is used to build and play 
+a voice node each time `Polyphonic.start()` is called.
 
-<aside class="note">I'm lying to you. In reality new voices are not created on
-<i>every</i> call to start. For efficiency, they are pooled then reused when
-they are idle behind the scenes.</aside>
+For efficiency, voices are pooled and reused when they are idle.
 
 The voice settings `nodes`, `connections`, `properties` and `output` are
-inherited from Graph (see below).
-
-<!--The `.commands` array defines transforms that determine how `.start()` parameters
-map to property and param values of the voice. In the example above start
-parameter 1 (note frequency) is scaled then used to set the `frequency`
-AudioParam of the child node `'filter'`.-->
+inherited from Graph.
 **/
 
-import isDefined from 'fn/is-defined.js';
-import remove    from 'fn/remove.js';
-import Pool      from '../modules/pool.js';
-//import { assignSettingz__ } from '../modules/assign-settings.js';
-import Graph     from '../modules/graph.js';
-import Monophonic, { defaults as voiceDefaults } from './monophonic.js';
-import { log, group, groupEnd } from '../modules/log.js';
+import isDefined from '../../fn/modules/is-defined.js';
+import remove from '../../fn/modules/remove.js';
+import Pool from '../modules/pool.js';
+import GraphObject from '../modules/graph-object.js';
+import Monophonic, { defaults as voiceDefaults } from '../nodes/monophonic.js';
 
-
-const DEBUG  = window.DEBUG;
+const DEBUG = window.DEBUG;
 const assign = Object.assign;
-
 
 export const config = {
     tuning: 440
@@ -55,8 +39,8 @@ export const config = {
 
 const graph = {
     nodes: {
-        sink:       { type: 'sink' },
-        pitch:      { type: 'constant', data: { offset: 0 } },
+        sink: { type: 'sink' },
+        pitch: { type: 'constant', data: { offset: 0 } },
         modulation: { type: 'constant', data: { offset: 120 } },
         output: { type: 'gain', data: {
             gain: 1,
@@ -71,37 +55,39 @@ const graph = {
         // to be attached to voices. You can't automate them until they have
         // a route to context.destination. That's just the way things work, so
         // attach them to sink to get them nice and active.
-        'pitch',      'sink',
+        'pitch', 'sink',
         'modulation', 'sink'
     ],
 
     properties: {
-        pitch:      { path: 'pitch.offset',      enumerable: false },
+        pitch: { path: 'pitch.offset', enumerable: false },
         modulation: { path: 'modulation.offset', enumerable: false },
-        output:     'output.gain'
+        output: 'output.gain'
     }
 };
 
 // Declare some useful defaults
-var defaults = {
-    gain:       1,
-    pitch:      0,
+const defaults = {
+    gain: 1,
+    pitch: 0,
     modulation: 1,
-    output:     1,
-    //voice:      voiceDefaults
+    output: 1
 };
 
-export default class Polyphonic extends Graph {
+export default class Polyphonic extends GraphObject {
     #voice;
     #monophonics;
 
-    constructor(context, settings, transport) {
-        // Initialise graph
-        super(context, graph, transport);
+    constructor(transport, settings = {}) {
+        // Initialize GraphObject with the graph
+        // We want 1 event input (for MIDI events), 0 event outputs, and graph handles audio I/O
+        super(transport, graph, 1, 0);
 
         // Pool of monophonic sources
         this.#monophonics = new Pool(Monophonic, Monophonic.isIdle, (monophonic) => {
-            console.log('MONOPHONIC', monophonic);
+            if (DEBUG) {
+                console.log('MONOPHONIC', monophonic);
+            }
 
             this.get('pitch').connect(monophonic.pitch);
             this.get('modulation').connect(monophonic.modulation);
@@ -113,9 +99,13 @@ export default class Polyphonic extends Graph {
         this.get('modulation').start();
 
         // Default voice
-        this.voice = settings || voiceDefaults;
+        this.voice = settings.voice || voiceDefaults;
     }
 
+    /**
+    .voice
+    Get or set the voice definition for new polyphonic voices.
+    **/
     set voice(object) {
         // Empty the pool, we are about to change the voice definition
         let n = this.#monophonics.length;
@@ -142,14 +132,13 @@ export default class Polyphonic extends Graph {
     pattern:
 
     ```
-    Polyphonic
+    polyphonic
     .start(startTime, note, velocity)
     .stop(stopTime);
     ```
     **/
-
     start(time, note = 60, gain = 1) {
-        const monophonic = this.#monophonics.create(this.context, this.voice);
+        const monophonic = this.#monophonics.create(this.transport.context, this.voice, this.transport);
         monophonic.name = note;
         return monophonic.start(time, note, gain);
     }
@@ -163,9 +152,8 @@ export default class Polyphonic extends Graph {
 
     Returns this.
     **/
-
     stop(time, note, gain) {
-        time = time || this.context.currentTime;
+        time = time || this.transport.context.currentTime;
 
         // Stop all notes
         if (!isDefined(note)) {
@@ -190,7 +178,7 @@ export default class Polyphonic extends Graph {
             // If voice has been end-of-lifed remove it from pool
             if (monophonic.EOL) remove(this.#monophonics, monophonic);
         }
-        else {
+        else if (DEBUG) {
             console.log('No voice to stop?');
         }
 
@@ -209,10 +197,11 @@ export default class Polyphonic extends Graph {
     }
 
     static config = {
-        output: GainNode.config.gain
+        output: { min: 0, max: 2, default: 1, law: 'log-36db', display: 'db', unit: 'dB' }
     }
 }
 
+// Make properties enumerable
 Object.defineProperties(Polyphonic.prototype, {
     voice: { enumerable: true }
 });

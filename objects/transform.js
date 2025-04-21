@@ -2,7 +2,7 @@ import get         from 'fn/get.js';
 import overload    from 'fn/overload.js';
 import Stream      from 'fn/stream/stream.js';
 import Events      from '../modules/events.js';
-import StageObject from '../modules/object.js';
+import StageObject from '../modules/stage-object.js';
 
 
 const assign   = Object.assign;

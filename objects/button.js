@@ -1,7 +1,7 @@
 
 import toGain      from 'fn/to-gain.js';
 import Events      from '../modules/events.js';
-import StageObject from '../modules/object.js';
+import StageObject from '../modules/stage-object.js';
 
 
 const assign   = Object.assign;

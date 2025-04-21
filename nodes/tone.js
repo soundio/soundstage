@@ -118,8 +118,8 @@ export default class Tone extends Graph {
     }
 
     static config = {
-        type:    OscillatorNode.config.type,
-        detune:  OscillatorNode.config.detune,
+        type:    { values: ["sine", "square", "sawtooth", "triangle", "custom"], display: 'icon' },
+        detune:  { min: -100, max: 100, step: 1, unit: 'cent' },
         attack:  { min: 0, max: 30, law: 'log-72db', unit: 's' },
         release: { min: 0, max: 60, law: 'log-72db', unit: 's' }
     }

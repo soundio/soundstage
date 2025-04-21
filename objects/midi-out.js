@@ -3,7 +3,7 @@ import Data            from 'fn/data.js';
 import Signal          from 'fn/signal.js';
 import { MIDIOutputs } from 'midi/ports.js';
 import MIDIDistributor from '../modules/object/midi-distributor.js';
-import StageObject     from '../modules/object.js';
+import StageObject     from '../modules/stage-object.js';
 
 
 const assign   = Object.assign;

@@ -1,6 +1,6 @@
 
 import Stream      from 'fn/stream/stream.js';
-import StageObject from '../modules/object.js';
+import StageObject from '../modules/stage-object.js';
 
 const define = Object.defineProperties;
 

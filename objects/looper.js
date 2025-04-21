@@ -1,20 +1,21 @@
 
 /**
-Looper(context, settings, transport)
+Looper(transport, options)
 A recorder/looper that can record and play back audio loops.
 **/
 
 import mod            from 'fn/mod.js';
-import Graph          from '../modules/graph.js';
+import GraphObject    from '../modules/graph-object.js';
 import Playable       from '../modules/playable.js';
-import BufferRecorder from './buffer-recorder.js';
-import Loop           from './loop.js';
+import BufferRecorder from '../nodes/buffer-recorder.js';
+import Loop           from '../nodes/loop.js';
 
 import { getPerformanceLatency } from '../modules/context.js';
 
 
 const graph = {
     nodes: {
+        input:  { type: 'buffer-recorder' },
         rate:   { type: 'gain', data: { gain: 1 } },
         output: { type: 'gain', data: { gain: 1 } }
     },
@@ -97,15 +98,15 @@ function calculateAutoRate(centerRate, beats, duration) {
     return beats * multiplier;
 }
 
-function createLoop(context, looper, beats, recordTime, startTime) {
+function createLoop(context, recorder, beats, recordTime, startTime, fadeDuration) {
     // In this case we allow BufferRecorder to create a new AudioBuffer
-    const buffer = looper.getAudioBuffer(recordTime, startTime, looper.fadeDuration);
+    const buffer = recorder.getAudioBuffer(recordTime, startTime, fadeDuration);
 
     // Create loop
     return new Loop(context, { buffer, beats });
 }
 
-function createLoopSynced(context, looper, beats, duration, length, recordTime, startTime, recordBeat, startBeat) {
+function createLoopSynced(context, recorder, beats, duration, length, recordTime, startTime, recordBeat, startBeat, fadeDuration) {
     const rate = beats / duration;
 
     // The average rate over the record duration
@@ -130,8 +131,8 @@ function createLoopSynced(context, looper, beats, duration, length, recordTime, 
     const recordOffset = mod(loopDuration, -loopOffset);
 
     // In this case we pass in an AudioBuffer of the correct loop length
-    const buffer = looper.getAudioBuffer(recordTime, startTime, looper.fadeDuration, new AudioBuffer({
-        numberOfChannels: looper.channelCount,
+    const buffer = recorder.getAudioBuffer(recordTime, startTime, fadeDuration, new AudioBuffer({
+        numberOfChannels: recorder.channelCount,
         sampleRate:       context.sampleRate,
         length:           loopLength
     }), 0);
@@ -145,21 +146,16 @@ function createLoopSynced(context, looper, beats, duration, length, recordTime, 
 // LooperRecorder that each register as 'looper' in different dev contexts?
 
 
-export default class Looper extends BufferRecorder {
+export default class Looper extends GraphObject {
     #state = {};
-    #transport;
 
-    constructor(context, options, transport) {
-        // Init node
-        super(context);
+    constructor(transport, options) {
+        // Initialise object with node graph
+        super(transport, graph);
         // Mix in playable
-        new Playable(context, this);
-        // Set up the node graph
-        Graph.call(this, context, graph, options);
+        new Playable(transport.context, this);
 
         this.loops               = [];
-        this.#transport          = transport;
-        this.status              = 'idle';
         this.latencyCompensation = true;
         this.fadeDuration        = 0.006;
         this.beats               = options?.beats || 0;
@@ -181,7 +177,7 @@ export default class Looper extends BufferRecorder {
     get duration() {
         return this.loops[0] ?
             this.loops[0].duration :
-            this.beats / this.#transport.rateAtTime(this.context.currentTime);
+            this.beats / this.transport.rateAtTime(this.context.currentTime);
     }
 
     /**
@@ -192,7 +188,7 @@ export default class Looper extends BufferRecorder {
     /*get rate() {
         return this.loops[0] ?
             this.beats / this.loops[0].duration :
-            this.#transport.rateAtTime(this.context.currentTime);
+            this.transport.rateAtTime(this.context.currentTime);
     }*/
 
     /**
@@ -250,7 +246,8 @@ export default class Looper extends BufferRecorder {
     .record(time)
     **/
     record(time) {
-        this.status = "record";
+        // We don't need to set status as it comes from Playable
+        // this.status = "record";
 
         if (time) {
             this.recordTime = time;
@@ -270,9 +267,9 @@ export default class Looper extends BufferRecorder {
     **/
     start(time) {
         const context   = this.context;
-        const transport = this.#transport;
+        const transport = this.transport;
 
-console.log(`Looper.start() sync: ${ this.sync } Loop no: ${ this.loops.length } Transport status: ${ transport.status }`);
+// console.log(`Looper.start() sync: ${ this.sync } Loop no: ${ this.loops.length } Transport status: ${ transport.status }`);
 
         const startTime = time ? time : context.currentTime - (
             this.latencyCompensation ? this.latency : 0
@@ -292,16 +289,16 @@ console.log(`Looper.start() sync: ${ this.sync } Loop no: ${ this.loops.length }
                 const recordBeat = transport.beatAtTime(recordTime);
                 const startBeat  = transport.beatAtTime(startTime);
 
-                loop = createLoopSynced(this.context, this, beats, duration, length, recordTime, startTime, recordBeat, startBeat);
+                loop = createLoopSynced(this.context, this.get('input'), beats, duration, length, recordTime, startTime, recordBeat, startBeat, this.fadeDuration);
 
                 // Offset through duration of loop at which this loop is about to start
                 startOffset = loop.duration * mod(beats, startBeat) / beats;
             }
             else {
                 const duration = startTime - this.recordTime;
-                const beats    = this.beats || calculateAutoRate(this.#transport.tempo / 60, this.autoBeats, duration);
+                const beats    = this.beats || calculateAutoRate(this.transport.tempo / 60, this.autoBeats, duration);
 
-                loop = createLoop(this.context, this, beats, recordTime, startTime);
+                loop = createLoop(this.context, this.get('input'), beats, recordTime, startTime, this.fadeDuration);
 
                 // Set base values for the looper
                 this.startTime = startTime;
@@ -332,16 +329,16 @@ console.log(`Looper.start() sync: ${ this.sync } Loop no: ${ this.loops.length }
             }
         }
         else {
-console.log('Start all loops');
+// console.log('Start all loops');
 
             this.startTime = startTime;
 
             if (this.sync) {
                 if (transport.status === 'running') {
                     if (this.snap) {
-                        const startBeat = transport.getBeatAtTime(this.startTime);
+                        const startBeat = transport.beatAtTime(this.startTime);
                         const snapBeat  = Math.ceil(startBeat / this.snap) * this.snap;
-                        this.startTime = transport.getTimeAtBeat(snapBeat);
+                        this.startTime = transport.timeAtBeat(snapBeat);
                     }
                 }
                 else {
@@ -364,7 +361,7 @@ console.log('Start all loops');
     **/
     stop(time) {
         // I don't think there's a need to latency compensate stopTime
-        Playable.stop(this, time);
+        Playable.prototype.stop.call(this, time);
 
         // Stop all loops, keep track of last stopTime
         let n = -1;
@@ -399,9 +396,6 @@ console.log('Start all loops');
 }
 
 Object.defineProperties(Looper.prototype, {
-    get:        { value: Graph.prototype.get },
-    connect:    { value: Graph.prototype.connect },
-    disconnect: { value: Graph.prototype.disconnect },
     snap:       { enumerable: true },
     spread:     { enumerable: true },
     sync:       { enumerable: true }

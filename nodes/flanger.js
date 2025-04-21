@@ -126,17 +126,6 @@ export default class Flanger extends GainNode {
         this.get('delay').start(context.currentTime);
         this.get('mix').start(context.currentTime);
     }
-
-    static config = {
-        gain:          { min: 0,               max: 1,    law: 'log-24db', default: 1,     display: 'db', unit: 'dB' },
-        type:          OscillatorNode.config.type,
-        delay:         { min: 0,               max: 1,    law: 'log-24db', default: 0.012, unit: 's' },
-        frequency:     { min: 0.015625,        max: 128,  law: 'log',      default: 3,     unit: 'Hz' },
-        depth:         { min: 0,               max: 0.25, law: 'log-24db', default: 0.0015609922621756954, display: 'db', unit: 'dB' },
-        feedback:      { min: 0,               max: 1,    law: 'log-24db', default: 0.1,   display: 'db', unit: 'dB' },
-        wet:           { min: 0,               max: 1,    law: 'log-24db', default: 1,     display: 'db', unit: 'dB' },
-        dry:           { min: 0,               max: 1,    law: 'log-24db', default: 1,     display: 'db', unit: 'dB' }
-    }
 }
 
 assign(Flanger.prototype, Graph.prototype);

@@ -25,18 +25,16 @@ class CompiledWorker {
     #requests = {};
 
     constructor(code) {
-        code += `;
-            self.onmessage = async (e) => {
-                try {
-                    // Support both sync and async process functions
-                    const { data, transferables } = await process(e.data.data);
-                    self.postMessage({ id: e.data.id, data }, transferables);
-                }
-                catch (error) {
-                    self.postMessage({ id: e.data.id, error: error.message });
-                }
-            };
-        `;
+        code += `; self.onmessage = async (e) => {
+            try {
+                // Support both sync and async process functions
+                const { data, transferables } = await process(e.data.data);
+                self.postMessage({ id: e.data.id, data }, transferables);
+            }
+            catch (error) {
+                self.postMessage({ id: e.data.id, error: error.message });
+            }
+        };`;
 
         const blob = new Blob([code], { type: 'application/javascript' });
         this.#url = URL.createObjectURL(blob);

@@ -6,7 +6,7 @@ import Stream      from 'fn/stream/stream.js';
 import Distributor from '../modules/object/distributor.js';
 import Playable    from '../modules/playable.js';
 import Sequence    from '../modules/sequence.js';
-import StageObject from '../modules/object.js';
+import StageObject from '../modules/stage-object.js';
 import Events      from '../modules/events.js';
 import { isAudioParam } from '../modules/param.js';
 

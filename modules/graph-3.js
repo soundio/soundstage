@@ -49,6 +49,7 @@ output by the `.connect()` and `.disconnect()` methods.
 import id                      from 'fn/id.js';
 import { connect, disconnect } from './connect.js';
 import { create }              from './nodes.js';
+import { isAudioParam }        from './param.js';
 import { log }                 from './log.js';
 
 

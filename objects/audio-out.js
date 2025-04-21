@@ -1,9 +1,9 @@
 
-import StageObject from '../modules/object.js';
+import NodeObject from '../modules/node-object.js';
 
-export default class AudioOut extends StageObject {
+export default class AudioOut extends NodeObject {
     constructor(transport, setting = {}) {
-        super(0, 0);
-        this.node = transport.context.destination;
+        const node = transport.context.destination;
+        super(transport, node);
     }
 }

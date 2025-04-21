@@ -1,7 +1,7 @@
 
 import Stream      from 'fn/stream.js';
 import Playable    from '../modules/playable.js';
-import StageObject from '../modules/object.js';
+import StageObject from '../modules/stage-object.js';
 import { log }     from '../modules/log.js';
 
 const define = Object.defineProperties;
