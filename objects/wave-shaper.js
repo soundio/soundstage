@@ -42,35 +42,34 @@ function updateCurve(shaper, curveName, resolution = 8192, coefficients = {}) {
 }
 
 export default class WaveShaper extends NodeObject {
-    #curve;
+    #shape;
     #resolution;
     #coefficients;
 
     constructor(transport, settings = {}) {
         // Pass the node to NodeObject constructor
-        super(transport, new WaveShaperNode(transport.context, {
-            oversample: settings.oversample || 'none'
-        }));
+        super(transport, new WaveShaperNode(transport.context, settings));
 
-        this.#curve = settings.curve || 'linear';
-        this.#resolution = settings.resolution || 8192;
+        // Update from settings
+        this.#shape        = settings.shape        || WaveShaper.config.shape.default;
+        this.#resolution   = settings.resolution   || WaveShaper.config.resolution.default;
         this.#coefficients = settings.coefficients || {};
 
         // Initialize the waveshaper curve
-        updateCurve(this.node, this.#curve, this.#resolution, this.#coefficients);
+        updateCurve(this.node, this.#shape, this.#resolution, this.#coefficients);
     }
 
-    get curve() {
-        return this.#curve;
+    get shape() {
+        return this.#shape;
     }
 
-    set curve(name) {
+    set shape(name) {
         if (!waveshapes[name]) {
-            throw new Error(`WaveShaper: curve "${name}" not a valid waveshape`);
+            throw new Error(`WaveShaper shape "${name}" not a valid waveshape`);
         }
 
-        this.#curve = name;
-        updateCurve(this.node, this.#curve, this.#resolution, this.#coefficients);
+        this.#shape = name;
+        updateCurve(this.node, this.#shape, this.#resolution, this.#coefficients);
     }
 
     get resolution() {
@@ -83,7 +82,7 @@ export default class WaveShaper extends NodeObject {
         }
 
         this.#resolution = value;
-        updateCurve(this.node, this.#curve, this.#resolution, this.#coefficients);
+        updateCurve(this.node, this.#shape, this.#resolution, this.#coefficients);
     }
 
     get coefficients() {
@@ -92,7 +91,7 @@ export default class WaveShaper extends NodeObject {
 
     set coefficients(obj) {
         this.#coefficients = obj || {};
-        updateCurve(this.node, this.#curve, this.#resolution, this.#coefficients);
+        updateCurve(this.node, this.#shape, this.#resolution, this.#coefficients);
     }
 
     get oversample() {
@@ -104,26 +103,15 @@ export default class WaveShaper extends NodeObject {
     }
 
     static config = {
-        curve: {
-            values: Object.keys(waveshapes),
-            default: 'linear'
-        },
-        resolution: {
-            type: 'number',
-            default: 8192,
-            min: 2,
-            max: 65536
-        },
-        oversample: {
-            values: ['none', '2x', '4x'],
-            default: 'none'
-        }
+        shape:      { values: Object.keys(waveshapes), default: 'linear' },
+        resolution: { type: 'number', default: 4096, min: 2, max: 65536 },
+        oversample: { values: ['none', '2x', '4x'], default: 'none' }
     };
 }
 
 Object.defineProperties(WaveShaper.prototype, {
-    curve: { enumerable: true },
-    resolution: { enumerable: true },
+    shape:        { enumerable: true },
+    resolution:   { enumerable: true },
     coefficients: { enumerable: true },
-    oversample: { enumerable: true }
+    oversample:   { enumerable: true }
 });

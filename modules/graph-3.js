@@ -1,6 +1,6 @@
 
 /**
-Graph(context, settings)
+Graph(context, graph, settings)
 
 `Graph` constructs an AudioNode-like object from a graph of child nodes.
 It may be used as a constructor or as a mixin. In Soundstage it is used to
@@ -94,7 +94,7 @@ function disconnectNode(node) {
 export default class Graph extends id {
     #nodes;
 
-    constructor(context, graph, object) {
+    constructor(context, graph, settings, object) {
         /*if (window.DEBUG && !(graph && graph.nodes)) {
             throw new Error('Graph() called with no graph definition object');
         }*/
@@ -122,6 +122,16 @@ export default class Graph extends id {
             const connections = graph.connections;
             let n = -1;
             while (++n < connections.length) createConnection(this.#nodes, connections[n], connections[++n]);
+        }
+
+        // Update param and property values from settings
+        for (name in settings) {
+            if (isAudioParam(this[name])) {
+                this[name].value = settings[name];
+            }
+            else {
+                this[name] = settings[name];
+            }
         }
     }
 

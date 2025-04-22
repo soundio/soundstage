@@ -115,11 +115,11 @@ const graph = {
 };
 
 export default class Flanger extends GainNode {
-    constructor(context, options, transport) {
-        super(context, options);
+    constructor(context, settings) {
+        super(context, settings);
 
         // Set up the graph
-        Graph.call(this, context, graph, transport);
+        Graph.call(this, context, graph, settings);
 
         this.get('osc').start(context.currentTime);
         this.get('depth').start(context.currentTime);

@@ -20,6 +20,6 @@ export default class AudioIn extends NodeObject {
     constructor(transport, setting = {}) {
         // Create the node and pass it to NodeObject
         const node = createInputSplitter(transport.context);
-        super(transport, node);
+        super(transport, node, 0, 0);
     }
 }

@@ -9,9 +9,9 @@ import { isAudioParam } from './param.js';
 const define = Object.defineProperties;
 
 export default class NodeObject extends AudioObject {
-    constructor(transport, node) {
+    constructor(transport, node, inputs = 1, outputs = 0) {
         // AudioObject constructor with inputs and outputs
-        super(transport, 1, 0);
+        super(transport, inputs, outputs);
 
         // Attach node
         define(this, {
@@ -21,6 +21,7 @@ export default class NodeObject extends AudioObject {
         // Expose params of node
         let name;
         for (name in this.node) {
+            // Property is an AudioParam
             if (isAudioParam(this.node[name])) {
                 this[name] = this.node[name];
             }

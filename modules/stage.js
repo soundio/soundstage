@@ -153,13 +153,10 @@ export default class Soundstage extends Sequencer {
             throw new Error('Soundstage.create() only 1 audio-out object allowed');
         }
 
-        // Warning! Soundstage may be a Data proxy at this point, make sure we are
-        // dealing with an unproxied stage
-        const data  = settings.node || settings.data;
         const stage = Data.objectOf(this);
 
         // Create object
-        const object = new types[type](stage.transport, data);
+        const object = new types[type](stage.transport, settings);
         // Assign properties
         define(object, {
             id:    { value: id, enumerable: true },
