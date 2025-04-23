@@ -17,12 +17,13 @@ function assignSettings(object, settings) {
     let name;
     for (name in settings) {
         if (name === 'id' || name === 'type' || name === 'style') continue;
+        if (name === 'data') throw new Error('ASSIGNING DATA');
         try {
-            // If this[name] is already an object recursively jump in and apply
+            // If object[name] is already an object recursively jump in and apply
             // settings to it
-            if (typeof this[name] === 'object') assignSettings(this[name], settings[name]);
+            if (typeof object[name] === 'object') assignSettings(object[name], settings[name]);
             // Otherwise just assign the property
-            else this[name] = settings[name];
+            else object[name] = settings[name];
         }
         catch(e) {
             console.warn('StageObject setting "' + name + '" not assigned');
@@ -152,6 +153,3 @@ export default class StageObject {
     }
 }
 
-define(StageObject.prototype, {
-    type: { enumerable: true }
-});

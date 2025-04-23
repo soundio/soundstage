@@ -15,6 +15,7 @@ import { TYPEBITS }         from '../modules/events/address.js';
 import Events               from '../modules/events.js';
 
 const assign = Object.assign;
+const define = Object.defineProperties;
 
 const createEvent = overload((time, message) => (message[0] >> 4), {
     // Event time, address, value1, value2
@@ -71,31 +72,32 @@ MIDIIn()
 **/
 
 export default class MIDIIn extends StageObject {
+    #ports = {};
+    #port;
+    #portId;
+
     constructor(transport, settings = {}) {
-        const ports   = {};
         const inputs  = { size: 0 };
         const outputs = { size: 16, names };
 
-        super(transport, inputs, outputs);
-
-        this.context = transport.context;
-        this.data    = Data.of(settings);
-
-        Signal.tick(() => {
-            const id = this.data.port;
-            this.port = ports[id];
-            const outputs = StageObject.getOutputs(this);
-            updateOutputs(outputs, this.port);
-        });
+        super(transport, inputs, outputs, settings);
 
         MIDIInputs.each((port) => {
-            ports[port.id] = port;
-            if (this.data.id === port.id) {
-                this.port = port;
-                const outputs = StageObject.getOutputs(this);
-                updateOutputs(outputs, this.port);
-            }
+            this.#ports[port.id] = port;
+            if (this.#portId === port.id) this.port = port.id;
         });
+    }
+
+    get port() {
+        return this.#portId;
+    }
+
+    set port(id) {
+        this.#portId = id;
+        this.#port = this.#ports[id];
+        if (!this.#port) return;
+        const outputs = StageObject.getOutputs(this);
+        updateOutputs(outputs, this.#port);
     }
 
     output(n = 0) {
@@ -104,10 +106,14 @@ export default class MIDIIn extends StageObject {
             throw new Error('StageObject attempt to get .output(' + n + '), object has ' + this.outputs.size + ' outputs');
         }
 
-        const context = this.context;
+        const context = this.transport.context;
         return outputs[n] || (outputs[n] = assign(
             MIDIEvents({ channel: n + 1 }).map((e) => toEvent(context, e)),
             { object: this }
         ));
     }
 };
+
+define(MIDIIn.prototype, {
+    port: { enumerable: true }
+});

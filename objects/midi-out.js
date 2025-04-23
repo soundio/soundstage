@@ -32,29 +32,33 @@ function updateInputs(inputs, port) {
 }
 
 export default class MIDIOut extends StageObject {
+    #ports = {};
+    #port;
+    #portId;
+
     constructor(transport, settings = {}) {
         const ports   = {};
         const inputs  = { size: 16, names };
         const outputs = { size: 0 };
 
-        super(transport, inputs, outputs);
-        this.data = Data.of(settings);
-
-        Signal.tick(() => {
-            const id = this.data.port;
-            this.port = ports[id];
-            const inputs = StageObject.getInputs(this);
-            updateInputs(inputs, this.port);
-        });
+        super(transport, inputs, outputs, settings);
 
         MIDIOutputs.each((port) => {
-            ports[port.id] = port;
-            if (this.data.id === port.id) {
-                this.port = port;
-                const inputs = StageObject.getInputs(this);
-                updateInputs(inputs, this.port);
-            }
+            this.#ports[port.id] = port;
+            if (this.#portId === port.id) this.port = port.id;
         });
+    }
+
+    get port() {
+        return this.#portId;
+    }
+
+    set port(id) {
+        this.#portId = id;
+        this.#port = this.#ports[id];
+        if (!this.#port) return;
+        const inputs = StageObject.getInputs(this);
+        updateInputs(inputs, this.#port);
     }
 
     input(n = 0) {
