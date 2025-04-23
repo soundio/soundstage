@@ -53,7 +53,7 @@ const graph = {
 export default class EQ extends GraphObject {
     constructor(transport, settings = {}) {
         // Initialize GraphObject with the graph
-        super(transport, graph);
+        super(transport, graph, 1, 0, settings);
 
         // Apply any initial settings (these will be automatically handled by graph-object.js)
     }

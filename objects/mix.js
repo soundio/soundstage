@@ -38,7 +38,7 @@ export default class Mix extends GraphObject {
 
     constructor(transport, settings = {}) {
         // Initialize GraphObject with the graph
-        super(transport, graph);
+        super(transport, graph, 1, 0, settings);
 
         // Set initial phase/mute state if specified in settings
         if (settings.phase) this.phase = settings.phase;

@@ -15,7 +15,7 @@ const polyphonic = new Polyphonic(transport, {
 ```
 
 A Polyphonic is a polyphonic controller for multiple voice nodes. The `voice`
-property describes an arbitrary node graph that is used to build and play 
+property describes an arbitrary node graph that is used to build and play
 a voice node each time `Polyphonic.start()` is called.
 
 For efficiency, voices are pooled and reused when they are idle.
@@ -81,7 +81,7 @@ export default class Polyphonic extends GraphObject {
     constructor(transport, settings = {}) {
         // Initialize GraphObject with the graph
         // We want 1 event input (for MIDI events), 0 event outputs, and graph handles audio I/O
-        super(transport, graph, 1, 0);
+        super(transport, graph, 1, 0, settings);
 
         // Pool of monophonic sources
         this.#monophonics = new Pool(Monophonic, Monophonic.isIdle, (monophonic) => {

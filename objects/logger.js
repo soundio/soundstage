@@ -13,7 +13,7 @@ A dummy object that logs method calls and event inputs.
 
 export default class Logger extends StageObject {
     constructor(transport, settings) {
-        super({
+        super(transport, {
             size: 1,
             0: Stream.each((event) => log('Logger', `#${ this.id } input`, event.toString()))
         }, 0);

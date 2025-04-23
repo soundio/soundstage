@@ -51,7 +51,7 @@ export default class RhythmSynth extends StageObject {
             size: 1
         };
         const outputs = { size: 1 };
-        super(inputs, outputs);
+        super(transport, inputs, outputs);
 
         this.duration = settings.duration || 1;
         this.events   = settings.events;

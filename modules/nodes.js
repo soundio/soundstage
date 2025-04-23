@@ -27,7 +27,9 @@ export const constructors = {
     // https://developer.mozilla.org/en-US/docs/Web/API/MediaElementAudioSourceNode/MediaElementAudioSourceNode
     'media-element-audio': MediaElementAudioSourceNode,
     // https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamAudioSourceNode/MediaStreamAudioSourceNode
-    'media-stream-audio': MediaStreamAudioSourceNode,
+    'media-stream-source': MediaStreamAudioSourceNode,
+    // https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamAudioDestinationNode/MediaStreamAudioDestinationNode
+    'media-stream-destination': MediaStreamAudioDestinationNode,
     // https://developer.mozilla.org/en-US/docs/Web/API/ChannelMergerNode
     'channel-merger': ChannelMergerNode,
     // https://developer.mozilla.org/en-US/docs/Web/API/OscillatorNode/OscillatorNode

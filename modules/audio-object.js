@@ -15,10 +15,7 @@ export default class AudioObject extends StageObject {
 
     constructor(transport, inputs = 1, outputs = 0) {
         // Events inputs and outputs
-        super(inputs, outputs);
-
-        // Attach transport
-        define(this, { transport: { value: transport } });
+        super(transport, inputs, outputs);
     }
 
     /**

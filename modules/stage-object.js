@@ -13,6 +13,25 @@ const assign = Object.assign;
 const define = Object.defineProperties;
 
 
+function assignSettings(object, settings) {
+    let name;
+    for (name in settings) {
+        if (name === 'id' || name === 'type' || name === 'style') continue;
+        try {
+            // If this[name] is already an object recursively jump in and apply
+            // settings to it
+            if (typeof this[name] === 'object') assignSettings(this[name], settings[name]);
+            // Otherwise just assign the property
+            else this[name] = settings[name];
+        }
+        catch(e) {
+            console.warn('StageObject setting "' + name + '" not assigned');
+        }
+    }
+    return object;
+}
+
+
 /** StageObject() **/
 
 export default class StageObject {
@@ -20,10 +39,15 @@ export default class StageObject {
     #outputs;
     #parameters;
 
-    constructor(inputs = 1, outputs = 1) {
-        // Define type as non-mutable property
+    constructor(transport, inputs = 1, outputs = 1, settings) {
         define(this, {
-            type: { value: toDashCase(this.constructor.name), enumerable: true }
+            // Define type as an immutable property
+            type: { value: toDashCase(this.constructor.name), enumerable: true },
+            // An odd one - to support data observer proxies returning proxies
+            // from properties, the property must be writable or configurable.
+            // TODO: Really this is a problem that should be addressed in
+            // fn/data.js, but there is not a good answer to this...
+            transport: { value: transport, configurable: true }
         });
 
         // Define inputs and outputs... TODO SORT OUT INPUTS / OUTPUTS API, its horrible
@@ -40,6 +64,9 @@ export default class StageObject {
         let n;
         for (n in this.#inputs)  if (/^\d/.test(n)) this.#inputs[n].object  = this;
         for (n in this.#outputs) if (/^\d/.test(n)) this.#outputs[n].object = this;
+
+        // Apply settings
+        assignSettings(this, settings);
     }
 
     /**

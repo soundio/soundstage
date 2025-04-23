@@ -60,7 +60,7 @@ import SaturatorObject from './objects/saturator.js';
 import StereoPanner    from './objects/stereo-panner.js';
 import Sequencer       from './objects/sequencer.js';
 import TapeSaturatorObject from './objects/tape-saturator.js';
-import TransformObject from './objects/transform.js';
+import Transformer     from './objects/transformer.js';
 import WaveShaper      from './objects/wave-shaper.js';
 
 const assign = Object.assign;
@@ -91,6 +91,6 @@ Soundstage.register(
     StereoPanner,
     Sequencer,
     TapeSaturatorObject,
-    TransformObject,
+    Transformer,
     WaveShaper
 );

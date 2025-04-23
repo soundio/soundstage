@@ -19,7 +19,7 @@ export default class Button extends StageObject {
         const outputs = { size: 1 };
 
         // extends Object
-        super(inputs, outputs);
+        super(transport, inputs, outputs);
         this.context = transport.context;
         this.data    = assign(settings, defaults);
     }

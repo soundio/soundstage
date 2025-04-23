@@ -108,7 +108,7 @@ const graph = {
 export default class ParallelEQ extends GraphObject {
     constructor(transport, settings = {}) {
         // Initialize GraphObject with the graph
-        super(transport, graph);
+        super(transport, graph, 1, 0, settings);
 
         // Apply any initial settings
         // Note: GraphObject's constructor automatically applies settings

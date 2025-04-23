@@ -7,9 +7,9 @@ import Graph       from './graph-3.js';
 import AudioObject from './audio-object.js';
 
 export default class GraphObject extends AudioObject {
-    constructor(transport, graph, settings, inputs = 1, outputs = 0) {
+    constructor(transport, graph, inputs = 1, outputs = 0, settings) {
         // Call base constructor
-        super(transport, inputs, outputs);
+        super(transport, inputs, outputs, settings);
 
         // Mix in audio Graph
         new Graph(transport.context, graph, settings, this);

@@ -1,7 +1,7 @@
 
 export default class AudioRegion extends StageObject {
-    constructor() {
-
+    constructor(transport) {
+        super(transport);
     }
 
     start(time, rate) {

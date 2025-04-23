@@ -80,7 +80,7 @@ export default class Harmoniser extends StageObject {
         const outputs = { size: 8 };
 
         // extends StageObject
-        super(inputs, outputs);
+        super(transport, inputs, outputs);
         //this.data = data;
     }
 }

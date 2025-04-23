@@ -66,7 +66,11 @@ function transformEvent(setting, event, value) {
 
 /* Transformer */
 
-export default class Transform extends StageObject {
+export default class Transformer extends StageObject {
+    filter    = {};
+    //behaviour = {};
+    transform = {};
+
     constructor(transport, settings = {}) {
         let t1 = 0;
         let v1 = 0;
@@ -99,7 +103,6 @@ export default class Transform extends StageObject {
         const outputs = { size: 2 };
 
         // extends StageObject
-        super(inputs, outputs);
-        assign(this, defaults, settings);
+        super(transport, inputs, outputs, settings);
     }
 }

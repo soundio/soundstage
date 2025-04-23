@@ -19,18 +19,11 @@ export default class Sequencer extends StageObject {
     #sequences = {};
 
     constructor(transport, settings = {}) {
-        super(1, 1024);
+        super(transport, 1, 1024);
 
         // Mix in playable
         new Playable(transport.context, this);
 
-        define(this, {
-            // An odd one - to support data observer proxies returning proxies
-            // on 'get', a property must be writable or configurable. TODO: Really
-            // this is a problem that should be addressed in fn/data.js, but
-            // there is not a good answer to this
-            transport: { value: transport, writable: true }
-        });
 
         this.events = settings.events ?
             // Is it an Events object or Float32Array already?

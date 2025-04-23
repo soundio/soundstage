@@ -76,7 +76,7 @@ export default class MIDIIn extends StageObject {
         const inputs  = { size: 0 };
         const outputs = { size: 16, names };
 
-        super(inputs, outputs);
+        super(transport, inputs, outputs);
 
         this.context = transport.context;
         this.data    = Data.of(settings);

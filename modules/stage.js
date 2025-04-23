@@ -140,7 +140,7 @@ export default class Soundstage extends Sequencer {
         return this.objects.find((object) => object.id === id);
     }
 
-    create(type, settings, id = generateId(this.objects)) {
+    create(type, settings = {}, id = generateId(this.objects)) {
         if (window.DEBUG && !types[type]) {
             throw new Error('Soundstage.create() cannot create object of unregistered type "' + type + '"');
         }
@@ -161,7 +161,7 @@ export default class Soundstage extends Sequencer {
         define(object, {
             id:    { value: id, enumerable: true },
             // TEMP: Support sound.io object UI
-            style: { value: settings.style, writable: true }
+            style: { value: settings.style || {}, writable: true }
         });
 
         // Push to Data proxy of objects so that changes are observed

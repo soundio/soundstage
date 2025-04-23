@@ -37,7 +37,7 @@ export default class MIDIOut extends StageObject {
         const inputs  = { size: 16, names };
         const outputs = { size: 0 };
 
-        super(inputs, outputs);
+        super(transport, inputs, outputs);
         this.data = Data.of(settings);
 
         Signal.tick(() => {
