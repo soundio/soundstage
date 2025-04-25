@@ -25,9 +25,11 @@ function generateId(objects) {
     return id;
 }
 
-function remove(objects, node) {
-    const i = objects.indexOf(node);
-    objects.splice(i, 1);
+function remove(objects, object) {
+    const i = objects.indexOf(object);
+    if (i === -1) return objects;
+    // Make operation observable
+    Data.of(objects).splice(i, 1);
     return objects;
 }
 
@@ -157,16 +159,16 @@ export default class Soundstage extends Sequencer {
 
         // Create object
         const object = new types[type](stage.transport, settings);
-        // Assign properties
+
+        // Assign stage properties
         define(object, {
             id:    { value: id, enumerable: true },
-            // TEMP: Support sound.io object UI
+            // TEMP: Support sound.io UI which attaches style to objects
             style: { value: settings.style || {}, writable: true }
         });
 
-        // Push to Data proxy of objects so that changes are observed
-        Data.of(this.objects).push(object);
-        //Data.of(this.objects).push(object.done(() => remove(this.objects, object)));
+        // Operate on Data proxy of objects so that changes are observed
+        Data.of(stage.objects).push(object.done(() => remove(stage.objects, object)));
 
         log('Soundstage', 'create', type);
         return object;

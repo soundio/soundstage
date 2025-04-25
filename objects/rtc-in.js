@@ -2,190 +2,151 @@ import Signal      from 'fn/signal.js';
 import Stream      from 'fn/stream/stream.js';
 import StageObject from '../modules/stage-object.js';
 import Events      from '../modules/events.js';
+import signaling   from '../modules/webrtc-signaling.js';
 
 const assign = Object.assign;
 const define = Object.defineProperties;
 
 /**
 RTCIn()
-Accepts WebRTC peer connection data and converts it to Soundstage events.
+WebRTC receiver for Soundstage events
 **/
 
-// Same convention as MIDIIn
-const names = Array.from({ length: 16 }, (n, i) => 'Channel ' + (i + 1));
-
-function updateOutputs(outputs, connection) {
-    let i;
-    for (i in outputs) {
-        if (!/^\d/.test(i)) continue;
-        outputs[i].connection = connection;
-    }
-}
-
 export default class RTCIn extends StageObject {
-    #connections = {};
-    #connection;
-    #connectionId;
     #peerConnections = {};
-    #dataChannels = {};
-
+    #pendingCandidates = {};
+    #activeConnection = null;
+    
     constructor(transport, settings = {}) {
         const inputs  = { size: 0 };
-        const outputs = { size: 16, names };
+        const outputs = { size: 1 };
 
         super(transport, inputs, outputs, settings);
-    }
-
-    // Create or get a peer connection
-    _getPeerConnection(id) {
-        if (this.#peerConnections[id]) {
-            return this.#peerConnections[id];
-        }
-
-        // Create new RTCPeerConnection
-        const peerConnection = new RTCPeerConnection({
-            iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+        
+        // Join signaling room
+        this.roomId = settings.roomId || 'soundstage-default';
+        signaling.joinRoom(this.roomId);
+        
+        // Set up listeners for signaling events
+        signaling.onOffer((peerId, offer) => {
+            this._handleOffer(peerId, offer);
         });
         
-        peerConnection.oniceconnectionstatechange = () => {
-            console.log(`RTCIn: ICE connection state changed to ${peerConnection.iceConnectionState}`);
-        };
-        
-        peerConnection.onconnectionstatechange = () => {
-            console.log(`RTCIn: Connection state changed to ${peerConnection.connectionState}`);
-            
-            if (peerConnection.connectionState === 'connected') {
-                this.#connection = peerConnection;
-                this.#connectionId = id;
-                
-                const outputs = StageObject.getOutputs(this);
-                updateOutputs(outputs, peerConnection);
-            }
-        };
-        
-        this.#peerConnections[id] = peerConnection;
-        return peerConnection;
+        signaling.onCandidate((peerId, candidate) => {
+            this._handleCandidate(peerId, candidate);
+        });
     }
-
-    // Create a data channel for receiving events
-    createDataChannel(id, channelId = 'soundstage-events') {
-        const peerConnection = this._getPeerConnection(id);
+    
+    // Handle incoming offers
+    async _handleOffer(peerId, offer) {
+        try {
+            const answer = await this._createAnswer(peerId, offer);
+            if (answer) {
+                signaling.sendAnswer(peerId, answer);
+            }
+        } catch (error) {
+            console.error('Error handling offer:', error);
+        }
+    }
+    
+    // Handle ICE candidates
+    async _handleCandidate(peerId, candidate) {
+        const peerConnection = this.#peerConnections[peerId];
         
-        // Set up to handle incoming data channel
-        peerConnection.ondatachannel = (event) => {
-            const channel = event.channel;
-            this.#dataChannels[channel.label] = channel;
-            
-            channel.onopen = () => {
-                console.log(`RTCIn: Data channel '${channel.label}' opened`);
-            };
-            
-            channel.onclose = () => {
-                console.log(`RTCIn: Data channel '${channel.label}' closed`);
-            };
-            
-            // Handle incoming messages - directly receive Soundstage event arrays
-            channel.onmessage = (e) => {
-                try {
-                    // Parse the incoming event array
-                    const data = JSON.parse(e.data);
-                    
-                    // Create a Soundstage event
-                    const event = Events.event(
-                        data[0],  // time
-                        data[1],  // address
-                        data[2],  // value1
-                        data[3]   // value2
-                    );
-                    
-                    // Pass the event to all outputs
-                    const outputs = StageObject.getOutputs(this);
-                    let n = -1;
-                    while (outputs[++n]) {
-                        outputs[n].push(event);
+        if (peerConnection) {
+            try {
+                if (peerConnection.remoteDescription) {
+                    await peerConnection.addIceCandidate(candidate);
+                } else {
+                    // Queue candidate if remote description isn't set yet
+                    if (!this.#pendingCandidates[peerId]) {
+                        this.#pendingCandidates[peerId] = [];
                     }
-                } catch (error) {
-                    console.error('RTCIn: Error processing message', error);
+                    this.#pendingCandidates[peerId].push(candidate);
+                }
+            } catch (error) {
+                console.error('Error adding ICE candidate:', error);
+            }
+        }
+    }
+    
+    // Create an answer for an offer
+    async _createAnswer(peerId, offer) {
+        // Create peer connection if it doesn't exist
+        if (!this.#peerConnections[peerId]) {
+            const peerConnection = new RTCPeerConnection({
+                iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+            });
+            
+            // Handle ICE candidates
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    signaling.sendCandidate(peerId, event.candidate);
                 }
             };
-        };
-        
-        return peerConnection;
-    }
-
-    // Method to start listening (creates an offer)
-    async listen(id, channelId = 'soundstage-events') {
-        const peerConnection = this.createDataChannel(id, channelId);
-        
-        try {
-            const offer = await peerConnection.createOffer();
-            await peerConnection.setLocalDescription(offer);
-            return offer;
-        } catch (error) {
-            console.error('RTCIn: Error creating offer', error);
-            throw error;
+            
+            // Set up data channel handler
+            peerConnection.ondatachannel = (event) => {
+                const channel = event.channel;
+                
+                channel.onopen = () => {
+                    this.#activeConnection = peerConnection;
+                };
+                
+                channel.onmessage = (e) => {
+                    try {
+                        const data = JSON.parse(e.data);
+                        // Create a Soundstage event
+                        const event = Events.event(
+                            data[0],  // time
+                            data[1],  // address
+                            data[2],  // value1
+                            data[3]   // value2
+                        );
+                        
+                        // Pass to outputs
+                        const outputs = StageObject.getOutputs(this);
+                        let n = -1;
+                        while (outputs[++n]) {
+                            outputs[n].push(event);
+                        }
+                    } catch (error) {
+                        console.error('Error processing message:', error);
+                    }
+                };
+            };
+            
+            this.#peerConnections[peerId] = peerConnection;
         }
-    }
-
-    // Method to accept an answer
-    async acceptAnswer(id, answer) {
-        const peerConnection = this._getPeerConnection(id);
+        
+        const peerConnection = this.#peerConnections[peerId];
         
         try {
-            const rtcAnswer = new RTCSessionDescription(answer);
-            await peerConnection.setRemoteDescription(rtcAnswer);
-            console.log('RTCIn: Answer set as remote description');
-        } catch (error) {
-            console.error('RTCIn: Error accepting answer', error);
-            throw error;
-        }
-    }
-
-    // Method to add an ICE candidate
-    async addIceCandidate(id, candidate) {
-        const peerConnection = this._getPeerConnection(id);
-        
-        try {
-            await peerConnection.addIceCandidate(candidate);
-            console.log('RTCIn: Added ICE candidate');
-        } catch (error) {
-            console.error('RTCIn: Error adding ICE candidate', error);
-            throw error;
-        }
-    }
-
-    // Accept an offer and generate an answer
-    async acceptOffer(id, offer) {
-        const peerConnection = this._getPeerConnection(id);
-        
-        try {
-            const rtcOffer = new RTCSessionDescription(offer);
-            await peerConnection.setRemoteDescription(rtcOffer);
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+            
+            // Apply any pending candidates
+            if (this.#pendingCandidates[peerId]) {
+                const candidates = this.#pendingCandidates[peerId];
+                this.#pendingCandidates[peerId] = [];
+                
+                for (const candidate of candidates) {
+                    await peerConnection.addIceCandidate(candidate);
+                }
+            }
+            
             const answer = await peerConnection.createAnswer();
             await peerConnection.setLocalDescription(answer);
             return answer;
         } catch (error) {
-            console.error('RTCIn: Error accepting offer', error);
-            throw error;
+            console.error('Error creating answer:', error);
+            return null;
         }
     }
-
-    get connection() {
-        return this.#connectionId;
-    }
-
-    set connection(id) {
-        this.#connectionId = id;
-        this.#connection = this.#peerConnections[id];
-        if (!this.#connection) return;
-        const outputs = StageObject.getOutputs(this);
-        updateOutputs(outputs, this.#connection);
-    }
-
+    
     output(n = 0) {
         const outputs = StageObject.getOutputs(this);
         if (n >= outputs.size) {
-            throw new Error('StageObject attempt to get .output(' + n + '), object has ' + outputs.size + ' outputs');
+            throw new Error('RTCIn attempt to get .output(' + n + '), object has ' + outputs.size + ' outputs');
         }
 
         return outputs[n] || (outputs[n] = assign(
@@ -193,8 +154,19 @@ export default class RTCIn extends StageObject {
             { object: this }
         ));
     }
+    
+    // Clean up on destruction
+    destroy() {
+        // Close all peer connections
+        Object.values(this.#peerConnections).forEach(connection => {
+            if (connection.connectionState !== 'closed') {
+                connection.close();
+            }
+        });
+        
+        // Leave the signaling room
+        signaling.leaveRoom();
+        
+        return super.destroy();
+    }
 };
-
-define(RTCIn.prototype, {
-    connection: { enumerable: true }
-});
