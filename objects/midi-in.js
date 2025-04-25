@@ -72,18 +72,19 @@ MIDIIn()
 **/
 
 export default class MIDIIn extends StageObject {
-    #ports = {};
     #port;
     #portId;
 
     constructor(transport, settings = {}) {
+        const ports   = {};
         const inputs  = { size: 0 };
         const outputs = { size: 16, names };
 
         super(transport, inputs, outputs, settings);
+        define(this, { ports: { value: ports }});
 
         MIDIInputs.each((port) => {
-            this.#ports[port.id] = port;
+            ports[port.id] = port;
             if (this.#portId === port.id) this.port = port.id;
         });
     }
@@ -93,9 +94,10 @@ export default class MIDIIn extends StageObject {
     }
 
     set port(id) {
+        console.log('SET PORT', id);
         this.#portId = id;
-        this.#port = this.#ports[id];
-        if (!this.#port) return;
+        this.#port = this.ports[id];
+        if (!this.#port) throw new Error('MIDIIn port "' + id + '" not in ports');
         const outputs = StageObject.getOutputs(this);
         updateOutputs(outputs, this.#port);
     }

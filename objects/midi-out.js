@@ -6,9 +6,9 @@ import MIDIDistributor from '../modules/object/midi-distributor.js';
 import StageObject     from '../modules/stage-object.js';
 
 
-const assign   = Object.assign;
-const defaults = {};
-const names = Array.from({ length: 16 }, (n, i) => 'Channel ' + (i + 1));
+const assign = Object.assign;
+const define = Object.defineProperties;
+const names  = Array.from({ length: 16 }, (n, i) => 'Channel ' + (i + 1));
 
 
 /*
@@ -32,7 +32,6 @@ function updateInputs(inputs, port) {
 }
 
 export default class MIDIOut extends StageObject {
-    #ports = {};
     #port;
     #portId;
 
@@ -42,9 +41,10 @@ export default class MIDIOut extends StageObject {
         const outputs = { size: 0 };
 
         super(transport, inputs, outputs, settings);
+        define(this, { ports: { value: ports }});
 
         MIDIOutputs.each((port) => {
-            this.#ports[port.id] = port;
+            ports[port.id] = port;
             if (this.#portId === port.id) this.port = port.id;
         });
     }
@@ -54,9 +54,10 @@ export default class MIDIOut extends StageObject {
     }
 
     set port(id) {
+        console.log('SET PORT', id);
         this.#portId = id;
-        this.#port = this.#ports[id];
-        if (!this.#port) return;
+        this.#port = this.ports[id];
+        if (!this.#port) throw new Error('MIDIOut port "' + id + '" not in ports');
         const inputs = StageObject.getInputs(this);
         updateInputs(inputs, this.#port);
     }
