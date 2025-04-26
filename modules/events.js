@@ -5,7 +5,7 @@ import { toNoteNumber } from 'midi/note.js';
 import parseGain        from './parse/parse-gain.js';
 import parseFrequency   from './parse/parse-frequency.js';
 import parseFloat32     from './parse/parse-float-32.js';
-import { parseAddress, toPath, toRoute, toName, toNameNumber, NAMES, NAMENUMBERS, toType, toTypeNumber, TYPES, TYPENUMBERS } from './events/address.js';
+import { parseAddress, toPath, toRoute, toName, toNameNumber, NAMES, NAMENUMBERS, toType, toTypeNumber, TYPES, TYPENUMBERS, TYPEBITS } from './events/address.js';
 import parseEvents      from './parse/parse-events.js';
 import ceilPower2       from '../modules/dsp/ceil-power-2.js';
 
@@ -264,15 +264,26 @@ export default class Events extends Float32Array {
     }
 
     /**
-    Events.event(time, address, v1, v2)
+    Events.event(time, name, type, value1, value2)
     Creates a new events array containing a single event.
+    - time: Event time
+    - name: Event name (string or number)
+    - type: Event type (string or number, defaults to 'set')
+    - value1: First value parameter (defaults to 0)
+    - value2: Second value parameter (defaults to 0)
     **/
-    static event(time, path, v1 = 0, v2 = 0) {
+    static event(time, name, type = 'set', value1 = 0, value2 = 0) {
         const events = new Events(SIZE);
         events[0] = time;
-        events[1] = typeof path === 'string' ? parseAddress(path) : path ;
-        events[2] = v1;
-        events[3] = v2;
+        
+        // Convert name and type to their numeric values if they're strings
+        const nameNumber = typeof name === 'string' ? NAMENUMBERS[name] : name;
+        const typeNumber = typeof type === 'string' ? TYPENUMBERS[type] : type;
+        
+        // Construct the address by combining name and type
+        events[1] = (nameNumber << TYPEBITS) | typeNumber;
+        events[2] = value1;
+        events[3] = value2;
         return events;
     }
 

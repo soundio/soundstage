@@ -6,8 +6,9 @@ import StageObject from '../modules/stage-object.js';
 
 const assign   = Object.assign;
 const defaults = {
-    pointerdown: { 1: Events.parseAddress('start'), 2: 60, 3: 0.5 },
-    pointerup:   { 1: Events.parseAddress('stop'),  2: 60 }
+    behaviour: 'momentary',
+    down: { 1: Events.NAMENUMBERS.start, 2: 60, 3: 0.5 },
+    up:   { 1: Events.NAMENUMBERS.stop,  2: 60, 3: 0 }
 };
 
 
@@ -19,6 +20,6 @@ export default class Button extends StageObject {
         const outputs = { size: 1 };
 
         // extends Object
-        super(transport, inputs, outputs, assign({}, settings, defaults));
+        super(transport, inputs, outputs, assign({}, defaults, settings));
     }
 }

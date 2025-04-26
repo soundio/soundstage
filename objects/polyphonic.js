@@ -187,12 +187,10 @@ export default class Polyphonic extends GraphObject {
 
     destroy() {
         super.destroy();
-
         this.get('pitch').disconnect();
         this.get('modulation').disconnect();
         this.get('output').disconnect();
         this.#monophonics.forEach((monophonic) => monophonic.disconnect());
-
         return this;
     }
 

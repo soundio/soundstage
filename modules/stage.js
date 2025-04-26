@@ -168,7 +168,8 @@ export default class Soundstage extends Sequencer {
         });
 
         // Operate on Data proxy of objects so that changes are observed
-        Data.of(stage.objects).push(object.done(() => remove(stage.objects, object)));
+        Data.of(stage.objects).push(object);
+        //.done(() => remove(stage.objects, object)));
 
         log('Soundstage', 'create', type);
         return object;

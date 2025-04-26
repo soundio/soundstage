@@ -1,6 +1,6 @@
 
 import Signal            from 'fn/signal.js';
-import Stopable          from 'fn/stream/stopable.js';
+//import Stopable          from 'fn/stream/stopable.js';
 import Stream            from 'fn/stream/stream.js';
 import isMutableProperty from 'fn/is-mutable-property.js'
 import toDashCase        from 'fn/to-dash-case.js';
@@ -43,7 +43,7 @@ export default class StageObject {
 
     constructor(transport, inputs = 1, outputs = 1, settings) {
         // Mix in .done(fn) functionality from stopable
-        new Stopable(this);
+        //new Stopable(this);
 
         define(this, {
             // Define type as an immutable property
@@ -143,7 +143,7 @@ export default class StageObject {
         for (n in this.#outputs) if (/^\d/.test(n)) this.#outputs[n].stop();
 
         // Call done(fn) callbacks
-        Stopable.prototype.stop.apply(this);
+        //Stopable.prototype.stop.apply(this);
         return this;
     }
 
@@ -160,6 +160,8 @@ export default class StageObject {
     }
 }
 
+/*
 define(StageObject.prototype, {
     done: Object.getOwnPropertyDescriptor(Stopable.prototype, 'done')
 });
+*/

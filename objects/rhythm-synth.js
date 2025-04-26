@@ -61,7 +61,7 @@ export default class RhythmSynth extends StageObject {
         this.PLAY = () => {
             const events = this.events;
             let n = -1;
-            while (events[++n]) output0.push(Events.event(
+            while (events[++n]) output0.push(Events.of(
                 events[n][0] + (++h),
                 events[n][1],
                 events[n][2],

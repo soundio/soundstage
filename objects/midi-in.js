@@ -18,33 +18,32 @@ const assign = Object.assign;
 const define = Object.defineProperties;
 
 const createEvent = overload((time, message) => (message[0] >> 4), {
-    // Event time, address, value1, value2
+    // Event time, name, type, value1, value2
     // noteoff
-    8: (time, message) => Events.event(time, 'stop', message[1], int7ToFloat(message[2])),
+    8: (time, message) => Events.event(time, 'stop', 0, message[1], int7ToFloat(message[2])),
     // noteon
     9: (time, message) => message[2] === 0 ?
         // Velocity 0, really a noteoff
-        Events.event(time, 'stop', message[1], 0) :
+        Events.event(time, 'stop', 0, message[1], 0) :
         // Velocity > 0, noteon
-        Events.event(time, 'start', message[1], int7ToFloat(message[2])) ,
+        Events.event(time, 'start', 0, message[1], int7ToFloat(message[2])) ,
     // TODO polytouch
     10: noop,
     // Control messages - Soundstage event names correspond to MIDI control
-    // names for those in the first 128 that have standard names so we pass
-    // message[1] in directly as the event name, shifted left by TYPEBITS
+    // names for those in the first 128 that have standard names
     11: overload((time, message) => message[1], {
         // Balance and pan must be in the range -1 to 1, with MIDI 64 weighted to 0
-        [Events.NAMENUMBERS.balance]: (time, message) => Events.event(time, message[1] << TYPEBITS, int7ToSignedFloat(message[2])),
-        [Events.NAMENUMBERS.pan]:     (time, message) => Events.event(time, message[1] << TYPEBITS, int7ToSignedFloat(message[2])),
+        [Events.NAMENUMBERS.balance]: (time, message) => Events.event(time, message[1], 0, int7ToSignedFloat(message[2]), 0),
+        [Events.NAMENUMBERS.pan]:     (time, message) => Events.event(time, message[1], 0, int7ToSignedFloat(message[2]), 0),
         // Other controllers coerced to range 0 to 1
-        default: (time, message) => Events.event(time, message[1] << TYPEBITS, int7ToFloat(message[2]))
+        default: (time, message) => Events.event(time, message[1], 0, int7ToFloat(message[2]), 0)
     }),
     // program
     12: noop,
     // TODO channeltouch
     13: noop,
     // pitch
-    14: (time, message) => Events.event(time, 'pitch', toSignedFloat(message)),
+    14: (time, message) => Events.event(time, 'pitch', 0, toSignedFloat(message), 0),
     // polytouch
     default: (time, message) => console.log('Unhandled MIDI message', message)
 });
