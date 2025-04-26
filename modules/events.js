@@ -58,6 +58,12 @@ export function isStopEvent(events, i = 0) {
     return toNameNumber(events[i + 1]) === NAMENUMBERS.stop;
 }
 
+export function isStartStopEvent(events, i = 0) {
+    const name = toNameNumber(events[i + 1]);
+console.log('NAME', name);
+    return name === NAMENUMBERS.start || name === NAMENUMBERS.stop;
+}
+
 export function isRateEvent(events, i = 0) {
     return toNameNumber(events[i + 1]) === NAMENUMBERS.rate;
 }
@@ -275,11 +281,11 @@ export default class Events extends Float32Array {
     static event(time, name, type = 'set', value1 = 0, value2 = 0) {
         const events = new Events(SIZE);
         events[0] = time;
-        
+
         // Convert name and type to their numeric values if they're strings
         const nameNumber = typeof name === 'string' ? NAMENUMBERS[name] : name;
         const typeNumber = typeof type === 'string' ? TYPENUMBERS[type] : type;
-        
+
         // Construct the address by combining name and type
         events[1] = (nameNumber << TYPEBITS) | typeNumber;
         events[2] = value1;
@@ -309,6 +315,7 @@ export default class Events extends Float32Array {
     static isRateEvent  = isRateEvent;
     static isStartEvent = isStartEvent;
     static isStopEvent  = isStopEvent;
+    static isStartStopEvent = isStartStopEvent;
 
     static SIZE         = SIZE;
     static NAMES        = NAMES;
