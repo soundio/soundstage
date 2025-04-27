@@ -81,9 +81,9 @@ export default class Tick extends Graph {
     }
 
     static config = {
-        gain:      { min: 0, max: toGain(6),  law: 'log-24db', display: 'db', unit: 'dB' },
-        resonance: { min: 0,       max: 22,   law: 'log-24db' },
-        attack:    { min: 0.00005, max: 0.05, law: 'log-24db', unit: 's' },
-        release:   { min: 0.001,   max: 1,    law: 'log-48db', unit: 's' }
+        gain:      { min: toGain(-36), max: toGain(6), law: 'log', display: 'db', unit: 'dB' },
+        resonance: { min: 0,           max: 25,        law: 'log-24db' },
+        attack:    { min: 0.00016,     max: 0.032,     law: 'log-24db', unit: 's' },
+        release:   { min: 0.001,       max: 1,         law: 'log-48db', unit: 's' }
     }
 }

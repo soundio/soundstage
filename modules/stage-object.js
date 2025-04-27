@@ -1,4 +1,5 @@
 
+import Data              from 'fn/data.js';
 import Signal            from 'fn/signal.js';
 //import Stopable          from 'fn/stream/stopable.js';
 import Stream            from 'fn/stream/stream.js';
@@ -7,31 +8,11 @@ import toDashCase        from 'fn/to-dash-case.js';
 import Distributor       from './object/distributor.js';
 import enumerableToJSON  from './object/enumerable-to-json.js';
 import ParamSignal       from './param-signal.js';
-import { isAudioParamLike } from './param.js';
+import { isAudioParamLike, isAudioParam } from './param.js';
 
 
 const assign = Object.assign;
 const define = Object.defineProperties;
-
-
-function assignSettings(object, settings) {
-    let name;
-    for (name in settings) {
-        if (name === 'id' || name === 'type' || name === 'style') continue;
-        if (name === 'data') throw new Error('ASSIGNING DATA');
-        try {
-            // If object[name] is already an object recursively jump in and apply
-            // settings to it
-            if (typeof object[name] === 'object') assignSettings(object[name], settings[name]);
-            // Otherwise just assign the property
-            else object[name] = settings[name];
-        }
-        catch(e) {
-            console.warn('StageObject setting "' + name + '" not assigned');
-        }
-    }
-    return object;
-}
 
 
 /** StageObject() **/
@@ -71,7 +52,7 @@ export default class StageObject {
         for (n in this.#outputs) if (/^\d/.test(n)) this.#outputs[n].object = this;
 
         // Apply settings
-        assignSettings(this, settings);
+        if (settings) StageObject.assign(this, settings);
     }
 
     /**
@@ -158,7 +139,43 @@ export default class StageObject {
     static getOutputs(object) {
         return object.#outputs;
     }
+
+    static assign(object, settings) {
+        let name;
+        for (name in settings) {
+            if (name === 'id' || name === 'type' || name === 'style') continue;
+            if (name === 'data') throw new Error('ASSIGNING DATA');
+            try {
+                // If object[name] is an AudioParam
+                if (isAudioParam(object[name])) {
+                    object[name].value = settings[name];
+
+                    // If object is a proxy clearly we expect the change to be
+                    // observed, so invalidat the signal where there is one.
+                    // Nasty that this kind of logic is leaking through to here.
+                    if (Data.of(object) === object && object[name].signal) {
+                        object[name].signal.invalidateUntil();
+                    }
+                }
+                // If object[name] is already an object jump in and recursively
+                // apply settings to it
+                else if (typeof object[name] === 'object' && typeof settings[name] === 'object') {
+                    StageObject.assign(object[name], settings[name]);
+                }
+                // Otherwise just assign the property
+                else {
+                    object[name] = settings[name];
+                }
+            }
+            catch(e) {
+                console.warn('StageObject setting "' + name + '" not assigned');
+            }
+        }
+
+        return object;
+    }
 }
+
 
 /*
 define(StageObject.prototype, {

@@ -15,16 +15,15 @@ const define = Object.defineProperties;
 
 
 export default class Sequencer extends StageObject {
-    #status;
     #sequences = {};
 
     constructor(transport, settings = {}) {
         super(transport, 1, 1024);
 
-        // Mix in playable
+        // Mix in playable for .start(), .stop(), .startTime, .stopTime and .status
         new Playable(transport.context, this);
 
-
+        // Define .events
         this.events = settings.events ?
             // Is it an Events object or Float32Array already?
             settings.events instanceof Float32Array ? settings.events :
@@ -37,7 +36,8 @@ export default class Sequencer extends StageObject {
             // Create an empty events array
             new Events({ size: 0, maxSize: 128 }) ;
 
-        this.sequences  = settings.sequences || [];
+        // Define .sequences
+        this.sequences = settings.sequences || [];
     }
 
     start(time, id = 0) {
@@ -63,8 +63,6 @@ export default class Sequencer extends StageObject {
 
         // If transport is not running run it
         if (transport.status === 'idle') transport.start(this.startTime);
-
-        this.#status.invalidateUntil(this.startTime);
         return this;
     }
 
@@ -79,11 +77,9 @@ export default class Sequencer extends StageObject {
         }
 
 console.log('Sequencer.stop()', this.stopTime);
-        Playable.prorotype.stop.call(this, time);
+        Playable.prototype.stop.call(this, time);
         const transport = this.transport;
         for (id in this.#sequences) this.stop(transport.beatAtTime(this.stopTime), id);
-
-        this.#status.invalidateUntil(this.stopTime);
         return this;
     }
 }

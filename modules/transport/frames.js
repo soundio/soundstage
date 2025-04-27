@@ -76,8 +76,8 @@ export default class Frames extends Stream {
 
     // Override Stream's methods to prevent consumers from directly controlling
     // the stream
-    start = null;
-    stop  = null;
+    //start = null;
+    //stop  = null;
 
     timeAtBeat(beat) {
         return this.transport.timeAtBeat(beat);

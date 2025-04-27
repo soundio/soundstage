@@ -3,7 +3,8 @@ NodeObject(transport, node)
 A wrapper for a single AudioNode that implements the AudioObject interface.
 **/
 
-import AudioObject from './audio-object.js';
+import AudioObject      from './audio-object.js';
+import { create }       from './nodes.js';
 import { isAudioParam } from './param.js';
 
 const define = Object.defineProperties;
@@ -13,9 +14,15 @@ export default class NodeObject extends AudioObject {
         // AudioObject constructor with inputs and outputs
         super(transport, inputs, outputs);
 
-        // Attach node
+        // Define .node
         define(this, {
-            node: { value: node, writable: true }
+            node: {
+                value: typeof node === 'string' ?
+                    create(transport.context, 'tick') :
+                    node,
+                // Writable here simply to support Data proxies. Yes, meh.
+                writable: true
+            }
         });
 
         // Expose params of node
