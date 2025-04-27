@@ -1,0 +1,3 @@
+[submodule "nodes/dattoro-reverb"]
+	path = nodes/dattoro-reverb
+	url = git@github.com:soundio/DattorroReverbNode.git

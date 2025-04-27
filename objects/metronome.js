@@ -13,7 +13,7 @@ export default class Metronome extends NodeObject {
     #playstream;
 
     constructor(transport, settings) {
-        super(transport, 'tick');
+        super(transport, 'tick', 0, 0);
 
         // Mix in .start(), .stop(), .status
         new Playable(transport.context, this);

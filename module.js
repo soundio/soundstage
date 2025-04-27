@@ -4,6 +4,7 @@ import Soundstage     from './modules/stage.js';
 
 import Envelope       from './nodes/envelope.js';
 import Enveloper      from './nodes/enveloper.js';
+import DattoroReverbNode from './nodes/dattoro-reverb.js';
 import Flanger        from './nodes/flanger.js';
 import Meter          from './nodes/meter.js';
 import Noise          from './nodes/noise.js';
@@ -31,6 +32,7 @@ nodes.register('tone',            Tone);
 nodes.register('saturator',       Saturator);
 nodes.register('buffer-recorder', BufferRecorder);
 nodes.register('tape-saturator',  TapeSaturator);
+nodes.register('dattoro-reverb',  DattoroReverbNode);
 
 
 // Register objects
@@ -41,11 +43,13 @@ import AudioOut        from './objects/audio-out.js';
 import Merger          from './objects/merger.js';
 import Splitter        from './objects/splitter.js';
 import Compressor      from './objects/compressor.js';
+import DattoroReverb   from './objects/dattoro-reverb.js';
 import Delay           from './objects/delay.js';
 import EQ              from './objects/eq.js';
 import Filter          from './objects/filter.js';
 import FlangerObject   from './objects/flanger.js';
 import Gain            from './objects/gain.js';
+import ImpulseReverb   from './objects/impulse-reverb.js';
 import Looper          from './objects/looper.js';
 import MeterObject     from './objects/meter.js';
 import MetronomeObject from './objects/metronome.js';
@@ -70,11 +74,13 @@ Soundstage.register(
     AudioIn,
     AudioOut,
     Compressor,
+    DattoroReverb,
     Delay,
     EQ,
     Filter,
     FlangerObject,
     Gain,
+    ImpulseReverb,
     Looper,
     Merger,
     MeterObject,
