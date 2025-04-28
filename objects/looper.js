@@ -4,6 +4,7 @@ Looper(transport, options)
 A recorder/looper that can record and play back audio loops.
 **/
 
+import Data           from 'fn/data.js';
 import mod            from 'fn/mod.js';
 import GraphObject    from '../modules/graph-object.js';
 import Playable       from '../modules/playable.js';
@@ -255,7 +256,7 @@ export default class Looper extends GraphObject {
         }
 
         this.latency = getPerformanceLatency(this.context);
-        this.recordTime = this.context.currentTime - (
+        Data.of(this).recordTime = this.context.currentTime - (
             this.latencyCompensation ? this.latency : 0
         );
 
@@ -266,6 +267,9 @@ export default class Looper extends GraphObject {
     .start(time)
     **/
     start(time) {
+        // Make sure we are not calling .start() on data proxy
+        if (this === Data.of(this)) return Data.objectOf(this).start(time);
+
         const context   = this.context;
         const transport = this.transport;
 
@@ -315,8 +319,8 @@ export default class Looper extends GraphObject {
             this.get('rate').connect(loop.get('rateinput'));
             loop.connect(this.get('output'));
 
-            // Add to loops
-            this.loops.push(loop);
+            // Add to loops and make the change observable
+            Data.of(this.loops).push(loop);
 
             loop.start(startTime - startOffset);
 
@@ -392,7 +396,11 @@ export default class Looper extends GraphObject {
         return this.loops.map(async (loop) => await loop.saveAudioBuffers(fn));
     }
 
-    static config = {};
+    static config = {
+        sync:                { label: 'Tempo sync' },
+        latencyCompensation: { label: 'Latency compensation' },
+        spread:              { label: 'Spread panning' },
+    };
 }
 
 Object.defineProperties(Looper.prototype, {
