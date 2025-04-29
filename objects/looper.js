@@ -155,20 +155,16 @@ export default class Looper extends GraphObject {
         super(transport, graph);
         // Mix in playable
         new Playable(transport.context, this);
-
+this.tings = [];
         this.loops               = [];
         this.latencyCompensation = true;
         this.fadeDuration        = 0.006;
         this.beats               = options?.beats || 0;
         this.autoBeats           = options?.autoBeats || 4;
 
-        Object.defineProperty(this, 'numberOfOutputs', {
-            value: 1
-        });
-
+        Object.defineProperty(this, 'numberOfOutputs', { value: 1 });
         transport.connect(this.get('rate'));
     }
-
 
     /**
     .duration
@@ -356,7 +352,7 @@ export default class Looper extends GraphObject {
             while (loop = this.loops[++n]) loop.start(this.startTime, rate);
         }
 
-        this.recordTime = undefined;
+        Data.of(this).recordTime = undefined;
         return this;
     }
 
