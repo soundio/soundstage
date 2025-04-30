@@ -75,7 +75,7 @@ export default class Playable extends id {
     start(time) {
         time = time === undefined ?
             this.context.currentTime :
-            Math.fround(time) ;
+            time;
 
         if (DEBUG && this.status !== IDLE) {
             throw new Error('Attempt to start a ' + this.constructor.name + ' at ' + time.toFixed(3) + 's that is cued or playing');
@@ -100,7 +100,7 @@ export default class Playable extends id {
     stop(time) {
         time = time === undefined ?
             this.context.currentTime :
-            Math.fround(time);
+            time;
 
         if (DEBUG && this.status === IDLE) {
             throw new Error('Attempt to stop a ' + this.constructor.name + ' at ' + time.toFixed(3) + 's that is stopped');

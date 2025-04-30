@@ -4,7 +4,7 @@ import overload         from 'fn/overload.js';
 import { toNoteNumber } from 'midi/note.js';
 import parseGain        from './parse/parse-gain.js';
 import parseFrequency   from './parse/parse-frequency.js';
-import parseFloat32     from './parse/parse-float-32.js';
+//import parseFloat32     from './parse/parse-float-32.js';
 import { parseAddress, toPath, toRoute, toName, toNameNumber, NAMES, NAMENUMBERS, toType, toTypeNumber, TYPES, TYPENUMBERS, TYPEBITS } from './events/address.js';
 import parseEvents      from './parse/parse-events.js';
 import ceilPower2       from '../modules/dsp/ceil-power-2.js';
@@ -82,13 +82,13 @@ export {
     toTypeNumber
 };
 
-export default class Events extends Float32Array {
-    // Override Float32Array length
+export default class Events extends Float64Array {
+    // Override Float64Array length
     length = 0;
 
     /**
     Events(buffer, byteOffset, length)
-    Events carries the same signature as the underlying Float32Array constructor
+    Events carries the same signature as the underlying Float64Array constructor
     that it subclasses.
     **/
     constructor(buffer, byteOffset, length) {
@@ -122,7 +122,7 @@ export default class Events extends Float32Array {
             throw new RangeError(`Events.eventAt() ${ n } out of bounds (0-${this.length - SIZE})`);
         }
 
-        return new Events(this.buffer, this.byteOffset + n * SIZE * Float32Array.BYTES_PER_ELEMENT, SIZE);
+        return new Events(this.buffer, this.byteOffset + n * SIZE * Float64Array.BYTES_PER_ELEMENT, SIZE);
     }
 
     /**
@@ -131,7 +131,7 @@ export default class Events extends Float32Array {
     event `n2`.
     **/
     eventsAt(n1, n2 = n1 + 1) {
-        return new Events(this.buffer, this.byteOffset + Float32Array.BYTES_PER_ELEMENT * n1 * SIZE, (n2 - n1) * SIZE);
+        return new Events(this.buffer, this.byteOffset + Float64Array.BYTES_PER_ELEMENT * n1 * SIZE, (n2 - n1) * SIZE);
     }
 
     /**
@@ -250,7 +250,7 @@ export default class Events extends Float32Array {
                 // Data is an array buffer
                 data instanceof ArrayBuffer ?
                     new Events(data, 0, maxSize * SIZE) :
-                data instanceof Float32Array ?
+                data instanceof Float64Array ?
                     new Events(data.buffer, data.byteOffset, maxSize * SIZE) :
                 // Detect human readable events array
                 data.find((info) => typeof info === 'string') ?
@@ -259,7 +259,7 @@ export default class Events extends Float32Array {
                 assign(new Events(maxSize * SIZE), data, { length: data.length }) :
             // Data is an array buffer
             data instanceof ArrayBuffer ?
-                new Events(data, 0, data.maxByteLength / Float32Array.BYTES_PER_ELEMENT) :
+                new Events(data, 0, data.maxByteLength / Float64Array.BYTES_PER_ELEMENT) :
             // Detect human readable events array
             data.find((info) => typeof info === 'string') ?
                 parseArray(data) :

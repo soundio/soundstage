@@ -25,8 +25,8 @@ export default class Sequencer extends StageObject {
 
         // Define .events
         this.events = settings.events ?
-            // Is it an Events object or Float32Array already?
-            settings.events instanceof Float32Array ? settings.events :
+            // Is it an Events object or Float64Array already?
+            settings.events instanceof Float64Array ? settings.events :
             // Or another sort of array, that may need parsing?
             settings.events.length !== undefined ? Events.from(settings.events) :
             // A string, god forbid?

@@ -63,7 +63,7 @@ export default class Sequence extends Stream {
     constructor(events, distributor, transform = id) {
         super();
 
-        this.events = events instanceof Float32Array ?
+        this.events = events instanceof Float64Array ?
             events :
             Events.from(events) ;
 
@@ -151,7 +151,7 @@ export default class Sequence extends Stream {
             throw new Error('Attempt to start a started ' + this.constructor.name + ' at location ' + location.toFixed(3));
         }
 
-        this.startLocation = Math.fround(location);
+        this.startLocation = location;
 //console.log('Sequence.start()', this.startLocation);
         // Set the beats cache with a start beat
         //this.#beatsCache[this.startLocation] = beat;

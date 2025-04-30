@@ -12,12 +12,16 @@ if (!window.crossOriginIsolated) {
 }
 
 function validateGetAudioBuffer(recorder, startTime, stopTime, fadeDuration, buffer, index) {
-    if (stopTime > recorder.context.currentTime) {
-        throw new Error(`BufferRecorder: cannot get buffer that stops (${ stopTime.toFixed(3) }) after currentTime (${ recorder.context.currentTime.toFixed(3) }). It hasn't happened yet.`);
+    //console.log(stopTime,  recorder.context.currentTime);
+
+    const time = recorder.context.currentTime;
+window.c2 = recorder.context;
+    if (stopTime > time) {
+        throw new Error(`BufferRecorder: cannot get buffer that stops (${ stopTime }) after currentTime (${ time }). It hasn't happened yet.`);
     }
 
-    if (startTime - fadeDuration < recorder.context.currentTime - recorder.maxDuration) {
-        throw new Error(`BufferRecorder: cannot get buffer at a startTime (${ startTime.toFixed(3) }) before currentTime (${ recorder.context.currentTime.toFixed(3) }) less buffer duration (${ recorder.maxDuration.toFixed(3) })`);
+    if (startTime - fadeDuration < time - recorder.maxDuration) {
+        throw new Error(`BufferRecorder: cannot get buffer at a startTime (${ startTime.toFixed(3) }) before currentTime (${ time.toFixed(3) }) less buffer duration (${ recorder.maxDuration.toFixed(3) })`);
     }
 
     if (buffer && buffer.numberOfChannels < recorder.channelCount) {

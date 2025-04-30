@@ -206,10 +206,6 @@ export function getValueAtTime(param, time) {
             time
         ) :
         getValueAtEvent(events, n, time) ;
-
-
-    // Round to 32-bit floating point
-    //return Math.fround(getEventsValueAtTime(events, time));
 }
 
 
@@ -255,11 +251,11 @@ export function beatAtTimeOfAutomation(automation, time, cache = {}) {
     const v2 = automation[n + 6];
 
     // Cache and return beat at t1 plus number of beats between t1 and time
-    return cache[time] = Math.fround(b1 + (
+    return cache[time] = b1 + (
         time === t1 ? 0 :
         c2 === TYPENUMBERS.exponential ? beatAtTimeExponential(v1, v2, t2 - t1, time - t1) :
         beatAtTimeStep(v1, time - t1)
-    ));
+    );
 }
 
 
@@ -292,10 +288,10 @@ export function timeAtBeatOfAutomation(automation, beat, cache = {}) {
     const v2 = automation[n + 6];
 
     // Return 32bit time at b1 plus time between b1 and beat
-    return Math.fround(t1 + (
+    return t1 + (
         beat === b1 ? 0 :
         // TODO!!!!! b2 is not defined ?????
         c2 === TYPENUMBERS.exponential ? timeAtBeatExponential(v1, v2, b2 - b1, beat - b1) :
         timeAtBeatStep(v1, beat - b1)
-    ));
+    );
 }

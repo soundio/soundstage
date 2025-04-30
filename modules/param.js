@@ -188,14 +188,14 @@ function scheduleEvents(param, time, events, rate = 1, scale = 1) {
 }
 
 /**
-scheduleFloat32(param, time, events, rate, scale)
+scheduleFloats(param, time, events, rate, scale)
 Schedule events (without adding them to internal automation tracking) from a
 Float32Array of the form `[time, curve, value, duration, ...]`. Returns time at
 which the schedule is finished (where the last event is a `"target"` event,
 time returned is the equivalent t60 time for that event's time constant).
 **/
 
-function scheduleFloat32(param, time, events, rate = 1, scale = 1) {
+function scheduleFloats(param, time, events, rate = 1, scale = 1) {
     if (!events.length) return time;
 
     let event, t, c, v, d;
@@ -222,7 +222,7 @@ Schedule events from an array of events or an array of Float32 numbers.
 
 export function schedule(param, time, events, rate, scale) {
     time = typeof events[0] === 'number' ?
-        scheduleFloat32(param, time, events, rate, scale) :
+        scheduleFloats(param, time, events, rate, scale) :
         scheduleEvents(param, time, events, rate, scale) ;
 
     // If param has a signal invalidate it

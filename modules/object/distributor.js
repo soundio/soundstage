@@ -11,15 +11,16 @@ const assign = Object.assign;
 function distribute(object, event) {
     // Route to actual implementation object TODO: Nail your flag to the mast!
     object = object.node || object;
-
+console.log(1, 'distribute', event);
     // Get route, which contains name and type info
     const name = toName(event[1]);
     if (!(name in object)) {
         console.warn('Object', `event dropped, no property "${name}" in object`, event);
         return;
     }
-
+console.log(1, 'distribute', event, name);
     const type = toTypeNumber(event[1]);
+console.log(1, 'distribute', event, name, type);
     if (isAudioParam(object[name])) {
         // We need to import schedule from param.js
         return object[name].setValueAtTime(event[2], event[0]);

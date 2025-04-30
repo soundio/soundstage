@@ -108,7 +108,7 @@ export default class Transport extends Playable {
 
         const automation = getAutomation(this.#node.offset);
         // Keep the cache clean by ensuring we are dealing with 32bit time
-        return beatAtTimeOfAutomation(automation, Math.fround(time), this.#beatsCache);// - startBeat;
+        return beatAtTimeOfAutomation(automation, time, this.#beatsCache);// - startBeat;
     }
 
     /**
